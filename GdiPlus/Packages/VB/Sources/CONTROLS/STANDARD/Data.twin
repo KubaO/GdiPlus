@@ -1,0 +1,938 @@
+#If FEATURE_DATA_BINDINGS Then
+[ComImport(True)]
+[InterfaceId("1B2716AE-9F77-4E01-B8F0-C1091CDFE1B0")]
+Private Interface TbDataControlPrivate Extends stdole.IUnknown
+    Sub RebindControl(Binder As DataFieldBinderBase, DataField As String)
+End Interface
+#endif
+
+#If FEATURE_DATA And FEATURE_DATA_BINDINGS Then
+[ClassId("5A3E88EC-F603-4596-9F3D-2E3F3376C815")]
+[InterfaceId("6B6C5D2C-22F7-45FD-B9D8-3ED6ED41D069")]    ' FIXME implement {33AD4FF9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class DataBaseCtl
+    
+    #Region "INHERITANCE"
+    
+        Inherits BaseControlFocusable
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements DataSource
+        Implements TbDataControlPrivate
+        Implements IWindowElementEventsCommon
+        
+        Protected InternalDBEngine As IDAODBEngine
+        Protected InternalWorkspace As DAOWorkspace
+        Protected InternalDatabase As DAODatabase
+        Protected WithEvents InternalRecordset As DAORecordset
+                
+    #End Region
+        
+    #Region "STATE"
+        
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+
+            Public BOFAction As VBRUN.DataBOFconstants
+            Public EOFAction As VBRUN.DataEOFConstants
+        [Serialize(True, "Caption")]
+            Protected Caption_INIT As String
+            Public Connect As String = "Access 2000;"
+            Public DatabaseName As String
+            Public DefaultCursorType As VBRUN.DefaultCursorTypeConstants
+            Public DefaultType As VBRUN.DatabaseTypeConstants = VBRUN.DatabaseTypeConstants.vbUseJet
+            Public Exclusive As Boolean
+        [Unimplemented]
+            Public Negotiate As Boolean
+            Public Options As Long
+            Public [ReadOnly] As Boolean
+            Public RecordsetType As VBRUN.RecordsetTypeConstants = VBRUN.RecordsetTypeConstants.vbRSTypeDynaset
+            Public RecordSource As String
+            
+        #If FEATURE_HELP Then
+        [Unimplemented]
+            Public Sub ShowWhatsThis()
+            End Sub
+        
+            Public WhatsThisHelpID As Long
+        #End If
+    
+        #If FEATURE_OLEDRAGDROP Then
+        [CustomDesigner("designer_RestrictedOLEDropMode")]
+            Public OLEDropMode As VBRUN.OLEDropConstants
+        #End If
+        
+        [Unimplemented]
+            Public RightToLeft As Boolean
+            
+        [Serialize(False)]
+        [Unimplemented]
+            Public _Default As String
+            Attribute _Default.VB_VarUserMemId = 0
+
+        [Serialize(False)]
+            Public Property Get Database() As Object       ' FIXME should be DAO.Database
+                Return InternalDatabase
+            End Property
+        [Serialize(False)]
+            Public Property Get Recordset() As Object       ' FIXME should be DAO.Recordset
+                Return InternalRecordset
+            End Property
+            
+            Public Property Set Recordset(NewRecordset As Object)
+                Set Me.InternalRecordset = Nothing
+                Set Me.InternalDatabase = Nothing
+                If NewRecordset Is Nothing Then
+                    ' FIXME what about all the other properties?
+                Else
+               ' Stop
+                    Set Me.InternalRecordset = CType(Of IDAORecordset)(NewRecordset)
+                    Set Me.InternalDatabase = InternalRecordset.Parent
+                    
+                    ' FIXME need to work out DefaultType for the workspace
+                    ' FIXME need to work out DefaultCursorDriver for the workspace
+                    Me.DatabaseName = InternalDatabase.Name
+                    Me.Connect = InternalDatabase.Connect
+                    Me.ReadOnly = (InternalDatabase.Updatable = False)
+                    Me.RecordsetType = CType(Of RecordsetTypeConstants)(InternalRecordset.Type)
+                    Me.RecordSource = InternalRecordset.Name
+                    
+                    Select Case InternalRecordset.Type
+                        Case 1: Me.RecordsetType = vbRSTypeTable 'dbOpenTable
+                        Case 2: Me.RecordsetType = vbRSTypeDynaset ' dbOpenDynaset
+                        Case 4: Me.RecordsetType = vbRSTypeSnapShot ' dbOpenSnapshot
+                    End Select
+                    'Me.Exclusive ??
+                    'Me.Options ??
+                    
+                    RebindAllFields()
+                    SyncBoundFieldsToRecordset()
+                    RaiseEvent Reposition()         ' this seems to be correct positioning to match VBx (i.e. bound fields ARE already synced at this point, for Refresh())
+                End If
+            End Property
+
+
+        Protected moveFirstButtonRect As tbRECT
+        Protected movePrevButtonRect As tbRECT
+        Protected moveNextButtonRect As tbRECT
+        Protected moveLastButtonRect As tbRECT
+        Protected activebutton As Long
+        Protected hoverbutton As Long
+        Protected Bindings() As DataFieldBinderBase
+        Protected IsDesignMode As Boolean
+        Protected IsSyncingToControls As Boolean
+        Protected RecordsetIsDirty As Boolean = False
+        Protected ForceClearBoundControls As Boolean
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #end if
+        
+        [Unimplemented]
+            Public Sub UpdateRecord()
+            End Sub
+
+    #End Region
+
+    #Region "EVENTS"
+    
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) ' new to tB
+        Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        [Unimplemented] Event Error(DataErr As Integer, Response As Integer)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        Event Reposition()
+        [Unimplemented] Event Resize()
+        [DispId(&HEAEA000D)]
+        [DefaultDesignerEvent]
+            Event Validate(Action As Integer, Save As Integer)
+            
+    #End Region
+               
+    #Region "MEMBERS"
+        
+        Public Sub New()
+            BaseControlFocusable.New(ControlTypeConstants.vbDataControl)
+        End Sub
+    
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateReset()     ' resets all the base class state
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            
+            Dim blankRECT As tbRECT
+            Me.[_Default] = vbNullString
+            Set Me.InternalDBEngine = Nothing
+            Set Me.InternalWorkspace = Nothing
+            Set Me.InternalDatabase = Nothing
+            Set Me.InternalRecordset = Nothing
+            moveFirstButtonRect = blankRECT
+            movePrevButtonRect = blankRECT
+            moveNextButtonRect = blankRECT
+            moveLastButtonRect = blankRECT
+            Me.activebutton = 0
+            Me.hoverbutton = 0
+            Erase Bindings
+            Me.IsSyncingToControls = False
+            Me.ForceClearBoundControls = False
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                Caption_INIT = "Data"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderData)
+            InitData.Caption = Me.Caption_INIT
+            'InitData.WindowStyles = 0
+            InitData.ExtendedStyles = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+            InitData.Flags = ForwardDragOver
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            #If FEATURE_OLEDRAGDROP Then
+                InitOleDragDropHelper()
+            #end If
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, True, False)
+        End Sub
+        #end if
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+                
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            
+            Erase Bindings
+            
+            Set Me.Font = Nothing
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            RaiseEvent MouseWheel(Delta, Horizontal)
+        End Sub
+        
+    Enum CursorDriverEnum
+        dbUseDefaultCursor = -1                              ' &HFFFFFFFF&
+        dbUseODBCCursor = 1                                  ' &H00000001&
+        dbUseServerCursor = 2                                ' &H00000002&
+        dbUseClientBatchCursor = 3                           ' &H00000003&
+        dbUseNoCursor = 4                                    ' &H00000004&
+    End Enum
+    
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            RaiseEvent Initialize()
+            
+            If Me.IsDesignMode = False Then
+                If (Len(DatabaseName) > 0) AndAlso (Len(RecordSource) > 0) Then
+                    ConnectRecordset(True)
+                End If
+            End If
+            
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #end if
+        End Sub
+        
+        Protected Sub ConnectRecordset(ByVal EarlyRepositionEvent As Boolean)
+'            Stop
+            Set Me.InternalRecordset = Nothing
+            Set Me.InternalDatabase = Nothing
+            
+            If Me.DefaultType = vbUseACE Then
+                Set Me.InternalDBEngine = New DAODBEngineACE        ' use the Microsoft Access ACE database engine
+            Else
+                Set Me.InternalDBEngine = New DAODBEngine
+                Me.InternalDBEngine.DefaultType = Me.DefaultType
+            End If
+            
+            Set Me.InternalWorkspace = CType(Of DAOWorkspace)(Me.InternalDBEngine.CreateWorkspace("", "admin", ""))
+            
+            If Me.DefaultType = vbUseODBC Then
+                Dim cursorDriver As Long = 0
+                Select Case Me.DefaultCursorType
+                    Case vbUseDefaultCursor: cursorDriver = -1 ' dbUseDefaultCursor
+                    Case vbUseODBCCursor: cursorDriver = 1 ' dbUseODBCCursor
+                    Case vbUseServersideCursor: cursorDriver = 2 ' dbUseServerCursor
+                End Select
+                Me.InternalWorkspace.DefaultCursorDriver = cursorDriver
+            End If
+                                            
+            Dim connectStr As String = Me.Connect
+            
+            ' FIXME need to look at these more closely.
+            If Left(connectStr, 12) = "Access 2000;" Then connectStr = "MS Access;" & Right$(connectStr, Len(connectStr) - 12)
+            If connectStr = "Access" Then connectStr = "MS Access"
+
+            Set Me.InternalDatabase = Me.InternalWorkspace.OpenDatabase(Me.DatabaseName, Me.Exclusive, Me.ReadOnly, connectStr)
+            Dim rcdsetType As Long
+            Select Case Me.RecordsetType
+                Case vbRSTypeTable: rcdsetType = 1  'dbOpenTable
+                Case vbRSTypeDynaset: rcdsetType = 2 ' dbOpenDynaset
+                Case vbRSTypeSnapShot: rcdsetType = 4 ' dbOpenSnapshot
+            End Select
+            Dim lockEditFlags As Long = 3 'dbOptimistic, FIXME what does VB6 use?
+            Set Me.InternalRecordset = Me.InternalDatabase.OpenRecordset(Me.RecordSource, rcdsetType, Me.Options, lockEditFlags)
+            
+            RebindAllFields()
+            If EarlyRepositionEvent Then RaiseEvent Reposition()         ' this seems to be correct positioning to match VBx (i.e. bound fields not synced at this point)
+            SyncBoundFieldsToRecordset()
+            If Not EarlyRepositionEvent Then RaiseEvent Reposition()         ' this seems to be correct positioning to match VBx (i.e. bound fields ARE already synced at this point, for Refresh())
+        End Sub
+        
+        Protected Function IsBOFSafe() As Boolean
+            On Error Resume Next
+            If Me.InternalRecordset IsNot Nothing Then
+           	    Return Me.InternalRecordset.BOF
+            End If
+            Return False
+        End Function
+        
+        Protected Function IsEOFSafe() As Boolean
+            On Error Resume Next
+            If Me.InternalRecordset IsNot Nothing Then
+                Return Me.InternalRecordset.EOF And (Me.InternalRecordset.EditMode <> 2)    ' 2 == AddNew
+            End If
+            Return False
+        End Function
+        
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+        	    Implements IWindowElementEventsCommon.Paint
+                
+            Dim bfStyle As Long
+                                
+            bfStyle = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+            
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API directly
+    
+                Dim rect As tbRECT
+                rect.Left = 0
+                rect.Top = 0
+                rect.Right = rect.Left + RootWindowElementBase.RuntimeUIGetCurrentWidth()
+                rect.Bottom = rect.Top + RootWindowElementBase.RuntimeUIGetCurrentHeight()
+                
+                Dim actualForeColor As Long = If(Enabled, TranslateColor(ForeColor), TranslateColor(vbGrayText))
+                
+                ' FIXME this needs improvement
+                If Me.Font Is Nothing Then
+                    InitializeOLEFont
+                End If
+                    
+                Dim ifont As IFont = Me.Font
+                ' Dim LF As LOGFONT
+                ' GetObjectW(ifont.hFont, LenB(LF), LF)
+                ' LF.LFQuality = CByte(CLEARTYPE_QUALITY)
+                ' Dim FontHandle As LongPtr = CreateFontIndirectW(LF)
+                
+                Dim textBackBrush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+                DrawRecordSelectors(ps.hdc, rect, textBackBrush, activebutton, hoverbutton, IsBOFSafe, IsEOFSafe, RootWindowElementBase.RuntimeUIGetUnitScale(), moveFirstButtonRect, movePrevButtonRect, moveNextButtonRect, moveLastButtonRect, Me.Caption, ifont.hFont, actualForeColor)
+                GDI32.DeleteObject(textBackBrush)
+                                
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            
+            Handled = True
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Caption() As String
+            Return RootWindowElementBase.GetWindowText()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Caption(ByVal Value As String)
+            RootWindowElementBase.SendMessage(WM_SETTEXT, 0, StrPtrSafe(Value))
+        End Property
+        
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+                
+            If Button = vbLeftButton Then
+                Dim xPixels As Long = CLng((X / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+                Dim yPixels As Long = CLng((Y / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+                ' in backwards drawing order
+            	If IsInSubRect(xPixels, yPixels, moveNextButtonRect) Then
+                	activebutton = 3
+                    Me.InternalhWnd.InvalidateRect(moveNextButtonRect, 0)
+            	ElseIf IsInSubRect(xPixels, yPixels, moveLastButtonRect) Then
+                	activebutton = 4
+                    Me.InternalhWnd.InvalidateRect(moveLastButtonRect, 0)
+            	ElseIf IsInSubRect(xPixels, yPixels, movePrevButtonRect) Then
+                	activebutton = 2
+                    Me.InternalhWnd.InvalidateRect(movePrevButtonRect, 0)
+            	ElseIf IsInSubRect(xPixels, yPixels, moveFirstButtonRect) Then
+                	activebutton = 1
+                    Me.InternalhWnd.InvalidateRect(moveFirstButtonRect, 0)
+            	End If
+                Me.InternalhWnd.SetCapture()
+            End If
+            RaiseEvent MouseDown(CInt(Button), CInt(ShiftState), X, Y)
+        End Sub
+        
+        Protected Sub UpdateHoverButton(ByVal X As Single, ByVal Y As Single)
+        	Dim xPixels As Long = CLng((X / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+            Dim yPixels As Long = CLng((Y / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+            ' in backwards drawing order
+            Dim newHoverbutton As Long = 0
+            If IsInSubRect(xPixels, yPixels, moveNextButtonRect) Then
+                newHoverbutton = 3
+            ElseIf IsInSubRect(xPixels, yPixels, moveLastButtonRect) Then
+                newHoverbutton = 4
+            ElseIf IsInSubRect(xPixels, yPixels, movePrevButtonRect) Then
+                newHoverbutton = 2
+            ElseIf IsInSubRect(xPixels, yPixels, moveFirstButtonRect) Then
+                newHoverbutton = 1
+            End If
+            
+            If newHoverbutton <> hoverbutton Then
+                RedrawButton(newHoverbutton)
+                RedrawButton(hoverbutton)
+                hoverbutton = newHoverbutton
+            End If
+        End Sub
+        
+        Protected Sub HandleMouseMove(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseMove
+                
+            UpdateHoverButton(X, Y)
+            RaiseEvent MouseMove(CInt(Button), CInt(ShiftState), X, Y)
+        End Sub
+        
+        Protected Sub RedrawButton(ByVal buttonId As Long)
+        	Select Case buttonId
+                Case 1: Me.InternalHWND.InvalidateRect(moveFirstButtonRect, 0)
+                Case 2: Me.InternalHWND.InvalidateRect(movePrevButtonRect, 0)
+                Case 3: Me.InternalhWnd.InvalidateRect(moveNextButtonRect, 0)
+                Case 4: Me.InternalHWND.InvalidateRect(moveLastButtonRect, 0)
+            End Select
+        End Sub
+        
+        Protected Sub SaveRecordChanges()
+            If Recordset Is Nothing Then Exit Sub
+            Dim isAddNew As Boolean = (Recordset.EditMode = 2)
+        	If RecordsetIsDirty Then
+                SyncRecordsetToBoundFields(True)
+                If isAddNew = True Then
+                    Me.InternalRecordset.Bookmark = Me.InternalRecordset.LastModified
+                    'Me.InternalRecordset.MovePrevious
+                End If
+            ElseIf isAddNew Then      ' dbEditAdd
+                Recordset.CancelUpdate
+                Recordset.MoveLast
+            End If
+        End Sub
+        
+        Protected Sub HandleButtonPressed(ByVal buttonId As Long)
+            'Dim cachedIsEOFSafe As Boolean = IsEOFSafe
+            'If (Recordset.EditMode = 2) Then            ' dbAddNew
+            '    SaveRecordChanges
+            'End If
+            On Error GoTo HandleError
+            
+            If Me.InternalRecordset Is Nothing Then Exit Sub
+                
+            Select Case buttonId
+                Case 1: 
+                    Me.InternalRecordset.MoveFirst
+                Case 2: 
+                    If IsBOFSafe() = False Then
+                        Me.InternalRecordset.MovePrevious
+                        If (BOFAction = vbMoveFirst) AndAlso Me.InternalRecordset.BOF Then
+                            Me.InternalRecordset.MoveFirst
+                        End If
+                    End If
+                Case 3: 
+                    If IsEOFSafe = False Then
+                        If InternalRecordset.EOF = False Then
+                            Me.InternalRecordset.MoveNext
+                        End If
+                        If (EOFAction = vbMoveLast) AndAlso Me.InternalRecordset.EOF Then
+                            Me.InternalRecordset.MoveLast
+                        ElseIf (EOFAction = vbAddNew) AndAlso Me.InternalRecordset.EOF Then
+                            Me.ForceClearBoundControls = True
+                                Me.InternalRecordset.AddNew
+                            Me.ForceClearBoundControls = False
+                        End If
+                    End If
+                Case 4: 
+                    Me.InternalRecordset.MoveLast
+            End Select
+            Exit Sub
+        HandleError:
+            Me.ForceClearBoundControls = False
+            MsgBox Err.Description, vbOKOnly
+        End Sub
+        
+        Protected Sub HandleMouseUp(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseUp
+                
+            USER32.ReleaseCapture()
+            RaiseEvent MouseUp(CInt(Button), CInt(ShiftState), X, Y)
+            UpdateHoverButton(X, Y)
+            If activebutton = hoverbutton Then
+                HandleButtonPressed(activebutton)
+            End If
+            Dim buttonReleased As Long = activebutton
+            activebutton = 0
+            RedrawButton(buttonReleased)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get hWnd() As LongPtr                           ' FIXME change to HWND once ALIAS is aligned
+            Return RootWindowElementBase.RuntimeUIGetHandle()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        Protected Sub HandleValidate(Cancel As Boolean) _
+                Implements IWindowElementEventsCommon.Validate
+
+            'RaiseEvent Validate(Action, Cancel)
+        End Sub
+        
+        ' FIXME VB6 does not directly implement DataSource here
+        Protected Function DataSourceGetDataMemberName(ByVal lIndex As Long) As String _
+                Implements DataSource.getDataMemberName
+            Stop
+        End Function
+
+        Protected Function DataSourceGetDataMember(ByVal bstrDM As String, riid As GUID) As stdole.IUnknown _
+                Implements DataSource.getDataMember
+            Stop
+        End Function
+        
+        Protected Function DataSourceGetDataMemberCount() As Long _
+                Implements DataSource.getDataMemberCount
+            Stop
+        End Function
+        
+        Protected Sub DataSourceAddDataSourceListener(ByVal pDSL As DataSourceListener) _
+                Implements DataSource.addDataSourceListener
+            Dim BindingsCount As Long = -1
+            If IsArrayInitialized(Bindings) Then BindingsCount = UBound(Bindings)
+            BindingsCount += 1
+            ReDim Preserve Bindings(BindingsCount)
+            
+            Dim EndPoint As Any = CType(Of DataFieldBinderBase)(pDSL)
+            Set Bindings(BindingsCount) = EndPoint
+        End Sub
+        
+        Protected Function GetBindingIndex(MatchBinder As DataFieldBinderBase) As Long
+            Dim retVal As Long = -1
+            Dim BindingIdx As Long
+            Dim Binder As DataFieldBinderBase
+        	For Each Binder In Bindings
+                If Binder Is MatchBinder Then
+                    retVal = BindingIdx
+                    Exit For
+                End If
+                BindingIdx += 1
+            Next
+            Return retVal
+        End Function
+        
+        Protected Sub DataSourceRemoveDataSourceListener(ByVal pDSL As DataSourceListener) _
+                Implements DataSource.removeDataSourceListener
+            Dim EndPoint As DataFieldBinderBase = CType(Of DataFieldBinderBase)(pDSL)
+            Dim BindingIdx As Long = GetBindingIndex(EndPoint)
+            If BindingIdx = -1 Then Debug.Assert False
+            While BindingIdx < UBound(Bindings)
+            	Set Bindings(BindingIdx) = Bindings(BindingIdx + 1)
+                BindingIdx += 1
+            Wend
+            ReDim Preserve Bindings(BindingIdx - 1)
+        End Sub
+        
+        Public Sub Refresh()
+            SaveRecordChanges()
+            ConnectRecordset(False)
+        End Sub
+        
+        Protected Sub RebindControl(Binder As DataFieldBinderBase, DataField As String) _
+                Implements TbDataControlPrivate.RebindControl
+        
+            If Binder Is Nothing Then Err.Raise 5
+        
+            If Len(DataField) > 0 Then
+                On Error Resume Next
+        	    Dim BoundField As Object = Recordset.Fields(DataField)
+                On Error GoTo 0
+                
+                If BoundField Is Nothing Then
+                	Err.Raise 545, , "Unable to bind to field or DataMember: '" & DataField & "'"
+                End If
+            End If
+            
+            UnprotectedAccess(Binder).OnBindComplete(BoundField)   ' can be Nothing when Len(DataField) = 0
+            UnprotectedAccess(Binder).SyncToSource()
+        End Sub
+        
+        Protected Sub RebindAllFields()
+            Dim Binder As DataFieldBinderBase
+            Dim BoundField As Object
+        	For Each Binder In Bindings
+                If Len(Binder.DataField) > 0 Then
+                    On Error Resume Next
+                    Set BoundField = Recordset.Fields(Binder.DataField)
+                    On Error GoTo 0
+                Else
+                    Set BoundField = Nothing
+                End If
+                UnprotectedAccess(Binder).OnBindComplete(BoundField)
+        	Next
+        End Sub
+                
+        Protected Sub SyncBoundFieldsToRecordset()
+            Dim Binder As DataFieldBinderBase
+            If Me.ForceClearBoundControls OrElse Me.InternalRecordset.BOF OrElse Me.InternalRecordset.EOF Then
+                For Each Binder In Bindings
+                    UnprotectedAccess(Binder).ClearSource()
+                Next
+            Else
+                For Each Binder In Bindings
+                    UnprotectedAccess(Binder).SyncToSource()
+                Next
+            End If
+        End Sub
+        
+        Public Sub UpdateControls()
+        	SyncBoundFieldsToRecordset()
+        End Sub
+        
+        Protected Sub SyncRecordsetToBoundFields(CallUpdate As Boolean)
+            'Debug.Print "Saving change to record"
+            On Error Resume Next        ' This is so that editing BOF record throws correct error when trying to save
+            If Recordset.EditMode = 0 Then Recordset.Edit
+            On Error GoTo 0
+            
+        	Dim Binder As DataFieldBinderBase
+        	For Each Binder In Bindings
+                UnprotectedAccess(Binder).SaveChanges()
+        	Next
+            If CallUpdate = True Then
+                IsSyncingToControls = True
+                Recordset.Update
+                IsSyncingToControls = False
+            End If
+                        
+            RecordsetIsDirty = False
+        End Sub
+        
+        Protected Function GetVariantDescription(name As String, value As Variant) As String
+            Dim valueDesc As String
+            If IsArray(value) Then
+                valueDesc = Join(value, ";")
+            Else
+                valueDesc = CStr(value)
+            End If
+        	Return name & ":" & valueDesc
+        End Function
+                
+        Protected Sub RecordsetOnRequestChange(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal Data1 As Variant, ByVal Data2 As Variant, CancelFlag As Long) _
+                Handles InternalRecordset.OnRequestChange
+            
+            Dim Action As Integer
+            Dim RequiresSave As Boolean = False
+            Select Case mainMsgId
+                Case DataValidateConstants.vbDataActionMoveFirst, _
+                        DataValidateConstants.vbDataActionMoveLast, _
+                        DataValidateConstants.vbDataActionMoveNext, _
+                        DataValidateConstants.vbDataActionMovePrevious, _
+                        DataValidateConstants.vbDataActionClose, _
+                        DataValidateConstants.vbDataActionBookmark, _
+                        DataValidateConstants.vbDataActionAddNew, _
+                        DataValidateConstants.vbDataActionUpdate, _
+                        DataValidateConstants.vbDataActionDelete, _
+                        DataValidateConstants.vbDataActionFind
+                        RequiresSave = True
+                        Action = CInt(mainMsgId)
+                                    
+                ' FIXME Close/Unload actions
+            End Select
+            
+            Dim Save As Integer = CInt(RecordsetIsDirty)
+            If Action <> 0 Then
+                RaiseEvent Validate(Action, Save)
+                RecordsetIsDirty = Save
+                If Action = 0 Then
+                    CancelFlag = 1     ' this will cancel the request
+                    Err.ReturnHResult = &H41002         ' This allows the cancellation error to be muted (i.e. not raise a real COM error)
+                    Exit Sub
+                End If
+            End If
+            
+            If (Save) AndAlso (RequiresSave = True) AndAlso (IsSyncingToControls = False) Then
+            	If RecordsetIsDirty Then
+                    Dim callUpdate As Boolean = If(mainMsgId = DataValidateConstants.vbDataActionUpdate, False, True)
+                    Dim isNewRecord As Boolean = Me.InternalRecordset.EditMode = 2
+
+                    On Error Resume Next
+                        SyncRecordsetToBoundFields(callUpdate)
+                    
+                    If Err.Number <> 0 Then
+                    	CancelFlag = 1     ' this will cancel the request
+                        Exit Sub
+                    End If
+                    
+                    If isNewRecord Then
+                        'Me.InternalRecordset.Bookmark = Me.InternalRecordset.LastModified
+                        'Me.InternalRecordset.MovePrevious
+                    End If
+                End If
+            End If
+            
+            If (Action <> 0) AndAlso (Me.InternalRecordset.EditMode = 2) AndAlso _
+                (mainMsgId <> DataValidateConstants.vbDataActionUpdate) AndAlso (mainMsgId <> 30) Then
+            	' AddNew needs to be cancelled before the move off the record
+                RecordsetIsDirty = False
+                Me.InternalRecordset.CancelUpdate()
+            End If
+            
+            ' If mainMsgId = DataValidateConstants.vbDataActionUpdate Then
+            '     If IsSyncingToControls = False Then
+            '         ' we need to handle Recordset.Update direct calls
+                    
+            '     End If
+            ' ElseIf msgId = DataValidateConstants.vbDataActionBookmark Then
+            ' 	' move record.  first call Update() against the existing record if necessary
+            '     'If Me.Recordset.EditMode <> 0 Then Me.Recordset.Update
+            '     If RecordsetIsDirty Then
+            '         SyncRecordsetToBoundFields(True)
+            '     End If
+            ' End If
+'            Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, CancelFlag, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+        End Sub
+        
+        Protected Sub RecordsetOnRequestCancelled(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal V1a As Variant, ByVal V1b As Variant, ByVal CancelledFlag As Long) _
+                Handles InternalRecordset.OnRequestCancelled
+'            Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, C, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+             'Err.ReturnHResult = &H800A00FF
+        End Sub
+        
+        Protected Sub RecordsetOnActionCompleting(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal V1a As Variant, ByVal V1b As Variant, ByVal C As Long) _
+                Handles InternalRecordset.OnActionCompleting
+'            Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, C, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+        End Sub
+        
+        Protected Sub RecordsetOnAfterAction(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal V1a As Variant, ByVal V1b As Variant, ByVal C As Long) _
+                Handles InternalRecordset.OnAfterAction
+            'Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, C, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+            ' If mainMsgId = 30 Then
+            ' 	' CancelUpdate
+            ' ElseIf mainMsgId = DataValidateConstants.vbDataActionUpdate Then
+            '     If otherMsgId = 30 Then
+            '         ' CancelUpdate() ?
+            '         'Stop
+            '     Else
+            '         If IsSyncingToControls = False Then
+            '             SyncBoundFieldsToRecordset
+            '         End If
+            '     End If
+            '     RecordsetIsDirty = False
+            ' ElseIf msgId = DataValidateConstants.vbDataActionBookmark Then
+            '     SyncBoundFieldsToRecordset
+            '     RecordsetIsDirty = False
+            '     RaiseEvent Reposition()
+            ' ElseIf msgId = DataValidateConstants.vbDataActionAddNew Then
+            '     SyncBoundFieldsToRecordset
+            '     RecordsetIsDirty = False
+            ' ElseIf subMsgId = DataValidateConstants.vbDataActionFind Then
+            '     SyncBoundFieldsToRecordset
+            '     RecordsetIsDirty = False
+            ' End If
+            
+            Select Case mainMsgId
+                Case 30
+                    ' CancelUpdate
+                    
+            	Case DataValidateConstants.vbDataActionBookmark, _
+                        DataValidateConstants.vbDataActionMoveFirst, _
+                        DataValidateConstants.vbDataActionMoveLast, _
+                        DataValidateConstants.vbDataActionMoveNext, _
+                        DataValidateConstants.vbDataActionMovePrevious, _
+                        DataValidateConstants.vbDataActionClose, _
+                        DataValidateConstants.vbDataActionBookmark, _
+                        DataValidateConstants.vbDataActionAddNew, _
+                        DataValidateConstants.vbDataActionUpdate, _
+                        DataValidateConstants.vbDataActionDelete, _
+                        DataValidateConstants.vbDataActionFind
+                    SyncBoundFieldsToRecordset()
+                    RecordsetIsDirty = False
+                    RaiseEvent Reposition()
+                    
+                    Me.InternalhWnd.InvalidateRect(ByVal vbNullPtr, 0)
+                                                
+                ' FIXME Close/Unload actions
+            End Select
+            
+        End Sub
+        
+        Protected Sub RecordsetOnBeforeChange(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal V1a As Variant, ByVal V1b As Variant) _
+                Handles InternalRecordset.OnBeforeChange
+'            Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+        End Sub
+        
+        Protected Sub RecordsetOnRequestAccepted(ByVal otherMsgId As DataValidateConstants, ByVal mainMsgId As DataValidateConstants, ByVal V1a As Variant, ByVal V1b As Variant) _
+                Handles InternalRecordset.OnRequestAccepted
+'            Debug.Print CurrentProcedureName, otherMsgId, mainMsgId, getVariantDescription("Data1", Data1), getVariantDescription("Data2", Data2)
+        End Sub
+        
+        Protected Sub RecordsetReserved1() _
+                Handles InternalRecordset.Reserved1
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved2() Handles InternalRecordset.Reserved2
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved3() Handles InternalRecordset.Reserved3
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved4() Handles InternalRecordset.Reserved4
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved5() Handles InternalRecordset.Reserved5
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved6() Handles InternalRecordset.Reserved6
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved7() Handles InternalRecordset.Reserved7
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved8() Handles InternalRecordset.Reserved8
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved9() Handles InternalRecordset.Reserved9
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved10() Handles InternalRecordset.Reserved10
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved11() Handles InternalRecordset.Reserved11
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved12() Handles InternalRecordset.Reserved12
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved13() Handles InternalRecordset.Reserved13
+            Stop
+        End Sub
+        
+        Protected Sub RecordsetReserved14() Handles InternalRecordset.Reserved14
+            Stop
+        End Sub
+        
+        [Serialize(False)]
+        [Hidden]
+        Public Property Get Align() As VBRUN.AlignConstants
+            Return CommonGetAlign(Me)
+        End Property
+        
+        [Serialize(False)]
+        [Hidden]
+        Public Property Let Align(ByVal Value As VBRUN.AlignConstants)
+            CommonLetAlign(Me, Value)
+        End Property
+        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native DATA control")]
+[WindowsControl("/miscellaneous/ICONS??/Data??.png")]
+[ClassId("33AD4FF8-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("038D7327-C7AB-4A20-8800-C0D1E569343D")]    ' FIXME implement {33AD4FF9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Data
+    Inherits DataBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#Else
+[Description("A Win32 native DATA control")]
+[ClassId("33AD4FF8-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("038D7327-C7AB-4A20-8800-C0D1E569343D")]    ' FIXME implement {33AD4FF9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+[COMExtensible(True)]
+Class Data      ' FIXME stub to prevent compilation errors for now
+End Class
+#End If

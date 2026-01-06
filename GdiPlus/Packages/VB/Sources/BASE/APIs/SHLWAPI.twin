@@ -1,0 +1,12 @@
+Private Module SHLWAPIModule
+
+    Type SHLWAPI
+        Ignore As Byte
+    
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SHCreateMemStream Lib "shlwapi" (pInit As Any, ByVal cbInit As Long) As stdole.IUnknown
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Private DeclareWide PtrSafe Function SHCreateMemStreamPtr Lib "shlwapi" Alias "SHCreateMemStream" (ByVal pInit As LongPtr, ByVal cbInit As Long) As LongPtr
+    End Type
+    
+End Module

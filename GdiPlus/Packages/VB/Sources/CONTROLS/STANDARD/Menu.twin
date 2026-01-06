@@ -1,0 +1,430 @@
+#If FEATURE_MENU Then
+[ComImport(True)]
+[InterfaceId("48E1327F-062C-4D9C-8009-6CCFF31EB158")]
+Private Interface TbMenuPrivate Extends stdole.IUnknown
+    Function GetMenuDataPtr() As LongPtr
+End Interface
+
+[ComImport(True)]
+[InterfaceId("33AD4F69-6699-11CF-B70C-00AA0060D393")]
+Private Interface IVB6CompatMenu
+    [Restricted] Sub Missing7()
+    [Restricted] Sub Missing8()
+    [Restricted] Sub Missing9()
+    [Restricted] Sub Missing10()
+    [Restricted] Sub Missing11()
+    [Restricted] Sub Missing12()
+    [Restricted] Sub Missing13()
+    [Restricted] Sub Missing14()
+    [Restricted] Sub Missing15()
+    [Restricted] Sub Missing16()
+    [Restricted] Sub Missing17()
+    Property Get Name() As String
+    [Restricted] Sub Missing19()
+    Property Get Index() As Integer
+    [Restricted] Sub Missing21()
+    Property Get Visible() As Boolean
+    Property Let Visible(ByVal Value As Boolean)
+    Property Get Caption() As String
+    Property Let Caption(ByVal Value As String)
+    Property Get Checked() As Boolean
+    Property Let Checked(ByVal Value As Boolean)
+    Property Get Enabled() As Boolean
+    Property Let Enabled(ByVal Value As Boolean)
+    [Restricted] Sub Missing30()
+    [Restricted] Sub Missing31()
+    [Restricted] Sub Missing32()
+    [Restricted] Sub Missing33()
+    [Restricted] Sub Missing34()
+    [Restricted] Sub Missing35()
+    Property Get Parent() As Form
+    [Restricted] Sub Missing37()
+    Property Get Tag() As String
+    Property Let Tag(ByVal Value As String)
+    Property Get WindowList() As Boolean
+    [Restricted] Sub Missing41()
+    Property Get HelpContextID() As Long
+    Property Let HelpContextID(ByVal Value As Long)
+End Interface
+
+[ClassId("79CB932F-45C1-457A-ADF3-F735086A83E1")]
+[InterfaceId("C745F863-857D-460D-936D-1B5BB74BA177")]    ' FIXME implement {33AD4F69-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class MenuBaseCtl
+    
+    #Region "INHERITANCE"
+    
+        Inherits BaseControl
+    
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements TbMenuPrivate
+        Implements IVB6CompatMenu
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [Description("TIP: enter '-' for a seperator bar")]
+            Public Caption As String
+            Public Checked As Boolean
+        [Serialize(True, "Enabled")]
+            Protected EnabledINIT As Boolean = True
+            Public Visible As Boolean = True
+            
+        #If FEATURE_HELP Then
+        [Unimplemented]
+            Public HelpContextID As Long
+        #End If
+        
+        Public ReadOnly WindowList As Boolean
+        [Unimplemented]
+            Public NegotiatePosition As VBRUN.NegotiatePositionConstants
+            
+        [Hidden, NonBrowsable]
+        Public ReadOnly Shortcut As String       ' this is the raw string, as imported from VB6.  We don't use it at runtime.            
+
+        Public ShortcutId As VBRUN.ShortcutConstants
+
+
+        Type MenuInternalData
+            InternalCachedContainerMenuHandle As HMENU
+            InternalCachedPopupMenuHandle As HMENU
+            InternalCachedPositionId As Long
+            InternalCachedMasterId As Long
+            InternalCachedMenuHandle As HMENU
+            InternalCachedMenuHandlePopup As HMENU
+        End Type
+        Protected MenuData As MenuInternalData
+            
+        [Serialize(False)]
+            Protected InternalPicture As StdPicture
+        
+        [Serialize(True, "Picture")]
+        [CustomDesigner("designer_PictureBytes")]
+            Protected ReadOnly PictureINIT() As Byte
+
+        [Description("if Picture is an ICON file with multiple sizes, use this to choose the size you want to use")]
+            Public IconSizeX As Long = 0
+        [Description("if Picture is an ICON file with multiple sizes, use this to choose the size you want to use")]
+            Public IconSizeY As Long = 0
+            
+    #End Region
+
+    #Region "EVENTS"
+                            
+    [DefaultDesignerEvent]
+    [DispId(&HEAEA0004)]
+        Event Click()
+
+    #End Region
+               
+    #Region "MEMBERS"
+
+        [Serialize(True, ":Index")]
+        Protected IndexINIT As Long = -1
+
+        Sub New()
+            BaseControl.New(ControlTypeConstants.vbMenuControl)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Index() As Long
+            Dim IndexINIT As Any = InternalBaseControlInfo.ControlArrayIndex
+            If IndexINIT = -1 Then
+                'Err.Raise 343, , "Object not an array"
+                Err.ReturnHResult = &H800A0157
+                Return 0
+            End If
+            Return IndexINIT
+        End Property
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+                
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+
+            InternalStateResetBaseControl()     ' resets all the base class state()
+            Set Me.InternalPicture = Nothing
+            MenuData.InternalCachedContainerMenuHandle.Value = vbNullPtr
+            MenuData.InternalCachedMasterId = 0
+            MenuData.InternalCachedPopupMenuHandle.Value = vbNullPtr
+            MenuData.InternalCachedPositionId = -1
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "Menu"
+            End If
+            'IsDesignMode = .IsDesignMode
+            
+            Me.ControlContext = ControlContext
+            
+            With InternalBaseControlInfo
+                .WindowlessEnabled = Me.EnabledINIT
+                .ControlArrayIndex = Me.IndexINIT
+            End With
+            
+            Dim pictureInit As Variant = Me.PictureINIT
+            If ArrayHasData(pictureInit) Then
+                ' LoadPicture can now be passed a byte-array containing an in-memory stream
+                If IconSizeX = 0 And IconSizeY = 0 Then
+                    Set InternalPicture = Global.LoadPicture(pictureInit)
+                Else
+                    Set InternalPicture = Global.LoadPicture(pictureInit, LoadPictureSizeConstants.vbLPCustom, , IconSizeX, IconSizeY)
+                End If
+                
+                If InternalPicture.Type = vbPicTypeIcon Then
+                	Set InternalPicture = CType(Of StdPicture)([_HiddenModule].ConvertIconToBitmap(InternalPicture))
+                End If
+            End If
+            
+            Dim InitData As WindowCreationData
+            InternalBaseControlBeforeCreateRootWindowBaseControl(InitData)()
+            
+            ControlContext.RuntimeUICtxSetControlArrayIndex(Me.IndexINIT)
+            ControlContext.RuntimeUICtxSetBaseControlInfoPtr(VarPtr(InternalBaseControlInfo))
+        End Sub
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Public Function Container() As Control
+             Return CType(Of Control)(ControlContext.RuntimeUICtxEnsureGetContainer())
+        End Function
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form 
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        Protected Sub UpdateMenus(itemInfo As MENUITEMINFO)
+        	itemInfo.cbSize = LenB(itemInfo)
+            If MenuData.InternalCachedContainerMenuHandle.Value <> vbNullPtr Then
+                MenuData.InternalCachedContainerMenuHandle.SetMenuItemInfoW(MenuData.InternalCachedPositionId, 1, itemInfo)
+                CType(Of ITbCommonContainerPrivate)(ControlContext.RuntimeUICtxEnsureGetForm()).MenuRedrawRequired()
+            End If
+            If MenuData.InternalCachedPopupMenuHandle.Value <> vbNullPtr Then
+                MenuData.InternalCachedPopupMenuHandle.SetMenuItemInfoW(MenuData.InternalCachedPositionId, 1, itemInfo)
+            End If
+        End Sub
+        
+        Protected Sub CaptionChanged() _  
+        	        Handles Caption.OnPropertyLet
+
+            Dim itemInfo As MENUITEMINFO
+            itemInfo.fMask = MIIM_STRING Or MIIM_FTYPE
+            If Me.ShortcutId = VBRUN.ShortcutConstants.vbShortcutNone Then
+                itemInfo.dwTypeData = Me.Caption
+            Else
+                itemInfo.dwTypeData = Me.Caption & vbTab & [_HiddenModule].GetShortcutTextByEnum(Me.ShortcutId)
+            End If
+            
+            If Me.Caption = "-" Then
+                itemInfo.fType = MFT_SEPARATOR
+            End If
+            
+            UpdateMenus(itemInfo)
+        End Sub
+        
+        Protected Sub CheckedChanged() _  
+        	        Handles Checked.OnPropertyLet
+                            
+            Dim itemInfo As MENUITEMINFO
+            itemInfo.fMask = MIIM_STATE
+            If Checked = True Then itemInfo.fState += MFS_CHECKED
+            If Enabled = False Then itemInfo.fState += MFS_DISABLED
+            UpdateMenus(itemInfo)
+        End Sub
+        
+        Protected Sub VisibleChanged() _
+                Handles Visible.OnPropertyLet
+        
+            CommonRebuildMenus(Me.Parent, True)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Picture() As StdPicture
+            Return InternalPicture
+        End Property
+
+        [Serialize(False)]
+        Public Property Set Picture(Value As StdPicture)
+            If Value Is Nothing Then Set Value = New StdPicture
+            Set InternalPicture = Value
+            PictureChanged()
+        End Property
+
+        [Serialize(False)]
+        Public Property Let Picture(Value As StdPicture)    ' Weirdly, VBx also implements the Let for this
+            If Value Is Nothing Then Set Value = New StdPicture
+            Set InternalPicture = Value
+            PictureChanged()
+        End Property
+        
+        Protected Sub PictureChanged()
+            Dim InternalPicture As Any = Me.InternalPicture
+            If InternalPicture.Type = vbPicTypeIcon Then
+                Set InternalPicture = CType(Of StdPicture)([_HiddenModule].ConvertIconToBitmap(InternalPicture))
+                Set Me.InternalPicture = InternalPicture
+            End If
+            
+            Dim itemInfo As MENUITEMINFO
+            itemInfo.fMask = MIIM_BITMAP
+            itemInfo.hbmpItem = If((InternalPicture Is Nothing) OrElse (InternalPicture.Type = vbPicTypeIcon), 0&, InternalPicture.Handle)
+            UpdateMenus(itemInfo)
+        End Sub
+                
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Boolean
+            Return Me.Enabled
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(Value As Boolean)
+            Me.Enabled = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Enabled() As Boolean
+            Return InternalBaseControlInfo.WindowlessEnabled
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Enabled(ByVal Value As Boolean)
+            InternalBaseControlInfo.WindowlessEnabled = Value
+            Me.CheckedChanged()
+        End Property
+        
+        Protected Function GetMenuDataPtr() As LongPtr _
+                Implements TbMenuPrivate.GetMenuDataPtr
+            Return VarPtr(MenuData)
+        End Function
+                
+        Protected Property Get GetCaption() As String _ 
+                Implements IVB6CompatMenu.Caption
+            
+        End Property
+        
+        Protected Property Let LetCaption(ByVal Value As String) _ 
+                       Implements IVB6CompatMenu.Caption
+            
+        End Property
+                
+        Protected Property Get GetChecked() As Boolean _ 
+                       Implements IVB6CompatMenu.Checked
+            
+        End Property
+                
+        Protected Property Let LetChecked(ByVal Value As Boolean) _ 
+                       Implements IVB6CompatMenu.Checked
+            
+        End Property
+        
+        Protected Property Get GetEnabled() As Boolean _ 
+                       Implements IVB6CompatMenu.Enabled
+            
+        End Property
+        
+        Protected Property Let LetEnabled(ByVal Value As Boolean) _ 
+                       Implements IVB6CompatMenu.Enabled
+            
+        End Property
+        
+        Protected Property Get GetHelpContextID() As Long _ 
+                       Implements IVB6CompatMenu.HelpContextID
+            
+        End Property
+        
+        Protected Property Let LetHelpContextID(ByVal Value As Long) _ 
+                       Implements IVB6CompatMenu.HelpContextID
+            
+        End Property
+        
+        Protected Property Get GetIndex() As Integer _ 
+                       Implements IVB6CompatMenu.Index
+            
+        End Property
+        
+        Protected Property Get GetName() As String _ 
+                       Implements IVB6CompatMenu.Name
+            
+        End Property
+        
+        Protected Property Get GetParent() As Form _ 
+                       Implements IVB6CompatMenu.Parent
+            
+        End Property
+        
+        Protected Property Get GetTag() As String _ 
+                       Implements IVB6CompatMenu.Tag
+            
+        End Property
+        
+        Protected Property Let LetTag(ByVal Value As String) _ 
+                       Implements IVB6CompatMenu.Tag
+            
+        End Property
+        
+        Protected Property Get GetVisible() As Boolean _ 
+                       Implements IVB6CompatMenu.Visible
+            
+        End Property
+        
+        Protected Property Let LetVisible(ByVal Value As Boolean) _ 
+                       Implements IVB6CompatMenu.Visible
+            
+        End Property
+        
+        Protected Property Get GetWindowList() As Boolean _ 
+                       Implements IVB6CompatMenu.WindowList
+            
+        End Property
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+        
+    #End Region
+End Class
+
+[Description("A Win32 native MENU control")]
+[WindowsControl("no_designer")]
+[ClassId("33AD4F68-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("79AE735E-3ABB-41DB-B421-922CA19976D3")]    ' FIXME implement {33AD4F69-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Menu
+    Inherits MenuBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#Else
+[Description("A Win32 native MENU control")]
+[WindowsControl("no_designer")]
+[ClassId("33AD4F68-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("79AE735E-3ABB-41DB-B421-922CA19976D3")]    ' FIXME implement {33AD4F69-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Menu
+End Class
+#End If

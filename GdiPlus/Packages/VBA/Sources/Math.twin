@@ -1,0 +1,200 @@
+Module Math
+     
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the arctangent of a number. Returns the arctangent, or inverse tangent, of a number. The returned angle is given in radians in the range -pi/2 to pi/2.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Atn(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The number to calculate the arctangent for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the arctangent of the number in radians.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Atn(1) ' result is now pi/4 or approximately 0.785398163" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the arctangent of 1.")]
+    Public DeclareWide PtrSafe Function Atn Lib "<math>" Alias "#1" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the cosine of an angle. Returns the cosine of the specified angle. The angle is specified in radians.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Cos(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The angle in radians to calculate the cosine for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the cosine of the angle.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Cos(1.57079632679) ' result is approximately 0, representing the cosine of 90 degrees" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the cosine of 90 degrees (π/2 radians).")]
+    Public DeclareWide PtrSafe Function Cos Lib "<math>" Alias "#2" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the sine of an angle. Returns the sine of the specified angle. The angle is specified in radians.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Sin(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The angle in radians to calculate the sine for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the sine of the angle.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Sin(1.57079632679) ' result is approximately 1, representing the sine of 90 degrees" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the sine of 90 degrees (π/2 radians).")]
+    Public DeclareWide PtrSafe Function Sin Lib "<math>" Alias "#3" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the square root of a number. Returns the square root of a specified number.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Sqr(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The number to calculate the square root for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the square root of the number.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Sqr(16) ' result is now 4" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the square root of 16.")]
+    Public DeclareWide PtrSafe Function Sqr Lib "<math>" Alias "#4" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the tangent of an angle. Returns the tangent of the specified angle. The angle is specified in radians.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Tan(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The angle in radians to calculate the tangent for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the tangent of the angle.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Tan(0.785398163) ' result is approximately 1, representing the tangent of 45 degrees" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the tangent of 45 degrees (π/4 radians).")]
+    Public DeclareWide PtrSafe Function Tan Lib "<math>" Alias "#5" (ByVal Number As Double) As Double
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the base-e exponential of a number. Returns e raised to the power of the specified number.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Exp(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The exponent to raise e to.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing e raised to the power of the specified exponent.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Exp(1) ' result is approximately 2.71828182846, which is the value of e" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the value of e to the power of 1.")]
+    Public DeclareWide PtrSafe Function Exp Lib "<math>" Alias "#6" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Calculates the natural logarithm of a number. Returns the natural logarithm (base-e logarithm) of a specified number.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Log(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Double): The number to calculate the natural logarithm for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Double representing the natural logarithm of the number.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Log(2.71828182846) ' result is approximately 1, which is the logarithm of e" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the natural logarithm of e, which is approximately 1.")]
+    Public DeclareWide PtrSafe Function Log Lib "<math>" Alias "#7" (ByVal Number As Double) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldableNumericsOnly]
+    [Description("Returns the sign of a number. Returns an integer that indicates the sign of a number.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Sgn(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Variant): The number to evaluate the sign for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Variant (Integer) indicating the sign of the number: -1 if the number is negative, 0 if the number is zero, 1 if the number is positive.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Integer" & vbCrLf & _
+                    "result = Sgn(-10) ' result is now -1" & vbCrLf & _
+                    "result = Sgn(0) ' result is now 0" & vbCrLf & _
+                    "result = Sgn(10) ' result is now 1" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example determines the sign of -10, 0, and 10.")]
+    Public DeclareWide PtrSafe Function Sgn Lib "<math>" Alias "#8" (ByRef Number As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldableNumericsOnly]
+    [Description("Returns the absolute value of a number. Returns a number without its sign.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Abs(Number)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Variant): The number to calculate the absolute value for.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Variant (Double) representing the absolute value of the number.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Abs(-10.5) ' result is now 10.5" & vbCrLf & _
+                    "result = Abs(10.5) ' result is still 10.5" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example calculates the absolute value of -10.5 and 10.5.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function Abs Lib "<math>" Alias "#-4" (ByRef Number As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldableNumericsOnly]
+    [Description("Rounds a number to a specified number of decimal places. Returns a number rounded to a specified number of decimal places.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Round(Number, [NumDigitsAfterDecimal])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Variant): The number to round.  " & vbCrLf & _
+                    "`NumDigitsAfterDecimal` (Optional Long): The number of digits to which Number is to be rounded. Default is 0.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Variant (Double) representing the number rounded to the specified number of decimal places.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Double" & vbCrLf & _
+                    "result = Round(10.556, 2) ' result is now 10.56" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example rounds the number 10.556 to two decimal places.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function Round Lib "<math>" Alias "#-3" (ByRef Number As Variant, Optional ByVal NumDigitsAfterDecimal As Long = 0&) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Generates a random number less than 1 but greater than or equal to 0. Returns a Single representing a random number.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Rnd([Number])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Optional Variant): If provided and less than zero, the function will return the same number every time, using Number as the seed.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Single representing the random number generated.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Single" & vbCrLf & _
+                    "result = Rnd() ' result is a random number" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example generates a random number.")]
+    Public DeclareWide PtrSafe Function Rnd Lib "<math>" Alias "#11" (Optional ByRef Number As Variant) As Single
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Initializes the random-number generator. Use before calling the Rnd function to ensure that the sequence of numbers is randomized.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Randomize([Number])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Optional Variant): If provided, initializes the random-number generator with a specified starting value.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Randomize() ' Initialize random-number generator.  " & vbCrLf & _
+                    "Dim result As Single" & vbCrLf & _
+                    "result = Rnd() ' Generate random number" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This example initializes the random-number generator and then generates a random number.")]
+    Public DeclareWide PtrSafe Sub Randomize Lib "<math>" Alias "#12" (Optional ByRef Number As Variant)
+                    
+End Module

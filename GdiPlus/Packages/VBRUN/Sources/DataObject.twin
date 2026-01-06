@@ -1,0 +1,312 @@
+[InterfaceId("00000103-0000-0000-C000-000000000046")]
+Public Interface tbInternal_IEnumFORMATETC Extends stdole.IUnknown
+    Sub Next(ByVal celt As Long, ByRef rgelt As tbInternal_FORMATETC, ByRef pceltFetched As Long)
+    Sub Skip(ByVal celt As Long)
+    Sub Reset()
+    Sub Clone(ByRef ppenum As tbInternal_IEnumFORMATETC)
+End Interface
+
+[InterfaceId("0000010f-0000-0000-C000-000000000046")]
+Public Interface tbInternal_IAdviseSink Extends stdole.IUnknown
+    Sub OnDataChange(ByVal pFormatetc As LongPtr, ByVal pStgmed As LongPtr)
+    Sub OnViewChange(ByVal dwAspect As Long, ByVal lindex As Long)
+    Sub OnRename(ByVal pmk As tbInternal_IMoniker)
+    Sub OnSave()
+    Sub OnClose()
+End Interface
+
+[InterfaceId("0000000f-0000-0000-C000-000000000046")]
+Public Interface tbInternal_IMoniker Extends stdole.IUnknown
+    ' Not yet supported
+End Interface
+
+[InterfaceId("00000105-0000-0000-C000-000000000046")]
+Public Interface tbInternal_IEnumSTATDATA Extends stdole.IUnknown
+    ' Not yet supported    
+End Interface
+
+[InterfaceId("0000010e-0000-0000-C000-000000000046")]
+Public Interface tbInternal_IDataObject Extends stdole.IUnknown
+    Enum tbInternal_TYMED
+        tbInternal_TYMED_HGLOBAL = 1
+        tbInternal_TYMED_FILE = 2
+        tbInternal_TYMED_ISTREAM = 4
+        tbInternal_TYMED_ISTORAGE = 8
+        tbInternal_TYMED_GDI = 16
+        tbInternal_TYMED_MFPICT = 32
+        tbInternal_TYMED_ENHMF = 64
+        tbInternal_TYMED_NULL = 0
+    End Enum
+    Type tbInternal_FORMATETC
+        cfFormat As Integer     ' CLIPFORMAT
+        ptd As LongPtr          ' DVTARGETDEVICE
+        dwAspect As Long
+        lindex As Long
+        tymed As tbInternal_TYMED
+    End Type
+    Type tbInternal_STGMEDIUM
+        tymed As tbInternal_TYMED
+        unionData As LongPtr
+        pUnkForRelease As stdole.IUnknown
+    End Type
+    
+    Sub GetData(ByRef pformatetcIn As tbInternal_FORMATETC, ByRef pmedium As tbInternal_STGMEDIUM)
+    Sub GetDataHere(ByRef pformatetcIn As tbInternal_FORMATETC, ByRef pmedium As tbInternal_STGMEDIUM)
+    Sub QueryGetData(ByRef pformatetc As tbInternal_FORMATETC)
+    Sub GetCanonicalFormatEtc(ByRef pformatectIn As tbInternal_FORMATETC, ByRef pformatetcOut As tbInternal_FORMATETC)
+    Sub SetData(ByRef pformatetc As tbInternal_FORMATETC, ByRef pmedium As tbInternal_STGMEDIUM, ByVal fRelease As Long)
+    Sub EnumFormatEtc(ByVal dwDirection As Long, ByRef ppenumFormatEtc As tbInternal_IEnumFORMATETC)
+    Sub DAdvise(ByRef pformatetc As tbInternal_FORMATETC, ByVal advf As Long, ByVal pAdvSink As tbInternal_IAdviseSink, ByRef pdwConnection As Long)
+    Sub DUnadvise(ByVal dwConnection As Long)
+    Sub EnumDAdvise(ByRef ppenumAdvise As tbInternal_IEnumSTATDATA)
+End Interface
+
+[InterfaceId("41A7D760-6018-11CF-9016-00AA0068841E")]
+' FIXME this interface is defined in both WinNativeForms and WinNativeFormsBASE, AND VBRUN!
+Public Interface DataObject
+    [Description("Clears all data from the DataObject." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Sub Clear()`" & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new instance of a DataObject" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "' Set some data on the DataObject" & vbCrLf & _
+                    "myDataObject.SetData ""Some text""" & vbCrLf & _
+                    "' Clear the data from the DataObject" & vbCrLf & _
+                    "myDataObject.Clear" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `Clear` method removes all data formats and data from the DataObject. After calling `Clear`, " & vbCrLf & _
+                    "the DataObject will no longer contain any data until new data is set with `SetData` or similar methods." & vbCrLf & _
+                    "This is particularly useful when reusing a DataObject for multiple operations or ensuring that it does not hold onto " & vbCrLf & _
+                    "any data past its intended use.")]
+    Sub Clear()
+    
+    [Description("Assigns data to the DataObject with an optional specified format." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Sub SetData(Value, [Format]`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Value` - The data to set on the DataObject. The type can be anything that is storable in a Variant." & vbCrLf & _
+                    "`Format` - [Optional] The format in which the data should be stored. This can be specified as a `ClipboardConstants` enumeration value." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new instance of a DataObject" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "' Set text data on the DataObject without specifying the format" & vbCrLf & _
+                    "myDataObject.SetData ""Hello, world!""" & vbCrLf & _
+                    "' Set data with a specified format" & vbCrLf & _
+                    "myDataObject.SetData someData, ClipboardConstants.CF_TEXT" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `SetData` method is used to add data to the DataObject. If the format is not specified, " & vbCrLf & _
+                    "the DataObject may choose the default format based on the type of the `Value` provided. " & vbCrLf & _
+                    "Specifying the `Format` allows the data to be stored and retrieved in a specific clipboard format." & vbCrLf & _
+                    "When using custom data formats, ensure they are registered with the clipboard if necessary.")]
+    Sub SetData(Optional ByVal Value As Variant, [TypeHint(ClipboardConstants)] Optional ByVal Format As Variant)
+    
+    [Description("Retrieves data stored in the DataObject in a specified format." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function GetData(Optional ByVal Format As Variant) As Variant`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Format` (Optional): The format in which to retrieve the data. Can be a standard Clipboard format or a custom format." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The method returns the data in the DataObject as a Variant, in the specified format. If the format is not available, returns Nothing." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new instance of a DataObject" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "' Set some text data on the DataObject" & vbCrLf & _
+                    "myDataObject.SetData ""Some text"", vbCFText" & vbCrLf & _
+                    "' Retrieve the data as text" & vbCrLf & _
+                    "Dim strData As String" & vbCrLf & _
+                    "strData = myDataObject.GetData(vbCFText)" & vbCrLf & _
+                    "If strData Is Nothing Then" & vbCrLf & _
+                    "    MsgBox ""Data not available in the requested format""" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "    MsgBox ""Data retrieved: "" & strData" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `GetData` method is used to retrieve data from the DataObject that has been stored using the `SetData` method. " & vbCrLf & _
+                    "If `Format` is omitted, the DataObject will attempt to retrieve the data in the format it was last set, " & vbCrLf & _
+                    "or in a format that the DataObject deems the most appropriate based on the data types available." & vbCrLf & _
+                    "This method is essential for transferring data between applications or components via the clipboard or drag-and-drop operations.")]
+    Function GetData([TypeHint(ClipboardConstants)] ByVal sFormat As Integer) As Variant
+        
+    [Description("Checks if data stored in the DataObject is available in a specified format." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function GetFormat(Optional ByVal Format As Variant) As Boolean`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Format` (Optional): The format to check for data availability. Can be a standard Clipboard format or a custom format." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The method returns `True` if data is available in the specified format; otherwise, it returns `False`." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new instance of a DataObject" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "' Set some text data on the DataObject" & vbCrLf & _
+                    "myDataObject.SetData ""Some text"", vbCFText" & vbCrLf & _
+                    "' Check if the data is available in text format" & vbCrLf & _
+                    "If myDataObject.GetFormat(vbCFText) Then" & vbCrLf & _
+                    "    MsgBox ""Data is available in the text format""" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "    MsgBox ""Data is not available in the requested format""" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `GetFormat` method is used to check whether data in the DataObject is available in a specific format " & vbCrLf & _
+                    "before attempting to retrieve it using the `GetData` method. This can prevent errors or unexpected results when " & vbCrLf & _
+                    "working with data in various formats.")]
+    Function GetFormat([TypeHint(ClipboardConstants)] ByVal sFormat As Integer) As Boolean
+    
+    [Description("Retrieves a collection of file names from a DataObject that contains file data." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Property Get Files() As Collection`" & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The property returns a `Collection` of strings, where each string is the fully qualified path of a file present in the DataObject." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume a DataObject has been filled with file data via a drag-and-drop operation" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "Dim file As Variant" & vbCrLf & _
+                    "' Retrieve the collection of file names" & vbCrLf & _
+                    "Dim files As Collection" & vbCrLf & _
+                    "Set files = myDataObject.Files" & vbCrLf & _
+                    "' Iterate through the collection and display each file name" & vbCrLf & _
+                    "For Each file In files" & vbCrLf & _
+                    "    Debug.Print file" & vbCrLf & _
+                    "Next file" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `Files` property is commonly used when handling drag-and-drop file operations in a user interface. It allows the application to retrieve the list of files that have been dragged into it. This property is read-only, and attempting to set it will result in a compile-time error.")]
+    Function Files() As DataObjectFiles
+        
+    [Description("Retrieves a collection of available data formats that the DataObject contains." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function AvailableFormats() As DataObjectFormats`" & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "This function returns a `DataObjectFormats` collection, an enumerable set of `DataObjectFormat` objects. Each `DataObjectFormat` object represents a format in which the data stored in the DataObject can be retrieved or set, providing properties like `FormatType` (indicating the format type as a `ClipboardConstants` value) and `Name` (a string representing the format name)." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume a DataObject has various data formats available" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "Dim format As DataObjectFormat" & vbCrLf & _
+                    "' Retrieve the collection of available data formats" & vbCrLf & _
+                    "Dim availableFormats As DataObjectFormats" & vbCrLf & _
+                    "availableFormats = myDataObject.AvailableFormats()" & vbCrLf & _
+                    "' Iterate through the collection and display each format name and type" & vbCrLf & _
+                    "For Each format In availableFormats" & vbCrLf & _
+                    "    Debug.Print format.Name & ""-"" & format.FormatType" & vbCrLf & _
+                    "Next format" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `AvailableFormats` function is useful for determining what types of data are currently stored in a `DataObject`. This can be particularly helpful when working with clipboard operations or drag-and-drop features where the data formats of the incoming data are not known in advance.")]
+    Function AvailableFormats() As DataObjectFormats                     ' new to tB
+        
+    [Description("Determines if a data object contains data in the specified format." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function GetFormatByName(ByVal Format As String) As Boolean`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- **Format**: A `String` specifying the name of the format to check for." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns `True` if the DataObject contains data in the format specified by `Format`. Otherwise, it returns `False`." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume a DataObject might contain data in the 'Text' format" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "' Check if 'Text' format data is available" & vbCrLf & _
+                    "If myDataObject.GetFormatByName(""Text"") Then" & vbCrLf & _
+                    "    MsgBox ""Text format is available."" " & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "    MsgBox ""Text format is not available."" " & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `GetFormatByName` function is useful when you need to check for the presence of data in a specific format within a `DataObject`, especially when interacting with the clipboard or during drag-and-drop operations where the data may come in various formats.")]
+    Function GetFormatByName(ByVal Format As String) As Boolean          ' new to tB
+        
+    [Description("Retrieves data from a DataObject in the format specified by the format name." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function GetDataByName(ByVal Format As String) As Variant`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- **Format**: A `String` specifying the name of the format of the data to retrieve." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns the data contained in the DataObject that matches the specified format name. The data is returned as a `Variant`." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume a DataObject contains data in the 'Text' format" & vbCrLf & _
+                    "Dim myDataObject As New DataObject" & vbCrLf & _
+                    "Dim theData As Variant" & vbCrLf & _
+                    "' Retrieve data in the 'Text' format" & vbCrLf & _
+                    "theData = myDataObject.GetDataByName(""Text"")" & vbCrLf & _
+                    "If Not IsEmpty(theData) Then" & vbCrLf & _
+                    "    MsgBox ""Data in 'Text' format: "" & theData" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "    MsgBox ""No data in 'Text' format was found."" " & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `GetDataByName` function is particularly useful for accessing data in a specific format from a `DataObject` when the format name is known but the numerical clipboard format value is not. This is common when working with data copied to the clipboard from other applications or during drag-and-drop operations.")]
+    Function GetDataByName(ByVal Format As String) As Variant            ' new to tB
+    
+    Function GetIDataObject() As tbInternal_IDataObject
+End Interface
+
+[InterfaceId("41A7D761-6018-11CF-9016-00AA0068841E")]
+' FIXME this interface is defined in both WinNativeForms and WinNativeFormsBASE, AND VBRUN!
+Public Interface DataObjectFiles
+    [DefaultMember] Property Get Item(ByVal Index As Long) As String
+    Property Get Count() As Long
+    Sub Add(ByVal Filename As String, Optional index As Variant)
+    Sub Clear()
+    Sub Remove(ByVal index As Variant)
+    [Enumerator] Function _NewEnum() As stdole.IUnknown
+End Interface
+
+[InterfaceId("D1A9A671-E57E-4DA7-B076-99DF04D5D643")]
+' FIXME this interface is defined in both WinNativeForms and WinNativeFormsBASE, AND VBRUN!
+Public Interface DataObjectFormats
+    Function Item(ByVal Index As Long) As DataObjectFormat
+    Property Get Count() As Long
+    [Enumerator]
+    Function _NewEnum() As Variant
+End Interface
+
+[InterfaceId("3BBFD45E-C8B7-4CAA-A681-AAF7A4D03594")]
+' FIXME this interface is defined in both WinNativeForms and WinNativeFormsBASE
+Public Interface DataObjectFormat
+    [Description("Allows get or set operations on the format type of the data within the DataObject." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "' To retrieve the format type:" & vbCrLf & _
+                    "`Property Get FormatType() As ClipboardConstants`" & vbCrLf & _
+                    "' To assign a new format type:" & vbCrLf & _
+                    "`Property Let FormatType(ByVal newFormatType As ClipboardConstants)`" & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "`ClipboardConstants` enumeration representing the clipboard format type of the data." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume 'dataFormat' is a previously initialized DataObjectFormat object." & vbCrLf & _
+                    "Dim fmtType As ClipboardConstants" & vbCrLf & _
+                    "fmtType = dataFormat.FormatType" & vbCrLf & _
+                    "' Check the current format type" & vbCrLf & _
+                    "If fmtType = ClipboardConstants.vbCFText Then" & vbCrLf & _
+                    "    MsgBox ""Current format is text.""" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "    ' Set the format type to text" & vbCrLf & _
+                    "    dataFormat.FormatType = ClipboardConstants.vbCFText" & vbCrLf & _
+                    "    MsgBox ""Format type set to text.""" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `FormatType` property allows you to get or set the type of data that is contained within a `DataObject`. The value returned or set corresponds to one of the constants in the `ClipboardConstants` enumeration, such as `vbCFText` or `vbCFBitmap`.")]
+    Property Get FormatType() As ClipboardConstants
+    Property Let FormatType(ByVal Value As ClipboardConstants)
+    Property Get AspectType() As AspectTypeConstants
+    Property Let AspectType(ByVal Value As AspectTypeConstants)
+    Property Get AspectIndex() As Long
+    Property Let AspectIndex(ByVal Value As Long)
+    Property Get StorageType() As StorageTypeContants
+    Property Let StorageType(ByVal Value As StorageTypeContants)
+    Property Get Name() As String
+End Interface

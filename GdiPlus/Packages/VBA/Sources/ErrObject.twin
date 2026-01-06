@@ -1,0 +1,403 @@
+[InterfaceId("A4C466B8-499F-101B-BB78-00AA00383CBB")]
+Interface _ErrObject
+
+    [DispId(0),RedirectToStaticImplementation("_HiddenModule.GetErrNumber")]
+    [Description("Returns or sets a numeric value specifying an error. Number is the Err object's default property  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorNumber = Err.Number  `" & vbCrLf & _
+                    "`Err.Number = [errorNumber]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Number` (Long): Numeric value specifying an error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Number` property returns a `Long` representing the error number. If no error has occurred, it returns zero (`0`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise 6 ' Raise an Overflow error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""6""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""0\""  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Number` property is automatically set to the corresponding error number when an error is raised with `Err.Raise`. If you're creating custom errors, you can also set this property to your own error number. It's a common practice to check the `Err.Number` property within an error-handling routine to determine the cause of the error and respond accordingly.")]
+    Property Get Number() As Long
+
+    [DispId(0),RedirectToStaticImplementation("_HiddenModule.LetErrNumber")]
+    [Description("Returns or sets a numeric value specifying an error. Number is the Err object's default property  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorNumber = Err.Number  `" & vbCrLf & _
+                    "`Err.Number = [errorNumber]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Number` (Long): Numeric value specifying an error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Number` property returns a `Long` representing the error number. If no error has occurred, it returns zero (`0`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise 6 ' Raise an Overflow error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""6""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""0\""  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Number` property is automatically set to the corresponding error number when an error is raised with `Err.Raise`. If you're creating custom errors, you can also set this property to your own error number. It's a common practice to check the `Err.Number` property within an error-handling routine to determine the cause of the error and respond accordingly.")]
+    Property Let Number(ByVal Value As Long)
+
+    [DispId(&H60020002),RedirectToStaticImplementation("_HiddenModule.GetErrSource")]
+    [Description("Returns or sets a string expression representing the object or application that generated the error. `Source` property is especially useful for debugging purposes  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorSource = Err.Source  `" & vbCrLf & _
+                    "`Err.Source = [errorSource]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Source` (String): The name of the object or application that generated the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Source` property returns a `String` representing the name of the source of the error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, ""MyApplication"", ""Custom error occurred""" & vbCrLf & _
+                    "MsgBox ""The error source is: "" & Err.Source ' Displays ""MyApplication""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Source` property provides information about the origin of the error. When an error is raised via `Err.Raise`, the `Source` can be set to a string that identifies where the error originated. This is typically the name of the application or the object that caused the error. After an `Err.Clear` is issued, the `Source` property is set to an empty string until another error is raised.")]
+        Property Get Source() As String
+
+        [DispId(&H60020002),RedirectToStaticImplementation("_HiddenModule.LetErrSource")]
+        [Description("Returns or sets a string expression representing the object or application that generated the error. `Source` property is especially useful for debugging purposes  ." & vbCrLf & _
+                        "### Syntax" & vbCrLf & _
+                        "`errorSource = Err.Source  `" & vbCrLf & _
+                        "`Err.Source = [errorSource]  `" & vbCrLf & _
+                        "### Properties" & vbCrLf & _
+                        "`Source` (String): The name of the object or application that generated the error. Read/write  ." & vbCrLf & _
+                        "### Return Value" & vbCrLf & _
+                        "The `Source` property returns a `String` representing the name of the source of the error  ." & vbCrLf & _
+                        "### Example" & vbCrLf & _
+                        "```vb" & vbCrLf & _
+                        "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                        "' Cause an error  ." & vbCrLf & _
+                        "Err.Raise vbObjectError + 9999, ""MyApplication"", ""Custom error occurred""" & vbCrLf & _
+                        "MsgBox ""The error source is: "" & Err.Source ' Displays ""MyApplication""  ." & vbCrLf & _
+                        "Err.Clear ' Clear the error  ." & vbCrLf & _
+                        "```" & vbCrLf & _
+                        "The `Err.Source` property provides information about the origin of the error. When an error is raised via `Err.Raise`, the `Source` can be set to a string that identifies where the error originated. This is typically the name of the application or the object that caused the error. After an `Err.Clear` is issued, the `Source` property is set to an empty string until another error is raised.")]
+    Property Let Source(ByVal Value As String)
+
+    [DispId(&H60020004),RedirectToStaticImplementation("_HiddenModule.GetErrDescription")]
+    [Description("Returns or sets a string expression specifying the error description  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorDescription = Err.Description  `" & vbCrLf & _
+                    "`Err.Description = ""errorDescription""  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Description` (String): The description of the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Description` property returns a `String` describing the error. If no error has occurred, it returns an empty string (`""""`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 513, ""ExampleClass"", ""Example error""" & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays ""Example error""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays an empty string  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This property is used within an error-handling routine to identify the error that occurred. When an error is raised with `Err.Raise`, the `Err.Description` property is automatically populated with a message that describes the error. Programmers can also set this property to provide a custom error message, which can be useful for debugging or providing more specific error information to users. To reset the error description, `Err.Clear` is used or the `Err.Description` can be set to an empty string (`""""`).")]
+    Property Get Description() As String
+
+    [DispId(&H60020004),RedirectToStaticImplementation("_HiddenModule.LetErrDescription")]
+    [Description("Returns or sets a string expression specifying the error description  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorDescription = Err.Description  `" & vbCrLf & _
+                    "`Err.Description = ""errorDescription""  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Description` (String): The description of the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Description` property returns a `String` describing the error. If no error has occurred, it returns an empty string (`""""`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 513, ""ExampleClass"", ""Example error""" & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays ""Example error""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays an empty string  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This property is used within an error-handling routine to identify the error that occurred. When an error is raised with `Err.Raise`, the `Err.Description` property is automatically populated with a message that describes the error. Programmers can also set this property to provide a custom error message, which can be useful for debugging or providing more specific error information to users. To reset the error description, `Err.Clear` is used or the `Err.Description` can be set to an empty string (`""""`).")]
+    Property Let Description(ByVal Value As String)
+
+    [DispId(&H60020006),RedirectToStaticImplementation("_HiddenModule.GetErrHelpFile")]
+    [Description("Returns or sets the fully qualified path to the help file associated with a specific error. Setting this property allows a developer to direct users to the appropriate help content when an error is encountered  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`helpFilePath = Err.HelpFile  `" & vbCrLf & _
+                    "`Err.HelpFile = ""[helpFilePath]""" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`HelpFile` (String): The path to the help file that provides detailed information about the error. It can be a .hlp, .chm file, or a URL to a help resource. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "As a return value, `HelpFile` provides a `String` that is the path to the help file associated with the current error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Simulate an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, , , ""C:Help FilesApplicationHelp.chm""" & vbCrLf & _
+                    "If Err.Number <> 0 Then" & vbCrLf & _
+                    "    MsgBox ""For more information, see the help file: "" & Err.HelpFile" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `HelpFile` property is commonly used in conjunction with `Err.HelpContext` for providing a direct link to specific help topics. By setting the `HelpFile`, you enable the application to offer users detailed explanations or troubleshooting steps pertinent to the error they encounter. This could significantly improve the user's ability to understand and rectify issues without further support.")]
+    Property Get HelpFile() As String
+
+    [DispId(&H60020006),RedirectToStaticImplementation("_HiddenModule.LetErrHelpFile")]
+    [Description("Returns or sets the fully qualified path to the help file associated with a specific error. Setting this property allows a developer to direct users to the appropriate help content when an error is encountered  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`helpFilePath = Err.HelpFile  `" & vbCrLf & _
+                    "`Err.HelpFile = ""[helpFilePath]""" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`HelpFile` (String): The path to the help file that provides detailed information about the error. It can be a .hlp, .chm file, or a URL to a help resource. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "As a return value, `HelpFile` provides a `String` that is the path to the help file associated with the current error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Simulate an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, , , ""C:Help FilesApplicationHelp.chm""" & vbCrLf & _
+                    "If Err.Number <> 0 Then" & vbCrLf & _
+                    "    MsgBox ""For more information, see the help file: "" & Err.HelpFile" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `HelpFile` property is commonly used in conjunction with `Err.HelpContext` for providing a direct link to specific help topics. By setting the `HelpFile`, you enable the application to offer users detailed explanations or troubleshooting steps pertinent to the error they encounter. This could significantly improve the user's ability to understand and rectify issues without further support.")]
+    Property Let HelpFile(ByVal Value As String)
+
+    [DispId(&H60020008),RedirectToStaticImplementation("_HiddenModule.GetErrHelpContext")]
+    [Description("Retrieves or sets the context ID for a topic within a Help file linked to an error. If a Help file is associated with the error, this property can be used to automatically display the relevant topic when a help request is made  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Err.HelpContext  `" & vbCrLf & _
+                    "`Err.HelpContext = contextID  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`contextID` (Long): Numeric expression specifying the context ID for the appropriate Help topic  ." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "The property returns or sets a `Long` specifying the context ID for a Help topic  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When setting this property, it typically corresponds to the `HelpContextID` property of a twinBASIC error. If no applicable topic is available, the property should be set to 0  ." & vbCrLf & _
+                    "This property is particularly useful in centralized error handling routines, where the Help context can direct users to the relevant content based on the error encountered.")]
+    Property Get HelpContext() As Long
+
+    [DispId(&H60020008),RedirectToStaticImplementation("_HiddenModule.LetErrHelpContext")]
+    [Description("Retrieves or sets the context ID for a topic within a Help file linked to an error. If a Help file is associated with the error, this property can be used to automatically display the relevant topic when a help request is made  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Err.HelpContext  `" & vbCrLf & _
+                    "`Err.HelpContext = contextID  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`contextID` (Long): Numeric expression specifying the context ID for the appropriate Help topic  ." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "The property returns or sets a `Long` specifying the context ID for a Help topic  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When setting this property, it typically corresponds to the `HelpContextID` property of a twinBASIC error. If no applicable topic is available, the property should be set to 0  ." & vbCrLf & _
+                    "This property is particularly useful in centralized error handling routines, where the Help context can direct users to the relevant content based on the error encountered.")]
+    Property Let HelpContext(ByVal Value As Long)
+
+    [DispId(&H6002000A),RedirectToStaticImplementation("_HiddenModule.ErrRaise")]
+    [Description("Generates a runtime error that can be handled with error handling code (such as an `On Error` statement)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.Raise(Number, [Source], [Description], [HelpFile], [HelpContext])  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Long): Required. The error number. Can be a user-defined number (use `vbObjectError + someNumber`) or a standard twinBASIC error number  ." & vbCrLf & _
+                    "`Source` (String): Optional. The name of the source of the error. Generally, this is the name of the application or object that generated the error  ." & vbCrLf & _
+                    "`Description` (String): Optional. A string expression describing the error  ." & vbCrLf & _
+                    "`HelpFile` (String): Optional. The fully qualified path to the Help file in which help on this error can be found. If omitted, the `Err` object's `HelpFile` property is cleared  ." & vbCrLf & _
+                    "`HelpContext` (Long): Optional. The context ID within the Help file that provides help for this error. If omitted, the `Err` object's `HelpContext` property is cleared  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "This method has no return value  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When `Err.Raise` is called with valid arguments, the current program execution is halted and the `Err` object's properties are set. If there's an enabled error handler (via an `On Error` statement), execution passes to that error handler  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Custom error information" & vbCrLf & _
+                    "Sub CauseError()" & vbCrLf & _
+                    "    Err.Raise vbObjectError + 9999, ""CauseError"", ""This is a custom error message"", ""C:\HelpFiles\MyApplicationHelp.chm"", 205" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, a custom error is raised with `Err.Raise`, using a user-defined error number and providing custom error information including the source, description, and Help context. Remember to catch the error with proper error handling in your application to prevent unwanted program termination.")]
+    Sub Raise(ByVal Number As Long, Optional ByVal Source As String, Optional ByVal Description As String, Optional ByVal HelpFile As String, Optional ByVal HelpFileContext As Long)
+
+    [DispId(&H6002000B),RedirectToStaticImplementation("_HiddenModule.ErrClear")]
+    [Description("Resets the properties of the `Err` object, clearing all previously set error information, thereby setting the `Err.Number` to zero (`0`), `Err.Description`, `Err.Source`, `Err.HelpFile`, `Err.HelpContext` to empty  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.Clear  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This method does not take any parameters  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "This method has no return value  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "Use `Err.Clear` to explicitly clear the `Err` object after an error has been handled, especially if the handling is in a loop or could occur multiple times. It ensures that an error does not carry over from one part of the code to another  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Sub CheckError()" & vbCrLf & _
+                    "    On Error Resume Next" & vbCrLf & _
+                    "    ' Code that may cause an error goes here" & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    If Err.Number <> 0 Then" & vbCrLf & _
+                    "        ' Handle error" & vbCrLf & _
+                    "        ' ..  ." & vbCrLf & _
+                    "        ' Clear the error that was handled" & vbCrLf & _
+                    "        Err.Clear" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "    ' Code that continues after error handling" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.Clear` method is used after error handling is complete to ensure that subsequent code does not mistakenly react to an error that has already been handled. This is especially important in a loop or when errors are expected and managed inline.")]
+    Sub Clear()
+
+    [DispId(&H6002000C),RedirectToStaticImplementation("_HiddenModule.GetErrLastDllError")]
+    [Description("Retrieves the last system error code produced by a call to a dynamic link library (DLL)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim errorCode As Long  `" & vbCrLf & _
+                    "`errorCode = Err.LastDllError  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` that contains the system error code. If no error has occurred or if the error has been cleared, the return value is zero (`0`)  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `LastDllError` property is Windows-specific and it holds the last error code set by a call to a system function. It is generally used after calling a Windows API function to determine whether the function succeeded and, if not, to get detailed error information  ." & vbCrLf & _
+                    "The value of `LastDllError` is preserved until the next Windows API function is called, after which `LastDllError` can change  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Suppose we have a declaration for a Windows API function" & vbCrLf & _
+                    "' Public Declare PtrSafe Function SomeWindowsAPIFunction Lib ""user32"" Alias ""SomeFunction"" () As Boolean" & vbCrLf & _
+                    "Sub CheckLastError()" & vbCrLf & _
+                    "    Dim result As Boolean" & vbCrLf & _
+                    "    result = SomeWindowsAPIFunction()" & vbCrLf & _
+                    "    If result = False Then" & vbCrLf & _
+                    "        Dim lastError As Long" & vbCrLf & _
+                    "        lastError = Err.LastDllError" & vbCrLf & _
+                    "        ' Handle the error based on the last error code" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastDllError` property is used after a call to a hypothetical Windows API function to check if the function succeeded and to handle the error based on the last system error code if it did not  ." & vbCrLf & _
+                    "It's important to retrieve the `LastDllError` immediately following the API call, as subsequent calls may change the value.")]
+    Property Get LastDllError() As Long
+
+    [DispId(&H6002000C),RedirectToStaticImplementation("_HiddenModule.LetErrLastDllError")]
+    [Description("Retrieves the last system error code produced by a call to a dynamic link library (DLL)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim errorCode As Long  `" & vbCrLf & _
+                    "`errorCode = Err.LastDllError  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` that contains the system error code. If no error has occurred or if the error has been cleared, the return value is zero (`0`)  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `LastDllError` property is Windows-specific and it holds the last error code set by a call to a system function. It is generally used after calling a Windows API function to determine whether the function succeeded and, if not, to get detailed error information  ." & vbCrLf & _
+                    "The value of `LastDllError` is preserved until the next Windows API function is called, after which `LastDllError` can change  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Suppose we have a declaration for a Windows API function" & vbCrLf & _
+                    "' Public Declare PtrSafe Function SomeWindowsAPIFunction Lib ""user32"" Alias ""SomeFunction"" () As Boolean" & vbCrLf & _
+                    "Sub CheckLastError()" & vbCrLf & _
+                    "    Dim result As Boolean" & vbCrLf & _
+                    "    result = SomeWindowsAPIFunction()" & vbCrLf & _
+                    "    If result = False Then" & vbCrLf & _
+                    "        Dim lastError As Long" & vbCrLf & _
+                    "        lastError = Err.LastDllError" & vbCrLf & _
+                    "        ' Handle the error based on the last error code" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastDllError` property is used after a call to a hypothetical Windows API function to check if the function succeeded and to handle the error based on the last system error code if it did not  ." & vbCrLf & _
+                    "It's important to retrieve the `LastDllError` immediately following the API call, as subsequent calls may change the value.")]
+     Property Let LastDllError(ByVal Value As Long)
+
+    [DispId(&H6002000E),RedirectToStaticImplementation("_HiddenModule.GetErrLastHresult")]
+    [Description("Retrieves the last HRESULT return value from object method calls  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim hresult As Long  `" & vbCrLf & _
+                    "`hresult = Err.LastHresult  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` representing the raw HRESULT value from the most recent object method call. Failure HRESULTs are negative values, whereas non-failure HRESULTs (indicating success or status) are positive  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `LastHresult` allows for the examination of return values from COM object method calls that do not necessarily trigger an error in the runtime. Negative HRESULT values correspond to failures and are the ones that trigger an error within twinBASIC, which can then be captured using the `Err` object. However, positive HRESULT values, which indicate success or non-error statuses, do not trigger errors and thus do not disrupt the normal flow of the program  ." & vbCrLf & _
+                    "To handle both success and failure codes effectively, `LastHresult` should be checked immediately after the object method call, as any subsequent calls may change its value  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume we have a COM object with a method that returns an HRESULT" & vbCrLf & _
+                    "' Dim comObject As SomeComObject" & vbCrLf & _
+                    "Sub CheckHresult()" & vbCrLf & _
+                    "    Dim result As Long" & vbCrLf & _
+                    "    ' Call a method that returns an HRESULT value" & vbCrLf & _
+                    "    comObject.SomeMethod" & vbCrLf & _
+                    "    ' Check the HRESULT returned from the method call" & vbCrLf & _
+                    "    result = Err.LastHresult" & vbCrLf & _
+                    "    If result > 0 Then" & vbCrLf & _
+                    "        ' Handle the non-failure HRESULT if necessary" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastHresult` property is used after a call to a COM object method to check if the method succeeded without triggering a twinBASIC runtime error. The handling of non-failure HRESULTs is demonstrated.")]
+    Property Get LastHresult() As Long
+
+    [DispId(&H60020010),RedirectToStaticImplementation("_HiddenModule.GetErrReturnHResult")]
+    [Description("Allows a developer to set their own HRESULT when returning from an object method  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.ReturnHResult = [value]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is write-only  ." & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`[value]  `" & vbCrLf & _
+                    "A `Long` representing the raw HRESULT value to be returned. Positive values indicate a non-failure result  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `ReturnHResult` provides a mechanism to set an HRESULT explicitly when exiting an object method. This is particularly useful for returning non-failure (positive) HRESULTs, which indicate success or status information not conveyed by standard success codes. While `Err.Raise` is typically used to generate failure HRESULTs (negative values), `ReturnHResult` allows for setting specific non-failure results  ." & vbCrLf & _
+                    "A calling procedure can use `Err.LastHresult` to read the positive HRESULT that was returned from the method. It is important to set the `ReturnHResult` only when necessary, typically just before the method exit point, to ensure that the intended HRESULT is the one that's actually returned  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' This example demonstrates setting a non-failure HRESULT upon successfully" & vbCrLf & _
+                    "' completing a method within a COM object  ." & vbCrLf & _
+                    "Function MyMethod() As Variant" & vbCrLf & _
+                    "    ' Perform method actions here..  ." & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    ' Indicate success with a specific non-failure HRESULT" & vbCrLf & _
+                    "    Err.ReturnHResult = 123 ' Set a positive HRESULT of 123 indicating a specific success condition" & vbCrLf & _
+                    "End Function" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In the example above, `Err.ReturnHResult` is set to 123, a positive HRESULT value chosen to indicate a specific success condition. After the method completes, the caller can check `Err.LastHresult` to read this specific HRESULT value  ." & vbCrLf & _
+                    "### See Also" & vbCrLf & _
+                    "`Err.Raise`, `Err.LastHresult`, `Err.Number`, `Err.Description`")]
+    Property Get ReturnHResult() As Long
+ 
+    [DispId(&H60020010),RedirectToStaticImplementation("_HiddenModule.LetErrReturnHResult")]
+    [Description("Allows a developer to set their own HRESULT when returning from an object method  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.ReturnHResult = [value]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is write-only  ." & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`[value]  `" & vbCrLf & _
+                    "A `Long` representing the raw HRESULT value to be returned. Positive values indicate a non-failure result  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `ReturnHResult` provides a mechanism to set an HRESULT explicitly when exiting an object method. This is particularly useful for returning non-failure (positive) HRESULTs, which indicate success or status information not conveyed by standard success codes. While `Err.Raise` is typically used to generate failure HRESULTs (negative values), `ReturnHResult` allows for setting specific non-failure results  ." & vbCrLf & _
+                    "A calling procedure can use `Err.LastHresult` to read the positive HRESULT that was returned from the method. It is important to set the `ReturnHResult` only when necessary, typically just before the method exit point, to ensure that the intended HRESULT is the one that's actually returned  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' This example demonstrates setting a non-failure HRESULT upon successfully" & vbCrLf & _
+                    "' completing a method within a COM object  ." & vbCrLf & _
+                    "Function MyMethod() As Variant" & vbCrLf & _
+                    "    ' Perform method actions here..  ." & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    ' Indicate success with a specific non-failure HRESULT" & vbCrLf & _
+                    "    Err.ReturnHResult = 123 ' Set a positive HRESULT of 123 indicating a specific success condition" & vbCrLf & _
+                    "End Function" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In the example above, `Err.ReturnHResult` is set to 123, a positive HRESULT value chosen to indicate a specific success condition. After the method completes, the caller can check `Err.LastHresult` to read this specific HRESULT value  ." & vbCrLf & _
+                    "### See Also" & vbCrLf & _
+                    "`Err.Raise`, `Err.LastHresult`, `Err.Number`, `Err.Description`")]
+    Property Let ReturnHResult(ByVal Value As Long)
+End Interface
+
+[CoClassId("A4C46654-499F-101B-BB78-00AA00383CBB")]
+[COMCreatable(False)]
+CoClass ErrObject
+    [Default] Interface _ErrObject
+End CoClass

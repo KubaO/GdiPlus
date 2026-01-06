@@ -1,0 +1,40 @@
+[ClassId("E97AA5FD-7787-4818-B77E-5999646A5843")]
+[InterfaceId("C1723E23-2BFB-4F5B-9409-85C2BF41134C")]
+[COMCreatable(False)]
+Private Class BaseControlNotFocusable
+ 
+    Inherits BaseControlRect
+    
+    [Serialize(True, ":Index")]
+    Protected IndexINIT As Long = -1
+
+    [Serialize(False)]
+    Public Property Get Index() As Long
+        Dim IndexINIT As Any = InternalBaseControlInfo.ControlArrayIndex
+        If IndexINIT = -1 Then
+            'Err.Raise 343, , "Object not an array"
+            Err.ReturnHResult = &H800A0157
+            Return 0
+        End If
+        Return IndexINIT
+    End Property
+        
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        BaseControlRect.New(ControlType)
+    End Sub
+    
+    Protected Sub Initialize(_ControlContext As ControlContext)
+        Me.ControlContext.Pointer = _ControlContext.Pointer
+        InternalBaseControlInfo.ControlArrayIndex = IndexINIT
+    End Sub
+    
+    Protected Sub InternalBaseControlBeforeCreateRootWindow(ByRef InitData As WindowCreationData)
+        InternalBaseControlBeforeCreateRootWindowRect(InitData)
+    End Sub
+    
+    [DispId(-856)]
+    Public Property Get Container() As Object
+        Return Nothing
+    End Property
+    
+End Class

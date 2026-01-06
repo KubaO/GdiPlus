@@ -1,0 +1,890 @@
+[InterfaceId("9BB84908-0354-4B63-8E50-09D845005DA5")]
+Private Interface _WindowsControlsCollection
+    [DispId(1)] Property Get Count() As Long
+    [DispId(0)] Property Get Item(ByRef IndexOrName As Variant, Optional ByRef ControlArrayIndex As Variant) As Object
+    [DispId(2)] Function Add(ByVal ProgId As String, ByVal ControlName As String, Optional ByVal Container As Object) As Object
+    [DispId(3)] Sub Remove(ByRef IndexOrName As Variant)
+    [DispId(-4), Hidden] Function _NewEnum() As stdole.IUnknown
+End Interface
+
+[CoClassId("E70E5F9E-CEBC-47B6-AF56-E85BA20DB486")]
+Private CoClass WindowsControlsCollection
+    [Default] Interface _WindowsControlsCollection
+End CoClass
+
+[InterfaceId("14C8D2F5-0581-4675-8C70-A6C0B2FB63AB")]
+Private Interface IWindowsControl Extends stdole.IUnknown
+    Sub Initialize(ByVal Me As ControlContext)
+    Sub Destroy()
+    [AllowUnpopulatedVtableEntry] Sub PreInitialize()
+End Interface
+
+' [InterfaceId("178E9866-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsBaseControl Extends stdole.IUnknown
+'     Sub Create()
+'     Sub DPIChange()
+' End Interface
+
+' [InterfaceId("178E9865-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsBaseForm Extends stdole.IUnknown
+'     Sub PreResize()
+'     Sub ShowWindow()
+' End Interface
+
+' [InterfaceId("178E9864-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsCommon Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub Command(ByVal NotificationCode As Long, ByVal Identifier As Integer, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub Create()
+'     [AllowUnpopulatedVtableEntry] Sub GetColors(ByVal hdc As LongPtr, ByRef out As LongPtr, ByVal ControlType As Long)
+'     [AllowUnpopulatedVtableEntry] Sub EraseBackground(ByVal hdc As LongPtr, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub Scroll(ByVal ScrollType As Long, ByVal IsHorizontal As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub KeyDown(ByRef KeyCode As Long, ByVal ShiftState As Long)
+'     [AllowUnpopulatedVtableEntry] Sub PreMouseDown(ByVal Button As Long, ByVal ShiftState As Long, ByVal X As Single, ByVal Y As Single, ByRef SwallowMessage As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub PreMouseUp(ByVal Button As Long, ByVal ShiftState As Long, ByVal X As Single, ByVal Y As Single, ByRef SwallowMessage As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub MouseDown(ByVal Button As Long, ByVal ShiftState As Long, ByVal X As Single, ByVal Y As Single)
+'     [AllowUnpopulatedVtableEntry] Sub MouseUp(ByVal Button As Long, ByVal ShiftState As Long, ByVal X As Single, ByVal Y As Single)
+'     [AllowUnpopulatedVtableEntry] Sub MouseMove(ByVal Button As Long, ByVal ShiftState As Long, ByVal X As Single, ByVal Y As Single)
+'     [AllowUnpopulatedVtableEntry] Sub MouseDoubleClick(ByVal Button As Long, ByVal X As Single, ByVal Y As Single)
+'     [AllowUnpopulatedVtableEntry] Sub Paint(ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub Resize()
+'     [AllowUnpopulatedVtableEntry] Sub ResizeWindowless(ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long)
+'     [AllowUnpopulatedVtableEntry] Sub MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub PreProcessMessage(ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef MutedReturnValue As Variant, ByRef PostMessageCookie As Long)
+'     [AllowUnpopulatedVtableEntry] Sub PostProcessMessage(ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef returnValue As LongPtr, ByVal PostMessageCookie As Long)
+'     [AllowUnpopulatedVtableEntry] Sub MeasureItem(ByRef Info As Any, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub DrawItem(ByRef Info As Any, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub FontChanged()
+'     [AllowUnpopulatedVtableEntry] Sub Load()
+'     [AllowUnpopulatedVtableEntry] Sub Validate(ByRef Cancel As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub InvokeCancel()
+'     [AllowUnpopulatedVtableEntry] Sub InvokeDefault(ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub RevokeCancel()
+'     [AllowUnpopulatedVtableEntry] Sub RevokeDefault()
+'     [AllowUnpopulatedVtableEntry] Sub GetCaption(ByRef out As String)
+'     [AllowUnpopulatedVtableEntry] Sub InvokeMnemonic(ByVal IsUnique As Boolean, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub GetOpaqueRegion(ByRef out As LongPtr)
+' End Interface
+
+
+' [InterfaceId("178E9863-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsCommonRoot Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub ActivateMDIChild()
+'     [AllowUnpopulatedVtableEntry] Sub DeactivateMDIChild()
+'     [AllowUnpopulatedVtableEntry] Sub NotifyRuntimeMenuAdded(ByVal Control As Object)
+'     [AllowUnpopulatedVtableEntry] Sub NotifyRuntimeMenuRemoved(ByVal Control As Object)
+'     [AllowUnpopulatedVtableEntry] Sub Activate()
+'     [AllowUnpopulatedVtableEntry] Sub Deactivate()
+'     [AllowUnpopulatedVtableEntry] Sub CanClose(ByRef Cancel As Integer)
+'     [AllowUnpopulatedVtableEntry] Sub MenuCommand(ByVal CommandID As Long, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub MenuPopup(ByVal hMenu As LongPtr, ByRef Handled As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub PreLoadForm()
+'     [AllowUnpopulatedVtableEntry] Sub ShowHelp(ByVal Object As Object)
+'     [AllowUnpopulatedVtableEntry] Sub ShowMenuHelp(ByVal MenuId As Long)
+'     [AllowUnpopulatedVtableEntry] Sub QueryUnload(ByRef Cancel As Integer, ByVal UnloadMode As Long)
+'     [AllowUnpopulatedVtableEntry] Sub PaintMDIClient(ByVal hdc As LongPtr, ByRef rect As Any)
+'     [AllowUnpopulatedVtableEntry] Sub MDIClientResized()
+'     [AllowUnpopulatedVtableEntry] Sub ChangedMDIActiveForm(ByVal ActiveChildForm As Object, ByVal IsClosing As Boolean)
+' End Interface
+
+' [InterfaceId("178E9862-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsAX Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub CapturedMessage(ByRef msg As Any)
+'     [AllowUnpopulatedVtableEntry] Sub DragOver(ByVal Source As Object, ByVal X As Double, ByVal y As Double, ByVal State As Long)
+'     [AllowUnpopulatedVtableEntry] Sub SyncDefaultState(ByVal value As Boolean)
+' End Interface
+
+' [InterfaceId("178E9861-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsUC Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub GotFocus()
+'     [AllowUnpopulatedVtableEntry] Sub LostFocus()
+'     [AllowUnpopulatedVtableEntry] Sub EnterFocus()
+'     [AllowUnpopulatedVtableEntry] Sub ExitFocus()
+'     [AllowUnpopulatedVtableEntry] Sub EnterFocus2()
+'     [AllowUnpopulatedVtableEntry] Sub ExitFocus2()
+'     [AllowUnpopulatedVtableEntry] Sub ImmediateGotFocus()
+'     [AllowUnpopulatedVtableEntry] Sub DeferredUcMessage(ByVal wParam As LongPtr, ByVal lParam As LongPtr)
+'     [AllowUnpopulatedVtableEntry] Sub UnconsumedKeyboardMessage(ByRef msg As Any, ByRef Consumed As Boolean)
+' End Interface
+
+' [InterfaceId("178E9860-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsGraphics Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub DPIChange()
+'     [AllowUnpopulatedVtableEntry] Sub Resize()
+'     [AllowUnpopulatedVtableEntry] Sub GetColors(ByVal hdc As LongPtr, ByRef out As LongPtr, ByVal ControlType As Long)
+'     [AllowUnpopulatedVtableEntry] Sub SetFont(ByVal fontHandle As LongPtr, ByVal redraw As Boolean)
+'     [AllowUnpopulatedVtableEntry] Sub GetFont(ByRef fontHandle As LongPtr)
+' End Interface
+
+' [InterfaceId("178E9867-DAE4-4522-B103-8F5C008E316A")]
+' Interface IWindowElementEventsCommonControls Extends stdole.IUnknown
+'     [AllowUnpopulatedVtableEntry] Sub Notify(ByRef Notification As Any, ByRef MutedReturnValue As Variant)
+' End Interface
+
+Private Module WindowElementFlags
+    Enum EnumWindowElementFlags
+        ForwardGotFocus = &H00000001
+        ForwardLostFocus = &H00000002
+        ForwardButtonClick = &H00000004
+        ForwardKeyDown = &H00000008
+        ForwardKeyUp = &H00000010
+        ForwardKeyPress = &H00000020
+        ForwardMouseMove = &H00000040
+        ForwardMouseDown = &H00000080
+        ForwardMouseUp = &H00000100
+        ForwardDragOver = &H00000200
+        ForwardValidate = &H00000400
+        ForwardDoubleClick = &H00000800
+        ForwardEnsureEnabled = &H00001000              ' this flag makes the runtime check the 'Enabled' property before forwarding certain events, such as ForwardButtonClick and ForwardDoubleClick
+        
+        HasExclusiveValueWithinContainer = &H80000000
+        RequiresWindowlessPaintingWithoutEvents = &H40000000
+        RequiresWindowlessPaintingWithEvents = &H20000000
+        NeedsPrePostMessages = &H10000000
+        NotRectangular = &H08000000
+        EnforceTabStopAfterCreation = &H04000000
+        IsUserControl = &H02000000
+        IsContainer = &H01000000
+        ManualMouseCapture = &H00800000
+        ScaleAdjustMouseEvents = &H00400000
+        PreventActivation = &H00200000
+        MuteSpecialKeyBeeps = &H00100000
+        IsMDIForm = &H00080000
+        IsMDIChild = &H00040000
+        HasExclusiveCancelProp = &H00020000
+        HasExclusiveDefaultProp = &H00010000
+        IsReportMode = &H00008000&
+        IsAngledControl = &H00004000&
+        IgnoreWmCommandButtonClicks = &H00002000&
+    End Enum
+    
+    Enum EnumWindowElementFlags2
+        IsActiveXWrapper = 1
+        NeedsContainerMessages = 2
+        AlwaysPaintInSnapshots = 4
+        IsPropertyPage = 8
+    End Enum
+End Module
+
+Private Module RuntimeUI         ' FIXME got to hide this somehow
+    
+    Type WindowElement
+        Pointer As LongPtr
+        
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub PaintContainedWindowlessElements Lib "<runtimeui>" Alias "#1" (ByVal Me As WindowElement, ByVal hdc As LongPtr)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetHandle Lib "<runtimeui>" Alias "#2" (ByVal Me As WindowElement) As HWND
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetDPI Lib "<runtimeui>" Alias "#3" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetUnitScale Lib "<runtimeui>" Alias "#4" (ByVal Me As WindowElement) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIBeginPaint Lib "<runtimeui>" Alias "#5" (ByVal Me As WindowElement, ByRef ps As Any)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIEndPaint Lib "<runtimeui>" Alias "#6" (ByVal Me As WindowElement, ByRef ps As Any)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetContainer Lib "<runtimeui>" Alias "#7" (ByVal Me As WindowElement) As Object
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)] ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUISetContainer Lib "<runtimeui>" Alias "#8" (ByVal Me As WindowElement, ByVal target As Object)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetCurrentLeft Lib "<runtimeui>" Alias "#9" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetCurrentTop Lib "<runtimeui>" Alias "#10" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetCurrentWidth Lib "<runtimeui>" Alias "#11" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetCurrentHeight Lib "<runtimeui>" Alias "#12" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetContainerHWND Lib "<runtimeui>" Alias "#13" (ByVal Me As WindowElement) As HWND
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICaptureMessages Lib "<runtimeui>" Alias "#14" (ByVal Me As WindowElement, ByVal Value As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetOriginalWindowStyles Lib "<runtimeui>" Alias "#15" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIEnforceTabStopAfterCreation Lib "<runtimeui>" Alias "#16" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICreateControlsEnumerator Lib "<runtimeui>" Alias "#17" (ByVal Me As WindowElement, ByVal dwOleContF As Long, ByVal dwWhich As Long) As stdole.IUnknown
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIIsExclusiveValueWithinContainer Lib "<runtimeui>" Alias "#18" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIResetExclusiveValuesInContainer Lib "<runtimeui>" Alias "#19" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICreateExcludedClipRegion Lib "<runtimeui>" Alias "#20" (ByVal Me As WindowElement) As LongPtr
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIRequiresWindowlessPainting Lib "<runtimeui>" Alias "#21" (ByVal Me As WindowElement, ByVal HasEvents As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUINotRectangular Lib "<runtimeui>" Alias "#22" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetFormActiveControl Lib "<runtimeui>" Alias "#23" (ByVal Me As WindowElement) As stdole.IUnknown
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIToolTipChanged Lib "<runtimeui>" Alias "#24" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIChangeChildScaleMode Lib "<runtimeui>" Alias "#25" (ByVal Me As WindowElement, ByVal ScaleMode As Long, ByVal FactorX As Double, ByVal FactorY As Double, ByVal OffsetX As Double, ByVal OffsetY As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]          ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUIScaleX Lib "<runtimeui>" Alias "#26" (ByVal Me As WindowElement, ByVal inValue As Double, ByVal ScaleFrom As Long, ByVal ScaleTo As Long) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]          ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUIScaleY Lib "<runtimeui>" Alias "#27" (ByVal Me As WindowElement, ByVal inValue As Double, ByVal ScaleFrom As Long, ByVal ScaleTo As Long) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIStartDrag Lib "<runtimeui>" Alias "#28" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIEndDrag Lib "<runtimeui>" Alias "#29" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICancelDrag Lib "<runtimeui>" Alias "#30" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIChangeToUserControlMode Lib "<runtimeui>" Alias "#31" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIActivatePrePostMessages Lib "<runtimeui>" Alias "#32" (ByVal Me As WindowElement, ByVal in As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIStopTimers Lib "<runtimeui>" Alias "#33" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIDestroyHandle Lib "<runtimeui>" Alias "#34" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIActivate Lib "<runtimeui>" Alias "#35" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIDeactivateStart Lib "<runtimeui>" Alias "#36" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIDeactivateEnd Lib "<runtimeui>" Alias "#37" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIActivateAX Lib "<runtimeui>" Alias "#38" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICanGetFocus Lib "<runtimeui>" Alias "#39" (ByVal Me As WindowElement, ByVal Value As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIOverrideCursor Lib "<runtimeui>" Alias "#40" (ByVal Me As WindowElement, ByVal Value As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIRecreateWindow Lib "<runtimeui>" Alias "#41" (ByVal Me As WindowElement, ByVal Styles As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIRemoveVisualStyles Lib "<runtimeui>" Alias "#42" (ByVal Me As WindowElement, ByVal windowHandle As LongPtr, ByVal value As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIIsProcessingMouseWheelMessage Lib "<runtimeui>" Alias "#43" (ByVal Me As WindowElement) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIHandleAxContainerMsgPre Lib "<runtimeui>" Alias "#44" (ByVal Me As WindowElement, ByVal hwnd As LongPtr, ByVal msg As Long, ByVal wp As LongPtr, ByVal lp As LongPtr, ByRef plResult As LongPtr) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIHandleAxContainerMsgPost Lib "<runtimeui>" Alias "#45" (ByVal Me As WindowElement, ByVal hwnd As LongPtr, ByVal msg As Long, ByVal wp As LongPtr, ByVal lp As LongPtr, ByRef plResult As LongPtr) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetFlags Lib "<runtimeui>" Alias "#46" (ByVal Me As WindowElement, ByVal flags As EnumWindowElementFlags)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIIsContainer Lib "<runtimeui>" Alias "#47" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIControlHasBeenDisabled Lib "<runtimeui>" Alias "#48" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIMoveableChanged Lib "<runtimeui>" Alias "#49" (ByVal Me As WindowElement, ByVal NewValue As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetMDIMenu Lib "<runtimeui>" Alias "#50" (ByVal Me As WindowElement, ByVal menu As LongPtr, ByVal menuWindowList As LongPtr)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIMDIClientHandle Lib "<runtimeui>" Alias "#51" (ByVal Me As WindowElement) As HWND
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetCancelControl Lib "<runtimeui>" Alias "#52" (ByVal Me As WindowElement, ByVal NewValue As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetDefaultControl Lib "<runtimeui>" Alias "#53" (ByVal Me As WindowElement, ByVal NewValue As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIHandleEscapeKey Lib "<runtimeui>" Alias "#54" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIHandleEnterKey Lib "<runtimeui>" Alias "#55" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetDrawingSectionId Lib "<runtimeui>" Alias "#56" (ByVal Me As WindowElement, ByVal SectionId As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIGetDrawingSectionId Lib "<runtimeui>" Alias "#57" (ByVal Me As WindowElement) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIIsIdeSnapshotting Lib "<runtimeui>" Alias "#58" (ByVal Me As WindowElement) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIAngleChanged Lib "<runtimeui>" Alias "#59" (ByVal Me As WindowElement, ByVal IsAngledControl As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIReportActiveXError Lib "<runtimeui>" Alias "#60" (ByVal Me As WindowElement, ByVal Number As Long, ByVal Description As String)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIIsUserControlInActiveProject Lib "<runtimeui>" Alias "#61" (ByVal clsid As String) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIMuteResizeEventInternal Lib "<runtimeui>" Alias "#62" (ByVal Me As WindowElement) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIIsShowInProgress Lib "<runtimeui>" Alias "#63" (ByVal Me As WindowElement) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIRedrawMenuDeferred Lib "<runtimeui>" Alias "#64" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUIIsDesignMode Lib "<runtimeui>" Alias "#65" (ByVal Me As WindowElement) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIUnSubclass Lib "<runtimeui>" Alias "#66" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIGetNextControlByTabIndex Lib "<runtimeui>" Alias "#67" (ByVal Me As WindowElement, ByVal TabIndexStart As Long, ByRef out As Object, ByVal includeRoot As Boolean, ByVal wrapAround As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIInvokeMnemonicOfControl Lib "<runtimeui>" Alias "#68" (ByVal Me As WindowElement, ByVal control As Object, ByVal IsUnique As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIDragModeChanged Lib "<runtimeui>" Alias "#69" (ByVal Me As WindowElement)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUISetAndSinkEvents Lib "<runtimeui>" Alias "#70" (ByVal Me As WindowElement, ByVal EventsInterface As Any)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUIUnSinkEvents Lib "<runtimeui>" Alias "#71" (ByVal Me As WindowElement, ByVal EventsInterface As Any)
+        
+        Sub SetStyleFlag(ByVal Flag As Long, ByVal Value As Boolean)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+        
+            Dim styles As Long = Me.RuntimeUIGetHandle().GetWindowLongW(WindowProperties.GWL_STYLE)
+            styles = styles And Not Flag
+            If Value Then styles = styles Or Flag
+            Me.RuntimeUIGetHandle().SetWindowLongW(WindowProperties.GWL_STYLE, styles)
+        End Sub
+    
+        Function GetStyleFlag(ByVal Flag As Long) As Boolean
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+        
+            Dim styles As Long = Me.RuntimeUIGetHandle().GetWindowLongW(WindowProperties.GWL_STYLE)
+            Return If(styles And Flag, True, False)
+        End Function
+    
+        Sub SetStyleFlags(ByVal FlagsMask As Long, ByVal Flags As Long)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+        
+            Dim styles As Long = Me.RuntimeUIGetHandle().GetWindowLongW(WindowProperties.GWL_STYLE)
+            styles = styles And Not FlagsMask
+            styles += Flags
+            Me.RuntimeUIGetHandle().SetWindowLongW(WindowProperties.GWL_STYLE, styles)
+        End Sub
+    
+        Function GetStyleFlags(ByVal FlagsMask As Long) As Long
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+        
+            Dim styles As Long = Me.RuntimeUIGetHandle().GetWindowLongW(WindowProperties.GWL_STYLE)
+            Return styles And FlagsMask
+        End Function
+        
+        Public Function GetWindowText() As String
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Dim hwnd As Any = Me.RuntimeUIGetHandle()
+            Dim itemLength As Long = CLng(hwnd.SendMessageW(WM_GETTEXTLENGTH, 0, 0))
+            Dim outValue As String = OLEAUT32.SysAllocStringLen(vbNullString, itemLength)
+            Dim realLength As Long = CLng(hwnd.SendMessageW(WM_GETTEXT, itemLength + 1, StrPtr(outValue)))
+            If realLength < itemLength Then outValue = VBA.Left$(outValue, realLength) ' for completeness, see docs for WM_GETTEXTLENGTH
+            Return outValue
+        End Function
+    
+        Public Function GetScrollInfo(ByVal Mask As SCROLLINFOMASK, _
+                                        ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As SCROLLINFO
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            GetScrollInfo.cbSize = LenB(GetScrollInfo)
+            GetScrollInfo.fMask = Mask
+            Me.RuntimeUIGetHandle().GetScrollInfo(Type, GetScrollInfo)
+        End Function
+    
+        Public Function GetScrollMinimum(ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As Long
+            Return Me.GetScrollInfo(SCROLLINFOMASK.SIF_RANGE, Type).nMin
+        End Function
+    
+        Public Function GetScrollMaximum(ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As Long
+            Return Me.GetScrollInfo(SCROLLINFOMASK.SIF_RANGE, Type).nMax
+        End Function
+    
+        Public Function GetScrollValue(ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As Long
+            Return Me.GetScrollInfo(SCROLLINFOMASK.SIF_POS, Type).nPos
+        End Function
+    
+        Public Function GetScrollValueHot(ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As Long
+            Return Me.GetScrollInfo(SCROLLINFOMASK.SIF_TRACKPOS, Type).nTrackPos
+        End Function
+    
+        Public Function GetScrollPageSize(ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL) As Long
+            Return Me.GetScrollInfo(SCROLLINFOMASK.SIF_PAGE, Type).nPage
+        End Function
+
+        Public Sub SetScrollRange(ByVal Min As Long, ByVal Max As Long, _ 
+                                            ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Dim scrollInfo As SCROLLINFO
+            scrollInfo.cbSize = LenB(scrollInfo)
+            scrollInfo.fMask = SCROLLINFOMASK.SIF_RANGE
+            scrollInfo.nMin = Min
+            scrollInfo.nMax = Max
+            Me.RuntimeUIGetHandle().SetScrollInfo(Type, scrollInfo, 1)
+        End Sub
+    
+        Public Sub SetScrollValue(ByVal Value As Long, _ 
+                                            ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL, ByVal RepaintNow As Boolean = True)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Dim scrollInfo As SCROLLINFO
+            scrollInfo.cbSize = LenB(scrollInfo)
+            scrollInfo.fMask = SCROLLINFOMASK.SIF_POS
+            scrollInfo.nPos = Value
+            Me.RuntimeUIGetHandle().SetScrollInfo(Type, scrollInfo, If(RepaintNow, 1, 0))
+        End Sub
+    
+        Public Sub SetScrollPageSize(ByVal Value As Long, _ 
+                                            ByVal Type As SCROLLTYPE = SCROLLTYPE.SB_CTL, ByVal RepaintNow As Boolean = True)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Dim scrollInfo As SCROLLINFO
+            scrollInfo.cbSize = LenB(scrollInfo)
+            scrollInfo.fMask = SCROLLINFOMASK.SIF_PAGE
+            scrollInfo.nPage = Value
+            Me.RuntimeUIGetHandle().SetScrollInfo(Type, scrollInfo, If(RepaintNow, 1, 0))
+        End Sub
+    
+        Public Sub SetCapture()
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().SetCapture()
+        End Sub
+    
+        Public Sub EnableWindow(ByVal Value As Boolean)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().EnableWindow(CLng(If(Value, 1, 0)))
+        End Sub
+
+        Public Function GetWindow(ByVal uCmd As Long) As LongPtr
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Return Me.RuntimeUIGetHandle().GetWindow(uCmd)
+        End Function
+
+        Public Sub SetWindowText(ByVal Value As String)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().SetWindowTextW(Value)
+        End Sub
+    
+        Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Return Me.RuntimeUIGetHandle().SendMessageW(wMsg, wParam, lParam)
+        End Function
+    
+        Public Sub SetWindowLong(ByVal Index As Long, ByVal Value As Long)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().SetWindowLongW(Index, Value)
+        End Sub
+    
+        Public Function SetFont(ByRef Font As IFont) As LongPtr
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            If Font Is Nothing Then Err.Raise errInvalidArgument
+
+            ' First make sure the font scaling matches the window DPI
+            Font.SetRatio Me.RuntimeUIGetDPI(), 2540
+             
+            Dim LF As LOGFONT
+            GDI32.GetObjectW(Font.hFont, LenB(LF), LF)
+            'LF.LFQuality = CByte(CLEARTYPE_QUALITY)
+            Dim newFont As LongPtr = GDI32.CreateFontIndirectW(LF)
+            'Debug.Print "**** CREATED HFONT: " & newFont
+    
+            Me.RuntimeUIGetHandle().SendMessageW(WM_SETFONT, newFont, 1)
+            Return newFont
+        End Function
+    
+        Public Function GetWindowPlacement() As WINDOWPLACEMENT
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            GetWindowPlacement.length = LenB(GetWindowPlacement)
+            Me.RuntimeUIGetHandle().GetWindowPlacement(GetWindowPlacement)
+        End Function
+    
+        Public Sub SetWindowPlacement(ByRef wp As WINDOWPLACEMENT)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().SetWindowPlacement(wp)
+        End Sub
+        
+        Public Function GDI32_GetWindowFontHeight() As Long
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+
+            Dim TextMetrics As TEXTMETRIC
+            Dim WindowDC As HDC = Me.RuntimeUIGetHandle().GetDC()
+            WindowDC.GetTextMetricsW(TextMetrics)
+            Me.RuntimeUIGetHandle().ReleaseDC(WindowDC)
+            Return TextMetrics.TMHeight
+        End Function
+    
+        Public Sub FillWithBrush(ByVal hdc As HDC, ByVal Brush As LongPtr)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+        
+            Dim rect As tbRECT
+            Me.RuntimeUIGetHandle().GetClientRect(rect)
+            hdc.FillRect(rect, Brush)
+        End Sub
+    
+        Public Sub SetFocus()
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().SetFocus()
+        End Sub
+    
+        Public Sub ShowWindow(ByVal nCmdShow As Long)
+            Me.RuntimeUIGetHandle().ShowWindow(nCmdShow)
+        End Sub
+    
+        Public Function GetParent() As HWND
+            Return Me.RuntimeUIGetHandle().GetParent()
+        End Function
+    
+        Public Sub RedrawWindow(ByVal lprcUpdate As LongPtr, _
+                                        ByVal hrgnUpdate As LongPtr, ByVal flags As RedrawFlags)
+            Me.RuntimeUIGetHandle().RedrawWindow(lprcUpdate, hrgnUpdate, flags)
+        End Sub
+    
+        Public Sub RedrawRect(ByRef rect As tbRECT, ByVal Erase As Boolean)
+            Me.RuntimeUIGetHandle().InvalidateRect(rect, If(Erase, 1, 0))
+        End Sub
+    
+        Public Function GetWindowLong(ByVal Index As Long) As Long
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Return Me.RuntimeUIGetHandle().GetWindowLongW(Index)
+        End Function
+        
+        Public Function GetListVisibleCount() As Long
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Dim rect As tbRECT
+            Me.RuntimeUIGetHandle().GetClientRect(rect)
+            Const LB_GETITEMHEIGHT As Long = &H1A1
+            Dim itemHeight As Long = CLng(Me.RuntimeUIGetHandle().SendMessageW(LB_GETITEMHEIGHT, 0, 0))
+            Return (rect.Bottom - rect.Top) \ itemHeight
+        End Function
+        
+        Public Function ListBoxIndexFromPoint(ByRef point As POINT, ByVal AutoScroll As Boolean) As Long
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            #If WIN64 Then
+                Dim PointXY As LongLong = (CLngLng(point.y) << 32) Or CLngLng(point.x)
+                Return Me.RuntimeUIGetHandle().LBItemFromPt(PointXY, If(AutoScroll, 1, 0))
+            #Else
+                Return Me.RuntimeUIGetHandle().LBItemFromPt(point.x, point.y, If(AutoScroll, 1, 0))
+            #End If
+        End Function
+    
+        Public Function GetComboBoxInfo() As COMBOBOXINFO
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            GetComboBoxInfo.cbSize = LenB(GetComboBoxInfo)
+            Me.RuntimeUIGetHandle().GetComboBoxInfo(GetComboBoxInfo)
+        End Function
+        
+        Public Function GetWindowRect() As tbRECT
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().GetWindowRect(GetWindowRect)
+        End Function
+    
+        Public Sub ClientPointToScreen(ByRef point As POINT)
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().ClientToScreen(point)
+        End Sub
+    
+        Public Function GetClientRect() As tbRECT
+            If Me.Pointer = vbNullPtr Then Err.Raise errInvalidArgument
+            Me.RuntimeUIGetHandle().GetClientRect(GetClientRect)
+        End Function
+        
+        Public Function CommonGetFormWidth() As Double
+            Dim newRect As tbRECT
+            Me.RuntimeUIGetHandle().GetWindowRect(newRect)
+            Return Me.RuntimeUIScaleX(newRect.Right - newRect.Left, vbPixels, vbTwips)
+        End Function
+    
+        Public Sub CommonSetFormWidth(BaseControlInfo As BaseControlInfo, ByVal ControlContext As ControlContext, ValueTwips As Double, ByVal IsDesignMode As Boolean)
+            ' Adjust Value to make it CLIENT width
+            Dim widthDiff As Double
+            If IsDesignMode = False Then
+                Dim rectWindow As tbRECT
+                Dim rectClient As tbRECT
+                Dim hwnd As HWND = Me.RuntimeUIGetHandle()
+                hwnd.GetWindowRect(rectWindow)
+                hwnd.GetClientRect(rectClient)
+                widthDiff = Me.RuntimeUIScaleX(((rectWindow.Right - rectWindow.Left) - (rectClient.Right - rectClient.Left)), vbPixels, vbScaledPixels)
+            End If
+        
+            BaseControlInfo.PixelsWidth = Me.RuntimeUIScaleX(CSng(ValueTwips), vbTwips, vbScaledPixels) - widthDiff
+            ControlContext.RuntimeUICtxChangedPosition()
+        End Sub
+    
+        Public Function CommonGetFormHeight() As Double
+            Dim newRect As tbRECT
+            Me.RuntimeUIGetHandle().GetWindowRect(newRect)
+            Return Me.RuntimeUIScaleY(newRect.Bottom - newRect.Top, vbPixels, vbTwips)
+        End Function
+    
+        Public Sub CommonSetFormHeight(BaseControlInfo As BaseControlInfo, ByVal ControlContext As ControlContext, ValueTwips As Double, ByVal IsDesignMode As Boolean)
+            ' Adjust Value to make it CLIENT width
+            Dim heightDiff As Double
+            If IsDesignMode = False Then
+                Dim rectWindow As tbRECT
+                Dim rectClient As tbRECT
+                Dim hwnd As HWND = Me.RuntimeUIGetHandle()
+                hwnd.GetWindowRect(rectWindow)
+                hwnd.GetClientRect(rectClient)
+                heightDiff = Me.RuntimeUIScaleY(((rectWindow.Bottom - rectWindow.Top) - (rectClient.Bottom - rectClient.Top)), vbPixels, vbScaledPixels)
+            End If
+        
+            BaseControlInfo.PixelsHeight = Me.RuntimeUIScaleY(CSng(ValueTwips), vbTwips, vbScaledPixels) - heightDiff
+            ControlContext.RuntimeUICtxChangedPosition()
+        End Sub
+    
+        Public Sub CommonSyncScrollBarV(ByVal RangeMax As Long)
+            If Me.Pointer <> vbNullPtr Then
+                Dim scrollPageSize As Long = Me.GetListVisibleCount()
+                Me.SetScrollRange(0, RangeMax - 1, SB_VERT)   ' FIXME combine the two SetScroll* calls
+                Me.SetScrollPageSize(scrollPageSize, SB_VERT)
+            End If
+        End Sub
+    
+        Public Function CommonGetComboBoxStringByIndex(ByVal Index As Long) As String
+            ' FIXME error if out of range
+            ' Note Index is limited to 32767 due to Win95/98/ME support (see docs for LB_GETTEXT)
+            ' FIXME In the official matching _ListBox interface, we need to change Index to Integer
+            Dim itemLength As Long = CLng(Me.SendMessage(ComboBoxMessages.CB_GETLBTEXTLEN, Index, 0))
+            Dim outValue As String = OLEAUT32.SysAllocStringLen(vbNullString, itemLength)
+            Dim realLength As Long = CLng(Me.SendMessage(ComboBoxMessages.CB_GETLBTEXT, Index, StrPtr(outValue)))
+            If realLength < itemLength Then outValue = VBA.Left$(outValue, realLength) ' for completeness, see docs for LB_GETTEXTLEN
+            Return outValue
+        End Function
+    
+        Public Function CommonGetListBoxStringByIndex(ByVal Index As Long) As String
+            ' FIXME error if out of range
+            ' Note Index is limited to 32767 due to Win95/98/ME support (see docs for LB_GETTEXT)
+            ' FIXME In the official matching _ListBox interface, we need to change Index to Integer
+            Dim itemLength As Long = CLng(Me.SendMessage(ListBoxMessages.LB_GETTEXTLEN, Index, 0))
+            Dim outValue As String = OLEAUT32.SysAllocStringLen(vbNullString, itemLength)
+            Dim realLength As Long = CLng(Me.SendMessage(ListBoxMessages.LB_GETTEXT, Index, StrPtr(outValue)))
+            If realLength < itemLength Then outValue = VBA.Left$(outValue, realLength) ' for completeness, see docs for LB_GETTEXTLEN
+            Return outValue
+        End Function
+    
+        Public Sub CommonGetScreenCursorPos(ByRef out As POINT)
+            USER32.GetCursorPos(out)
+            Me.RuntimeUIGetHandle().ScreenToClient(out)
+        End Sub
+        
+        Public Sub CommonInitFontRatio(ByRef NewFont As StdFont)
+            Dim font As IFont = NewFont
+            font.SetRatio If(Me.Pointer <> vbNullPtr, Me.RuntimeUIGetDPI(), 96&), 2540
+        End Sub
+    
+        Public Function CommonListboxAddOrInsert(ByVal Value As String, Optional ByVal Index As Variant) As Long
+            Dim strPointer As Any = StrPtrSafe(Value)
+            If IsMissing(Index) Then
+                Return CLng(Me.SendMessage(ListBoxMessages.LB_ADDSTRING, 0, strPointer))()
+            Else
+                ' FIXME error when Index is out of range
+                Return CLng(Me.SendMessage(ListBoxMessages.LB_INSERTSTRING, CLng(Index), strPointer))
+            End If
+        End Function
+    
+        Public Function CommonComboboxAddOrInsert(ByVal Value As String, Optional ByVal Index As Variant) As Long
+            Dim strPointer As Any = StrPtrSafe(Value)
+            If IsMissing(Index) Then
+                Return CLng(Me.SendMessage(ComboBoxMessages.CB_ADDSTRING, 0, strPointer))()
+            Else
+                ' FIXME error when Index is out of range
+                Return CLng(Me.SendMessage(ComboBoxMessages.CB_INSERTSTRING, CLng(Index), strPointer))
+            End If
+        End Function
+    
+        Public Sub CommonRedrawEraseInvalidate()
+            Me.RedrawWindow(0, 0, RDW_ERASE Or RDW_INVALIDATE)
+        End Sub
+    
+        Public Sub CommonGetFontMetrics(ByVal font As IFont, ByRef out As TEXTMETRICW)
+            Dim hdc As HDC
+            hdc = hdc.CreateCompatibleDC()
+            font.SetRatio If(Me.Pointer <> vbNullPtr, Me.RuntimeUIGetDPI(), 96&), 2540
+            Dim oldFont As LongPtr = hdc.SelectObject(font.hFont)
+            hdc.GetTextMetricsW(out)
+            hdc.SelectObject(oldFont)
+            hdc.DeleteDC()
+        End Sub
+    
+        Public Function CommonListBoxGetItemIndexFromXY(ByVal ControlContext As ControlContext, ByVal X As Single, ByVal Y As Single) As Long
+            Dim point As POINT
+            Dim UnitPixelScale As Any = Me.RuntimeUIGetUnitScale()
+            point.x = CLng((X * UnitPixelScale) / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX())
+            point.y = CLng((Y * UnitPixelScale) / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY())
+            Me.ClientPointToScreen(point)
+            Return Me.ListBoxIndexFromPoint(point, 0)
+        End Function
+    
+        Public Function CommonDragDetect() As Boolean
+            Dim mousePoint As POINT
+            Me.RuntimeUIGetHandle().CommonCursorPosRelativeToWindow(mousePoint)
+                    
+            Return Me.RuntimeUIGetHandle().DragDetect(CInt(mousePoint.x And &HFFFF&), CInt(mousePoint.y And &HFFFF&)) <> 0
+        End Function
+    
+        Public Function CommonDragDetectLightweight() As Boolean
+            Dim mousePoint As POINT
+            Me.RuntimeUIGetContainerHWND().CommonCursorPosRelativeToWindow(mousePoint)
+                    
+            Return Me.RuntimeUIGetContainerHWND().DragDetect(CInt(mousePoint.x And &HFFFF&), CInt(mousePoint.y And &HFFFF&)) <> 0
+        End Function
+    
+        Public Function CommonListBoxPreMouseDownHandleOLEDragDetect(ByVal ControlContext As ControlContext, ByRef MouseDownNeedsManualRelease As Boolean, ByVal ListIndex As Long, ByVal X As Single, ByVal Y As Single) As Long
+            Dim itemIndex As Long = Me.CommonListBoxGetItemIndexFromXY(ControlContext, X, Y)
+            If itemIndex <> -1 Then
+                ' The list of selected items hasn't yet been updated to reflect the click
+                ' so we only do OLEDrag when we know the click is on the currently selected/focused item
+                ' (VB6 does same)
+                If itemIndex = ListIndex Then
+                    Dim mousePoint As POINT
+                    Me.RuntimeUIGetHandle().CommonCursorPosRelativeToWindow(mousePoint)
+                    
+                    If Me.RuntimeUIGetHandle().DragDetect(CInt(mousePoint.x And &HFFFF&), CInt(mousePoint.y And &HFFFF&)) <> 0 Then
+                        Return itemIndex
+                    Else
+                        MouseDownNeedsManualRelease = True
+                    End If
+                End If
+            End If
+            Return -1
+        End Function
+    
+        Public Function CommonGetSelectedItemsAsDelimitedString(Optional rootPath As String) As String
+            Dim count As Long = CLng(Me.SendMessage(ListBoxMessages.LB_GETSELCOUNT, 0, 0))
+            If count = 0 Then Exit Function
+            
+            Dim itemIndices() As Long
+            ReDim itemIndices(count - 1)
+            count = CLng(Me.SendMessage(ListBoxMessages.LB_GETSELITEMS, count, VarPtr(itemIndices(0))))
+
+            Dim selIndex As Long
+            For selIndex = 0 To count - 1
+                If selIndex > 0 Then CommonGetSelectedItemsAsDelimitedString &= vbCrLf
+                CommonGetSelectedItemsAsDelimitedString &= rootPath & Me.CommonGetListBoxStringByIndex(itemIndices(selIndex))
+            Next
+        End Function
+    
+        Public Function CommonHandleVerticalScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal RangeMax As Long) As Boolean
+            Dim OldValue As Long = Me.GetScrollValue(SB_VERT)
+            Dim NewValue As Long
+            Select Case ScrollType
+                Case SCROLLNOTIFY.SB_TOP
+                    NewValue = 0
+                Case SCROLLNOTIFY.SB_BOTTOM
+                    NewValue = 0
+                Case SCROLLNOTIFY.SB_LINEUP
+                    NewValue = OldValue - 1
+                Case SCROLLNOTIFY.SB_LINEDOWN
+                    NewValue = OldValue + 1
+                Case SCROLLNOTIFY.SB_PAGEUP
+                    NewValue = OldValue - Me.GetScrollPageSize(SB_VERT)
+                Case SCROLLNOTIFY.SB_PAGEDOWN
+                    NewValue = OldValue + Me.GetScrollPageSize(SB_VERT)
+                Case SCROLLNOTIFY.SB_THUMBPOSITION
+                    NewValue = OldValue
+                Case SCROLLNOTIFY.SB_THUMBTRACK
+                    NewValue = Me.GetScrollValueHot(SB_VERT)
+                Case Else
+                    Exit Function
+            End Select
+             
+            If NewValue < 0 Then
+                NewValue = 0
+            End If
+
+            If NewValue > RangeMax Then
+                NewValue = RangeMax
+            End If
+
+            If NewValue <> OldValue Then
+                Me.SetScrollValue(NewValue, SB_VERT)
+                Return True
+            End If
+        End Function
+    End Type
+    
+    Type ControlContext
+        Pointer As LongPtr
+        
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetSerializer Lib "<runtimeuictx>" Alias "#1" (ByVal Me As ControlContext) As SerializeInfo
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxRepaint Lib "<runtimeuictx>" Alias "#2" (ByVal Me As ControlContext)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxCreateTimer Lib "<runtimeuictx>" Alias "#3" (ByVal Me As ControlContext, ByVal callbackAddress As LongPtr) As LongPtr
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxCreateWindowElement Lib "<runtimeuictx>" Alias "#4" (ByVal Me As ControlContext, ByRef InitData As Any) As LongPtr
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxSubClassWindowElement Lib "<runtimeuictx>" Alias "#5" (ByVal Me As ControlContext, ByVal HWND As LongPtr, Optional ByVal flags As EnumWindowElementFlags) As LongPtr
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxScheduleCallback Lib "<runtimeuictx>" Alias "#6" (ByVal Me As ControlContext, ByVal callback As IScheduledCallback, Optional ByVal DelayMs As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxCreateDeferredDispatchWrapper Lib "<runtimeuictx>" Alias "#7" (ByVal Me As ControlContext, ByVal object As Object) As Object
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetControlArrayIndex Lib "<runtimeuictx>" Alias "#8" (ByVal Me As ControlContext, ByVal ControlArrayIndex As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxChangedPosition Lib "<runtimeuictx>" Alias "#9" (ByVal Me As ControlContext)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxInitializeActiveX Lib "<runtimeuictx>" Alias "#10" (ByVal Me As ControlContext) As Long
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxEnsureContainerIsLoaded Lib "<runtimeuictx>" Alias "#11" (ByVal Me As ControlContext)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxEnsureGetContainer Lib "<runtimeuictx>" Alias "#12" (ByVal Me As ControlContext) As stdole.IUnknown
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxEnsureGetForm Lib "<runtimeuictx>" Alias "#13" (ByVal Me As ControlContext) As stdole.IUnknown
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxMousePointerChanged Lib "<runtimeuictx>" Alias "#14" (ByVal Me As ControlContext)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledLeft Lib "<runtimeuictx>" Alias "#15" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledTop Lib "<runtimeuictx>" Alias "#16" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledWidth Lib "<runtimeuictx>" Alias "#17" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledHeight Lib "<runtimeuictx>" Alias "#18" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledLeft Lib "<runtimeuictx>" Alias "#19" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledTop Lib "<runtimeuictx>" Alias "#20" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledWidth Lib "<runtimeuictx>" Alias "#21" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledHeight Lib "<runtimeuictx>" Alias "#22" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledX1 Lib "<runtimeuictx>" Alias "#23" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledY1 Lib "<runtimeuictx>" Alias "#24" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledX2 Lib "<runtimeuictx>" Alias "#25" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                  ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaledY2 Lib "<runtimeuictx>" Alias "#26" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledX1 Lib "<runtimeuictx>" Alias "#27" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledY1 Lib "<runtimeuictx>" Alias "#28" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledX2 Lib "<runtimeuictx>" Alias "#29" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetScaledY2 Lib "<runtimeuictx>" Alias "#30" (ByVal Me As ControlContext, ByVal Value As Double)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]                  '
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaleModePixelsMultiplierX Lib "<runtimeuictx>" Alias "#31" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaleModePixelsMultiplierX_SELF Lib "<runtimeuictx>" Alias "#32" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaleModePixelsMultiplierY Lib "<runtimeuictx>" Alias "#33" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetScaleModePixelsMultiplierY_SELF Lib "<runtimeuictx>" Alias "#34" (ByVal Me As ControlContext) As Double
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetLightweightControlAtPosition Lib "<runtimeuictx>" Alias "#35" (ByVal Me As ControlContext, ByRef OffsetX As Long, ByRef OffsetY As Long) As Object
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxWindowlessRefresh Lib "<runtimeuictx>" Alias "#36" (ByVal Me As ControlContext)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxIsPlacedOnUserControl Lib "<runtimeuictx>" Alias "#37" (ByVal Me As ControlContext) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxChangeWindowlessZOrder Lib "<runtimeuictx>" Alias "#38" (ByVal Me As ControlContext, ByVal ZOrderType As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxSetBaseControlInfoPtr Lib "<runtimeuictx>" Alias "#39" (ByVal Me As ControlContext, ByVal value As LongPtr)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUICtxGetRootClassDispatch Lib "<runtimeuictx>" Alias "#40" (ByVal Me As ControlContext) As Object
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxRegisterShortcutMenu Lib "<runtimeuictx>" Alias "#41" (ByVal Me As ControlContext, ByVal MenuControl As Object, ByVal ShortcutId As Long)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                 ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Sub RuntimeUICtxFormShow Lib "<runtimeuictx>" Alias "#42" (ByVal Me As ControlContext, ByVal Modal As Boolean, ByVal OwnerForm As Object, ByVal IsStartupShow As Boolean)
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Sub RuntimeUICtxFormClose Lib "<runtimeuictx>" Alias "#43" (ByVal Me As ControlContext)
+    End Type
+
+    Type SerializeInfo
+        Pointer As LongPtr
+
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                     ' NOTE: PreserveSig(FALSE) here
+        Public DeclareWide PtrSafe Function RuntimeUISrzDeserialize Lib "<runtimeuisrz>" Alias "#1" (ByVal Me As SerializeInfo, ByVal object As stdole.IUnknown) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzGetRootCLSID Lib "<runtimeuisrz>" Alias "#2" (ByVal Me As SerializeInfo) As String
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzGetRootClassDispatch Lib "<runtimeuisrz>" Alias "#3" (ByVal Me As SerializeInfo) As Object
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzIsDesignMode Lib "<runtimeuisrz>" Alias "#4" (ByVal Me As SerializeInfo) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzGetFormHWND Lib "<runtimeuisrz>" Alias "#5" (ByVal Me As SerializeInfo) As LongPtr
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzIsReportMode Lib "<runtimeuisrz>" Alias "#6" (ByVal Me As SerializeInfo) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzIsRuntimeAdded Lib "<runtimeuisrz>" Alias "#7" (ByVal Me As SerializeInfo) As Boolean
+        [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+        Public DeclareWide PtrSafe Function RuntimeUISrzGetOrientationHint Lib "<runtimeuisrz>" Alias "#8" (ByVal Me As SerializeInfo) As Long
+    End Type
+                            
+    [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
+    Public DeclareWide PtrSafe Sub RuntimeUITimerChangeProps Lib "<runtimeuitmr>" Alias "#1" (ByVal TimerId As LongPtr, ByVal Interval As Long, ByVal Enabled As Boolean)
+    
+End Module

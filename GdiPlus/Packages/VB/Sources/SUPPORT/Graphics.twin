@@ -1,0 +1,3808 @@
+
+[InterfaceId("000204F0-0000-0000-C000-000000000046")]
+Private Interface IVBPrint Extends stdole.IUnknown
+    Sub WriteText(ByVal Value As String)
+    Property Let Column(ByVal Value As Long)
+    Property Get Column() As Long
+End Interface
+
+Private Module GraphicsGlobals
+
+    Private Type PICTDESC_BITMAP
+    	cbSizeofstruct As Long
+        picType As Long
+        hbitmap As LongPtr
+        hpal As LongPtr
+    End Type
+    
+    Public Type ICONINFO
+    	fIcon As Long       ' BOOL
+        xHotspot As Long
+        yHotspot As Long
+        hbmMask As LongPtr
+        hbmColor As LongPtr
+    End Type
+        
+    Type contigiousPointsTriangle
+        points(0 To 3) As POINT
+    End Type
+    
+    Public Function IsInSubRect(ByVal X As Long, ByVal Y As Long, subRect As tbRECT) As Boolean
+        Return (X >= subRect.Left) AndAlso (Y >= subRect.Top) AndAlso (X <= subRect.Right) AndAlso (Y <= subRect.Bottom)
+    End Function
+    
+    Public Sub TranslateXYByAngle(ByRef X As Double, ByRef Y As Double, ByVal AngleDegrees As Double)
+        Const pi As Double = 3.14159265358979323846
+        Dim angleRadians As Double = (AngleDegrees * pi) / 180
+        Dim resultX As Double = (X * Cos(angleRadians)) - (Y * Sin(angleRadians))
+        Dim resultY As Double = (X * Sin(angleRadians)) + (Y * Cos(angleRadians))
+        X = resultX
+        Y = resultY
+    End Sub
+
+    Public Sub DrawTriangle(ByVal hdc As HDC, ByVal brush As LongPtr, ByVal pen As LongPtr, ByVal X1 As Long, ByVal Y1 As Long, ByVal X2 As Long, ByVal Y2 As Long, ByVal X3 As Long, ByVal Y3 As Long)
+            Dim points As contigiousPointsTriangle
+            points.points(0).X = X1
+            points.points(0).Y = Y1
+            points.points(1).X = X2
+            points.points(1).Y = Y2
+            points.points(2).X = X3
+            points.points(2).Y = Y3
+            points.points(3).X = X1
+            points.points(3).Y = Y1
+            Dim oldBrush As LongPtr = hdc.SelectObject(brush)
+            Dim oldPen As LongPtr = hdc.SelectObject(pen)
+            hdc.Polygon(points, 4)
+            hdc.SelectObject(oldBrush)
+            hdc.SelectObject(oldPen)
+    End Sub
+    
+    Public Function WindowIsCompletelyVisible(ByVal hwnd As HWND, ByVal hdc As HDC) As Boolean
+        ' see https://devblogs.microsoft.com/oldnewthing/20030902-00/?p=42693
+        Dim clipRect As tbRECT
+        Const SIMPLEREGION As Long = 2
+        If hdc.GetClipBox(clipRect) = SIMPLEREGION Then
+            Dim clientRect As tbRECT
+            hwnd.GetClientRect(clientRect)
+            If (clipRect.Left = clientRect.Left) And _
+                (clipRect.Top = clientRect.Top) And _
+                (clipRect.Right = clientRect.Right) And _
+                (clipRect.Bottom = clientRect.Bottom) Then
+                Return True
+            End If
+        End If
+        Return False
+    End Function
+    
+    Public Sub DrawZoomSelectors(ByVal hdc As HDC, rectIn As tbRECT, ByVal backBrushText As LongPtr, ByVal activebutton As Long, ByVal hoverbutton As Long, ByVal dpiXScale As Double, ByRef zoomOutButtonRect As tbRECT, ByRef zoomInButtonRect As tbRECT, ByRef zoomTextRect As tbRECT, ByVal Text As String, ByVal FontHandle As LongPtr, ByVal TextColor As Long)
+        Dim rect As tbRECT = rectIn
+        Dim bfStyle As Long
+        Dim bfFlags As Long = BorderFlags.BF_RECT Or BorderFlags.BF_ADJUST Or BorderFlags.BF_FLAT
+                                
+        bfStyle = BorderStyles.BDR_SUNKENOUTER 'Or BorderStyles.BDR_SUNKENINNER
+            
+        'DrawEdge(hdc, rect, bfStyle, bfFlags)
+        Dim box As tbRECT
+        Dim buttonRect As tbRECT
+        Dim normalEdgeFlags As Long = BorderStyles.BDR_RAISEDOUTER 'Or BorderStyles.BDR_RAISEDINNER
+        Dim sunkenEdgeFlags As Long = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+
+        Dim brushButtonFill As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbButtonFace))
+        Dim buttonForeColorBrush As LongPtr = GDI32.CreateSolidBrush(&H505050) 'TranslateColor(vbButtonText))
+        Dim buttonForeColorBrushDisabled As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbGrayText))
+        Dim buttonForeColorPen As LongPtr = GDI32.CreatePen(PS_SOLID, 1, &HA0A0A0)
+                
+        Dim btnWidth As Long = CLng(18 * dpiXScale)
+        Dim btnHeight As Long = rect.Bottom - rect.Top
+                
+        buttonRect = rect
+        buttonRect.Right = rect.Left + btnWidth
+        rect.Left += btnWidth
+        bfStyle = If(activebutton = 5 AndAlso hoverbutton = 5, sunkenEdgeFlags, normalEdgeFlags)
+        zoomOutButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+
+        ' Draw '-'
+        box = buttonRect
+        box.Left += 5
+        box.Right -= 5
+        box.Top += CLng(btnHeight / 2) - 2
+        box.Bottom = box.Top + 2
+        hdc.FillRect(box, buttonForeColorBrush)
+
+        buttonRect = rect
+        buttonRect.Left = rect.Right - btnWidth
+        rect.Right -= btnWidth
+        bfStyle = If(activebutton = 6 AndAlso hoverbutton = 6, sunkenEdgeFlags, normalEdgeFlags)
+        zoomInButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+                
+        ' Draw '+'
+        box = buttonRect
+        box.Left += CLng(btnWidth / 2) - 2
+        box.Right = box.Left + 2
+        box.Top += 4
+        box.Bottom -= 4
+        hdc.FillRect(box, buttonForeColorBrush)
+        box = buttonRect
+        box.Left += 4
+        box.Right -= 4
+        box.Top += CLng(btnHeight / 2) - 2
+        box.Bottom = box.Top + 2
+        hdc.FillRect(box, buttonForeColorBrush)
+        
+        
+        ' Fill the text area
+        zoomTextRect = rect
+        hdc.DrawEdge(rect, bfStyle, BorderFlags.BF_BOTTOM Or BorderFlags.BF_TOP Or BorderFlags.BF_ADJUST Or BorderFlags.BF_FLAT)
+        hdc.FillRect(rect, backBrushText)
+        
+        If Len(Text) > 0 Then
+            Dim oldFont As LongPtr = hdc.SelectObject(FontHandle)
+            Dim oldTextColor As Long = hdc.SetTextColor(TextColor)
+            Dim oldBkMode As Long = hdc.SetBkMode(1)
+                        
+            rect.Left += 2
+            rect.Right -= 2
+            If rect.Left < rect.Right Then
+                Const DT_SINGLELINE As Long = 32
+                Const DT_VCENTER As Long = 4
+                Const DT_END_ELLIPSIS As Long = 32768
+                Const DT_CENTER As Long = 1
+                hdc.DrawTextW(Text, Len(Text), rect, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER)
+            End If
+                                        
+            hdc.SetBkMode(oldBkMode)
+            hdc.SetTextColor(oldTextColor)
+            hdc.SelectObject(oldFont)
+        End If
+        
+        GDI32.DeleteObject(brushButtonFill)
+        GDI32.DeleteObject(buttonForeColorBrush)
+        GDI32.DeleteObject(buttonForeColorPen)
+        GDI32.DeleteObject(buttonForeColorBrushDisabled)
+    End Sub
+    
+    Public Type TRIVERTEX
+        PxX As Long
+        PxY As Long
+        RedLow As Byte
+        Red As Byte
+        GreenLow As Byte
+        Green As Byte
+        BlueLow As Byte
+        Blue As Byte
+        AlphaLow As Byte
+        Alpha As Byte
+    End Type
+
+    Private Type GRADIENT_RECT
+        UpperLeft As Long
+        LowerRight As Long
+    End Type
+    
+    Private Type GRADIENT_TRIANGLE
+        Vertex1 As Long
+        Vertex2 As Long
+        Vertex3 As Long
+    End Type
+
+    Type WorldTransformAngleData
+        xfPreserved As XFORM
+        oldGraphicsMode As Long
+        isActive As Boolean
+    End Type
+    
+    Type XFORM
+        eM11 As Single
+        eM12 As Single
+        eM21 As Single
+        eM22 As Single
+        eDx As Single
+        eDy As Single
+    End Type
+    
+    Type SafeLongLong
+        LowPart As Long
+        HighPart As Long
+    End Type
+    
+    Public Sub DoWorldTransformAngle(angleData As WorldTransformAngleData, ByVal ps_hdc As HDC, ByVal _angle As Double, ByVal Left As Double, ByVal Top As Double)
+        Dim xf As XFORM
+        Const pi As Double = 3.14159265358979323846
+        Dim angle As Single = CSng(_angle * (pi / 180))
+        xf.eM11 = CSng(Cos(angle))
+        xf.eM12 = CSng(-Sin(angle))
+        xf.eM21 = CSng(Sin(angle))
+        xf.eM22 = CSng(Cos(angle))
+        xf.eDx = CSng(Left)
+        xf.eDy = CSng(Top)
+                        
+        Const GM_ADVANCED As Long = 2
+        angleData.oldGraphicsMode = ps_hdc.SetGraphicsMode(GM_ADVANCED)
+        ps_hdc.GetWorldTransform(angleData.xfPreserved)
+        ps_hdc.SetWorldTransform(xf)
+        
+        angleData.isActive = True
+    End Sub
+    
+    Public Sub UndoWorldTransformAngle(angleData As WorldTransformAngleData, ByVal ps_hdc As HDC)
+        If angleData.isActive Then
+            ps_hdc.SetWorldTransform(angleData.xfPreserved)
+            ps_hdc.SetGraphicsMode(angleData.oldGraphicsMode)
+            angleData.isActive = False
+        End If
+    End Sub
+    
+    Public Sub GradientFillRect(ByVal hdc As HDC, ByRef rect As tbRECT, ByVal startRGB As Long, ByVal endRGB As Long, ByVal Vertical As Boolean)
+        Const GRADIENT_FILL_RECT_H = &H0
+        Const GRADIENT_FILL_RECT_V = &H1
+        Dim TRIVERTEX(0 To 1) As TRIVERTEX
+        Dim GRADIENT_RECT As GRADIENT_RECT
+        With GRADIENT_RECT
+            .UpperLeft = 0
+            .LowerRight = 1
+        End With
+        With TRIVERTEX(0)
+            .PxX = rect.Left
+            .PxY = rect.Top
+            .Red = CByte(RGB_R(startRGB))
+            .Green = CByte(RGB_G(startRGB))
+            .Blue = CByte(RGB_B(startRGB))
+        End With
+        With TRIVERTEX(1)
+            .PxX = rect.Right
+            .PxY = rect.Bottom
+            .Red = CByte(RGB_R(endRGB))
+            .Green = CByte(RGB_G(endRGB))
+            .Blue = CByte(RGB_B(endRGB))
+        End With
+        hdc.GradientFill(TRIVERTEX(0), 2, GRADIENT_RECT, 1, If(Vertical, GRADIENT_FILL_RECT_V, GRADIENT_FILL_RECT_H))
+    End Sub
+    
+    Public Sub DrawPrintButton(ByVal hdc As HDC, rectIn As tbRECT, ByVal backBrushText As LongPtr, ByVal activebutton As Long, ByVal hoverbutton As Long, ByVal dpiXScale As Double, ByRef printButtonRect As tbRECT)
+        Dim rect As tbRECT = rectIn
+        Dim bfStyle As Long
+        Dim bfFlags As Long = BorderFlags.BF_RECT Or BorderFlags.BF_ADJUST Or BorderFlags.BF_FLAT
+                                
+        bfStyle = BorderStyles.BDR_SUNKENOUTER 'Or BorderStyles.BDR_SUNKENINNER
+            
+        'DrawEdge(hdc, rect, bfStyle, bfFlags)
+        Dim box As tbRECT
+        Dim buttonRect As tbRECT
+        Dim normalEdgeFlags As Long = BorderStyles.BDR_RAISEDOUTER 'Or BorderStyles.BDR_RAISEDINNER
+        Dim sunkenEdgeFlags As Long = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+
+        Dim brushButtonFill As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbButtonFace))
+        Dim buttonForeColorBrush As LongPtr = GDI32.CreateSolidBrush(&H505050) 'TranslateColor(vbButtonText))
+        Dim buttonForeColorBrushDisabled As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbGrayText))
+        Dim buttonForeColorPen As LongPtr = GDI32.CreatePen(PS_SOLID, 1, &HA0A0A0)
+                                
+        buttonRect = rect
+        'buttonRect.Right = rect.Left + btnWidth
+        'rect.Left += btnWidth
+        bfStyle = If(activebutton = 7 AndAlso hoverbutton = 7, sunkenEdgeFlags, normalEdgeFlags)
+        printButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+
+        ' Draw .'
+        box = buttonRect
+        box.Left += (buttonRect.Right - buttonRect.Left) \ 2
+        box.Right = box.Left + 2
+        box.Top += (buttonRect.Bottom - buttonRect.Top) \ 2
+        box.Bottom = box.Top + 2
+        hdc.FillRect(box, buttonForeColorBrush)
+        
+        GDI32.DeleteObject(brushButtonFill)
+        GDI32.DeleteObject(buttonForeColorBrush)
+        GDI32.DeleteObject(buttonForeColorPen)
+        GDI32.DeleteObject(buttonForeColorBrushDisabled)
+    End Sub
+    
+    Public Sub DrawRecordSelectors(ByVal hdc As HDC, rectIn As tbRECT, ByVal backBrushText As LongPtr, ByVal activebutton As Long, ByVal hoverbutton As Long, ByVal IsBOFSafe As Boolean, ByVal IsEOFSafe As Boolean, ByVal dpiXScale As Double, ByRef moveFirstButtonRect As tbRECT, ByRef movePrevButtonRect As tbRECT, ByRef moveNextButtonRect As tbRECT, ByRef moveLastButtonRect As tbRECT, ByVal Text As String, ByVal FontHandle As LongPtr, ByVal TextColor As Long)
+
+        Dim rect As tbRECT = rectIn
+        Dim bfStyle As Long
+        Dim bfFlags As Long = BorderFlags.BF_RECT Or BorderFlags.BF_ADJUST Or BorderFlags.BF_FLAT
+                                
+        bfStyle = BorderStyles.BDR_SUNKENOUTER 'Or BorderStyles.BDR_SUNKENINNER
+            
+        'DrawEdge(hdc, rect, bfStyle, bfFlags)
+                                                
+        Dim buttonRect As tbRECT
+        Dim buttonDrawRect As tbRECT
+        Dim normalEdgeFlags As Long = BorderStyles.BDR_RAISEDOUTER 'Or BorderStyles.BDR_RAISEDINNER
+        Dim sunkenEdgeFlags As Long = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+
+        Dim brushButtonFill As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbButtonFace))
+        Dim buttonForeColorBrush As LongPtr = GDI32.CreateSolidBrush(&H505050) 'TranslateColor(vbButtonText))
+        Dim buttonForeColorBrushDisabled As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbGrayText))
+        Dim buttonForeColorPen As LongPtr = GDI32.CreatePen(PS_SOLID, 1, &HA0A0A0)
+                
+        Dim btnWidth As Long = CLng(19 * dpiXScale)
+        Dim marginY As Long = CLng((rect.Bottom - rect.Top) / 8)
+        Dim marginX As Long = CLng(btnWidth / 8)
+                
+        buttonRect = rect
+        buttonRect.Right = rect.Left + btnWidth
+        rect.Left += btnWidth
+        bfStyle = If(activebutton = 1 AndAlso hoverbutton = 1, sunkenEdgeFlags, normalEdgeFlags)
+        moveFirstButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+                
+        buttonDrawRect = buttonRect
+        buttonDrawRect.Left += marginX
+        buttonDrawRect.Right = buttonDrawRect.Left + marginX
+        buttonDrawRect.Top += marginY
+        buttonDrawRect.Bottom -= marginY
+        hdc.FillRect(buttonDrawRect, If(IsBOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush))
+                
+        DrawTriangle(hdc, If(IsBOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush), buttonForeColorPen, (buttonRect.Right - marginX) - 1, buttonRect.Top + marginY, (buttonRect.Right - marginX) - 1, buttonRect.Bottom - marginY - 1, buttonRect.Left + marginX + marginX + 1, CLng(buttonRect.Top + ((buttonRect.Bottom - buttonRect.Top) / 2)))
+                
+        buttonRect = rect
+        buttonRect.Right = rect.Left + btnWidth
+        rect.Left += btnWidth
+        bfStyle = If(activebutton = 2 AndAlso hoverbutton = 2 AndAlso (IsBOFSafe = False), sunkenEdgeFlags, normalEdgeFlags)
+        movePrevButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+
+        DrawTriangle(hdc, If(IsBOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush), buttonForeColorPen, buttonRect.Right - marginX - marginX - 1, buttonRect.Top + marginY, buttonRect.Right - marginX - marginX - 1, buttonRect.Bottom - marginY - 1, buttonRect.Left + marginX + 1, CLng(buttonRect.Top + ((buttonRect.Bottom - buttonRect.Top) / 2)))
+                
+        buttonRect = rect
+        buttonRect.Left = rect.Right - btnWidth
+        rect.Right -= btnWidth
+        bfStyle = If(activebutton = 4 AndAlso hoverbutton = 4, sunkenEdgeFlags, normalEdgeFlags)
+        moveLastButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+                
+        buttonDrawRect = buttonRect
+        buttonDrawRect.Right -= marginX
+        buttonDrawRect.Left = buttonDrawRect.Right - marginX
+        buttonDrawRect.Top += marginY
+        buttonDrawRect.Bottom -= marginY
+        hdc.FillRect(buttonDrawRect, If(IsEOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush))
+                
+        DrawTriangle(hdc, If(IsEOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush), buttonForeColorPen, buttonRect.Left + marginX, buttonRect.Top + marginY, buttonRect.Left + marginX, buttonRect.Bottom - marginY - 1, buttonRect.Right - marginX - marginX - 2, CLng(buttonRect.Top + ((buttonRect.Bottom - buttonRect.Top) / 2)))
+
+        buttonRect = rect
+        buttonRect.Left = rect.Right - btnWidth
+        rect.Right -= btnWidth
+        bfStyle = If(activebutton = 3 AndAlso hoverbutton = 3 AndAlso (IsEOFSafe = False), sunkenEdgeFlags, normalEdgeFlags)
+        moveNextButtonRect = buttonRect
+        hdc.DrawEdge(buttonRect, bfStyle, bfFlags)
+        hdc.FillRect(buttonRect, brushButtonFill)
+
+        DrawTriangle(hdc, If(IsEOFSafe, buttonForeColorBrushDisabled, buttonForeColorBrush), buttonForeColorPen, buttonRect.Left + marginX + marginX, buttonRect.Top + marginY, buttonRect.Left + marginX + marginX, buttonRect.Bottom - marginY - 1, buttonRect.Right - marginX - 2, CLng(buttonRect.Top + ((buttonRect.Bottom - buttonRect.Top) / 2)))
+
+        ' Fill the text area
+        hdc.DrawEdge(rect, bfStyle, BorderFlags.BF_BOTTOM Or BorderFlags.BF_TOP Or BorderFlags.BF_ADJUST Or BorderFlags.BF_FLAT)
+        hdc.FillRect(rect, backBrushText)
+        
+        If Len(Text) > 0 Then
+            Dim oldFont As LongPtr = hdc.SelectObject(FontHandle)
+            Dim oldTextColor As Long = hdc.SetTextColor(TextColor)
+            Dim oldBkMode As Long = hdc.SetBkMode(1)
+                        
+            rect.Left += 2
+            rect.Right -= 2
+            If rect.Left < rect.Right Then
+                Const DT_SINGLELINE As Long = 32
+                Const DT_VCENTER As Long = 4
+                Const DT_END_ELLIPSIS As Long = 32768
+                Const DT_CENTER As Long = 1
+                hdc.DrawTextW(Text, Len(Text), rect, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER)
+            End If
+                                        
+            hdc.SetBkMode(oldBkMode)
+            hdc.SetTextColor(oldTextColor)
+            hdc.SelectObject(oldFont)
+        End If
+        
+        GDI32.DeleteObject(brushButtonFill)
+        GDI32.DeleteObject(buttonForeColorBrush)
+        GDI32.DeleteObject(buttonForeColorPen)
+        GDI32.DeleteObject(buttonForeColorBrushDisabled)
+    End Sub
+    
+    Public OLEPictureScaleX As Double
+    Public OLEPictureScaleY As Double
+
+    Public Sub DetermineOLEPictureScaling()
+            
+        ' the Picture.Width and Picture.Height values already reflect DPI, but ole32 library caches a static DPI value, which is no good
+        ' We use this routine to determine the cached DPI used by the loaded ole32 library
+
+        ' Load a 1x1-pixel bitmap into a StdPicture, and read the Width / Height values to determine the scale to HIMETRIC units that the OLE32 library is using
+        
+        'Const ImageData_1x1Bitmap As Variant = LoadResData("1x1.bmp", "OTHER")
+    	'Dim tempPicture As OlePicture = Global.LoadPicture(ImageData_1x1Bitmap)
+        
+        Const ImageData_1000x1000 As Variant = LoadResDataInternal("1000x1000.gif", "OTHER")
+    	Dim tempPicture As Any = CType(Of OlePicture)(Global.LoadPicture(ImageData_1000x1000))
+        
+        OLEPictureScaleX = tempPicture.Width / 1000
+        OLEPictureScaleY = tempPicture.Height / 1000
+
+    End Sub
+
+	Public Sub ScaleOLEPictureDimensionsToPixels(ByVal PicType As PictureTypeConstants, ByVal WidthHIMETRIC As Long, ByRef Width As Long, ByVal HeightHIMETRIC As Long, ByRef Height As Long)
+    	If OLEPictureScaleX = 0 Then DetermineOLEPictureScaling
+        Width = CLng(Round(WidthHIMETRIC / OLEPictureScaleX))
+        Height = CLng(Round(HeightHIMETRIC / OLEPictureScaleY))
+	End Sub
+    
+    Type BITMAPINFOHEADER
+    	biSize As Long
+        biWidth As Long
+        biHeight As Long
+        biPlanes As Integer
+        biBitCount As Integer
+        biCompression As Long
+        biSizeImage As Long
+        biXPelsPerMeter As Long
+        biYPelsPerMeter As Long
+        biClrUsed As Long
+        biClrImportant As Long
+    End Type
+        
+    Type BITMAPINFO_RGBA
+    	bmiHeader As BITMAPINFOHEADER
+        bmiColors(4) As Long
+    End Type
+    Type BITMAPINFO_RGBA_LARGE
+    	bmiHeader As BITMAPINFOHEADER
+        bmiColors(256) As Long
+    End Type
+
+    Type CIEXYZ
+    	ciexyzX As Long ' FXPT2DOT30
+    	ciexyzY As Long ' FXPT2DOT30
+    	ciexyzZ As Long ' FXPT2DOT30
+    End Type
+
+    Type CIEXYZTRIPLE
+    	ciexyzRed As CIEXYZ
+    	ciexyzGreen As CIEXYZ
+    	ciexyzBlue As CIEXYZ
+    End Type
+    
+    Type BITMAPV5HEADER
+    	bV5Size As Long
+        bV5Width As Long
+        bV5Height As Long
+        bV5Planes As Integer
+        bV5BitCount As Integer
+        bV5Compression As Long
+        bV5SizeImage As Long
+        bV5XPelsPerMeter As Long
+        bV5YPelsPerMeter As Long
+        bV5ClrUsed As Long
+        bV5ClrImportant As Long
+        bV5RedMask As Long
+        bV5GreenMask As Long
+        bV5BlueMask As Long
+        bV5AlphaMask As Long
+        bV5CSType As Long
+        bV5Endpoints As CIEXYZTRIPLE
+        bV5GammaRed As Long
+        bV5GammaGreen As Long
+        bV5GammaBlue As Long
+        bV5Intent As Long
+        bV5ProfileData As Long
+        bV5ProfileSize As Long
+        bV5Reserved As Long
+    End Type
+    
+    Type V5BMPINFO
+    	bmiHeader As BITMAPV5HEADER
+        bmiColors(2) As Long
+    End Type
+    
+    Public Function CreateCheckeredPatternBrush(ByVal hdc As HDC, ByVal color1 As Long, ByVal color2 As Long) As LongPtr
+        Dim brush As LongPtr
+        Dim hdcCompat As HDC = hdc.CreateCompatibleDC()
+        If hdcCompat.Value <> 0 Then
+            Dim hBmp As LongPtr = hdc.CreateCompatibleBitmap(2, 2)    ' 2x2 bitmap
+            If hBmp <> 0 Then
+                Dim hBmpOrig As LongPtr = hdcCompat.SelectObject(hBmp)
+                hdcCompat.SetPixel(0, 0, color1)
+                hdcCompat.SetPixel(0, 1, color2)
+                hdcCompat.SetPixel(1, 1, color1)
+                hdcCompat.SetPixel(1, 0, color2)
+                brush = GDI32.CreatePatternBrush(hBmp)
+                hdcCompat.SelectObject(hBmpOrig)
+                GDI32.DeleteObject(hBmp)
+            End If
+            hdcCompat.DeleteDC
+        End If
+        Return brush
+    End Function
+    
+    Public Function CreatePen(ByVal style As Long, ByVal width As Long, ByVal dpiScale As Double, ByVal color As Long) As LongPtr
+        Dim scaledWidth As Long = CLng(Int(width * dpiScale))
+        If width = 1 Then
+            If (style = PS_DOT) Or (style = PS_DASH) Or (style = PS_DASHDOT) Or (style = PS_DASHDOTDOT) Then
+                ' these pen styles only support pen widths of 1, so dpi scaling might break the style behaviour
+                scaledWidth = 1
+            End If
+        End If
+    	Return GDI32.CreatePen(style, scaledWidth, color)
+    End Function
+        
+    ' Get the dialog base units (x=avg char width, y=height) for the default GUI font
+    Protected Sub GetDefaultDialogFontBaseUnits(ByRef baseX As Long, ByRef baseY As Long, _
+        Optional ByVal includeExternalLeading As Boolean = False)
+        Dim tm  As TEXTMETRICW
+        Dim nullHwnd As HWND
+        Dim hdc As HDC = nullHwnd.GetDC()
+        If hdc.Value <> vbNullPtr Then
+            If hdc.GetTextMetricsW(tm) <> 0 Then
+                baseX = tm.tmAveCharWidth
+                baseY = tm.tmHeight
+                If includeExternalLeading Then baseY = baseY + tm.tmExternalLeading
+            End If
+            Call nullHwnd.ReleaseDC(hdc)
+        End If
+    End Sub
+
+    ' Convert DLUs to pixels using base units derived from the StdFont
+    Public Function PixelsFromDLUs(ByVal dluX As Long, ByVal dluY As Long, Optional ByVal includeExternalLeading As Boolean = False) As SIZE
+        Dim baseX As Long, baseY As Long, sz As SIZE
+        Call GetDefaultDialogFontBaseUnits(baseX, baseY, includeExternalLeading)
+        sz.cx = (dluX * baseX) \ 4
+        sz.cy = (dluY * baseY) \ 8
+        Return sz
+    End Function
+    
+End Module
+
+[InterfaceId("B457184F-7D61-4791-A79B-3D1455955C71")]
+Private Class TextRenderPath
+    Type TextRenderElement
+    	Left As Long
+        Top As Long
+        Text As String
+        MenomicWidth As Long
+    End Type
+    
+    Protected ElementsCount As Long = 0
+    Protected ElementsBufferCount As Long = 10
+    Public Elements() As TextRenderElement
+    Public HasMnemomnics As Boolean = False
+    Public TotalHeight As Long = 0
+    Public TotalWidth As Long = 0
+
+    Const ETO_CLIPPED As Long = 4
+    
+    Public Sub RenderWithMnemonics(ByVal hdc As HDC, ByRef rect As tbRECT, _
+                                    ByVal offsetLeft As Long, ByVal offsetTop As Long, _
+                                    ByVal FontAscentHeight As Long, ByVal UnitPixelScale As Double, ByVal UseDrawText As Boolean)
+    
+        Dim underlinePen As LongPtr
+        Dim underlineOffset As Long
+        
+        If HasMnemomnics = True Then
+        	underlinePen = CreatePen(PS_SOLID, 1, UnitPixelScale, hdc.GetTextColor())
+            underlineOffset = FontAscentHeight + 2
+        End If
+        
+        Dim elementIdx As Long
+    	For elementIdx = 0 To ElementsCount - 1
+            With Elements(elementIdx)
+            	Dim elementLeft As Any = rect.Left + .Left + offsetLeft
+                Dim elementTop As Any = rect.Top + .Top + offsetTop
+            	If .MenomicWidth > 0 Then
+                    Dim _origPen As LongPtr = hdc.SelectObject(underlinePen)
+                    hdc.MoveToEx(elementLeft, elementTop + underlineOffset, 0)
+                    hdc.LineTo(elementLeft + .MenomicWidth, elementTop + underlineOffset)
+                    hdc.SelectObject(_origPen)
+                Else
+                    If UseDrawText = False Then     ' There's probably no difference, but DrawText() works better with rotated world transforms
+                        hdc.ExtTextOutW(elementLeft, elementTop, ETO_CLIPPED, rect, .Text, Len(.Text), 0)
+                    Else
+                        Const ETO_CLIPPED As Long = 4
+                        Const DT_NOPREFIX As Long = &H800
+                        Dim outRect As tbRECT
+                        outRect.Left = elementLeft
+                        outRect.Top = elementTop
+                        outRect.Right = rect.Right
+                        outRect.Bottom = rect.Bottom
+                        hdc.DrawTextW(.Text, Len(.Text), outRect, DT_NOPREFIX)
+                    End If
+            	End If
+            End With
+        Next
+        
+        If underlinePen <> 0 Then GDI32.DeleteObject(underlinePen)
+    End Sub
+        
+    Public Sub Render(ByVal hdc As HDC, ByRef rect As tbRECT, ByVal offsetLeft As Long, ByVal offsetTop As Long, ByVal UseDrawText As Boolean)
+        Dim elementIdx As Long
+    	For elementIdx = 0 To ElementsCount - 1
+            With Elements(elementIdx)
+            	If .MenomicWidth = 0 Then
+                
+                    'Dim X As Double = .Left
+                    'Dim Y As Double = .Top
+                    'TranslateXYByAngle(X, Y, -40)
+                    'ExtTextOutW(hdc, rect.Left + CLng(X) + offsetLeft, rect.Top + CLng(Y) + offsetTop, ETO_CLIPPED, rect, .Text, Len(.Text), 0)
+                    'Debug.Print "ExtTextOutW l:" & (rect.Left + .Left + offsetLeft)
+                    If UseDrawText = False Then     ' There's probably no difference, but DrawText() works better with rotated world transforms
+                        hdc.ExtTextOutW(rect.Left + .Left + offsetLeft, rect.Top + .Top + offsetTop, ETO_CLIPPED, rect, .Text, Len(.Text), 0)
+            	    Else
+                        Const DT_NOPREFIX As Long = &H800
+                        Dim outRect As tbRECT
+                        outRect.Left = rect.Left + .Left + offsetLeft
+                        outRect.Top = rect.Top + .Top + offsetTop
+                        outRect.Right = rect.Right
+                        outRect.Bottom = rect.Bottom
+                        hdc.DrawTextW(.Text, Len(.Text), outRect, DT_NOPREFIX)
+                    End If
+                End If
+            End With
+        Next
+    End Sub
+    
+    Public Sub New(ByVal hdc As HDC, ByVal Str As String, ByVal UseMnemonic As Boolean, _ 
+                    ByVal Alignment As AlignmentConstants, ByVal _width As Long, ByVal AutoSize As Boolean, ByVal WordWrap As Boolean, ByVal LineSpacing As Long)
+                    
+        Dim startPos As Long = 1
+        Dim lastWidth As Long
+        Dim whitespaceType As Long
+        Dim Ended As Boolean
+        Dim BufferedOutput As String
+        Dim MnemonicPositionOnThisLine As Long = -1
+        Dim MnemonicPositionInThisPart As Long = -1
+        Dim countOfMeuemonicsInThisPart As Long
+        Dim mneumonicOffset As Long
+        Dim countLines As Long
+        Dim topOffset As Long
+        Dim thisPartHasNonMnemonicPlaceholder As Boolean
+        
+        Dim splitAtSpaces As Boolean = (AutoSize = False) Or (WordWrap = True)
+        
+        'Stop
+        
+        ReDim Elements(ElementsBufferCount)
+        
+        ' FIXME this algo turned out a mess.
+        
+        Dim newLine As Boolean = False
+        
+        While Ended = False
+            Dim nextSplitPointPos As Long = [_HiddenModule].[_InStrBreak](startPos + mneumonicOffset, Str, whitespaceType, splitAtSpaces)
+            mneumonicOffset = 0
+            Dim numCharsInSection As Long = nextSplitPointPos - startPos
+            
+            Select Case whitespaceType
+                Case 1 ' SPACE
+                    If numCharsInSection = 0 Then
+                        If (Len(BufferedOutput) = 0) And (countLines > 0) Then
+                            startPos += 1
+                            Continue While
+                        Else
+                            numCharsInSection = 1
+                        End If
+                    End If
+                Case 2 ' vbTab
+                    If numCharsInSection = 0 Then
+                        startPos += 1
+                        Continue While
+                    End If
+                Case 3 ' vbCrLf
+                    If numCharsInSection = 0 Then
+                        startPos += 2
+                    End If
+                Case 4 ' vbCr / vbLf
+                    If numCharsInSection = 0 Then
+                        startPos += 1
+                    End If
+                Case 5 ' vbNullChar / EOL
+                    Ended = True
+                    If numCharsInSection = 0 And Len(BufferedOutput) = 0 Then
+                        Exit While
+                    End If
+                Case 6 ' "&"
+                    If UseMnemonic = False Then
+                        mneumonicOffset += numCharsInSection + 1
+                        Continue While
+                    End If
+                    
+                    If Mid(Str, nextSplitPointPos + 1, 1) = "&" Then
+                        ' A double && means to output just a single &, and not treat as a mnuemonic
+                        Str = Left$(Str, nextSplitPointPos - 1) & ChrW$(&HE026&) & Right$(Str, (Len(Str) - nextSplitPointPos) - 1)
+                        mneumonicOffset += numCharsInSection + 1
+                        thisPartHasNonMnemonicPlaceholder = True
+                        Continue While
+                    End If
+                    MnemonicPositionInThisPart = Len(BufferedOutput) + numCharsInSection - countOfMeuemonicsInThisPart
+                    countOfMeuemonicsInThisPart += 1
+                    mneumonicOffset += numCharsInSection + 1
+                    Continue While
+            End Select
+            
+            Dim size As SIZE
+            size.cx = 0
+            size.cy = 0
+
+            Dim BufferedOutputLenBefore As Long = Len(BufferedOutput)
+            Dim ThisPart As String = Mid$(Str, startPos, numCharsInSection)
+            If MnemonicPositionInThisPart <> -1 Then
+                ThisPart = Replace(ThisPart, "&", "")
+            End If
+            If thisPartHasNonMnemonicPlaceholder = True Then
+                ThisPart = Replace(ThisPart, ChrW$(&HE026&), "&")
+                thisPartHasNonMnemonicPlaceholder = False
+            End If
+            BufferedOutput += ThisPart
+            Dim success As Long = hdc.GetTextExtentPointW(BufferedOutput, Len(BufferedOutput), size)
+            If success = False Then Exit While
+
+            'Debug.Print "GetTextExtentPointW -> x=" & size.cx & ", y=" & size.cy & " ('" & BufferedOutput & "', ThisPart: " & ThisPart & ")"
+            If (size.cx > 0) And newLine Then
+                topOffset += LineSpacing
+                newLine = False
+            End If
+            
+            ' Does the current text fit into one line?
+            If (size.cx > _width) Or (numCharsInSection = 0) Then
+
+                If BufferedOutputLenBefore = 0 Then
+                    ' whole line of text is too long to fit
+                    BufferedOutput = ThisPart
+                    startPos += numCharsInSection
+                    BufferedOutputLenBefore = numCharsInSection
+                    lastWidth = size.cx
+                End If
+                
+                If size.cy = 0 Then
+                    hdc.GetTextExtentPointW(" ", 1, size)   ' handle linefeed on first line
+                End If
+                
+                Dim _left As Long = 0
+                If Alignment = vbCenter Then
+                    _left += CLng((_width - lastWidth) / 2)
+                ElseIf Alignment = vbRightJustify Then
+                    _left += _width - lastWidth
+                End If
+                
+                If ((ElementsCount + 1) = ElementsBufferCount) Then
+                    ElementsBufferCount *= 2
+                    ReDim Preserve Elements(ElementsBufferCount)
+                End If
+                With Elements(ElementsCount)
+                	.Left = _left
+                    .Top = topOffset
+                    .Text = Left$(BufferedOutput, BufferedOutputLenBefore)
+                End With
+                ElementsCount += 1
+                If lastWidth > Me.TotalWidth Then Me.TotalWidth = lastWidth
+                
+                If MnemonicPositionOnThisLine <> -1 Then
+                    Dim sizeTemp As SIZE
+                    
+                    ' Work out the X position of the underlined character
+                    hdc.GetTextExtentPointW(BufferedOutput, MnemonicPositionOnThisLine, sizeTemp)
+                    Dim lineX As Long = _left + sizeTemp.cx
+                    
+                    ' Get width of the underlined character
+                    hdc.GetTextExtentPointW(Mid$(BufferedOutput, MnemonicPositionOnThisLine + 1, 1), 1, sizeTemp)
+                    
+                    If ((ElementsCount + 1) = ElementsBufferCount) Then
+                        ElementsBufferCount *= 2
+                        ReDim Preserve Elements(ElementsBufferCount)
+                    End If
+                    With Elements(ElementsCount)
+                        .Left = lineX
+                        .Top = topOffset ' + underlineOffset
+                        .MenomicWidth = sizeTemp.cx
+                    End With
+                    ElementsCount += 1
+                    HasMnemomnics = True
+                End If
+                
+                countLines += 1
+                BufferedOutput = vbNullString
+                topOffset += size.cy
+                newLine = True
+                nextSplitPointPos = -1
+                Ended = False
+                MnemonicPositionOnThisLine = -1
+                countOfMeuemonicsInThisPart = 0
+            Else
+                If MnemonicPositionInThisPart <> -1 Then
+                    MnemonicPositionOnThisLine = MnemonicPositionInThisPart
+                    MnemonicPositionInThisPart = -1
+                End If
+                startPos += numCharsInSection
+                countOfMeuemonicsInThisPart = 0
+            End If
+            
+            lastWidth = size.cx
+        Wend
+        
+        If Len(BufferedOutput) > 0 Then
+            _left = 0
+            If Alignment = vbCenter Then
+                _left += CLng((_width - lastWidth) / 2)
+            ElseIf Alignment = vbRightJustify Then
+                _left += _width - lastWidth
+            End If
+
+            If ((ElementsCount + 1) = ElementsBufferCount) Then
+                ElementsBufferCount *= 2
+                ReDim Preserve Elements(ElementsBufferCount)
+            End If
+            With Elements(ElementsCount)
+                .Left = _left
+                .Top = topOffset
+                .Text = BufferedOutput
+            End With
+            ElementsCount += 1
+            If lastWidth > Me.TotalWidth Then Me.TotalWidth = lastWidth
+            
+            If MnemonicPositionOnThisLine <> -1 Then
+                
+                ' Work out the X position of the underlined character
+                hdc.GetTextExtentPointW(BufferedOutput, MnemonicPositionOnThisLine, sizeTemp)
+                lineX = _left + sizeTemp.cx
+                
+                ' Get width of the underlined character
+                hdc.GetTextExtentPointW(Mid$(BufferedOutput, MnemonicPositionOnThisLine + 1, 1), 1, sizeTemp)
+                
+                If ((ElementsCount + 1) = ElementsBufferCount) Then
+                    ElementsBufferCount *= 2
+                    ReDim Preserve Elements(ElementsBufferCount)
+                End If
+                With Elements(ElementsCount)
+                    .Left = lineX
+                    .Top = topOffset ' + underlineOffset
+                    .MenomicWidth = sizeTemp.cx
+                End With
+                ElementsCount += 1
+                HasMnemomnics = True
+            End If
+
+            topOffset += size.cy
+        End If
+        
+        TotalHeight = topOffset
+    End Sub
+    
+End Class
+
+[InterfaceId("B4195B9A-EF91-430F-BB00-B2C5E6857AB6")]
+Private Class GraphicsBase
+    
+    Implements IVBPrint
+    Implements IWindowElementEventsGraphics
+
+    Type BaseGraphicsInfo
+        ScaleLeft As Double
+        ScaleTop As Double
+        ScaleWidth As Double
+        ScaleHeight As Double
+        
+        WindowHDC As HDC
+        WindowHandle As HWND
+        CachedFontCharHeight As Long
+        CachedFontAvgCharWidth As Long
+        BufferDC As HDC
+        BufferBitmap As LongPtr
+        OrigBitmap As LongPtr
+        CurrentClientRect As tbRECT
+        BufferBitmapWidth As Long
+        BufferBitmapHeight As Long
+        IsForm As Boolean
+        #If FEATURE_REPORT Then
+        IsReport As Boolean
+        #End If
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        IsUserControl As Boolean
+        #End If
+        #If FEATURE_PROPERTYPAGE Then
+        IsPropertyPage As Boolean
+        #End If
+        InternalIgnoreFontChange As Boolean
+        CurrentGraphicsFontHandleIsOwned As Boolean
+        CurrentGraphicsFontHandle As LongPtr
+        CurrentGraphicsFontDC As HDC
+        CurrentGraphicsFontHandleOLD As LongPtr
+        InternalScaleFactorX As Double
+        InternalScaleFactorX_OriginalPixelsWidth As Long
+        InternalScaleFactorY As Double
+        InternalScaleFactorY_OriginalPixelsHeight As Long
+        InternalDrawStyle As Long
+        InternalCachedScaleTop As Double
+        InternalCachedScaleLeft As Double
+        MuteResizeEvent As Boolean
+        PendingResizeEvent As Boolean
+        BufferBitmap_StdPic As IPicture
+        PersistantBitmap_StdPic As IPicture
+        PersistantBitmap_pixelWidth As Long
+        PersistantBitmap_pixelHeight As Long
+        CachedBorderSizePlusOne As Long             ' 0 == unset
+    End Type
+    Protected BaseGraphicsInfo As BaseGraphicsInfo
+
+    [Serialize(True, "ScaleLeft")]
+        Protected ScaleLeftINIT As Double
+    [Serialize(True, "ScaleTop")]
+        Protected ScaleTopINIT As Double
+    [Serialize(True, "ScaleWidth")]
+        Protected ScaleWidthINIT As Double
+    [Serialize(True, "ScaleHeight")]
+        Protected ScaleHeightINIT As Double
+    
+    Private Enum VBPaintFlags
+    	StepOnFirstCoords = 1
+        ColorSpecified = 2
+        FirstCoordsSpecified = 4
+        StepOnSecondCoords = 8
+        Box = 16
+        BoxFilled = 32
+        StartSpecified = 64
+        EndSpecified = 128
+        AspectSpecified = 256
+    End Enum
+    
+    'Protected Log As String
+    
+#If FEATURE_DRAWING Then
+    Public FontTransparent As Boolean = True
+#End If
+    
+    Public PictureDpiScaling As Boolean = False
+    'Public RenderPictureAsIcon As Boolean = False
+
+    Protected InternalHDC As HDC
+    
+    [Serialize(False)]
+    Public Property Get hDC() As LongPtr                ' FIXME use HDC type once ALIAS fully aligned with LongPtr
+        Return InternalHDC.Value
+    End Property
+
+    Public HasDC As Boolean = True
+    Public ClipControls As Boolean = True
+    
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vb3DFace
+
+    #If FEATURE_DRAWING Then
+    [Serialize(False)]
+    Protected InternalCurrentX As Double               ' These reflect DPI, not unscaled values
+    [Serialize(False)]
+    Protected InternalCurrentY As Double               ' These reflect DPI, not unscaled values
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public ForeColor As OLE_COLOR = SystemColorConstants.vbButtonText
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public FillColor As OLE_COLOR = 0
+    Public FillStyle As FillStyleConstants = FillStyleConstants.vbFSTransparent
+    Public DrawWidth As Long = 1
+    Public DrawMode As DrawModeConstants = DrawModeConstants.vbCopyPen
+    Public DrawStyle As DrawStyleConstants = DrawStyleConstants.vbSolid
+    #End If
+    Public AutoRedraw As Boolean = False
+
+    [Description("")]
+    Public ScaleMode As VBRUN.ScaleModeConstants = VBRUN.ScaleModeConstants.vbTwips
+        
+    [Serialize(False)]
+    Protected InternalIsFirstResizeEventAfterLoad As Boolean = False
+    
+    [Serialize(False)]
+    Protected InternalCurrentBrush As LongPtr
+    [Serialize(False)]
+    Protected InternalCachedBackBrush As LongPtr
+    [Serialize(False)]
+    Protected InternalCachedBackBrushColor As Long
+    
+    Private RootWindowElementBASE As WindowElement
+
+    [Serialize(False)]
+    Protected IsPainting As Boolean = False
+    
+    #If FEATURE_DRAWING Then
+    Protected InternalCurrentPen As LongPtr
+    Protected InternalOriginalPen As LongPtr
+    #End If
+
+    Public Sub New()
+        ' PRINTER constructor
+        Dim noElement As WindowElement
+        InitGraphics(noElement)
+    End Sub
+    
+    Public Sub New(ByVal RootWindowElement As WindowElement)
+        InitGraphics(RootWindowElement)
+    End Sub
+    
+    Protected Sub HandleColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+        Implements IWindowElementEventsGraphics.GetColors
+        
+        ' This is used as a fallback, generally for custom windows created manually with CreateWindow API
+        ' (we see it needed in tbShellBrowse)
+        Dim BackColor As Any = Me.BackColor
+
+        #If FEATURE_DRAWING Then
+        Dim ForeColor As Any = Me.ForeColor
+        hdc.SetTextColor(hdc.TranslateColor(ForeColor))
+        #End If
+        
+        hdc.SetBkColor(hdc.TranslateColor(BackColor))
+        If Me.InternalCachedBackBrush <> vbNullPtr Then
+            If Me.InternalCachedBackBrushColor <> BackColor Then
+                GDI32.DeleteObject(Me.InternalCachedBackBrush)
+                GoTo RecreateBackBrush
+            End If
+        Else
+        RecreateBackBrush:
+            Me.InternalCachedBackBrush = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+            Me.InternalCachedBackBrushColor = BackColor
+        End If
+        BackBrushOut = Me.InternalCachedBackBrush
+    End Sub
+        
+    Protected Sub HandleResize() _
+            Implements IWindowElementEventsGraphics.Resize
+
+        Dim newRect As tbRECT
+        Dim hwnd As Any = Me.BaseGraphicsInfo.WindowHandle
+        hwnd.GetClientRect(newRect)
+        
+        ' If IsForm Then
+        '     Debug.Print "RootWindowElementBASE.Resize (InternalIsFirstResizeEventAfterLoad:=" & InternalIsFirstResizeEventAfterLoad & ", MuteResizeEvent:=" & MuteResizeEvent & ")"
+        ' End If
+                    
+        Dim RootWindowElementBASE_IsAvailable As Boolean = (RootWindowElementBASE.Pointer <> vbNullPtr)
+        
+        If newRect.Left = Me.BaseGraphicsInfo.CurrentClientRect.Left And _
+            newRect.Top = Me.BaseGraphicsInfo.CurrentClientRect.Top And _
+            newRect.Right = Me.BaseGraphicsInfo.CurrentClientRect.Right And _
+            newRect.Bottom = Me.BaseGraphicsInfo.CurrentClientRect.Bottom Then
+            ' No change
+            
+            ' If IsForm Then
+            '     Debug.Print "RootWindowElementBASE.Resize --> No Change"
+            ' End If
+            
+            If InternalIsFirstResizeEventAfterLoad = False Then
+                If (BaseGraphicsInfo.PendingResizeEvent = True) Or (RootWindowElementBASE_IsAvailable AndAlso RootWindowElementBASE.RuntimeUIIsShowInProgress()) Then
+                    If (Not BaseGraphicsInfo.MuteResizeEvent) And (RootWindowElementBASE_IsAvailable AndAlso (Not RootWindowElementBASE.RuntimeUIMuteResizeEventInternal())) Then
+                        BaseGraphicsInfo.PendingResizeEvent = False
+                        CommonRaiseResize(GetInheritedOwner(Me))
+                    End If
+                End If
+            Else
+                InternalIsFirstResizeEventAfterLoad = False
+            End If
+            Exit Sub
+        End If
+        
+        InternalIsFirstResizeEventAfterLoad = False
+        
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        If Me.BaseGraphicsInfo.IsUserControl Then
+        'CommonRaiseResize2(Me.BaseGraphicsInfo.Owner)
+            'Debug.Print "InvalidateBEFORE: ", Me.CurrentClientRect.Left, Me.CurrentClientRect.Top, Me.CurrentClientRect.Right, Me.CurrentClientRect.Bottom
+        	'InvalidateRect(GetParent(Me.WindowHandle), VarPtr(Me.CurrentClientRect), 1)    ' Invalidate the old area
+            'Debug.Print "InvalidateBEFORE: ", newRect.Left, newRect.Top, newRect.Right, newRect.Bottom
+        	'InvalidateRect(GetParent(Me.WindowHandle), VarPtr(newRect), 1)    ' Invalidate the new area
+        End If
+        #End If
+        
+        Me.BaseGraphicsInfo.CurrentClientRect = newRect
+        
+        If Me.AutoRedraw Then
+        	AutoRedrawChanged
+        End If
+        
+        If GetInheritedOwner(Me) IsNot Nothing Then         ' checks not printer
+            If Me.ScaleMode = ScaleModeConstants.vbUser Then
+            
+                Dim PixelsWidth As Long
+                Dim PixelsHeight As Long
+                Dim UnitPixelScale As Any = RootWindowElementBASE.RuntimeUIGetUnitScale()
+                
+                ' When user scaling is set, resync the scalewidth/scaleheight now
+                If Me.BaseGraphicsInfo.IsForm = True Then
+                    PixelsWidth = CLng((BaseGraphicsInfo.CurrentClientRect.Right - BaseGraphicsInfo.CurrentClientRect.Left) / UnitPixelScale)
+                    PixelsHeight = CLng((BaseGraphicsInfo.CurrentClientRect.Bottom - BaseGraphicsInfo.CurrentClientRect.Top) / UnitPixelScale)
+                Else
+                    ' include border etc on child controls
+                    Dim windowRect As tbRECT
+                    hwnd.GetWindowRect(windowRect)
+                    PixelsWidth = CLng((windowRect.Right - windowRect.Left) / UnitPixelScale)
+                    PixelsHeight = CLng((windowRect.Bottom - windowRect.Top) / UnitPixelScale)
+                End If
+                Dim InternalScaleFactorX_OriginalPixelsWidth As Any = Me.BaseGraphicsInfo.InternalScaleFactorX_OriginalPixelsWidth
+                If (InternalScaleFactorX_OriginalPixelsWidth <> 0) And (InternalScaleFactorX_OriginalPixelsWidth <> PixelsWidth) Then
+                    'Debug.Print "Me.InternalScaleFactorX_OriginalPixelsWidth: ", Me.InternalScaleFactorX_OriginalPixelsWidth, " [PixelsWidth: " & PixelsWidth & "]"
+                    BaseGraphicsInfo.ScaleWidth = PixelsWidth * Me.BaseGraphicsInfo.InternalScaleFactorX
+                End If
+                Dim InternalScaleFactorY_OriginalPixelsHeight As Any = Me.BaseGraphicsInfo.InternalScaleFactorY_OriginalPixelsHeight
+                If (InternalScaleFactorY_OriginalPixelsHeight <> 0) And (InternalScaleFactorY_OriginalPixelsHeight <> PixelsHeight) Then
+                    BaseGraphicsInfo.ScaleHeight = PixelsHeight * Me.BaseGraphicsInfo.InternalScaleFactorY
+                End If
+            End If
+        End If
+                
+        SyncScaleMode()
+        
+        Dim Owner As Any = GetInheritedOwner(Me)
+        If 0 Then
+            
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        ElseIf Me.BaseGraphicsInfo.IsUserControl Then
+            ' FIXME UserControls should not raise the Resize event in response to WM_SIZE.   See https://jeffpar.github.io/kbarchive/kb/187/Q187740/
+            If Owner IsNot Nothing Then
+                CommonRaiseResize2(Owner)        ' Added this in BETA 705, as otherwise UserControl_Resize is never hit in the demo sent by Igor, using two iGrids on an Access form
+            End If
+        #End If
+        #If FEATURE_PROPERTYPAGE Then
+        ElseIf Me.BaseGraphicsInfo.IsPropertyPage Then
+        #end If
+        Else
+            BaseGraphicsInfo.PendingResizeEvent = False
+            If Owner IsNot Nothing Then
+                If (Not BaseGraphicsInfo.MuteResizeEvent) And (RootWindowElementBASE_IsAvailable AndAlso (Not RootWindowElementBASE.RuntimeUIMuteResizeEventInternal())) Then
+                    CommonRaiseResize(Owner)
+                Else
+                    BaseGraphicsInfo.PendingResizeEvent = True
+                End If
+            Else
+                BaseGraphicsInfo.PendingResizeEvent = True
+            End If
+        End If
+        
+        Dim isUserControl As Boolean
+        #If FEATURE_ACTIVEX_CONTROLS Then
+            isUserControl = Me.BaseGraphicsInfo.IsUserControl
+        #End If
+            
+        ' Seems to work best (in ucShellBrowse) doing these steps seperately.
+        If 0 Then
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        ElseIf Me.BaseGraphicsInfo.IsUserControl Then
+            'On Error Resume Next
+            'If Me.BaseGraphicsInfo.Owner.ClipControls = True Then
+            If ClipControls = True Then
+                ' this is needed for PictureBox inside a UC to properly redraw
+                hwnd.RedrawWindow(0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN)
+            End If
+        #End If
+        #If FEATURE_PROPERTYPAGE Then
+        ElseIf Me.BaseGraphicsInfo.IsPropertyPage Then
+        #end if
+        ElseIf (Me.BaseGraphicsInfo.IsForm = False) And (isUserControl = False) Then
+            ' just for picture boxes? 
+            'RedrawWindow(hwnd, 0, 0, RDW_INVALIDATE)
+            'RedrawWindow(hwnd, 0, 0, RDW_NOCHILDREN Or RDW_UPDATENOW)
+            'RedrawWindow(hwnd, 0, 0, RDW_INVALIDATE Or RDW_UPDATENOW)
+            
+            ''''RedrawWindow(hwnd, 0, 0, RDW_INVALIDATE Or RDW_UPDATENOW)
+            ' above was causing a problem because it causes entire redraw of the picturebox, e.g. when resized expanded, yet it shouldn't do that
+            ' as it causes loss of any manually drawn elements when AutoRedraw is off
+            
+            
+            'Debug.Print "Redrawing Picture Box " & Hex(hwnd)
+            'Sleep 3000
+        End If
+        
+        If (AutoRedraw = False) And (Me.BaseGraphicsInfo.PersistantBitmap_StdPic IsNot Nothing) Then
+            ' If it is a REDUCTION in size, then we don't recreate the persistant bitmap, but otherwise we do.
+            Dim newWidth As Any = newRect.Right - newRect.Left
+            Dim newHeight As Any = newRect.Bottom - newRect.Top
+            
+            If (newWidth > Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth) Or _
+                (newHeight > Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight) Then
+                Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth = newWidth
+                Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight = newHeight
+                
+                ' This will cause the persistant bitmap to be recreated on the next call to Image property-get
+                Set Me.BaseGraphicsInfo.PersistantBitmap_StdPic = Nothing
+            End If
+        End If
+            
+    End Sub
+    
+    Protected Overridable Function OnGetBorderSize() As Long
+    End Function
+    
+    Protected Overridable Function OnGetControlType() As Long
+    End Function
+    
+    Protected Function GetBorderSize(ByVal Owner As Object) As Long
+        If BaseGraphicsInfo.CachedBorderSizePlusOne Then
+            Return BaseGraphicsInfo.CachedBorderSizePlusOne - 1
+        End If
+        
+        'Debug.Print "Obtaining PictureBox BorderSize"
+        Dim RetVal As Long = OnGetBorderSize()
+        
+        ' this is now handled through inheritance
+        ' If BaseGraphicsInfo.IsForm = False Then      
+        '     If 0 Then
+        '     #If FEATURE_ACTIVEX_CONTROLS Then
+        '     ElseIf TypeOf Owner Is UserControl Then
+        '         Dim uc As UserControl = CType(Of UserControl)(Owner)
+        '         If uc.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+        '             RetVal += 1 ' 1 pixel either side   
+        '             If Owner.Appearance = VBRUN.AppearanceConstants.vbAppear3d Then
+        '                 RetVal += 1 ' a further 1 pixel either side     
+        '             End If
+        '         End If
+        '     #End If
+        '     #If FEATURE_PROPERTYPAGE Then
+        '     ElseIf TypeOf Owner Is PropertyPage Then
+        '         ' FIXME
+        '     #End If
+        '     #If FEATURE_MDI Then
+        '     ElseIf TypeOf Owner Is MDIForm Then
+        '         ' FIXME
+        '     #End If
+        '     #If FEATURE_PICTUREBOX Then
+        '     ElseIf TypeOf Owner Is PictureBox Then
+        '         Dim pbox As PictureBox = CType(Of PictureBox)(Owner)
+        '         If pbox.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+        '             RetVal += 1 ' 1 pixel either side   
+        '             If pbox.Appearance = VBRUN.AppearanceConstants.vbAppear3d Then
+        '                 RetVal += 1 ' a further 1 pixel either side     
+        '             End If
+        '         End If
+        '     #End If
+        '     Else
+        '         Dim frm As BaseForm = CType(Of BaseForm)(Owner)
+        '         If frm.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+        '             RetVal += 1 ' 1 pixel either side   
+        '             If frm.Appearance = VBRUN.AppearanceConstants.vbAppear3d Then
+        '                 RetVal += 1 ' a further 1 pixel either side     
+        '             End If
+        '         End If
+        '     End If
+        ' End If
+        BaseGraphicsInfo.CachedBorderSizePlusOne = RetVal + 1
+        Return RetVal
+    End Function
+
+    #If FEATURE_DRAWING Then
+    Protected Sub DrawWidthChanged() _
+            Handles DrawWidth.OnPropertyLet
+        
+        Dim penInfo As tagLOGPEN
+        If GDI32.GetObjectW(InternalCurrentPen, LenB(Of tagLOGPEN), penInfo) <> 0 Then
+            Dim dpiScale As Any = RootWindowElementBASE.RuntimeUIGetUnitScale()
+            Dim scaledWidth As Long = CLng(Int(DrawWidth * dpiScale))
+            If DrawWidth = 1 Then
+                If (BaseGraphicsInfo.InternalDrawStyle = PS_DOT) Or (BaseGraphicsInfo.InternalDrawStyle = PS_DASH) Or (BaseGraphicsInfo.InternalDrawStyle = PS_DASHDOT) Or (BaseGraphicsInfo.InternalDrawStyle = PS_DASHDOTDOT) Then
+                    ' these pen styles only support pen widths of 1, so dpi scaling might break the style behaviour
+                    scaledWidth = 1
+                End If
+            End If
+            
+            penInfo.lopnWidth.x = scaledWidth
+            Dim pen As LongPtr = GDI32.CreatePenIndirect(penInfo)
+            InternalHDC.SelectObject(pen)
+            If InternalCurrentPen <> 0 Then GDI32.DeleteObject(InternalCurrentPen)
+            InternalCurrentPen = pen
+        End If
+    End Sub
+    
+    Protected Sub DrawStyleChanged() _
+            Handles DrawStyle.OnPropertyLet
+    	
+        Dim drawStyleOut As Long
+        Select Case Me.DrawStyle
+            Case DrawStyleConstants.vbInvisible: drawStyleOut = PS_NULL
+            Case DrawStyleConstants.vbSolid: drawStyleOut = PS_SOLID
+            Case DrawStyleConstants.vbDot: drawStyleOut = PS_DOT
+            Case DrawStyleConstants.vbDash: drawStyleOut = PS_DASH
+            Case DrawStyleConstants.vbDashDot: drawStyleOut = PS_DASHDOT
+            Case DrawStyleConstants.vbDashDotDot: drawStyleOut = PS_DASHDOTDOT
+            Case DrawStyleConstants.vbInsideSolid: drawStyleOut = PS_INSIDEFRAME
+            Case Else
+                Exit Sub
+        End Select
+        
+        BaseGraphicsInfo.InternalDrawStyle = drawStyleOut
+        
+        Dim penInfo As tagLOGPEN
+        If GDI32.GetObjectW(InternalCurrentPen, LenB(Of tagLOGPEN), penInfo) <> 0 Then
+            penInfo.lopnStyle = drawStyleOut
+            Dim pen As LongPtr = GDI32.CreatePenIndirect(penInfo)
+            InternalHDC.SelectObject(pen)
+            If InternalCurrentPen <> 0 Then GDI32.DeleteObject(InternalCurrentPen)
+            InternalCurrentPen = pen
+        End If
+    End Sub
+    
+    Protected Sub DrawModeChanged() _
+            Handles DrawMode.OnPropertyLet
+        
+        SetDrawingMixMode()
+    End Sub
+    
+    Protected Sub FillStyleChanged() _
+            Handles FillStyle.OnPropertyLet, _
+                    FillColor.OnPropertyLet
+        
+        Dim fillBrush As Any = CommonFillStyleToBrush(Me.FillStyle, True, 0, FillColor)
+        Dim oldBrush As Any = InternalCurrentBrush
+        If oldBrush <> 0 Then GDI32.DeleteObject(oldBrush)
+        InternalCurrentBrush = fillBrush
+    End Sub
+    #End If
+        
+    Protected Sub SignificantChange() _
+            Handles BackColor.OnPropertyLet
+
+        ' FIXME check if actually changed
+        
+        If Me.AutoRedraw = True Then
+            Cls
+        Else
+            ' This will cause the persistant bitmap to be recreated on the next call to Image property-get
+            Set Me.BaseGraphicsInfo.PersistantBitmap_StdPic = Nothing
+            
+            Dim hwnd As HWND = Me.BaseGraphicsInfo.WindowHandle
+            If hwnd.Value <> 0 Then hwnd.InvalidateRect(ByVal vbNullPtr, 1)
+        End If
+         
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        If Me.BaseGraphicsInfo.IsUserControl Then
+            CommonRaiseViewChanged(GetInheritedOwner(Me))
+        End If
+        #End If
+        
+        NotifyActiveXAmbientPropertyChanges(DISPID_AMBIENT_BACKCOLOR)
+    End Sub
+    
+    Protected Type tagLOGPEN
+        lopnStyle As Long
+        lopnWidth As POINT
+        lopnColor As Long
+    End Type
+    
+    #If FEATURE_DRAWING Then
+    Protected Sub ForeColorChanged() _
+            Handles ForeColor.OnPropertyLet
+            
+        ' FIXME check if actually changed
+        Dim hdc As HDC = Me.InternalHDC
+        Dim color As Long = TranslateColor(Me.ForeColor)
+        hdc.SetTextColor(color)
+        
+        Dim penInfo As tagLOGPEN
+        If GDI32.GetObjectW(InternalCurrentPen, LenB(Of tagLOGPEN), penInfo) <> 0 Then
+            penInfo.lopnColor = color
+            Dim pen As LongPtr = GDI32.CreatePenIndirect(penInfo)
+            hdc.SelectObject(pen)
+            If InternalCurrentPen <> 0 Then GDI32.DeleteObject(InternalCurrentPen)
+            InternalCurrentPen = pen
+        End If
+        
+        NotifyActiveXAmbientPropertyChanges(DISPID_AMBIENT_FORECOLOR)
+    End Sub
+    #End If
+    
+    Protected Sub NotifyActiveXAmbientPropertyChanges(ByVal dispID As Long)
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        If Me.BaseGraphicsInfo.IsUserControl Then
+            On Error GoTo Error
+            Dim Owner As Any = GetInheritedOwner(Me)
+            Dim allControls As Object = Owner.Parent.Controls
+            ' FIXME could do with a HasActiveXControl flag for the controls group to avoid the loop in most instances
+            Dim ctl As Control
+            For Each ctl In allControls
+                If ctl.Container Is Owner Then
+                    If TypeOf ctl Is ActiveXControlExtenderBase Then
+                        With CType(Of ActiveXControlExtenderBase)(ctl)
+                            .InternalAmbientPropertyChanged(dispID)
+                        End With
+                    End If
+                End If
+            Next
+        End If
+    Error:
+        Exit Sub
+        #End If
+    End Sub
+    
+    [Serialize(False)]
+    Protected InternalPicture As StdPicture
+    
+    [Serialize(False)]
+    Public Property Get Picture() As StdPicture
+        Return InternalPicture
+    End Property
+
+    [Serialize(False)]
+    Public Property Set Picture(Value As StdPicture)
+        InternalChangePicture(Value)
+    End Property
+
+    [Serialize(False)]
+    Public Property Let Picture(Value As StdPicture)    ' Weirdly, VBx also implements the Let for this
+        InternalChangePicture(Value)
+    End Property
+    
+    Protected Sub InternalChangePicture(Value As StdPicture)
+        If Value Is Nothing Then Set Value = New StdPicture
+        Set InternalPicture = CommonCopyStdPicIfNecessary(Value)
+        If Me.BaseGraphicsInfo.WindowHandle.Value <> 0 Then PictureChanged()
+    End Sub
+    
+    Protected Sub PictureChanged()
+        SignificantChange()
+                
+    Dim isPropertyPage As Boolean
+    #If FEATURE_PROPERTYPAGE Then
+        IsPropertyPage = Me.BaseGraphicsInfo.IsPropertyPage
+    #End If
+        
+    Dim isUserControl As Boolean
+    #If FEATURE_ACTIVEX_CONTROLS Then
+        isUserControl = Me.BaseGraphicsInfo.IsUserControl
+    #End If
+        Dim Owner As Any = GetInheritedOwner(Me)
+        If (Owner IsNot Nothing) And (Me.BaseGraphicsInfo.IsForm = False) And _
+                (isUserControl = False) And (isPropertyPage = False) Then
+            CommonRaiseChange(Owner)
+        End If
+                
+        On Error GoTo NoAutoSize
+        If Owner.AutoSize Then
+            If (Me.Picture Is Nothing) OrElse ((Me.Picture.Width = 0) And (Me.Picture.Height = 0)) Then
+                ' Don't auto-resize to 0x0
+            Else
+                Owner.AutoSizeNow(Me.Picture)
+                SignificantChange()     ' needed to ensure CurrentClientRect gets updated
+            End If
+        End If
+        NoAutoSize:
+        
+        If Me.AutoRedraw = False Then
+            ' Change needs reflecting immediately
+            Me.BaseGraphicsInfo.WindowHandle.InvalidateRect(ByVal vbNullPtr, 1)
+            Me.BaseGraphicsInfo.WindowHandle.UpdateWindow()
+        End If
+    End Sub
+    
+    Protected Sub AutoRedrawChanged() _
+            Handles AutoRedraw.OnPropertyLet
+
+        If AutoRedraw = True Then
+            Dim BitmapWidth As Long
+            Dim BitmapHeight As Long
+
+            ' Dim newRect As tbRECT
+            ' Dim hwnd As Any = Me.BaseGraphicsInfo.WindowHandle
+            ' GetClientRect(hwnd, newRect)
+            ' BaseGraphicsInfo.CurrentClientRect = newRect
+            
+            BitmapWidth = BaseGraphicsInfo.CurrentClientRect.Right - BaseGraphicsInfo.CurrentClientRect.Left
+            BitmapHeight = BaseGraphicsInfo.CurrentClientRect.Bottom - BaseGraphicsInfo.CurrentClientRect.Top
+            
+            'Debug.Print "AutoRedrawChanged BitmapWidth = " & BitmapWidth
+
+            If BaseGraphicsInfo.IsForm Then
+                ' VB6 uses the current (main) screen resolution to create a persistent buffered bitmap
+                '  which allows resizes of forms to retain their content, even when expanded
+                Const SM_CXSCREEN As Long = 0
+                Const SM_CYSCREEN As Long = 1
+                Dim screenWidth As Long = USER32.GetSystemMetrics(SM_CXSCREEN)
+                Dim screenHeight As Long = USER32.GetSystemMetrics(SM_CYSCREEN)
+                If screenWidth > BitmapWidth Then BitmapWidth = screenWidth
+                If screenHeight > BitmapHeight Then BitmapHeight = screenHeight
+            End If
+            
+            ' Only create a new HDC if the new area is bigger than the cached bitmap area (in either direction)
+            ' above statement incorrect.  Must recreate if any difference.  Otherwise XYplorer icons are not right
+            
+            Dim BufferBitmapWidth As Any = Me.BaseGraphicsInfo.BufferBitmapWidth
+            Dim BufferBitmapHeight As Any = Me.BaseGraphicsInfo.BufferBitmapHeight
+            If (BitmapWidth <> BufferBitmapWidth) Or (BitmapHeight <> BufferBitmapHeight) Then
+                
+                Dim newWidth As Long = If(BitmapWidth <> BufferBitmapWidth, BitmapWidth, BufferBitmapWidth)
+                Dim newHeight As Long = If(BitmapHeight <> BufferBitmapHeight, BitmapHeight, BufferBitmapHeight)
+                
+                'ClearCachedFont()
+                'We now try to keep the font handle static, without changing it unnecessarily.
+                ' XYplorer relies on this behaviour
+                Dim CurrentGraphicsFontHandle As Any = Me.BaseGraphicsInfo.CurrentGraphicsFontHandle
+                If (CurrentGraphicsFontHandle <> 0) And BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned Then
+                    BaseGraphicsInfo.CurrentGraphicsFontDC.SelectObject(BaseGraphicsInfo.CurrentGraphicsFontHandleOLD)
+                End If
+                
+                
+                'Debug.Print "Expanding cached bitmap!...."
+                Dim windowHDC As Any = Me.BaseGraphicsInfo.WindowHDC
+                Dim oldHDC As Any = Me.BaseGraphicsInfo.BufferDC
+                Dim newHDC As HDC = windowHDC.CreateCompatibleDC()
+                Me.BaseGraphicsInfo.BufferDC = newHDC
+                
+                if Me.BaseGraphicsInfo.BufferBitmap <> vbNullPtr THen
+                    Set Me.BaseGraphicsInfo.BufferBitmap_StdPic = Nothing
+                    GDI32.DeleteObject(Me.BaseGraphicsInfo.BufferBitmap)
+                End If
+                
+                Me.BaseGraphicsInfo.BufferBitmap = windowHDC.CreateCompatibleBitmap(newWidth, BitmapHeight)
+                Set Me.BaseGraphicsInfo.BufferBitmap_StdPic = CType(Of IPicture)([_HiddenModule].CreateStdPictureFromHandle(Me.BaseGraphicsInfo.BufferBitmap, vbPicTypeBitmap, False))
+            
+                #If Win64 Then
+                    Dim oldHdcIgnore As SafeLongLong
+                    Dim origBitmap As SafeLongLong
+                    Dim newHDC32 As Long
+                    GetMem4(VarPtr(newHDC), newHDC32)
+                    Me.BaseGraphicsInfo.BufferBitmap_StdPic.SelectPicture(newHDC32, oldHdcIgnore.LowPart, origBitmap.LowPart)   ' This is defined badly on x64, should probably use our own definition instead
+                    GetMemPtr(VarPtr(origBitmap), Me.BaseGraphicsInfo.OrigBitmap)
+                #Else
+                    Dim oldHdcIgnore As LongPtr
+                    Me.BaseGraphicsInfo.BufferBitmap_StdPic.SelectPicture(newHDC.Value, oldHdcIgnore, Me.BaseGraphicsInfo.OrigBitmap)
+                #End If
+                'Me.BaseGraphicsInfo.OrigBitmap = SelectObject(newHDC, Me.BaseGraphicsInfo.BufferBitmap)
+                
+                OnChangingDC(oldHDC, newHDC)
+                Me.InternalHDC = newHDC.Value         ' change of HDC here
+                    
+                If (CurrentGraphicsFontHandle <> 0) Then
+                    BaseGraphicsInfo.CurrentGraphicsFontDC = newHDC
+                    BaseGraphicsInfo.CurrentGraphicsFontHandleOLD = newHDC.SelectObject(CurrentGraphicsFontHandle)
+                End If
+                
+                ' If (oldHDC <> 0) Then
+                '     ' Copy the old buffer into the new one.
+                '     Me.PaintBackground(newWidth, newHeight)
+                    
+                '     ' this will then copy over any of the old buffer into the new one
+                '     BitBlt(newHDC, 0, 0, BufferBitmapWidth, BufferBitmapHeight, oldHDC, 0, 0, vbSrcCopy)
+                '     GDI32.DeleteObject(oldHDC)
+                ' Else
+                    ' otherwise try to copy over from the real HDC into our bitmap
+                    'Dim tempBrush As LongPtr = CreateSolidBrush(vbRed)
+                    'FillRect(newHDC, BaseGraphicsInfo.CurrentClientRect, tempBrush)
+                    'BitBlt(newHDC, 0, 0, newWidth, newHeight, windowHDC, 0, 0, vbSrcCopy)
+                    
+                    
+                    If Me.BaseGraphicsInfo.PersistantBitmap_StdPic IsNot Nothing Then
+                        ' Use the persistant bitmap to paint ourselves
+                        'Stop
+                        'Debug.Print "Printing from the AutoRedrawFALSE persistant bitmap..."
+                        Dim hdc2 As HDC = newHDC.CreateCompatibleDC()
+                        Dim origBmp As Any = hdc2.SelectObject(Me.BaseGraphicsInfo.PersistantBitmap_StdPic.Handle)
+                        'Dim backBrush3 As LongPtr = GDI32.CreateSolidBrush(TranslateColor(vbYellow))
+                        'FillRect(hdc2, BaseGraphicsInfo.CurrentClientRect, backBrush3)
+                
+                        newHDC.BitBlt(0, 0, Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth, Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight, hdc2, 0, 0, vbSrcCopy)
+                        hdc2.SelectObject(origBmp)
+                        
+                       ' DoEvents
+                        
+                    Else
+                        If WindowIsCompletelyVisible(RootWindowElementBASE.RuntimeUIGetHandle(), windowHDC) Then
+                           newHDC.BitBlt(0, 0, newWidth, newHeight, windowHDC, 0, 0, vbSrcCopy)
+                        Else
+                            Me.BaseGraphicsInfo.BufferBitmapWidth = newWidth
+                            Me.BaseGraphicsInfo.BufferBitmapHeight = newHeight
+                            Cls()
+                        End If
+                    End If
+                    
+                    If (oldHDC.Value <> 0) Then
+                        ' Copy the old buffer into the new one.
+                        'Me.PaintBackground(newWidth, newHeight)
+                    
+                        ' this will then copy over any of the old buffer into the new one
+                        newHDC.BitBlt(0, 0, BufferBitmapWidth, BufferBitmapHeight, oldHDC, 0, 0, vbSrcCopy)
+                        oldHDC.DeleteDC()
+                    End If
+                    
+                    Me.BaseGraphicsInfo.WindowHandle.UpdateWindow()   ' important otherwise children might not get redrawn properly (tbShellBrowse)
+                'End If
+
+                Me.BaseGraphicsInfo.BufferBitmapWidth = newWidth
+                Me.BaseGraphicsInfo.BufferBitmapHeight = newHeight
+                
+                'If oldHDC.Pointer = 0 Then
+                    'Debug.Print "new AutoRedraw buffer created."
+                    'Cls()
+                '     Me.PaintBackground(Me.BaseGraphicsInfo.BufferBitmapWidth, Me.BaseGraphicsInfo.BufferBitmapHeight)
+                '     Me.InternalPaintPicture(hDC)
+                '     ' 
+                '     'Me.CopyBufferToDC(Me.BaseGraphicsInfo.WindowHDC)
+                '     UpdateWindow(Me.BaseGraphicsInfo.WindowHandle)   ' important otherwise children might not get redrawn properly (tbShellBrowse)
+                '     DoEvents
+                    
+                '    Me.BaseGraphicsInfo.Owner.Refresh()
+                '        'Stop
+                '     RootWindowElementBASE.PaintContainedWindowlessElements(Me.hDC)
+                'End If
+            End If
+        Else
+            RemoveBuffer(False)
+        End If
+        
+        #If FEATURE_DRAWING Then
+        If Me.Font Is Nothing Then
+            InternalSyncFontProperties(False, True)
+        Else
+            SyncTextColors(True)
+        End If
+        #End If
+    End Sub
+    
+    Protected Sub RemoveBuffer(ByVal IsDestroying As Boolean)
+        
+    	Dim OrigBitmap As Any = Me.BaseGraphicsInfo.OrigBitmap
+    	If OrigBitmap <> 0 Then
+            Me.BaseGraphicsInfo.BufferDC.SelectObject(OrigBitmap)
+            Me.BaseGraphicsInfo.OrigBitmap = 0
+        End If
+        
+        If (Me.BaseGraphicsInfo.BufferBitmapWidth <> 0) AndAlso (IsDestroying = False) Then
+            ' AutoRedraw must have been ON, and now switched off.  Save the content of the buffer into the persistant bitmap ready for AutoRedraw=False
+            Dim imgCopy As Any = USER32.CopyImage(Me.BaseGraphicsInfo.BufferBitmap, 0, 0, 0, 0)
+            Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth = Me.BaseGraphicsInfo.BufferBitmapWidth
+            Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight = Me.BaseGraphicsInfo.BufferBitmapHeight
+            Set Me.BaseGraphicsInfo.PersistantBitmap_StdPic = CType(Of IPicture)([_HiddenModule].CreateStdPictureFromHandle(imgCopy, vbPicTypeBitmap, True))   ' takes ownership
+        End If
+        
+        Dim BufferBitmap As Any = Me.BaseGraphicsInfo.BufferBitmap
+        If BufferBitmap <> 0 Then
+            Set Me.BaseGraphicsInfo.BufferBitmap_StdPic = Nothing
+            GDI32.DeleteObject(BufferBitmap)
+            Me.BaseGraphicsInfo.BufferBitmap = 0
+        End If
+        Dim BufferDC As Any = Me.BaseGraphicsInfo.BufferDC
+        If IsDestroying = False Then
+            OnChangingDC(BufferDC, Me.BaseGraphicsInfo.WindowHDC)
+        End If
+        If BufferDC.Value <> 0 Then
+            BufferDC.DeleteDC()
+            Me.BaseGraphicsInfo.BufferDC.Value = vbNullPtr
+        End If
+        Me.InternalHDC = Me.BaseGraphicsInfo.WindowHDC.Value              ' change of HDC here
+        Me.BaseGraphicsInfo.BufferBitmapWidth = 0
+        Me.BaseGraphicsInfo.BufferBitmapHeight = 0
+    End Sub
+            
+    Protected Function GetSafeOwner() As Object
+        ' FIXME currently used to fix fafalone-private/41, but needs better solution
+        Set GetSafeOwner = GetInheritedOwner(Me)
+        Dim ctlType As Any = OnGetControlType()
+        If 0 Then
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        ElseIf ctlType = ControlTypeConstants.vbUserControl Then
+            Set GetSafeOwner = CType(Of BaseUserControl)(GetSafeOwner)
+        #End If
+        ElseIf ctlType = ControlTypeConstants.vbForm Then
+            Set GetSafeOwner = CType(Of BaseForm)(GetSafeOwner)
+        End If
+    End Function
+    
+    Protected Sub OnPaint(ByVal hdc As HDC, Optional Windowless As Boolean)
+        Dim BackColor As Any = Me.BackColor
+        Dim RootWindowElementBASE As Any = Me.RootWindowElementBASE
+        Dim Owner As Any = GetInheritedOwner(Me)
+        #If FEATURE_REPORT Then
+        If Me.BaseGraphicsInfo.IsReport Then
+        Else
+        #End If
+            If Me.BaseGraphicsInfo.PersistantBitmap_StdPic IsNot Nothing Then
+                ' Use the persistant bitmap to paint ourselves
+                'Debug.Print "Printing from the AutoRedrawFALSE persistant bitmap..."
+                Dim hdc2 As HDC = hdc.CreateCompatibleDC()
+                Dim origBmp As Any = hdc2.SelectObject(Me.BaseGraphicsInfo.PersistantBitmap_StdPic.Handle)
+                hdc.BitBlt(0, 0, Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth, Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight, hdc2, 0, 0, vbSrcCopy)
+                hdc2.SelectObject(origBmp)
+                hdc2.DeleteDC()
+            Else
+                
+                ' Before filling, create a clipping region to obscure any layers in front of us, otherwise we can introduce flashing
+                ' where the background gets seen briefly before the higher layers (in PaintContainedWindowlessElements) get rendered
+                Dim region As LongPtr = RootWindowElementBASE.RuntimeUICreateExcludedClipRegion()
+                Dim dcInfoIdx As Long
+                If region <> vbNullPtr Then
+                    dcInfoIdx = hdc.SaveDC()
+                    hdc.SelectClipRgn(region)
+                End If
+                
+                If Windowless Or Me.AutoRedraw = False Then
+                    If (Windowless = False) OrElse (Owner.BackStyle = vbBFOpaque) Then     ' only UserControls have this facility
+                        Dim backBrush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+                        RootWindowElementBASE.FillWithBrush(hdc, backBrush)       ' FIXME this is wrong for Windowless, as it uses RootWindowElement.Handle to get the rect
+                        GDI32.DeleteObject(backBrush)
+                    End If
+                    Me.InternalPaintPicture(hdc)
+                Else
+                    Me.CopyBufferToDC(hdc)
+                End If
+
+                If region <> vbNullPtr Then
+                    hdc.RestoreDC(dcInfoIdx)
+                    GDI32.DeleteObject(region)
+                End If
+            End If
+        #If FEATURE_REPORT Then
+        End If
+        #ENd if
+        
+        
+        'Debug.Print "OnPaint::PaintContainedWindowlessElements"
+        RootWindowElementBASE.PaintContainedWindowlessElements(hdc.Value)
+        'RootWindowElementBASE.RuntimeUI.PaintContainedWindowlessElements(RootWindowElementBASE, hdc)
+                
+        Debug.TracePrint "*** Graphics OnPaint IsPainting: " & IsPainting
+        If Windowless Or ((Me.AutoRedraw = False) And (Me.IsPainting = False)) Then
+                    
+        #If FEATURE_DRAWING Then
+            Dim isPropertyPage As Boolean
+            #If FEATURE_PROPERTYPAGE Then
+                isPropertyPage = Me.BaseGraphicsInfo.IsPropertyPage    
+            #End If
+                
+            Dim actualForeColor As Long = TranslateColor(If(isPropertyPage OrElse (GetInheritedOwner(Me) Is Nothing) OrElse GetSafeOwner().Enabled, ForeColor, vbGrayText))
+            Dim oldTextColor As Long = hdc.SetTextColor(actualForeColor)
+            Dim oldBkMode As Long = hdc.SetBkMode(If(Me.FontTransparent, BackgroundModes.TRANSPARENT, BackgroundModes.OPAQUE))
+        #End If
+            Dim oldBackColor As Long = hdc.SetBkColor(TranslateColor(BackColor))
+
+            #If FEATURE_DRAWING Then
+            Dim hFontOld As LongPtr
+            Dim Font As Any = CType(Of IFont)(Me.Font)
+            If Not Font Is Nothing Then hFontOld = hdc.SelectObject(Font.hFont)
+            #End If
+            
+            Dim oldDc As HDC = Me.InternalHDC.Value
+            Me.InternalHDC = hdc.Value
+            
+            Dim savedDCInfoIdx As Long
+            Const vbClipUseRegion As Long = 1
+            If Windowless AndAlso (Owner.ClipBehavior = vbClipUseRegion) Then
+                ' When ClipBehavior is vbClipUseRegion, painting occuring in Paint event is clipped 
+            	savedDCInfoIdx = hdc.SaveDC()    ' preserve clip region
+                
+                #If FEATURE_ACTIVEX_CONTROLS Then
+                With CType(Of TbUserControlPrivate)(Owner)
+                    hdc.IntersectClipRect(CLng(.WindowlessRectLeft), CLng(.WindowlessRectTop), CLng(.WindowlessRectRight), CLng(.WindowlessRectBottom))
+                End With
+                #End If
+            End If
+            
+            Me.IsPainting = True
+            CommonRaisePaint(Owner)
+            Me.IsPainting = False
+            Me.InternalHDC = oldDc.Value
+            
+            If Windowless AndAlso (Owner.ClipBehavior = vbClipUseRegion) Then
+                hdc.RestoreDC(savedDCInfoIdx)
+            End If
+    
+            #If FEATURE_DRAWING Then
+            If hFontOld <> 0 Then hdc.SelectObject(hFontOld)
+            Set Font = Nothing
+            #End If
+                
+            hdc.SetBkColor(oldBackColor)
+            
+            #If FEATURE_DRAWING Then
+            hdc.SetBkMode(oldBkMode)
+            hdc.SetTextColor(oldTextColor)
+            #End If
+            
+            'SelectObject(ps.hdc, oldFont)
+
+        End If
+    End Sub
+
+    Protected Sub InternalPaintPicture(ByVal hdc As HDC)
+        ' FIXME very similar code in HandlePaintMDIClient
+        If (Me.InternalPicture IsNot Nothing) And (hdc.Value <> vbNullPtr) Then
+            
+            Dim Picture As OlePicture = Me.InternalPicture
+            
+            ' If RenderPictureAsIcon = True Then
+            '     Dim picWidth As Long
+            '     Dim picHeight As Long
+            '     VB.ScaleOLEPictureDimensionsToPixels(vbPicTypeNone, Picture.Width, picWidth, Picture.Height, picHeight)
+            '     Set Picture = RuntimeCreateScaledPicture(Picture, picWidth, picHeight, True, True)
+            ' End If
+            
+            Const STRETCH_HALFTONE = 4
+            Const PICTYPE_METAFILE As Long = 2
+            Const PICTYPE_ENHMETAFILE As Long = 4
+                        
+            Dim OldStretchMode As Long = hdc.SetStretchBltMode(STRETCH_HALFTONE)
+            hdc.SetBrushOrgEx(0, 0, 0)
+            
+            Dim DrawWidth As Long
+            Dim DrawHeight As Long
+            
+            Dim pictureType As Any = CType(Of PictureTypeConstants)(Picture.Type)
+            Dim pictureWidth As Any = Picture.Width
+            Dim pictureHeight As Any = Picture.Height
+            If (pictureType = PICTYPE_METAFILE) Or (pictureType = PICTYPE_ENHMETAFILE) Then
+                ' Size the metafile to fill the area                
+                If AutoRedraw Then
+                	DrawWidth = BaseGraphicsInfo.BufferBitmapWidth
+                	DrawHeight = BaseGraphicsInfo.BufferBitmapHeight
+                Else
+                    DrawWidth = BaseGraphicsInfo.CurrentClientRect.Right - BaseGraphicsInfo.CurrentClientRect.Left
+                    DrawHeight = BaseGraphicsInfo.CurrentClientRect.Bottom - BaseGraphicsInfo.CurrentClientRect.Top
+                End If
+            Else
+                ScaleOLEPictureDimensionsToPixels(pictureType, pictureWidth, DrawWidth, pictureHeight, DrawHeight)
+                If PictureDpiScaling = True Then
+                	Dim UnitPixelScale As Any = RootWindowElementBASE.RuntimeUIGetUnitScale()
+                    DrawWidth = CLng(DrawWidth * UnitPixelScale)
+                    DrawHeight = CLng(DrawHeight * UnitPixelScale)
+                End If
+            End If
+            If (DrawWidth > 0) And (DrawHeight > 0) Then
+                PictureRender(Picture, hdc, 0, 0, DrawWidth, DrawHeight)
+            End If
+            hdc.SetStretchBltMode(OldStretchMode)()
+
+        End If
+    End Sub
+        
+    Protected Sub PaintBackground(ByVal Width As Long, ByVal Height As Long)
+        Dim backBrush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+        
+        If AutoRedraw Then
+            Dim rect As tbRECT
+            rect.Right = Width
+            rect.Bottom = Height
+            InternalHDC.FillRect(rect, backBrush)
+            
+            'Debug.Print "PaintBackground called", "Width", Width, "Height", Height
+        Else
+            RootWindowElementBASE.FillWithBrush(Me.InternalHDC, backBrush)
+        End If
+        
+        GDI32.DeleteObject(backBrush)
+    End Sub
+    
+    Public Sub Cls()
+    	Dim hdc As Any = Me.InternalHDC
+    	If Me.AutoRedraw = True Then
+            Me.PaintBackground(Me.BaseGraphicsInfo.BufferBitmapWidth, Me.BaseGraphicsInfo.BufferBitmapHeight)
+            Me.InternalPaintPicture(hdc)
+            'RootWindowElementBASE.PaintContainedWindowlessElements(Me.hDC)
+            'Me.CopyBufferToDC(Me.BaseGraphicsInfo.WindowHDC)
+            Me.BaseGraphicsInfo.WindowHandle.InvalidateRect(ByVal vbNullPtr, 1)
+            'Me.CopyBufferToDC(hdc)  ' Changed from Me.BaseGraphicsInfo.WindowHDC, as that causes issues in NewTab with contained controls
+            
+            'UpdateWindow(Me.BaseGraphicsInfo.WindowHandle)   ' important otherwise children might not get redrawn properly (tbShellBrowse)
+            ' UpdateWindow causes problems with XYplorer, some headers not appearing, e.g. 'Various Information' dialog
+        Else
+            Me.OnPaint(hdc)
+            'If IsPainting = False Then
+                'If IsPainting = False Then
+                '    InvalidateRect(Me.WindowHandle, 0, 1)
+                '    UpdateWindow(Me.WindowHandle)
+                'End If
+            'End If
+    	End If
+        #If FEATURE_DRAWING Then
+        InternalCurrentX = 0
+        InternalCurrentY = 0
+        #End If
+    End Sub
+    
+    Protected Sub CopyBufferToDC(ByVal hdc As HDC)
+    	hdc.BitBlt(0, 0, BaseGraphicsInfo.CurrentClientRect.Right - BaseGraphicsInfo.CurrentClientRect.Left, BaseGraphicsInfo.CurrentClientRect.Bottom - BaseGraphicsInfo.CurrentClientRect.Top, Me.BaseGraphicsInfo.BufferDC, 0, 0, vbSrcCopy)
+    End Sub
+
+    Protected Function ScaleXFromPixels(ByVal X As Double) As Double
+        Return RootWindowElementBASE.RuntimeUIScaleX(X, ScaleModeConstants.vbPixels, Me.ScaleMode)
+    End Function
+    
+    Protected Function ScaleYFromPixels(ByVal Y As Double) As Double
+        Return RootWindowElementBASE.RuntimeUIScaleY(Y, ScaleModeConstants.vbPixels, Me.ScaleMode)
+    End Function
+        
+    Protected Function ScaleXToScaledPixels(ByVal X As Double) As Double
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            Return RootWindowElementBASE.RuntimeUIScaleX(X, Me.ScaleMode, ScaleModeConstants.vbScaledPixels)
+        Else
+            ' printer
+            Dim scaleX As Double
+            Dim scaleY As Double
+            Dim resX As Double
+            Dim resY As Double
+            InternalGetXYScales(scaleX, scaleY, resX, resY)
+            Return X * resX / scaleX
+        End If
+    End Function
+    
+    Protected Function ScaleYToScaledPixels(ByVal Y As Double) As Double
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            Return RootWindowElementBASE.RuntimeUIScaleY(Y, Me.ScaleMode, ScaleModeConstants.vbScaledPixels)
+        Else
+            ' printer
+            Dim scaleX As Double
+            Dim scaleY As Double
+            Dim resX As Double
+            Dim resY As Double
+            InternalGetXYScales(scaleX, scaleY, resX, resY)
+            Return Y * resY / scaleY
+        End If
+    End Function
+    
+    Protected Function ScaleXFromScaledPixels(ByVal X As Double) As Double
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            Return RootWindowElementBASE.RuntimeUIScaleX(X, ScaleModeConstants.vbScaledPixels, Me.ScaleMode)
+        Else
+            Dim scaleX As Double
+            Dim scaleY As Double
+            Dim resX As Double
+            Dim resY As Double
+            InternalGetXYScales(scaleX, scaleY, resX, resY)
+            Return X * scaleX / resX
+        End If
+    End Function
+    
+    Protected Function ScaleYFromScaledPixels(ByVal Y As Double) As Double
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            Return RootWindowElementBASE.RuntimeUIScaleY(Y, ScaleModeConstants.vbScaledPixels, Me.ScaleMode)
+        Else
+            ' printer
+            Dim scaleX As Double
+            Dim scaleY As Double
+            Dim resX As Double
+            Dim resY As Double
+            InternalGetXYScales(scaleX, scaleY, resX, resY)
+            Return Y * scaleY / resY
+        End If
+    End Function
+    
+    #If FEATURE_DRAWING Then
+    Protected Sub SetDrawingMixMode()
+        Me.InternalHDC.SetROP2(Me.DrawMode)
+    End Sub
+    #End If
+    
+    Protected Sub HandleAutoRedrawInvalidation()
+        If AutoRedraw = True Then
+            Me.BaseGraphicsInfo.WindowHandle.InvalidateRect(ByVal vbNullPtr, 1)
+            
+            #If FEATURE_ACTIVEX_CONTROLS Then
+            If Me.BaseGraphicsInfo.IsUserControl Then
+                CommonRaiseViewChanged(GetInheritedOwner(Me))
+            End If
+            #End If
+        End If
+    End Sub
+    
+    ' Protected Sub HandleAutoRedrawInvalidation2(rect As tbRECT)
+    '     If AutoRedraw = True Then
+    '         InvalidateRect(Me.BaseGraphicsInfo.WindowHandle, VarPtr(rect), 1)
+            
+    '         If Me.BaseGraphicsInfo.IsUserControl Then
+    '             CommonRaiseViewChanged(Me.Owner)
+    '         End If
+    '     End If
+    ' End Sub
+        
+    #If FEATURE_DRAWING Then
+    Protected Function CreateOurPen(ByRef Color As Long) As LongPtr
+        Color = TranslateColor(Color)   ' in-out
+        Return CreatePen(BaseGraphicsInfo.InternalDrawStyle, DrawWidth, RootWindowElementBASE.RuntimeUIGetUnitScale(), Color)
+    End Function
+    #End If
+    
+    Protected Sub PaintChildrenToDC(ByVal containerWnd As LongPtr, ByVal hwnd As HWND, ByVal hdc As HDC)
+        Dim childRect As tbRECT
+        Dim childClientRect As tbRECT
+        Dim savedDc As Long
+        Const PRF_NONCLIENT As Long = 2
+                
+        Dim childWindow As Any = hwnd.GetWindow(GW_CHILD)
+        If childWindow.Value <> vbNullPtr Then
+            childWindow = childWindow.GetWindow(GW_HWNDLAST)
+            While childWindow.Value <> vbNullPtr
+                childWindow.GetWindowRect(childRect)
+                USER32.MapWindowPoints(vbNullPtr, containerWnd, ByVal VarPtr(childRect), 2)
+                childWindow.GetClientRect(childClientRect)     ' to determine any frame non-client area
+                USER32.MapWindowPoints(childWindow, containerWnd, ByVal VarPtr(childClientRect), 2)
+                                                        
+                savedDc = hdc.SaveDC()
+                    hdc.IntersectClipRect(childClientRect.Left, childClientRect.Top, childClientRect.Right, childClientRect.Bottom)
+                    hdc.SetWindowOrgEx(childClientRect.Left, -childClientRect.Top, ByVal vbNullPtr)
+                    'SetViewportOrgEx(hdc, childRect.Left, childRect.Top, vbNullPtr) 
+                    childWindow.SendMessageW(WM_ERASEBKGND, hdc.Value, 0)
+                    childWindow.SendMessageW(WM_PAINT, hdc.Value, 0)
+                hdc.RestoreDC(savedDc)
+                                
+                savedDc = hdc.SaveDC()
+                    hdc.IntersectClipRect(childRect.Left, childRect.Top, childRect.Right, childRect.Bottom)
+                    hdc.SetWindowOrgEx(-childRect.Left, -childRect.Top, ByVal vbNullPtr)
+                    'SetViewportOrgEx(hdc, childRect.Left, childRect.Top, vbNullPtr)
+                    childWindow.SendMessageW(WM_PRINT, hdc.Value, PRF_NONCLIENT)
+                hdc.RestoreDC(savedDc)
+                
+                ' If the window has the WS_EX_CLIENTEDGE flag set, we have to draw that manually, as WM_PRINT doesn't handle it
+                ' Usually we'd use PrintWindow(), which does handle it, but that function doesn't appear to work for meta DCs
+                If childWindow.GetWindowLongW(GWL_EXSTYLE) And WS_EX_CLIENTEDGE Then
+                    Dim bfStyle As Long = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+                    Dim bfFlags As Long = BorderFlags.BF_RECT
+                    hdc.DrawEdge(childRect, bfStyle, bfFlags)
+                End If
+                
+                ' Same for WS_BORDER
+                If childWindow.GetWindowLongW(GWL_STYLE) And WS_BORDER Then
+                    bfStyle = BorderStyles.BDR_SUNKENOUTER
+                    bfFlags = BorderFlags.BF_RECT Or BorderFlags.BF_MONO Or BorderFlags.BF_FLAT
+                    hdc.DrawEdge(childRect, bfStyle, bfFlags)
+                End If
+                
+                savedDc = hdc.SaveDC()
+                    hdc.IntersectClipRect(childClientRect.Left, childClientRect.Top, childClientRect.Right, childClientRect.Bottom)
+                    PaintChildrenToDC(containerWnd, childWindow, hdc)
+                hdc.RestoreDC(savedDc)
+                
+                childWindow = childWindow.GetWindow(GW_HWNDPREV)
+            Wend
+        End If
+    End Sub
+    
+    #If FEATURE_PRINTER Then
+    Protected Sub InternalPrintForm(ByVal Printer As Printer, ByVal ImplicitEndDoc As Boolean, ByVal OutputAtCurrentPosition As Boolean)
+        
+        ' In order to draw nice GDI curves etc in prints, we have to use the GDI recording/playback features
+        ' This allows much better GDI drawing due to higher resolution of printers
+
+        ' VB6 uses the older CreateMetaFile method, and blit-copying standard controls, but this gives very pixelated results for 
+        ' everything except the standard GDI drawing of lines and shapes and text.
+        ' CreateEnhMetaFile appears to work better, supporting drawing of standard controls, without us having to resort to pixel rescaling
+        ' The VB6 method is roughly:
+        '  CreateMetaFile(mode MM_ANISOTROPIC)
+        '    WM_ERASEBKGRD+WM_PAINT to each standard control using a compatible bitmap, then StretchBlt to the metaDC
+        '    IOleObject::Draw for AX controls
+        '  CloseMetaFile
+        '  SetWindowOrgEx+SetWindowExtEx+SetViewportOrgEx+SetViewportExtEx
+        '  ScaleViewportExtEx
+        '  SetMapMode(MM_ANISOTROPIC)
+        '  PlayMetaFile
+                
+        If Printer Is Nothing Then Err.Raise 5
+        Dim tbPrinter As ITwinBasicPrinter = CType(Of ITwinBasicPrinter)(Printer)
+        Dim tbPrinter_GraphicsBase As GraphicsBase = tbPrinter.PreparePrintForm()
+        If tbPrinter_GraphicsBase Is Nothing Then Err.Raise 5
+                        
+        Dim sourceRect As tbRECT
+        Dim sourceWND As Any = RootWindowElementBASE.RuntimeUIGetHandle()
+        sourceWND.GetClientRect(sourceRect)
+                
+        Dim metaDC As HDC
+        metaDC = metaDC.CreateEnhMetaFileW(vbNullString, ByVal vbNullPtr, vbNullString)
+                                
+        ' WM_ERASEBKGND + WM_PAINT works for drawing the background of the form (inc lighweight controls, and custom painting in OnPaint etc)
+        ' but we have to paint any children seperately
+        
+        sourceWND.SendMessageW(WM_ERASEBKGND, metaDC.Value, 0)
+        sourceWND.SendMessageW(WM_PAINT, metaDC.Value, 0)
+        PaintChildrenToDC(sourceWND, sourceWND, metaDC)
+                
+        Dim sourceTwipsX As Double = 1440 / metaDC.GetDeviceCaps(LOGPIXELSX)
+        Dim sourceTwipsY As Double = 1440 / metaDC.GetDeviceCaps(LOGPIXELSY)
+                           
+        Dim destTwipsX As Double = 1440 / UnprotectedAccess(Printer).InternalHDC.GetDeviceCaps(LOGPIXELSX)
+        Dim destTwipsY As Double = 1440 / UnprotectedAccess(Printer).InternalHDC.GetDeviceCaps(LOGPIXELSY)
+                
+        If (destTwipsX = 0) Or (destTwipsY = 0) Then
+            Err.Raise 5     ' invalid
+        End If
+        
+        Dim metaFile As LongPtr = metaDC.CloseEnhMetaFile()
+                                
+        If (metaFile = 0) Then
+            Err.Raise 5     ' invalid
+        End If
+        
+        sourceRect.Right = CLng(sourceRect.Right * sourceTwipsX / destTwipsX)
+        sourceRect.Bottom = CLng(sourceRect.Bottom * sourceTwipsY / destTwipsX)
+                
+        If OutputAtCurrentPosition = True Then
+            #If FEATURE_DRAWING Then    
+            sourceRect.Left += CLng(UnprotectedAccess(tbPrinter_GraphicsBase).InternalCurrentX)
+            sourceRect.Right += sourceRect.Left
+            sourceRect.Top += CLng(UnprotectedAccess(tbPrinter_GraphicsBase).InternalCurrentY)
+            sourceRect.Bottom += sourceRect.Top
+            #end if
+            
+            If tbPrinter_GraphicsBase.ScaleMode = ScaleModeConstants.vbUser Then
+                sourceRect.Left += CLng(-tbPrinter_GraphicsBase.ScaleLeft / destTwipsX)
+                sourceRect.Top += CLng(-tbPrinter_GraphicsBase.ScaleTop / destTwipsX)
+            End If
+        End If
+        UnprotectedAccess(Printer).InternalHDC.PlayEnhMetaFile(metaFile, sourceRect)
+        GDI32.DeleteEnhMetaFile(metaFile)
+                
+        If ImplicitEndDoc Then
+            Printer.EndDoc()
+        Else
+            #If FEATURE_DRAWING Then    
+            UnprotectedAccess(tbPrinter_GraphicsBase).InternalCurrentY += sourceRect.Bottom - sourceRect.Top
+            #end if
+        End If
+    End Sub
+    #End If
+    
+    #if FEATURE_DRAWING Then
+    Public Sub Circle(ByVal Flags As VBPaintFlags, _
+                        ByVal X As Single, ByVal Y As Single, _
+                        ByVal Radius As Single, _	
+                        ByVal Color As Long, _
+                        ByVal Start As Single, _
+                        ByVal _End As Single, _
+                        ByVal Aspect As Single)
+        'Log = CurrentProcedureName & "(" & Flags & "," & X & "," & Y & "," & Radius & "," & Color & "," & Start & "," & _End & "," & Aspect & ")"
+                       
+        Dim hdc As Any = Me.InternalHDC
+        Dim UnitPixelScale As Double
+        Dim IsPrinter As Boolean
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            UnitPixelScale = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        Else
+            UnitPixelScale = 1
+            IsPrinter = True
+        End If
+
+        X = CSng(ScaleXToScaledPixels(X * UnitPixelScale))
+        Y = CSng(ScaleYToScaledPixels(Y * UnitPixelScale))
+        Radius = CSng(ScaleXToScaledPixels(Radius * UnitPixelScale))
+                                               
+        If Flags And VBPaintFlags.StepOnFirstCoords Then
+            X += CSng(Me.InternalCurrentX)
+            Y += CSng(Me.InternalCurrentY)
+        End If
+                
+        Me.InternalCurrentX = X
+        Me.InternalCurrentY = Y
+                
+        If Me.ScaleMode = ScaleModeConstants.vbUser Then
+            X += CSng(ScaleXToScaledPixels(-BaseGraphicsInfo.ScaleLeft * UnitPixelScale))
+            Y += CSng(ScaleYToScaledPixels(-BaseGraphicsInfo.ScaleTop * UnitPixelScale))
+        End If
+  
+        Dim IncludeLineToStart As Boolean
+        Dim IncludeLineToEnd As Boolean
+        
+        If Start < 0 Then
+            Start = CSng(Abs(Start))
+            If Start > 6.28318619728 Then Err.Raise 5       ' invalid procedure call or argument
+            IncludeLineToStart = True
+        End If
+        
+        If _End < 0 Then
+            _End = CSng(Abs(_End))
+            If _End > 6.28318619728 Then Err.Raise 5       ' invalid procedure call or argument
+            IncludeLineToEnd = True
+        End If
+                  
+        Dim topLeftRectX As Double = -Radius
+        Dim topLeftRectY As Double = -Radius
+        Dim bottomRightRectX As Double = Radius
+        Dim bottomRightRectY As Double = Radius
+        Dim startX As Double = CDbl(Radius) * Cos(Start)
+        Dim startY As Double = -(CDbl(Radius) * Sin(Start))
+        Dim endX As Double = CDbl(Radius) * Cos(_End)
+        Dim endY As Double = -(CDbl(Radius) * Sin(_End))
+        
+        Dim SwitchAspect As Boolean
+        If Aspect < -1 Then
+            SwitchAspect = True
+        End If
+        Aspect = CSng(Abs(Aspect))
+        
+        If (Flags And VBPaintFlags.AspectSpecified) = 0 Then
+        
+        ElseIf SwitchAspect Or Aspect < 1 Then
+            ' Stretch the Y axis
+            topLeftRectY *= Aspect
+            bottomRightRectY *= Aspect
+            startY *= Aspect
+            endY *= Aspect
+        ElseIf Aspect > 1 Then
+            ' Stretch the X axis
+            topLeftRectX /= Aspect
+            bottomRightRectX /= Aspect
+            startX /= Aspect
+            endX /= Aspect
+        End If
+        
+        ' Now add in the center position offset...
+        topLeftRectX += X
+        topLeftRectY += Y
+        bottomRightRectX += X
+        bottomRightRectY += Y
+        startX += X
+        startY += Y
+        endX += X
+        endY += Y
+        
+        bottomRightRectX += 1
+        bottomRightRectY += 1
+        
+        If (Flags And VBPaintFlags.ColorSpecified) = 0 Then
+            Color = Me.ForeColor
+        End If
+        
+        Dim pen As LongPtr = CreateOurPen(Color)
+        Dim origPen As LongPtr = hdc.SelectObject(pen)
+                      
+        SetDrawingMixMode()
+         
+        Dim oldBrush As LongPtr
+        Dim oldBackMode As Long
+        
+        Dim IsEllipse As Boolean
+        Dim IsPie As Boolean
+        
+        If ((Flags And VBPaintFlags.StartSpecified) = 0) And _
+            ((Flags And VBPaintFlags.EndSpecified) = 0) Then
+            IsEllipse = True
+        ElseIf IncludeLineToStart And IncludeLineToEnd Then
+            IsPie = True
+        End If
+        
+        If IsEllipse Or IsPie Then
+            ' requires Fill
+            oldBrush = hdc.SelectObject(Me.InternalCurrentBrush)
+            oldBackMode = hdc.SetBkMode(If(IsPrinter, BackgroundModes.TRANSPARENT, BackgroundModes.OPAQUE))
+        End If
+        
+        If IsEllipse Then
+            ' this is simple and can be drawn with just Ellipse, which includes fill
+            hdc.Ellipse(CLng(topLeftRectX), CLng(topLeftRectY), CLng(bottomRightRectX), CLng(bottomRightRectY))
+        ElseIf IsPie Then
+            ' this can be drawn with Pie, which includes fill
+            hdc.Pie(CLng(topLeftRectX), CLng(topLeftRectY), CLng(bottomRightRectX), CLng(bottomRightRectY), CLng(startX), CLng(startY), CLng(endX), CLng(endY))
+        Else
+            If IncludeLineToStart Then
+            	hdc.MoveToEx(CLng(X), CLng(Y), 0)
+                hdc.LineTo(CLng(startX), CLng(startY))
+            End If
+                        
+            hdc.Arc(CLng(topLeftRectX), CLng(topLeftRectY), CLng(bottomRightRectX), CLng(bottomRightRectY), CLng(startX), CLng(startY), CLng(endX), CLng(endY))
+        
+            If IncludeLineToEnd Then
+            	hdc.MoveToEx(CLng(endX), CLng(endY), 0)
+                hdc.LineTo(CLng(X), CLng(Y))
+            End If
+        End If
+        
+        If IsEllipse Or IsPie Then
+            hdc.SetBkMode(oldBackMode)
+            hdc.SelectObject(oldBrush)
+        End If
+        
+        hdc.SelectObject(origPen)
+        GDI32.DeleteObject(pen)
+        
+        HandleAutoRedrawInvalidation()
+            
+        ' CONFIRMED: VB6 doesn't do this, it just does InvalidateRect(nullptr)
+        ' Dim rect As tbRECT
+        ' rect.Left = point1X
+        ' rect.Top = point1Y
+        ' rect.Right = point2X + 1
+        ' rect.Bottom = point2Y + 1
+        ' HandleAutoRedrawInvalidation2(rect)
+    End Sub
+    
+    Public Sub Line(ByVal Flags As VBPaintFlags, _
+                        ByVal X1 As Single, _
+                        ByVal Y1 As Single, _
+                        ByVal X2 As Single, _
+                        ByVal Y2 As Single, _
+                        ByVal Color As Long)
+        'Log = CurrentProcedureName & "(" & Flags & "," & X1 & "," & Y1 & "," & X2 & "," & Y2 & "," & Color & ")"
+
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        
+        X1 = CSng(ScaleXToScaledPixels(X1 * UnitPixelScale))
+        Y1 = CSng(ScaleYToScaledPixels(Y1 * UnitPixelScale))
+        X2 = CSng(ScaleXToScaledPixels(X2 * UnitPixelScale))
+        Y2 = CSng(ScaleYToScaledPixels(Y2 * UnitPixelScale))
+        
+        Dim point1X As Long
+        Dim point1Y As Long
+        Dim point2X As Long
+        Dim point2Y As Long
+        
+        Dim CurrentX As Double = Me.InternalCurrentX
+        Dim CurrentY As Double = Me.InternalCurrentY
+        Dim hdc As Any = Me.InternalHDC
+        
+        If Flags And VBPaintFlags.FirstCoordsSpecified Then
+        	If Flags And VBPaintFlags.StepOnFirstCoords Then
+                point1X = CLng(CurrentX + X1)
+                point1Y = CLng(CurrentY + Y1)
+            Else
+                point1X = CLng(X1)
+                point1Y = CLng(Y1)
+            End If
+        Else
+            point1X = CLng(CurrentX)
+            point1Y = CLng(CurrentY)
+        End If
+        
+        If Flags And VBPaintFlags.StepOnSecondCoords Then
+            If Flags And VBPaintFlags.FirstCoordsSpecified Then
+                point2X = CLng(point1X + X2)
+                point2Y = CLng(point1Y + Y2)
+            Else
+                point2X = CLng(CurrentX + X2)
+                point2Y = CLng(CurrentY + Y2)
+            End If
+        Else
+            point2X = CLng(X2)
+            point2Y = CLng(Y2)
+        End If
+        
+        Me.InternalCurrentX = point2X
+        Me.InternalCurrentY = point2Y
+        
+        If Me.ScaleMode = ScaleModeConstants.vbUser Then
+            Dim scaleLeft As Any = BaseGraphicsInfo.ScaleLeft
+            Dim scaleTop As Any = BaseGraphicsInfo.ScaleTop
+            point1X += CLng(ScaleXToScaledPixels(-scaleLeft * UnitPixelScale))
+            point1Y += CLng(ScaleYToScaledPixels(-scaleTop * UnitPixelScale))
+            point2X += CLng(ScaleXToScaledPixels(-scaleLeft * UnitPixelScale))
+            point2Y += CLng(ScaleYToScaledPixels(-scaleTop * UnitPixelScale))
+        End If
+
+        'If Flags And VBPaintFlags.FirstCoordsSpecified Then
+            hdc.MoveToEx(point1X, point1Y, 0)
+        'End If
+        
+        If (Flags And VBPaintFlags.ColorSpecified) = 0 Then
+            Color = Me.ForeColor
+        End If
+        
+        Dim pen As LongPtr = CreateOurPen(Color)
+        Dim origPen As LongPtr = hdc.SelectObject(pen)
+    
+        SetDrawingMixMode()
+    
+        Dim oldBrush As LongPtr
+        Dim oldBackMode As Long
+        
+        If (point1X = point2X) And (point1Y = point2Y) Then
+            'Rectangle() doesn't seem to render a 1-pixel rect (though does render a 1-pixel line in either direction just fine)
+            ' FIXME we must be doing something differently to VB6, as VB6 does use Rectangle here
+            ' this currently fixes https://github.com/twinbasic/twinbasic/issues/1700
+            hdc.LineTo(point2X + 1, point2Y + 1)
+        ElseIf (Flags And VBPaintFlags.BoxFilled) Then
+            Dim fillBrush As LongPtr = GDI32.CreateSolidBrush(Color)
+            oldBrush = hdc.SelectObject(fillBrush)
+            hdc.Rectangle(point1X, point1Y, point2X + 1, point2Y + 1)
+            hdc.SelectObject(oldBrush)
+            GDI32.DeleteObject(fillBrush)
+        ElseIf (Flags And VBPaintFlags.Box) Then
+            ' This uses the fill as described by our class
+            oldBrush = hdc.SelectObject(Me.InternalCurrentBrush)
+            oldBackMode = hdc.SetBkMode(BackgroundModes.OPAQUE)
+            hdc.Rectangle(point1X, point1Y, point2X + 1, point2Y + 1)
+            hdc.SetBkMode(oldBackMode)
+            hdc.SelectObject(oldBrush)
+        Else
+            hdc.LineTo(point2X, point2Y)
+        End If
+
+        hdc.SelectObject(origPen)
+        GDI32.DeleteObject(pen)
+        
+        HandleAutoRedrawInvalidation()
+            
+        ' CONFIRMED: VB6 doesn't do this, it just does InvalidateRect(nullptr)
+        ' Dim rect As tbRECT
+        ' rect.Left = point1X
+        ' rect.Top = point1Y
+        ' rect.Right = point2X + 1
+        ' rect.Bottom = point2Y + 1
+        ' HandleAutoRedrawInvalidation2(rect)
+    End Sub
+    
+    Public Sub PSet(ByVal Flags As VBPaintFlags, _
+                        ByVal X As Single, _
+                        ByVal Y As Single, _
+                        ByVal Color As Long)
+                        
+        'Log = CurrentProcedureName & "(" & Flags & "," & X & "," & Y & "," & Color & ")"
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        Dim hdc As Any = Me.InternalHDC
+        
+        X = CSng(ScaleXToScaledPixels(X * UnitPixelScale))
+        Y = CSng(ScaleYToScaledPixels(Y * UnitPixelScale))
+                                
+        If Flags And VBPaintFlags.StepOnFirstCoords Then
+            X += CSng(Me.InternalCurrentX)
+            Y += CSng(Me.InternalCurrentY)
+        End If
+        
+        Me.InternalCurrentX = X
+        Me.InternalCurrentY = Y
+
+        If Me.ScaleMode = ScaleModeConstants.vbUser Then
+            X += CSng(ScaleXToScaledPixels(-BaseGraphicsInfo.ScaleLeft * UnitPixelScale))
+            Y += CSng(ScaleYToScaledPixels(-BaseGraphicsInfo.ScaleTop * UnitPixelScale))
+        End If
+        
+        hdc.MoveToEx(CLng(X), CLng(Y), 0)
+        
+        If (Flags And VBPaintFlags.ColorSpecified) = 0 Then
+            Color = Me.ForeColor
+        End If
+        
+        Dim pen As LongPtr = CreateOurPen(Color)
+        Dim origPen As LongPtr = hdc.SelectObject(pen)
+
+        SetDrawingMixMode()
+        hdc.LineTo(CLng(X), CLng(Y + 1))
+
+        hdc.SelectObject(origPen)
+        GDI32.DeleteObject(pen)
+                 
+        HandleAutoRedrawInvalidation()
+            
+        ' CONFIRMED: VB6 doesn't do this, it just does InvalidateRect(nullptr)
+        ' Dim rect As tbRECT
+        ' rect.Left = point1X
+        ' rect.Top = point1Y
+        ' rect.Right = point2X + 1
+        ' rect.Bottom = point2Y + 1
+        ' HandleAutoRedrawInvalidation2(rect)
+    End Sub
+    #End If
+    
+    Public Sub Scale(ByVal Flags As VBPaintFlags, _
+                        ByVal X1 As Single, _
+                        ByVal Y1 As Single, _
+                        ByVal X2 As Single, _
+                        ByVal Y2 As Single)
+        If Flags = 0 Then
+        	Me.ScaleMode = ScaleModeConstants.vbTwips
+        Else
+            Me.ScaleLeft = X1
+            Me.ScaleTop = Y1
+            Me.ScaleWidth = X2 - X1
+            Me.ScaleHeight = Y2 - Y1
+            ScaleMode = ScaleModeConstants.vbUser
+        End If
+        SyncScaleMode()
+    End Sub
+    
+    Protected Function InitBaseGraphicsInfo() As LongPtr
+        BaseGraphicsInfo.ScaleLeft = ScaleLeftINIT
+        BaseGraphicsInfo.ScaleTop = ScaleTopINIT
+        BaseGraphicsInfo.ScaleWidth = ScaleWidthINIT
+        BaseGraphicsInfo.ScaleHeight = ScaleHeightINIT
+        Return VarPtr(BaseGraphicsInfo)
+    End Function
+    
+    Protected Sub InitGraphics(ByVal RootWindowElement As WindowElement)
+        Me.RootWindowElementBASE = RootWindowElement
+        RootWindowElementBASE.RuntimeUISetAndSinkEvents(Me)
+    End Sub
+    
+    Protected Sub InternalStateResetGraphics()
+        OnChangingDC(InternalHDC, vbNullPtr)
+        Dim InternalCurrentBrush As Any = Me.InternalCurrentBrush
+        If InternalCurrentBrush <> 0 Then
+            GDI32.DeleteObject(InternalCurrentBrush)
+            Me.InternalCurrentBrush = 0
+        End If
+        ClearCachedFont()
+        RemoveBuffer(True)
+        [_HiddenModule].MemZero(VarPtr(BaseGraphicsInfo), Len(Of BaseGraphicsInfo))
+    End Sub
+        
+    Protected Sub InternalChangeHDC(ByVal hdc As HDC, ByVal hwnd As HWND, ByVal RootWindowElement As WindowElement, Picture As StdPicture, Owner As Object, ByVal IsForm As Boolean)
+        If RootWindowElement.Pointer = vbNullPtr Then
+            #If FEATURE_DRAWING Then    
+            FontNameINIT = "Arial"      ' default printer font
+            ForeColor = vbBlack
+            FontTransparent = True
+            #End If
+        End If
+        If hdc.Value = 0 Then hdc.Value = hwnd.GetDC()
+        Me.BaseGraphicsInfo.WindowHDC = hdc
+        Me.InternalHDC = hdc.Value
+        InitGraphics(RootWindowElement)
+        Me.BaseGraphicsInfo.WindowHandle = hwnd
+        '[_HiddenModule].vbaObjAddref(ObjPtr(Owner))
+        Set Me.InternalPicture = Picture
+        Me.BaseGraphicsInfo.IsForm = IsForm
+        
+        #If FEATURE_REPORT Or FEATURE_ACTIVEX_CONTROLS Or FEATURE_PROPERTYPAGE Then
+        Dim ctlType As Any = OnGetControlType()
+        #End If
+        
+        #If FEATURE_REPORT Then
+        Me.BaseGraphicsInfo.IsReport = (ctlType = ControlTypeConstants.vbReport)
+        #end if
+        
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        Me.BaseGraphicsInfo.IsUserControl = (ctlType = ControlTypeConstants.vbUserControl)
+        #End If
+        
+        #If FEATURE_PROPERTYPAGE Then
+        Me.BaseGraphicsInfo.IsPropertyPage = (ctlType = ControlTypeConstants.vbPropertyPage)
+        #endif
+        
+        #If FEATURE_DRAWING Then    
+        Me.DrawStyleChanged
+        #End If
+        
+        Me.BaseGraphicsInfo.MuteResizeEvent = True
+            Me.HandleResize
+        Me.BaseGraphicsInfo.MuteResizeEvent = False
+        
+        #If FEATURE_DRAWING Then    
+        Me.FillStyleChanged
+        #End If
+        
+        If Me.AutoRedraw = True Then
+            Cls()
+            
+            #If FEATURE_DRAWING Then    
+            hdc.SetTextColor(TranslateColor(Me.ForeColor))
+            #ENd If
+        End If
+        #If FEATURE_DRAWING Then    
+        InternalSyncFontProperties(True, True)
+        #End If
+        OnChangingDC(vbNullPtr, hdc)
+    End Sub
+    
+    
+    Protected Sub OnChangingDC(ByVal oldDC As hdc, ByVal newDC As HDC)
+        #If FEATURE_DRAWING Then
+        If oldDC.Value <> vbNullPtr Then
+            oldDC.SelectObject(InternalOriginalPen)
+        End If
+        If newDC.Value <> vbNullPtr Then
+            If InternalCurrentPen = 0 Then
+                'Debug.Print "CreateOurPen"
+                InternalCurrentPen = CreateOurPen(Me.ForeColor)
+            End If
+            InternalOriginalPen = newDC.SelectObject(InternalCurrentPen)
+            SetDrawingMixMode()
+        Else
+            If InternalCurrentPen <> 0 Then
+                'Debug.Print "DeletePen"
+                GDI32.DeleteObject(InternalCurrentPen)
+                InternalCurrentPen = 0
+            End If
+        End If
+        #End If
+    End Sub
+    
+    Protected Sub WriteText(ByVal Value As String) _
+            Implements IVBPrint.WriteText
+        #If FEATURE_DRAWING Then    
+        Dim tabSize As Long = 8 * BaseGraphicsInfo.CachedFontAvgCharWidth    ' tabs are expanded to eight times the average character width
+                
+        ' If Me.FontTransparent = True Then
+        ' 	GDI32.SetBackMode(Me.hDC, BackgroundModes.TRANSPARENT)
+        ' Else
+        '     GDI32.SetBackColor(Me.hDC, TranslateColor(Me.BackColor))
+        ' 	GDI32.SetBackMode(Me.hDC, BackgroundModes.OPAQUE)
+        ' End If
+                
+        'GDI32.SetTextForeColor(Me.hDC, TranslateColor(Me.ForeColor))
+                
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        Dim hdc As Any = Me.InternalHDC
+        
+        Dim xOffset As Long = CLng(ScaleXToScaledPixels(-Me.ScaleLeft * UnitPixelScale))
+        Dim yOffset As Long = CLng(ScaleYToScaledPixels(-Me.ScaleTop * UnitPixelScale))
+                
+        ' Split into lines, and pass to TabbedTextOut        
+        Dim startPos As Long = 1
+        Dim currentLine As String
+        Do
+            Dim nextLineFeed As Long = InStr$(startPos, Value, vbCrLf, VbCompareMethod.vbBinaryCompare)  ' FIXME need to support vbCr and vbLf here too
+            If nextLineFeed <> 0 Then
+                currentLine = Mid$(Value, startPos, nextLineFeed - startPos)
+                startPos = nextLineFeed + 2
+            Else
+                currentLine = Mid$(Value, startPos)
+            End If
+            ' FIXME could change this like TabbedTextExtent now...
+            Dim outSize As Long = hdc.TabbedTextOutW(xOffset + CLng(Me.InternalCurrentX), yOffset + CLng(Me.InternalCurrentY), currentLine, Len(currentLine), 1, tabSize, 0)
+            Me.InternalCurrentX += outSize And &HFFFF&
+            If nextLineFeed <> 0 Then
+                Me.InternalCurrentY += BaseGraphicsInfo.CachedFontCharHeight
+                Me.InternalCurrentX = 0
+            End If
+        Loop Until nextLineFeed = 0
+    
+        'Value = Replace(Value, vbCrLf, "\r\n")
+        'Value = Replace(Value, vbCr, "\r")
+        'Value = Replace(Value, vbLf, "\r")
+        'Log += CurrentProcedureName & "(""" & Value & """) "
+        
+        HandleAutoRedrawInvalidation()
+        
+        ' FIXME need to change above to something like this
+        ' Dim rect As tbRECT
+        ' rect.Left = xOffset
+        ' rect.Top = yOffset
+        ' rect.Right = CLng(X) + 1
+        ' rect.Bottom = CLng(Y) + 1
+        ' HandleAutoRedrawInvalidation2(rect)
+        #End If
+    End Sub
+    
+    Protected Property Let LetColumn(ByVal Value As Long) _
+            Implements IVBPrint.Column
+        #If FEATURE_DRAWING Then    
+        ' Column takes into account of the AVERAGE font character width
+        'Log += CurrentProcedureName & "(""" & Value & """) "
+        Me.InternalCurrentX = Value * BaseGraphicsInfo.CachedFontAvgCharWidth
+        #End If
+    End Property
+    
+    Protected Property Get GetColumn() As Long _
+            Implements IVBPrint.Column
+        #If FEATURE_DRAWING Then    
+        'Log += CurrentProcedureName & "() "
+        Dim retVal As Long = Me.InternalCurrentX \ Me.BaseGraphicsInfo.CachedFontAvgCharWidth
+        If (retVal * Me.BaseGraphicsInfo.CachedFontAvgCharWidth) <> Me.InternalCurrentX Then retVal += 1  ' round up
+        Return retVal
+        #End If
+    End Property
+    
+    ' ------------------------------------------------------------------------------------------------------
+    
+    #If FEATURE_DRAWING Then
+    [Serialize(False)]
+    Public WithEvents Font As StdFont
+    
+    [Serialize(True, "FontBold")]
+    Protected FontBoldINIT As Boolean = False
+    [Serialize(True, "FontItalic")]
+    Protected FontItalicINIT As Boolean = False
+    [Serialize(True, "FontName")]
+    Protected FontNameINIT As String = "Segoe UI"
+    [Serialize(True, "FontSize")]
+    Protected FontSizeINIT As Single = 8
+    [Serialize(True, "FontStrikethru")]
+    Protected FontStrikethruINIT As Boolean = False
+    [Serialize(True, "FontUnderline")]
+    Protected FontUnderlineINIT As Boolean = False
+    #End If
+    
+    #If FEATURE_DRAWING Then    
+    [Serialize(False)]
+    Public Property Get FontBold() As Boolean
+        Return Me.Font.Bold
+    End Property
+    [Serialize(False)]
+    Public Property Let FontBold(ByVal Value As Boolean)
+        Me.Font.Bold = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get FontItalic() As Boolean
+        Return Me.Font.Italic
+    End Property
+    [Serialize(False)]
+    Public Property Let FontItalic(ByVal Value As Boolean)
+        Me.Font.Italic = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get FontName() As String
+        Return Me.Font.Name
+    End Property
+    [Serialize(False)]
+    Public Property Let FontName(ByVal Value As String)
+        Me.Font.Name = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get FontSize() As Single
+        Return CSng(Me.Font.Size)
+    End Property
+    [Serialize(False)]
+    Public Property Let FontSize(ByVal Value As Single)
+        Me.Font.Size = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get FontStrikethru() As Boolean
+        Return Me.Font.Strikethrough
+    End Property
+    [Serialize(False)]
+    Public Property Let FontStrikethru(ByVal Value As Boolean)
+        Me.Font.Strikethrough = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get FontUnderline() As Boolean
+        Return Me.Font.Underline
+    End Property
+    [Serialize(False)]
+    Public Property Let FontUnderline(ByVal Value As Boolean)
+        Me.Font.Underline = Value
+    End Property
+    #End If
+        
+    Protected Sub HandleDPIChange() _
+            Implements IWindowElementEventsGraphics.DPIChange
+        
+        #If FEATURE_DRAWING Then    
+        InternalSyncFontProperties(False, False)
+        #End If
+    End Sub
+    
+    Protected Property Get RealHDC() As HDC
+    	Return Me.BaseGraphicsInfo.WindowHDC.Value
+    End Property
+    
+    #If FEATURE_DRAWING Then    
+    [Serialize(False)]
+    Public Property Get CurrentX() As Double
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+    	Return ScaleXFromScaledPixels(InternalCurrentX / UnitPixelScale)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let CurrentX(Value As Double)
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        InternalCurrentX = ScaleXToScaledPixels(Value * UnitPixelScale)
+    End Property
+
+    [Serialize(False)]
+    Public Property Get CurrentY() As Double
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        Return ScaleYFromScaledPixels(InternalCurrentY / UnitPixelScale)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let CurrentY(Value As Double)
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+    	InternalCurrentY = ScaleYToScaledPixels(Value * UnitPixelScale)
+    End Property
+    
+    Protected Sub SyncTextColors(ByVal ResyncProps As Boolean)
+        ' Also sync colors here so that things like DrawText API work as expected
+        ' FIXME not sure if this is needed now, as we do this as part of Paint()
+        Dim hdc As Any = InternalHDC
+        If Me.FontTransparent = True Then
+            hDC.SetBkMode(BackgroundModes.TRANSPARENT)
+        Else
+            hDC.SetBkColor(TranslateColor(Me.BackColor))
+            hDC.SetBkMode(BackgroundModes.OPAQUE)
+        End If
+                
+        ' this is NOT expected here, since if SetTextColor API has been used to manually change the HDC text color, syncing back to our ForeColor
+        ' is different behaviour to VBx (XYplorer does this).   FIXME probably same for above backcolor/backmode
+        If ResyncProps = True Then
+            #If FEATURE_DRAWING Then    
+            ForeColorChanged
+            #End If
+        End If
+    End Sub
+     
+    Protected Sub InternalSyncFont(ByVal MuteFontEvents As Boolean, ByVal ResyncProps As Boolean)
+    
+        'Dim oldFontHandle As LongPtr = Me.CurrentFontHandle
+        
+        Dim font As Any = CType(Of IFont)(Me.Font)
+        If font Is Nothing Then Exit Sub
+        
+        Dim hdc As Any = Me.InternalHDC
+        
+        ' InternalIgnoreFontChange = True
+        '     Me.FontName = font.Name
+        '     Me.FontBold = font.Bold
+        '     Me.FontItalic = font.Italic
+        '     Me.FontSize = font.Size
+        '     Me.FontStrikethru = font.Strikethrough
+        '     Me.FontUnderline = font.Underline
+        ' InternalIgnoreFontChange = False
+        
+        ' First make sure the font scaling matches the window DPI
+        Dim RootWindowElementBASE As Any = Me.RootWindowElementBASE
+        If RootWindowElementBASE.Pointer = vbNullPtr Then
+            ' Printer 
+            Const LOGPIXELSX As Long = &H58
+            Dim dpiX As Long = hdc.GetDeviceCaps(LOGPIXELSX)
+            font.SetRatio(dpiX, 2540)
+        Else
+            font.SetRatio(RootWindowElementBASE.RuntimeUIGetDPI(), 2540)
+        End If
+        
+        Dim LF As LOGFONT
+        GDI32.GetObjectW(font.hFont, LenB(LF), LF)
+        'LF.LFQuality = CByte(CLEARTYPE_QUALITY)
+        Dim newFont As LongPtr = GDI32.CreateFontIndirectW(LF)            ' FIXME leak
+        
+        'Debug.Print "InternalSyncFont"
+        
+        If (BaseGraphicsInfo.CurrentGraphicsFontHandle <> 0) And BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned Then
+            BaseGraphicsInfo.CurrentGraphicsFontDC.SelectObject(BaseGraphicsInfo.CurrentGraphicsFontHandleOLD)
+            GDI32.DeleteObject(BaseGraphicsInfo.CurrentGraphicsFontHandle)
+        End If
+        BaseGraphicsInfo.CurrentGraphicsFontHandle = newFont
+        BaseGraphicsInfo.CurrentGraphicsFontDC = hdc
+        BaseGraphicsInfo.CurrentGraphicsFontHandleOLD = hdc.SelectObject(newFont)
+        BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned = True
+        
+        'Me.CurrentFontHandle = WindowsAPI.USER32_SetFont(Me.RootWindowElement, Me.Font)
+        'If oldFont <> 0 Then WindowsAPI.GDI32.DeleteObject oldFont
+
+        SyncTextColors(ResyncProps)
+        
+        If MuteFontEvents = False Then
+            NotifyActiveXAmbientPropertyChanges(DISPID_AMBIENT_FONT)
+        End If
+        
+        UpdateCachedFontMetrics()
+        
+        ' Dim hwnd As LongPtr = RootWindowElementBASE.Handle
+        ' If hwnd <> 0 Then
+        '     'USER32_SetFont(RootWindowElementBASE, font)
+        '     Stop
+        '     Dim newFont2 As LongPtr = CreateFontIndirectW(LF)            ' FIXME leak
+        '     SendMessageW(hwnd, WM_SETFONT, newFont2, 0)
+        '     Dim checkFont As LongPtr = SendMessageW(hwnd, WM_GETFONT, 0, 0)
+        '     Debug.Print "checkFont = " & Hex(checkFont) & ", expected = " & Hex(newFont2)
+        ' End If
+    End Sub
+    
+    Protected Sub SetFont(ByVal fontHandle As LongPtr, ByVal redraw As Boolean) _
+            Implements IWindowElementEventsGraphics.SetFont
+        
+        ' API was used to set the font
+        ' NOTE: no need to update the StdFont we expose, since VB6 doesn't do that either
+        
+        If (BaseGraphicsInfo.CurrentGraphicsFontHandle <> 0) And BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned Then
+            BaseGraphicsInfo.CurrentGraphicsFontDC.SelectObject(BaseGraphicsInfo.CurrentGraphicsFontHandleOLD)
+            GDI32.DeleteObject(BaseGraphicsInfo.CurrentGraphicsFontHandle)
+            BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned = False
+        End If
+        
+        BaseGraphicsInfo.CurrentGraphicsFontHandle = fontHandle
+        
+        Dim hdc As Any = Me.InternalHDC
+        BaseGraphicsInfo.CurrentGraphicsFontHandleOLD = hdc.SelectObject(fontHandle)
+    End Sub
+    
+    Protected Sub GetFont(ByRef fontHandle As LongPtr) _
+                    Implements IWindowElementEventsGraphics.GetFont
+        
+        fontHandle = BaseGraphicsInfo.CurrentGraphicsFontHandle
+    End Sub
+
+    Protected Sub SyncFont() _
+           Handles Font.OnPropertySet
+           
+        InternalSyncFont(False, False)
+    End Sub
+
+    Protected Sub InitializeOLEFont()
+'        Debug.Print "InitializeOLEFont"
+        Dim NewFont As Any = New StdFont
+        With NewFont
+            .Bold = Me.FontBoldINIT
+            .Italic = Me.FontItalicINIT
+            .Name = Me.FontNameINIT
+            .Size = Me.FontSizeINIT
+            .Strikethrough = Me.FontStrikethruINIT
+            .Underline = Me.FontUnderlineINIT
+        End With
+        RootWindowElementBASE.CommonInitFontRatio(NewFont)
+        Set Me.Font = NewFont
+    End Sub
+    
+    Protected Function GetFontMetrics() As TEXTMETRICW
+        If Me.Font Is Nothing Then
+            InitializeOLEFont
+        End If
+        
+        RootWindowElementBASE.CommonGetFontMetrics(CType(Of IFont)(Me.Font), GetFontMetrics)
+    End Function
+    
+    Protected Sub InternalSyncFontProperties(ByVal MuteFontEvents As Boolean, ByVal ResyncProps As Boolean)
+    
+        If BaseGraphicsInfo.InternalIgnoreFontChange Then Exit Sub
+        
+        If Me.Font Is Nothing Then
+            InitializeOLEFont
+        End If
+        InternalSyncFont(MuteFontEvents, ResyncProps)
+        UpdateCachedFontMetrics()
+
+        'Refresh()
+    End Sub
+    
+    Protected Sub UpdateCachedFontMetrics()
+    	Dim metrics As TEXTMETRICW
+        Me.InternalHDC.GetTextMetricsW(metrics)
+        Me.BaseGraphicsInfo.CachedFontAvgCharWidth = metrics.tmAveCharWidth
+        Me.BaseGraphicsInfo.CachedFontCharHeight = metrics.tmHeight
+    End Sub
+    
+    Protected Sub SyncFontProperties()
+        InternalSyncFontProperties(False, False)
+    End Sub
+    
+    Public Function TextWidth(ByVal str As String) As Double
+
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        Dim hdc As HDC = Me.InternalHDC
+        
+        Dim tabSize As Long = 8 * BaseGraphicsInfo.CachedFontAvgCharWidth    ' tabs are expanded to eight times the average character width
+        Dim maxWidth As Long = 0
+        
+        ' quick fix for supporting vbCr/vbLf/vbCrLf
+        Dim strCopy As String = Replace(str, vbCrLf, vbCr)
+        strCopy = Replace(strCopy, vbLf, vbCr)
+                
+        Dim startPos As Long = 1
+        Do
+            'Dim nextLineFeed As Long = InStr$(startPos, str, vbCrLf, VbCompareMethod.vbBinaryCompare)  ' a better fix would be to use custom InStr here, supporting vbCrLf/vbCr/vbLf 
+            Dim nextLineFeed As Long = InStr$(startPos, strCopy, vbCr, VbCompareMethod.vbBinaryCompare)
+                        
+            Dim numCharsOnThisLine As Long
+            If nextLineFeed = 0 Then
+                numCharsOnThisLine = Len(strCopy) - (startPos - 1)
+            Else
+                numCharsOnThisLine = nextLineFeed - startPos
+            End If
+
+            Dim outSize As Long = hdc.GetTabbedTextExtentW(StrPtr(strCopy) + ((startPos - 1) * 2), numCharsOnThisLine, 1, tabSize)
+            startPos = nextLineFeed + 1
+            Dim lineWidth As Long = outSize And &HFFFF&
+            If lineWidth > maxWidth Then maxWidth = lineWidth
+        Loop Until nextLineFeed = 0
+         
+        Return ScaleXFromScaledPixels(maxWidth / UnitPixelScale)
+    End Function
+    
+    Public Function TextHeight(ByVal str As String) As Double
+        
+        Dim UnitPixelScale As Double = RootWindowElementBASE.RuntimeUIGetUnitScale()
+        
+        ' quick fix for supporting vbCr/vbLf/vbCrLf
+        Dim strCopy As String = Replace(str, vbCrLf, vbCr)
+        strCopy = Replace(strCopy, vbLf, vbCr)
+        
+        Dim startPos As Long = 1
+        Dim numLineFeeds As Long
+        Do
+            'Dim nextLineFeed As Long = InStr$(startPos, strCopy, vbCrLf, VbCompareMethod.vbBinaryCompare)  ' a better fix would be to use custom InStr here, supporting vbCrLf/vbCr/vbLf 
+            Dim nextLineFeed As Long = InStr$(startPos, strCopy, vbCr, VbCompareMethod.vbBinaryCompare)
+                        
+            If nextLineFeed = 0 Then
+            Else
+                startPos = nextLineFeed + 1
+            End If
+            numLineFeeds += 1
+        Loop Until nextLineFeed = 0
+         
+        Return ScaleYFromScaledPixels((numLineFeeds * BaseGraphicsInfo.CachedFontCharHeight) / UnitPixelScale)
+    End Function
+    #End If
+    
+    Protected Sub ScaleModeChanged() _   
+            Handles ScaleMode.OnPropertyLet
+        
+        ' FIXME check if actually changed
+        If RootWindowElementBASE.Pointer = vbNullPtr Then Exit Sub
+        
+        SyncScaleMode()
+        
+        NotifyActiveXAmbientPropertyChanges(DISPID_AMBIENT_SCALEUNITS)
+    End Sub
+    
+    [NonBrowsable(True)]
+    Protected InternalScaleWidthFull As Double                 ' inc border  FIXME need to hide these, at least in the property sheet!
+    [NonBrowsable(True)]
+    Protected InternalScaleHeightFull As Double                ' inc border
+        
+    Protected Sub InternalChangedBorder()
+        BaseGraphicsInfo.CachedBorderSizePlusOne = 0
+        
+        Dim scaleMode As Any = Me.ScaleMode
+        If scaleMode = ScaleModeConstants.vbUser Then
+            If Me.RootWindowElementBASE.Pointer = vbNullPtr Then Exit Sub
+            If InternalScaleWidthFull = 0 Then Exit Sub
+            If InternalScaleHeightFull = 0 Then Exit Sub
+            
+            If RootWindowElementBASE.RuntimeUIIsDesignMode() Then
+                #If FEATURE_PICTUREBOX Then
+                    If OnGetControlType() = ControlTypeConstants.vbPictureBox Then
+                        ' In the form designer, PictureBox ScaleWidth/Height is affected when switching border
+                        'Debug.Print "InternalChangedBorder picbox user-scaled FORM DESIGNER DETECTED"
+                    Else
+                        ' We don't alter the ScaleWidth/Height in user-scale mode in the designer, to match VBx (for forms/user controls/etc)
+                        'Debug.Print "InternalChangedBorder NON-picbox user-scaled FORM DESIGNER DETECTED"
+                        Exit Sub
+                    End If
+                #Else
+                    ' We don't alter the ScaleWidth/Height in user-scale mode in the designer, to match VBx (for forms/user controls/etc)
+                    'Debug.Print "InternalChangedBorder NON-picbox user-scaled FORM DESIGNER DETECTED"
+                    Exit Sub
+                #End If
+            End If
+                        
+            Dim hwnd As HWND = RootWindowElementBASE.RuntimeUIGetHandle()
+            Dim rect As tbRECT
+            hwnd.GetWindowRect(rect)
+            
+            Dim newBorderSize As Long = GetBorderSize(GetInheritedOwner(Me))
+            Dim fullWidth As Long = (rect.Right - rect.Left)
+            Dim fullHeight As Long = (rect.Bottom - rect.Top)
+            
+            If fullWidth = 0 Then
+                BaseGraphicsInfo.ScaleWidth = 0
+            Else
+                BaseGraphicsInfo.ScaleWidth = ((fullWidth - (newBorderSize * 2)) / fullWidth) * InternalScaleWidthFull
+            End If
+            If fullHeight = 0 Then
+                BaseGraphicsInfo.ScaleHeight = 0
+            Else
+                BaseGraphicsInfo.ScaleHeight = ((fullHeight - (newBorderSize * 2)) / fullHeight) * InternalScaleHeightFull
+            End If
+            'Debug.Print "InternalChangedBorder, ScaleHeight: " & ScaleHeight & " (ScaleHeightFull: " & ScaleHeightFull & "), newBorderSize: " & newBorderSize
+        End If
+    End Sub
+    
+    Protected Sub SyncScaleMode()
+        Dim noElement As WindowElement
+        SyncScaleMode(Nothing, noElement)
+    End Sub 
+    
+    Protected Sub SyncScaleMode(ByVal Owner As Object, ByVal RootWindowElement As WindowElement)
+        If Me.RootWindowElementBASE.Pointer = vbNullPtr Then Exit Sub
+        'Debug.Print "SyncScaleMode: " & Me.Owner.Name
+        Dim scaleMode As Any = Me.ScaleMode
+                
+        If (scaleMode < ScaleModeConstants.vbUser) Or (scaleMode > ScaleModeConstants.vbHimetric) Then
+            scaleMode = ScaleModeConstants.vbScaledPixels
+            Me.ScaleMode = ScaleModeConstants.vbScaledPixels
+        End If
+        
+        If Owner Is Nothing Then Set Owner = GetInheritedOwner(Me)
+        If RootWindowElement.Pointer = vbNullPtr Then RootWindowElement.Pointer = Me.RootWindowElementBASE.Pointer
+
+        'If Owner Is Nothing Then Stop
+        'If RootWindowElement Is Nothing Then Stop
+
+        'Debug.Print "SyncScaleMode Owner.PixelsWidth: ", Owner.PixelsWidth
+
+        Dim OwnerRect As BaseControlRect = CType(Of BaseControlRect)(Owner)
+        If OwnerRect IsNot Nothing Then
+            Dim OwnerPixelsWidth As Any = UnprotectedAccess(OwnerRect).PixelsWidth
+            Dim OwnerPixelsHeight As Any = UnprotectedAccess(OwnerRect).PixelsHeight
+        End If
+        
+        Dim borderSize As Long = GetBorderSize(Owner)
+        If scaleMode <> ScaleModeConstants.vbUser Then
+            ' ' We have to sync the ScaleWidth/Height, using the PixelsWidth/Height as authoratitive
+            Dim tempX As Double = RootWindowElement.RuntimeUIScaleX(CDbl(OwnerPixelsWidth), ScaleModeConstants.vbScaledPixels, ScaleModeConstants.vbPixels)
+            Dim tempY As Double = RootWindowElement.RuntimeUIScaleY(CDbl(OwnerPixelsHeight), ScaleModeConstants.vbScaledPixels, ScaleModeConstants.vbPixels)
+            InternalScaleWidthFull = ScaleXFromPixels(tempX)
+            InternalScaleHeightFull = ScaleYFromPixels(tempY)
+            
+            If borderSize Then
+                tempX -= borderSize * 2
+                tempY -= borderSize * 2
+            End If
+            
+            Dim newWidth As Double = ScaleXFromPixels(tempX)
+            'If Me.ScaleWidth <> newWidth Then
+            '	Debug.Print "SyncScaleMode **** CHANGE PixelsWidth: ", Owner.PixelsWidth, ", ScaleWidth: ", newWidth
+            'End If
+            BaseGraphicsInfo.ScaleWidth = newWidth
+            BaseGraphicsInfo.ScaleHeight = ScaleYFromPixels(tempY)
+            BaseGraphicsInfo.ScaleLeft = 0
+            BaseGraphicsInfo.ScaleTop = 0
+            
+            'Stop
+            ' Dim newRect As tbRECT
+            ' Dim hwnd As Any = Me.RootWindowElementBASE.Handle 'Me.BaseGraphicsInfo.WindowHandle
+            ' GetClientRect(hwnd, newRect)
+            ' BaseGraphicsInfo.ScaleWidth = ScaleXFromPixels(newRect.Right - newRect.Left)
+            ' BaseGraphicsInfo.ScaleHeight = ScaleYFromPixels(newRect.Bottom - newRect.Top)
+            ' BaseGraphicsInfo.ScaleLeft = 0
+            ' BaseGraphicsInfo.ScaleTop = 0
+            'Debug.Print Owner.Name, "ScaleWidth: " & BaseGraphicsInfo.ScaleWidth, "ScaleHeight: " & BaseGraphicsInfo.ScaleHeight
+            
+            ScaleWidthINIT = BaseGraphicsInfo.ScaleWidth
+            ScaleHeightINIT = BaseGraphicsInfo.ScaleHeight
+            ScaleLeftINIT = 0
+            ScaleTopINIT = 0
+        Else
+            If borderSize Then
+                Dim hwnd As HWND = RootWindowElement.RuntimeUIGetHandle()
+                Dim rect As tbRECT
+                hwnd.GetWindowRect(rect)
+                Dim fullWidth As Long = (rect.Right - rect.Left)
+                Dim fullHeight As Long = (rect.Bottom - rect.Top)
+                
+                InternalScaleWidthFull = ScaleWidth / ((fullWidth - (borderSize * 2)) / fullWidth)
+                InternalScaleHeightFull = ScaleHeight / ((fullHeight - (borderSize * 2)) / fullHeight)
+            Else
+                InternalScaleWidthFull = ScaleWidth
+                InternalScaleHeightFull = ScaleHeight
+            End If
+        End If
+        
+        If Me.BaseGraphicsInfo.InternalScaleFactorX = 0 Then
+        	If OwnerPixelsWidth <> 0 Then
+                Me.BaseGraphicsInfo.InternalScaleFactorX = CDbl(BaseGraphicsInfo.ScaleWidth) / CDbl(OwnerPixelsWidth)
+                Me.BaseGraphicsInfo.InternalScaleFactorX_OriginalPixelsWidth = CLng(OwnerPixelsWidth)
+            Else
+                Me.BaseGraphicsInfo.InternalScaleFactorX = BaseGraphicsInfo.ScaleWidth
+                Me.BaseGraphicsInfo.InternalScaleFactorX_OriginalPixelsWidth = 1
+            End If
+        End If
+        
+        If Me.BaseGraphicsInfo.InternalScaleFactorY = 0 Then
+            If OwnerPixelsHeight <> 0 Then
+                Me.BaseGraphicsInfo.InternalScaleFactorY = CDbl(BaseGraphicsInfo.ScaleHeight) / CDbl(OwnerPixelsHeight)
+                Me.BaseGraphicsInfo.InternalScaleFactorY_OriginalPixelsHeight = CLng(OwnerPixelsHeight)
+            Else
+                Me.BaseGraphicsInfo.InternalScaleFactorY = BaseGraphicsInfo.ScaleHeight
+                Me.BaseGraphicsInfo.InternalScaleFactorY_OriginalPixelsHeight = 1
+            End If
+        End If
+
+'        Debug.Print "ChangeChildScaleMode", Owner.PixelsWidth / Me.ScaleWidth, Owner.PixelsHeight / Me.ScaleHeight
+        RootWindowElement.RuntimeUIChangeChildScaleMode(scaleMode, Me.BaseGraphicsInfo.InternalScaleFactorX, Me.BaseGraphicsInfo.InternalScaleFactorY, Me.ScaleLeft, Me.ScaleTop)
+    End Sub
+    
+    [Serialize(False)]
+    Public Property Get ScaleTop() As Double
+        Return BaseGraphicsInfo.ScaleTop
+    End Property
+    [Serialize(False)]
+    Public Property Let ScaleTop(ByVal Value As Double)
+        'Debug.Print "Let ScaleTop.0"
+        BaseGraphicsInfo.ScaleTop = Value
+        'Debug.Print "Let ScaleTop.1"
+        If RootWindowElementBASE.Pointer = vbNullPtr Then Exit Property
+        'Debug.Print "Let ScaleTop.2"
+                   
+        'Debug.Print "Let ScaleTop.3"
+        #If FEATURE_DRAWING Then    
+        Dim changeAmount As Long = CLng(BaseGraphicsInfo.InternalCachedScaleTop - BaseGraphicsInfo.ScaleTop)
+        InternalCurrentY -= ScaleYToScaledPixels(changeAmount * RootWindowElementBASE.RuntimeUIGetUnitScale())
+        #End If
+        'Debug.Print "Let ScaleTop.4"
+        BaseGraphicsInfo.InternalCachedScaleTop = BaseGraphicsInfo.ScaleTop
+        'Debug.Print "Let ScaleTop.5"
+        ScaleMode = ScaleModeConstants.vbUser
+        'Debug.Print "Let ScaleTop.6"
+        SyncScaleMode()
+        'Debug.Print "Let ScaleTop.7"
+        
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get ScaleLeft() As Double
+        Return BaseGraphicsInfo.ScaleLeft
+    End Property
+    [Serialize(False)]
+    Public Property Let ScaleLeft(ByVal Value As Double)
+        BaseGraphicsInfo.ScaleLeft = Value
+        If RootWindowElementBASE.Pointer = vbNullPtr Then Exit Property
+            
+        #If FEATURE_DRAWING Then    
+        Dim changeAmount As Long = CLng(BaseGraphicsInfo.InternalCachedScaleLeft - ScaleLeft)
+        InternalCurrentX -= ScaleXToScaledPixels(changeAmount * RootWindowElementBASE.RuntimeUIGetUnitScale())
+        #End If
+        BaseGraphicsInfo.InternalCachedScaleLeft = BaseGraphicsInfo.ScaleLeft
+        ScaleMode = ScaleModeConstants.vbUser
+        SyncScaleMode()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get ScaleWidth() As Double
+        Return BaseGraphicsInfo.ScaleWidth
+    End Property
+    [Serialize(False)]
+    Public Property Let ScaleWidth(ByVal Value As Double)
+        BaseGraphicsInfo.ScaleWidth = Value
+        
+        ScaleMode = ScaleModeConstants.vbUser
+        Me.BaseGraphicsInfo.InternalScaleFactorX = 0     ' This will be recalculated
+        SyncScaleMode()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get ScaleHeight() As Double
+        Return BaseGraphicsInfo.ScaleHeight
+    End Property
+    [Serialize(False)]
+    Public Property Let ScaleHeight(ByVal Value As Double)
+        BaseGraphicsInfo.ScaleHeight = Value
+        
+        ScaleMode = ScaleModeConstants.vbUser
+        Me.BaseGraphicsInfo.InternalScaleFactorY = 0     ' This will be recalculated
+        SyncScaleMode()
+    End Property
+    
+    Public Function ScaleX(ByVal Width As Single, [TypeHint(ScaleModeConstants)] Optional ByVal FromScale As Variant, [TypeHint(ScaleModeConstants)] Optional ByVal ToScale As Variant) As Single
+        If IsMissing(FromScale) Then FromScale = ScaleModeConstants.vbHimetric
+        If IsMissing(ToScale) Then ToScale = Me.ScaleMode
+
+        Dim RootWindowElementBASE As Any = Me.RootWindowElementBASE
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        If IsUserControl Then
+        	Dim fromContainerCoords As Boolean = (FromScale = ScaleModeConstants.vbContainerSize) Or (FromScale = ScaleModeConstants.vbContainerPosition)
+        	Dim toContainerCoords As Boolean = (ToScale = ScaleModeConstants.vbContainerSize) Or (ToScale = ScaleModeConstants.vbContainerPosition)
+            Dim Owner As Any = GetInheritedOwner(Me)
+            If fromContainerCoords And toContainerCoords Then
+            	Return Width
+            ElseIf fromContainerCoords Then
+                Width = CSng(CType(Of TbUserControlPrivate)(Owner).TranslateContainerXToHimetric(Width))
+                FromScale = ScaleModeConstants.vbHimetric
+            ElseIf toContainerCoords Then
+                Width = CSng(RootWindowElementBASE.RuntimeUIScaleX(Width, CLng(FromScale), ScaleModeConstants.vbHimetric))
+                Return CSng(CType(Of TbUserControlPrivate)(Owner).TranslateHimetricToContainerX(CLng(Width)))
+            End If
+        End If
+        #End If
+        
+        Return CSng(RootWindowElementBASE.RuntimeUIScaleX(Width, CLng(FromScale), CLng(ToScale)))
+    End Function
+
+    Public Function ScaleY(ByVal Height As Single, [TypeHint(ScaleModeConstants)] Optional ByVal FromScale As Variant, [TypeHint(ScaleModeConstants)] Optional ByVal ToScale As Variant) As Single
+        If IsMissing(FromScale) Then FromScale = ScaleModeConstants.vbHimetric
+        If IsMissing(ToScale) Then ToScale = Me.ScaleMode
+        
+        Dim RootWindowElementBASE As Any = Me.RootWindowElementBASE
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        If IsUserControl Then
+        	Dim fromContainerCoords As Boolean = (FromScale = ScaleModeConstants.vbContainerSize) Or (FromScale = ScaleModeConstants.vbContainerPosition)
+        	Dim toContainerCoords As Boolean = (ToScale = ScaleModeConstants.vbContainerSize) Or (ToScale = ScaleModeConstants.vbContainerPosition)
+            Dim Owner As Any = GetInheritedOwner(Me)
+            If fromContainerCoords And toContainerCoords Then
+            	Return Height
+            ElseIf fromContainerCoords Then
+                Height = CSng(CType(Of TbUserControlPrivate)(Owner).TranslateContainerYToHimetric(Height))
+                FromScale = ScaleModeConstants.vbHimetric
+            ElseIf toContainerCoords Then
+                Height = CSng(RootWindowElementBASE.RuntimeUIScaleY(Height, CLng(FromScale), ScaleModeConstants.vbHimetric))
+                Return CSng(CType(Of TbUserControlPrivate)(Owner).TranslateHimetricToContainerY(CLng(Height)))
+            End If
+        End If
+        #End If
+        
+        Return CSng(RootWindowElementBASE.RuntimeUIScaleY(Height, CLng(FromScale), CLng(ToScale)))
+    End Function
+    
+    Protected Sub ClearCachedFont()
+    	Dim CurrentGraphicsFontHandle As Any = Me.BaseGraphicsInfo.CurrentGraphicsFontHandle
+        If (CurrentGraphicsFontHandle <> 0) And BaseGraphicsInfo.CurrentGraphicsFontHandleIsOwned Then
+            BaseGraphicsInfo.CurrentGraphicsFontDC.SelectObject(BaseGraphicsInfo.CurrentGraphicsFontHandleOLD)
+            GDI32.DeleteObject(CurrentGraphicsFontHandle)
+            Me.BaseGraphicsInfo.CurrentGraphicsFontHandle = 0
+        End If
+    End Sub
+    
+    Protected Sub Class_Terminate()
+        OnChangingDC(Me.InternalHDC, vbNullPtr)
+    	Dim InternalCurrentBrush As Any = Me.InternalCurrentBrush
+        If InternalCurrentBrush <> vbNullPtr Then GDI32.DeleteObject(InternalCurrentBrush)
+        Dim InternalCachedBackBrush As Any = Me.InternalCachedBackBrush
+        If InternalCachedBackBrush <> vbNullPtr Then GDI32.DeleteObject(InternalCachedBackBrush)
+        ClearCachedFont()
+        RemoveBuffer(True)
+        
+        Dim noElement As WindowElement
+        InitGraphics(noElement)       ' this will unsink WindowElement events
+        
+        'ReleaseDC(WindowHandle, hDC)
+        'Debug.Print "Graphics.Class_Terminate"
+        'MsgBox CurrentComponentName & ".Class_Terminate"
+    End Sub
+    
+    #If FEATURE_DRAWING Then
+    Protected Sub FontChanged(ByVal PropertyName As String) _
+            Handles Font.FontChanged
+            
+        InternalSyncFont(False, False)
+    End Sub
+    #End If
+    
+    Enum vbStretchQuality
+        vbQualityNormal = 0
+        vbQualityHalftone = 1
+    End Enum
+    
+    [Serialize(False)]
+    Protected InternalPrinterUserScaleWidthX As Double = 1
+    [Serialize(False)]
+    Protected InternalPrinterUserScaleWidthY As Double = 1
+    
+    Protected Sub InternalGetPrinterScalesFromScaleMode(ByVal ScaleMode As ScaleModeConstants, ByRef inputUnitsScaleX As Double, ByRef inputUnitsScaleY As Double, ByVal outputResolutionScaleX As Double, ByVal outputResolutionScaleY As Double)
+        Select Case ScaleMode
+            Case vbTwips
+                inputUnitsScaleX = 1
+                inputUnitsScaleY = 1
+            Case vbPoints
+                inputUnitsScaleX = 72 / 1440
+                inputUnitsScaleY = 72 / 1440
+            Case vbPixels
+                inputUnitsScaleX = outputResolutionScaleX
+                inputUnitsScaleY = outputResolutionScaleY
+            Case vbCharacters
+                inputUnitsScaleX = 1 / 120
+                inputUnitsScaleY = 1 / 240
+            Case vbInches
+                inputUnitsScaleX = 1 / 1440
+                inputUnitsScaleY = 1 / 1440
+            Case vbMillimeters
+                inputUnitsScaleX = 25.40 / 1440
+                inputUnitsScaleY = 25.40 / 1440
+            Case vbCentimeters
+                inputUnitsScaleX = 2.54 / 1440
+                inputUnitsScaleY = 2.54 / 1440
+            Case vbHimetric
+                ' VB6 doesn't allow this for printers
+                inputUnitsScaleX = 2540 / 1440
+                inputUnitsScaleY = 2540 / 1440
+            Case vbUser
+                inputUnitsScaleX = InternalPrinterUserScaleWidthX
+                inputUnitsScaleY = InternalPrinterUserScaleWidthY
+            Case Else
+                Err.Raise 5
+        End Select
+    End Sub
+    
+    Protected Sub InternalGetXYScales(ByRef inputUnitsScaleX As Double, ByRef inputUnitsScaleY As Double, ByRef outputResolutionScaleX As Double, ByRef outputResolutionScaleY As Double)
+        Dim hdc As Any = InternalHDC
+        Const LOGPIXELSX As Long = &H58
+        outputResolutionScaleX = hdc.GetDeviceCaps(LOGPIXELSX) / 1440
+        Const LOGPIXELSY As Long = &H5A
+        outputResolutionScaleY = hdc.GetDeviceCaps(LOGPIXELSY) / 1440
+            
+        If RootWindowElementBASE.Pointer <> vbNullPtr Then
+            ' get scales from the window element
+            inputUnitsScaleX = RootWindowElementBASE.RuntimeUIScaleX(1, ScaleModeConstants.vbTwips, Me.ScaleMode)
+            inputUnitsScaleY = RootWindowElementBASE.RuntimeUIScaleY(1, ScaleModeConstants.vbTwips, Me.ScaleMode)
+        Else
+            ' use printer scales
+            InternalGetPrinterScalesFromScaleMode(ScaleMode, inputUnitsScaleX, inputUnitsScaleY, outputResolutionScaleX, outputResolutionScaleY)
+        End If
+    End Sub
+    
+    #If FEATURE_DRAWING Then
+    Public Sub PaintPicture(ByVal Picture As IPictureDisp, ByVal X1 As Single, ByVal Y1 As Single, Optional ByVal Width1 As Variant, Optional ByVal Height1 As Variant, Optional ByVal X2 As Variant, Optional ByVal Y2 As Variant, Optional ByVal Width2 As Variant, Optional ByVal Height2 As Variant, Optional ByVal Opcode As Variant, Optional ByVal StretchQuality As vbStretchQuality = vbQualityNormal)
+        If Picture Is Nothing Then
+            Err.Raise 91
+        End If
+        
+        Dim FlipX As Boolean
+        Dim FlipY As Boolean
+        Dim xDest As Long
+        Dim yDest As Long
+        Dim wDest As Long
+        Dim hDest As Long
+        Dim srcHDC As hdc
+        Dim xSrc As Long
+        Dim ySrc As Long
+        Dim wSrc As Long
+        Dim hSrc As Long
+        
+        Dim IsMissing_OpCode As Boolean = IsMissing(Opcode)
+        Dim IsMissing_Width1 As Boolean = IsMissing(Width1)
+        Dim IsMissing_Height1 As Boolean = IsMissing(Height1)
+        Dim IsMissing_Width2  As Boolean = IsMissing(Width2)
+        Dim IsMissing_Height2 As Boolean = IsMissing(Height2)
+        
+        Const generalTwipsScale As Double = 15
+        Const DIB_RGB_COLORS As Long = 0
+        
+        Dim inputUnitsScaleX As Double
+        Dim inputUnitsScaleY As Double
+        Dim outputResolutionScaleX As Double
+        Dim outputResolutionScaleY As Double
+        
+        InternalGetXYScales(inputUnitsScaleX, inputUnitsScaleY, outputResolutionScaleX, outputResolutionScaleY)
+                    
+        If IsMissing(X2) Then
+            xSrc = 0
+        Else
+            xSrc = CLng(X2 / inputUnitsScaleX) \ generalTwipsScale
+        End If
+        If IsMissing(Y2) Then
+            ySrc = 0
+        Else
+            ySrc = CLng(Y2 / inputUnitsScaleY) \ generalTwipsScale
+        End If
+                    
+        xDest = CLng(X1 / inputUnitsScaleX * outputResolutionScaleX)
+        yDest = CLng(Y1 / inputUnitsScaleY * outputResolutionScaleY)
+        
+        If IsMissing_Width1 = False Then
+            wDest = CLng(Width1 / inputUnitsScaleX * outputResolutionScaleX)
+        End If
+        If IsMissing_Height1 = False Then
+            hDest = CLng(Height1 / inputUnitsScaleY * outputResolutionScaleY)
+        End If
+        
+        Dim pictureType As Any = Picture.Type
+        Dim pictureWidth As Any = Picture.Width
+        Dim pictureHeight As Any = Picture.Height
+        
+        Dim picWidthPixels As Long
+        Dim picHeightPixels As Long
+        VB.ScaleOLEPictureDimensionsToPixels(vbPicTypeNone, CLng(pictureWidth), picWidthPixels, CLng(pictureHeight), picHeightPixels)
+        
+        If pictureType = PictureTypeConstants.vbPicTypeBitmap Then
+    
+            If IsMissing_OpCode Then
+                Opcode = RasterOpConstants.vbSrcCopy
+            End If
+                            
+            Dim nullWnd As HWND
+            Dim tempDC As HDC = nullWnd.GetDC()
+            srcHDC = tempDC.CreateCompatibleDC()
+            
+            Dim oldBitmap As LongPtr = srcHDC.SelectObject(Picture.Handle)
+            If IsMissing_Width1 Then
+                wDest = picWidthPixels
+                
+                wDest = CLng(wDest * generalTwipsScale)
+                wDest = CLng(wDest * outputResolutionScaleX)
+            End If
+            If IsMissing_Height1 Then
+                hDest = picHeightPixels
+                
+                hDest = CLng(hDest * generalTwipsScale)
+                hDest = CLng(hDest * outputResolutionScaleY)
+            End If
+            If IsMissing_Width2 Then
+                wSrc = picWidthPixels - xSrc
+                
+                If IsMissing_Width1 Then
+                    wDest = CLng(wDest * wSrc / picWidthPixels)
+                End If
+            Else
+                wSrc = CLng(Width2 / inputUnitsScaleX \ generalTwipsScale)
+                If IsMissing_Width1 Then
+                    wDest = CLng(wDest * wSrc / picWidthPixels)
+                End If
+                If wDest < 0 Then
+                    ' If Abs(wSrc) > picWidthPixels Then
+                    '     xDest += CLng(Abs(wDest) - wSrc)
+                    ' End If
+                    If wSrc <> 0 Then xDest += CLng(-wDest - ((((picWidthPixels - xSrc) * (-wDest / wSrc)))))
+                End If
+            End If
+            If IsMissing_Height2 Then
+                hSrc = picHeightPixels - ySrc
+                
+                If IsMissing_Height1 Then
+                    hDest = CLng(hDest * hSrc / picHeightPixels)
+                End If
+            Else
+                hSrc = CLng(Height2 / inputUnitsScaleY \ generalTwipsScale)
+                If IsMissing_Height1 Then
+                    hDest = CLng(hDest * hSrc / picHeightPixels)
+                End If
+                If hDest < 0 Then
+                    ' If Abs(hSrc) > picHeightPixels Then
+                    ' 	yDest += CLng(Abs(hDest) - hSrc)
+                    ' Else                           
+                        If hSrc <> 0 Then yDest += CLng(-hDest - ((((picHeightPixels - ySrc) * (-hDest / hSrc)))))
+                    ' End If
+                End If
+            End If
+            
+            If ySrc < 0 And hDest < 0 Then ySrc = 0
+            If xSrc < 0 And wDest < 0 Then xSrc = 0
+
+            If Me.ScaleMode = ScaleModeConstants.vbUser Then
+                xDest -= CLng(ScaleLeft * outputResolutionScaleX / inputUnitsScaleX)
+                yDest -= CLng(ScaleTop * outputResolutionScaleY / inputUnitsScaleY)
+            End If
+            
+            Const COLORONCOLOR As Long = 3
+            Const HALFTONE As Long = 4
+            Const BLACKONWHITE As Long = 1
+            Const WHITEONBLACK As Long = 2
+            
+            Dim stretchMode As Long
+            Select Case StretchQuality
+                Case vbQualityNormal
+                    stretchMode = COLORONCOLOR      ' default for VB6 back compat
+                Case vbQualityHalftone
+                    stretchMode = HALFTONE
+                Case Else
+                    Err.Raise 5
+            End Select
+            
+            Dim hdc As Any = Me.InternalHDC
+            Dim oldStretchMode As Long = hdc.SetStretchBltMode(stretchMode)
+            
+            'GDI32.SetROP2(hdc, DrawModeConstants.vbCopyPen)
+            hdc.SetBrushOrgEx(0, 0, vbNullPtr)
+            'SetBkMode(hdc, 1)       ' transparent
+            
+            
+            ' StretchBlt (and StretchDIBits) can produce edge/border artifacts in some instances.
+            ' teh following translations are designed to avoid these edge artifacts
+            
+            If xSrc < 0 Then
+                xDest += CLng(Abs(xSrc * generalTwipsScale) * outputResolutionScaleX) '/ (1440 / 600))
+                wDest = CLng((picWidthPixels * generalTwipsScale) * outputResolutionScaleX) '/ (1440 / 600))
+                wSrc += xSrc
+                xSrc = 0
+            End If
+            
+            If ySrc < 0 Then
+                yDest += CLng(Abs(ySrc * generalTwipsScale) * outputResolutionScaleY) ' / (1440 / 600))
+                hDest = CLng((picHeightPixels * generalTwipsScale) * outputResolutionScaleY) ' / (1440 / 600))
+                hSrc += ySrc
+                ySrc = 0
+            End If
+            
+            If (xSrc + wSrc) > picWidthPixels Then
+                ' clamp at maximum width to avoid an edge border
+                Dim clampPercentX As Double = (picWidthPixels - xSrc) / wSrc
+                wSrc = (picWidthPixels - xSrc)
+                
+                ' now adjust the destination to account for the clamped size input
+                wDest = CLng(wDest * clampPercentX)
+            End If
+            
+            If (ySrc + hSrc) > picHeightPixels Then
+                ' clamp at maximum width to avoid an edge border
+                Dim clampPercentY As Double = (picHeightPixels - ySrc) / hSrc
+                hSrc = (picHeightPixels - ySrc)
+                
+                ' now adjust the destination to account for the clamped size input
+                If hDest < 0 Then
+                    yDest += CLng(hDest * (1 - clampPercentY))
+                End If
+                hDest = CLng(hDest * clampPercentY)
+            End If
+            
+            Const RASTERCAPS As Long = 38
+            Const RC_STRETCHBLT As Long = &H800&
+            If (hdc.GetDeviceCaps(RASTERCAPS) And RC_STRETCHBLT) = RC_STRETCHBLT Then
+                hdc.StretchBlt(xDest, yDest, wDest, hDest, srcHDC, xSrc, ySrc, wSrc, hSrc, CLng(Opcode))
+                'PictureRender(CType(Of IPicture)(Picture), hdc, xDest, yDest, wDest, hDest, xSrc, ySrc, wSrc, hSrc)
+            Else
+                ' Fallback to using StretchDIBits        
+                Dim bmp As BITMAP
+                Dim bmpInfo As BITMAPINFO_RGBA_LARGE
+                bmpInfo.bmiHeader.biSize = Len(Of BITMAPINFOHEADER)
+                
+                GDI32.GetObjectW(Picture.Handle, Len(Of BITMAP), bmp)
+                tempDC.GetDIBits(Picture.Handle, 0, 0, 0, bmpInfo, DIB_RGB_COLORS)
+                
+                Dim bmpSize As Long = bmpInfo.bmiHeader.biSizeImage
+                Dim bmpBits As LongPtr = AllocMem(bmpSize)
+                tempDC.GetDIBits(Picture.Handle, 0, bmpInfo.bmiHeader.biHeight, bmpBits, bmpInfo, DIB_RGB_COLORS)
+                hdc.StretchDIBits(xDest, yDest, wDest, hDest, xSrc, ySrc, wSrc, hSrc, bmpBits, bmpInfo, DIB_RGB_COLORS, CLng(Opcode))
+                FreeMem(bmpBits)
+            End If
+            
+            hdc.SetStretchBltMode(oldStretchMode)
+            srcHDC.SelectObject(oldBitmap)
+            srcHDC.DeleteDC()
+            nullWnd.ReleaseDC(tempDC)
+        Else
+            If IsMissing_OpCode = False Then
+                Err.Raise 5     ' Opcode[rop] must be omitted for non-bitmap pictures
+            End If
+            
+            xSrc = CLng(xSrc * OLEPictureScaleX)
+            ySrc = CLng(ySrc * OLEPictureScaleY)
+            
+            If IsMissing_Width1 Then
+                wDest = picWidthPixels
+                
+                If RootWindowElementBASE.Pointer = vbNullPtr Then        ' FIXME what about non-printer rendering
+                    wDest = CLng(wDest * generalTwipsScale)     ' printer
+                    wDest = CLng(wDest * outputResolutionScaleX)
+                Else
+                    wDest = CLng(wDest * generalTwipsScale)
+                    wDest = CLng(wDest * outputResolutionScaleX)
+                End If
+            Else
+                If wDest < 0 Then
+                    'wDest = -wDest
+                    'FlipX = True
+                    'xDest -= wDest
+                End If
+            End If
+            If IsMissing_Height1 Then
+                hDest = picHeightPixels
+                
+                hDest = CLng(hDest * generalTwipsScale)
+                hDest = CLng(hDest * outputResolutionScaleY)
+            Else
+                If hDest < 0 Then
+                    'hDest = -hDest
+                    'FlipY = True
+                    'yDest -= hDest
+                End If
+            End If
+            If IsMissing_Width2 Then
+                wSrc = pictureWidth - xSrc
+                
+                If IsMissing_Width1 Then
+                    wDest = CLng(wDest * wSrc / pictureWidth)
+                End If
+            Else
+                wSrc = CLng(Width2 / inputUnitsScaleX / generalTwipsScale * OLEPictureScaleX)
+                
+                If IsMissing_Width1 Then
+                    'wDest = CLng(wDest * wSrc / pictureWidth)
+                    wDest = CLng(wDest * (wSrc - xSrc) / pictureWidth)
+                End If
+            End If
+            If IsMissing_Height2 Then
+                hSrc = pictureHeight - ySrc
+                
+                If IsMissing_Height1 Then
+                    hDest = CLng(hDest * hSrc / pictureHeight)
+                End If
+            Else
+                hSrc = CLng(Height2 / inputUnitsScaleY / generalTwipsScale * OLEPictureScaleY)
+                
+                If IsMissing_Height1 Then
+                    hDest = CLng(hDest * (hSrc - ySrc) / pictureHeight)
+                End If
+            End If
+                                            
+            If (wDest <> 0) And (hDest <> 0) Then
+                Dim _Picture As Any = CType(Of IPicture)(Picture)
+                
+                Dim _srcYHeight As Long = hSrc
+                Dim _srcXWidth As Long = wSrc
+                
+                If Me.ScaleMode = ScaleModeConstants.vbUser Then
+                    xDest -= CLng(BaseGraphicsInfo.ScaleLeft * outputResolutionScaleX / inputUnitsScaleX)
+                    yDest -= CLng(BaseGraphicsInfo.ScaleTop * outputResolutionScaleY / inputUnitsScaleY)
+                End If
+                
+                Dim xSrcPixels As Long = CLng(xSrc / OLEPictureScaleX)
+                If xSrc < 0 Then
+                    xDest += CLng(Abs(xSrcPixels * generalTwipsScale) * outputResolutionScaleX)
+                    wDest = CLng((picWidthPixels * generalTwipsScale) * outputResolutionScaleX)
+                    _srcXWidth += xSrc
+                    xSrc = 0
+                End If
+            
+                Dim ySrcPixels As Long = CLng(ySrc / OLEPictureScaleY)
+                If ySrc < 0 Then
+                    yDest += CLng(Abs(ySrcPixels * generalTwipsScale) * outputResolutionScaleY)
+                    hDest = CLng((picHeightPixels * generalTwipsScale) * outputResolutionScaleY)
+                    _srcYHeight = pictureHeight
+                    ySrc = 0
+                End If
+                
+                If (xSrc + _srcXWidth) > pictureWidth Then
+                    ' clamp at maximum width to avoid an edge border
+                    clampPercentX = (pictureWidth - xSrc) / _srcXWidth
+                    _srcXWidth = (pictureWidth - xSrc)
+                
+                    ' now adjust the destination to account for the clamped size input
+                    wDest = CLng(wDest * clampPercentX)
+                End If
+            
+                If (ySrc + _srcYHeight) > pictureHeight Then
+                    ' clamp at maximum width to avoid an edge border
+                    clampPercentY = (pictureHeight - ySrc) / _srcYHeight
+                    _srcYHeight = (pictureHeight - ySrc)
+                
+                    ' now adjust the destination to account for the clamped size input
+                    ' If hDest < 0 Then
+                    '     Stop
+                    '     yDest += CLng(hDest * (1 - clampPercentY))
+                    ' End If
+                    hDest = CLng(hDest * clampPercentY)
+                End If
+                
+                
+                
+                If FlipX Then
+                    _srcXWidth = -_srcXWidth
+                    xSrc = CLng(Abs(_srcXWidth))
+                End If
+                
+                If FlipY Then
+                    _srcYHeight = -_srcYHeight
+                Else
+                    ySrc = pictureHeight - ySrc
+                End If
+                
+                _srcYHeight = -_srcYHeight
+                
+                'If RootWindowElementBASE IsNot Nothing Then
+                '    PictureRender(_Picture, Me.hDC, xDest, yDest, wDest, hDest, xSrc, ySrc, _srcXWidth, _srcYHeight)
+                'Else
+                    ' Cant use DrawIconEx with a printer device context, so we have to resort back to StdPicture.Render
+                    _Picture.Render(CLng(Me.InternalHDC.Value), xDest, yDest, wDest, hDest, xSrc, ySrc, _srcXWidth, _srcYHeight, vbNullPtr)
+                'End If
+            Else
+                Err.Raise 380
+            End If
+        End If
+        
+        HandleAutoRedrawInvalidation()
+        
+        ' FIXME need to change above to something like this (but careful of negative heights etc)
+        ' CHECK if VB6 really does do that though, since it doesn't for Line() etc
+        ' Dim rect As tbRECT
+        ' rect.Left = xOffset
+        ' rect.Top = yOffset
+        ' rect.Right = CLng(X) + 1
+        ' rect.Bottom = CLng(Y) + 1
+        ' HandleAutoRedrawInvalidation2(rect)
+    End Sub
+    #End If
+    
+    Protected Sub RecreatePersistantBitmap()       
+    
+        Dim hwnd As Any = RootWindowElementBASE.RuntimeUIGetHandle()
+        Dim rect As tbRECT
+        hwnd.GetClientRect(rect)
+        Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth = rect.Right - rect.Left
+        Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight = rect.Bottom - rect.Top
+        
+        Dim hbmp As LongPtr = Me.InternalHDC.CreateCompatibleBitmap(Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth, Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight)
+        Set Me.BaseGraphicsInfo.PersistantBitmap_StdPic = CType(Of IPicture)([_HiddenModule].CreateStdPictureFromHandle(hbmp, vbPicTypeBitmap, True))   ' takes ownership
+    End Sub
+    
+    Protected Sub UpdatePersistantBitmap()
+        ' FIXME if dimensions change, or BackColor changes, or Picture changes, then we need to clear the persistant bitmap
+        
+        Dim hwnd As Any = RootWindowElementBASE.RuntimeUIGetHandle()
+        Dim rect As tbRECT
+        hwnd.GetClientRect(rect)
+                            
+        Dim hdc As HDC = Me.InternalHDC.CreateCompatibleDC()
+        Dim origBitmap As LongPtr = hdc.SelectObject(Me.BaseGraphicsInfo.PersistantBitmap_StdPic.Handle)
+                
+        Dim backBrush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+        hdc.FillRect(rect, backBrush)
+        GDI32.DeleteObject(backBrush)
+                
+        Me.InternalPaintPicture(hdc)
+                
+        hdc.SelectObject(origBitmap)
+        hdc.DeleteDC()
+    End Sub
+    
+    [Serialize(False)]
+    Public Property Get Image() As StdPicture
+        If Me.AutoRedraw = False Then
+            If Me.BaseGraphicsInfo.PersistantBitmap_StdPic Is Nothing Then
+                RecreatePersistantBitmap()
+                UpdatePersistantBitmap()
+            End If
+            Return CType(Of StdPicture)(Me.BaseGraphicsInfo.PersistantBitmap_StdPic)
+        Else
+            HandleAutoRedrawInvalidation()      ' calls InvalidateRect 
+            Return CType(Of StdPicture)(Me.BaseGraphicsInfo.BufferBitmap_StdPic)
+        End If
+        
+        ' FIXME need to test flipping of AutoRedraw property.
+    End Property
+        
+    
+End Class

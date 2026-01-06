@@ -1,0 +1,1152 @@
+
+Public Class TestGeneric(Of T)
+    Public Sub Something()
+        
+    End Sub
+End Class
+
+
+[Hidden]
+Module [_HiddenModule]
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function PictureToByteArray Lib "<hiddenmodule>" Alias "#1" (ByVal Picture As IUnknown) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function CreateGUID Lib "<hiddenmodule>" Alias "#2" () As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub GetMem1 Lib "<hiddenmodule>" Alias "#3" (ByVal Address As LongPtr, ByRef retVal As Byte)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub GetMem2 Lib "<hiddenmodule>" Alias "#4" (ByVal Address As LongPtr, ByRef retVal As Integer)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub GetMem4 Lib "<hiddenmodule>" Alias "#5" (ByVal Address As LongPtr, ByRef retVal As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub GetMem8 Lib "<hiddenmodule>" Alias "#6" (ByVal Address As LongPtr, ByRef retVal As Currency)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub GetMemPtr Lib "<hiddenmodule>" Alias "#7" (ByVal Address As LongPtr, ByRef retVal As LongPtr)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub PutMem1 Lib "<hiddenmodule>" Alias "#8" (ByVal Address As LongPtr, ByVal value As Byte)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub PutMem2 Lib "<hiddenmodule>" Alias "#9" (ByVal Address As LongPtr, ByVal value As Integer)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub PutMem4 Lib "<hiddenmodule>" Alias "#10" (ByVal Address As LongPtr, ByVal value As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub PutMem8 Lib "<hiddenmodule>" Alias "#11" (ByVal Address As LongPtr, ByVal value As Currency)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub PutMemPtr Lib "<hiddenmodule>" Alias "#12" (ByVal Address As LongPtr, ByVal value As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub vbaObjAddref Lib "<hiddenmodule>" Alias "#13" (ByVal Address As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaObjSetAddref Lib "<hiddenmodule>" Alias "#14" (ByRef dstObject As IUnknown, ByVal srcObjPtr As LongPtr) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaObjSet Lib "<hiddenmodule>" Alias "#15" (ByRef dstObject As IUnknown, ByVal srcObjPtr As LongPtr) As LongPtr
+
+    [PreserveSig(True), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaRefVarAry Lib "<hiddenmodule>" Alias "#115" (ByRef Variant As Variant) As LongPtr
+    
+    [PreserveSig(True), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub vbaAryMove Lib "<hiddenmodule>" Alias "#116" (ByRef dest() As Any, ByRef source() As Any)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function CreateStdPictureFromHandle Lib "<hiddenmodule>" Alias "#117" (ByVal handle As LongPtr, ByVal Type As Long, ByVal TakeOwnership As Boolean) As Object
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeGetBitmapBits Lib "<hiddenmodule>" Alias "#118" (ByVal hbitmap As LongPtr, ByRef out As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeSetBitmapBits Lib "<hiddenmodule>" Alias "#119" (ByVal hbitmap As LongPtr, ByVal data As LongPtr)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeConvertBitmapToIcon Lib "<hiddenmodule>" Alias "#120" (ByVal hbitmap As LongPtr, ByRef hicon As LongPtr)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeConvertBitmap32ToIcon Lib "<hiddenmodule>" Alias "#121" (ByVal hbitmap As LongPtr, ByRef hicon As LongPtr)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeCreateScaledPicture Lib "<hiddenmodule>" Alias "#122" (ByVal Picture As IPicture, ByVal ImageWidth As Long, ByVal ImageHeight As Long, ByVal ConvertToIcon As Boolean, ByVal CreatedMaskedIcon As Boolean) As IPicture
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeCreatePremultipliedRGBABitmap32bpp Lib "<hiddenmodule>" Alias "#123" (ByVal Bitmap32 As LongPtr, ByVal test As IPicture, ByVal test2 As IPicture) As IPictureDisp
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimePrinterGetFonts Lib "<hiddenmodule>" Alias "#125" (ByVal hdc As LongPtr, ByRef out() As String)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimePatchGetClipBoxForHdc Lib "<hiddenmodule>" Alias "#126" (ByVal hdc As LongPtr)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeCreateExpressionService Lib "<hiddenmodule>" Alias "#127" () As ITbExpressionService
+    
+    [PreserveSig(True), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeCreateResampledBitmap Lib "<hiddenmodule>" Alias "#128" (ByVal hdc As LongPtr, ByVal hbmp As LongPtr, ByVal width As Long, ByVal Height As Long, ByVal FilterIdx As Long) As LongPtr
+    
+    Public Function Eval(ByVal Expression As String) As Variant
+        With New TbExpressionService
+            .AddStdLibraryBinder()
+            Dim CompiledExpression As ITbExpression = .Compile(Expression)
+            Return CompiledExpression.Evaluate()
+        End With
+    End Function
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaCopyBytes Lib "<hiddenmodule>" Alias "#16" (ByVal length As Long, ByVal dest As LongPtr, ByVal src As LongPtr) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaCopyBytesZero Lib "<hiddenmodule>" Alias "#17" (ByVal length As Long, ByVal dest As LongPtr, ByVal src As LongPtr) As LongPtr
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function AllocMem Lib "<hiddenmodule>" Alias "#18" (ByVal BytesToAlloc As Long) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub FreeMem Lib "<hiddenmodule>" Alias "#19" (ByVal MemPointer As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub SetThreadGlobalErrorTrap Lib "<hiddenmodule>" Alias "#20" (ByVal CallbackAddress As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub SuppressRaiseEvents Lib "<hiddenmodule>" Alias "#21" (ByVal TwinBasicClassInstance As IUnknown, ByVal Value As Boolean)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub DontInitNextCreatedCOMInstance Lib "<hiddenmodule>" Alias "#22" (ByVal value As Boolean)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub ExclusivitySectionEnter Lib "<hiddenmodule>" Alias "#23" (ByVal GuidString As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub ExclusivitySectionLeave Lib "<hiddenmodule>" Alias "#24" (ByVal GuidString As String)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function ClipboardGetTextInternal Lib "<hiddenmodule>" Alias "#25" (ByVal Format As Variant) As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub ClipboardSetTextInternal Lib "<hiddenmodule>" Alias "#26" (ByVal Str As String, ByVal Format As Variant)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function LoadPictureInternal Lib "<hiddenmodule>" Alias "#27" (Optional ByVal FileName As Variant, Optional ByVal Size As Variant, Optional ByVal ColorDepth As Variant, Optional ByVal X As Variant, Optional ByVal Y As Variant) As Object
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function LoadResDataInternal Lib "<hiddenmodule>" Alias "#28" (ByVal id As Variant, ByVal type As Variant) As Variant
+
+    ' This is now defined in VB package instead.
+    ' [ PreserveSig (False), UseGetLastError (False) ]
+    ' [ Description ("") ]
+    ' [ Hidden, Restricted ]
+    ' Public DeclareWide PtrSafe Function CreateGlobalObject Lib "<hiddenmodule>" Alias "#29" () As stdole.IUnknown
+    
+    ' This is now defined in VBRUN package instead.
+    ' [ PreserveSig (False), UseGetLastError (False) ]
+    ' [ Description ("") ]
+    ' [ Hidden, Restricted ]
+    ' Public DeclareWide PtrSafe Function CreatePropertyBagObject Lib "<hiddenmodule>" Alias "#30" () As stdole.IUnknown
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreateClassPropertyBagUCRead2 Lib "<hiddenmodule>" Alias "#31" (ByVal inPropBag As IUnknown) As stdole.IUnknown
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreateClassPropertyBagUCWrite2 Lib "<hiddenmodule>" Alias "#32" (ByVal inPropBag As IUnknown) As stdole.IUnknown
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreateClassPropertyBagUCRead Lib "<hiddenmodule>" Alias "#33" (ByVal inData As Variant) As IUnknown
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreateClassPropertyBagUCWrite Lib "<hiddenmodule>" Alias "#34" () As stdole.IUnknown
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function GetPropertyBagUCWriterContents Lib "<hiddenmodule>" Alias "#35" (ByVal propBag As IUnknown) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function HasExclusiveDefaultDispatchValue Lib "<hiddenmodule>" Alias "#36" (ByVal Object As Object) As Boolean
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub ShowPropertyPages Lib "<hiddenmodule>" Alias "#37" (ByVal Caption As String, ByVal Object As IUnknown)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub SynchronizeWindowSizeWithParent Lib "<hiddenmodule>" Alias "#38" (ByVal ChildWindow As LongPtr, ByVal ParentWindow As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub CreateCoreWebView2Environment Lib "<hiddenmodule>" Alias "#39" (ByVal BrowserExecutableFolder As String, ByVal UserDataFolder As String, ByVal environmentOptions As IUnknown, ByVal callback As IUnknown)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub BringWindowToFront Lib "<hiddenmodule>" Alias "#40" (ByVal hwnd As LongPtr)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub CrashDAP Lib "<hiddenmodule>" Alias "#41" ()
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub CrashLSP Lib "<hiddenmodule>" Alias "#42" ()
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub CrashFS Lib "<hiddenmodule>" Alias "#43" ()
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub CrashRoot Lib "<hiddenmodule>" Alias "#44" ()
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the pointer to an object. This function is commonly used for advanced operations, such as interfacing with system APIs that require object memory addresses or for unique identification of objects  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`objectPointer = ObjPtr(Object)  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`Object` (IUnknown): The object whose pointer is to be obtained  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "A `LongPtr` that represents the memory address of the object  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "Dim myObject = New Collection" & vbCrLf & _
+                 "Dim ptr As LongPtr" & vbCrLf & _
+                 "' Get pointer to myObject" & vbCrLf & _
+                 "ptr = ObjPtr(myObject) ' ptr now contains the memory address of myObject" & vbCrLf & _
+                 "```")]
+    Public DeclareWide PtrSafe Function ObjPtr Lib "<hiddenmodule>" Alias "#45" (ByVal Ptr As IUnknown) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the memory address of the first character in a string  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`stringPointer = StrPtr([String])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`String` (String): The string whose pointer is to be obtained  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "A `LongPtr` representing the memory address of the first character in the string  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "Dim myString As String" & vbCrLf & _
+                 "myString = ""Hello World""" & vbCrLf & _
+                 "Dim ptr As LongPtr" & vbCrLf & _
+                 "' Get pointer to myString" & vbCrLf & _
+                 "ptr = StrPtr(myString) ' ptr now contains the memory address of the string" & vbCrLf & _
+                 "```")]
+    Public DeclareWide PtrSafe Function StrPtr Lib "<hiddenmodule>" Alias "#46" (ByVal Ptr As String) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function ConvertIconToBitmap Lib "<hiddenmodule>" Alias "#47" (ByVal IconPicture As Object, Optional ByVal BackColor As Variant) As Object
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Reads data from a file and returns it as a string (Input$) or variant (Input)  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`resultString = Input$([Number], [FileNumber])  `" & vbCrLf & _
+                 "`resultVariant = Input([Number], [FileNumber])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`Number` (Long): The number of characters to read from the file  ." & vbCrLf & _
+                 "`FileNumber` (Integer): The file number used to open the file with the Open statement  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "`Input$` function returns a `String` containing up to the specified number of characters from a file  ." & vbCrLf & _
+                 "`Input` function reads data from a file until either the specified number of characters are read, or a newline character is encountered. It returns the result as a `Variant`  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "' Assume file number 1 has been opened for input  ." & vbCrLf & _
+                 "Dim fileContents As String" & vbCrLf & _
+                 "fileContents = Input$(20, 1) ' Reads the first 20 characters from the file  ." & vbCrLf & _
+                 "Dim fileLine As Variant" & vbCrLf & _
+                 "fileLine = Input(20, 1) ' Reads the next line or up to 20 characters from the file  ." & vbCrLf & _
+                 "```" & vbCrLf & _
+                 "`Input$` always reads the specified number of characters, while `Input` stops at a newline character or after the specified number of characters.")]
+    Public DeclareWide PtrSafe Function [Input$] Lib "<hiddenmodule>" Alias "#48" (ByVal Number As Long, ByVal FileNumber As Integer) As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Reads data from a file and returns it as a string (Input$) or variant (Input)  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`resultString = Input$([Number], [FileNumber])  `" & vbCrLf & _
+                 "`resultVariant = Input([Number], [FileNumber])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`Number` (Long): The number of characters to read from the file  ." & vbCrLf & _
+                 "`FileNumber` (Integer): The file number used to open the file with the Open statement  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "`Input$` function returns a `String` containing up to the specified number of characters from a file  ." & vbCrLf & _
+                 "`Input` function reads data from a file until either the specified number of characters are read, or a newline character is encountered. It returns the result as a `Variant`  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "' Assume file number 1 has been opened for input  ." & vbCrLf & _
+                 "Dim fileContents As String" & vbCrLf & _
+                 "fileContents = Input$(20, 1) ' Reads the first 20 characters from the file  ." & vbCrLf & _
+                 "Dim fileLine As Variant" & vbCrLf & _
+                 "fileLine = Input(20, 1) ' Reads the next line or up to 20 characters from the file  ." & vbCrLf & _
+                 "```" & vbCrLf & _
+                 "`Input$` always reads the specified number of characters, while `Input` stops at a newline character or after the specified number of characters.")]
+    Public DeclareWide PtrSafe Function Input Lib "<hiddenmodule>" Alias "#49" (ByVal Number As Long, ByVal FileNumber As Integer) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Reads byte data from a file and returns it as a string (InputB$) or variant (InputB)  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`resultString = InputB$([Number], [FileNumber])  `" & vbCrLf & _
+                 "`resultVariant = InputB([Number], [FileNumber])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`Number` (Long): The number of bytes to read from the file  ." & vbCrLf & _
+                 "`FileNumber` (Integer): The file number used to open the file with the Open statement  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "`InputB$` function returns a `String` containing up to the specified number of bytes from a file  ." & vbCrLf & _
+                 "`InputB` function reads byte data from a file until the specified number of bytes are read and returns the result as a `Variant`  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "' Assume file number 1 has been opened for binary input  ." & vbCrLf & _
+                 "Dim fileBytes As String" & vbCrLf & _
+                 "fileBytes = InputB$(20, 1) ' Reads the first 20 bytes from the file  ." & vbCrLf & _
+                 "Dim fileData As Variant" & vbCrLf & _
+                 "fileData = InputB(20, 1) ' Reads the next 20 bytes from the file  ." & vbCrLf & _
+                 "```" & vbCrLf & _
+                 "`InputB$` reads the specified number of bytes and returns them as a `String`. `InputB` also reads a specified number of bytes, but the result is returned as a `Variant`.")]
+    Public DeclareWide PtrSafe Function [InputB$] Lib "<hiddenmodule>" Alias "#50" (ByVal Number As Long, ByVal FileNumber As Integer) As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Reads byte data from a file and returns it as a string (InputB$) or variant (InputB)  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`resultString = InputB$([Number], [FileNumber])  `" & vbCrLf & _
+                 "`resultVariant = InputB([Number], [FileNumber])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`Number` (Long): The number of bytes to read from the file  ." & vbCrLf & _
+                 "`FileNumber` (Integer): The file number used to open the file with the Open statement  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "`InputB$` function returns a `String` containing up to the specified number of bytes from a file  ." & vbCrLf & _
+                 "`InputB` function reads byte data from a file until the specified number of bytes are read and returns the result as a `Variant`  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "' Assume file number 1 has been opened for binary input  ." & vbCrLf & _
+                 "Dim fileBytes As String" & vbCrLf & _
+                 "fileBytes = InputB$(20, 1) ' Reads the first 20 bytes from the file  ." & vbCrLf & _
+                 "Dim fileData As Variant" & vbCrLf & _
+                 "fileData = InputB(20, 1) ' Reads the next 20 bytes from the file  ." & vbCrLf & _
+                 "```" & vbCrLf & _
+                 "`InputB$` reads the specified number of bytes and returns them as a `String`. `InputB` also reads a specified number of bytes, but the result is returned as a `Variant`.")]
+    Public DeclareWide PtrSafe Function InputB Lib "<hiddenmodule>" Alias "#51" (ByVal Number As Long, ByVal FileNumber As Integer) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub Width Lib "<hiddenmodule>" Alias "#52" (ByVal FileNumber As Integer, ByVal Width As Integer)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub _FileWidth Lib "<hiddenmodule>" Alias "#53" (ByVal FileNumber As Integer, ByVal Width As Integer)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function _InStrBreak Lib "<hiddenmodule>" Alias "#54" (ByVal StartPosIn As Long, ByRef StringIn As String, ByRef WhitespaceTypeOut As Long, ByVal splitAtSpaces As Boolean) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreateCollectionObject Lib "<hiddenmodule>" Alias "#57" () As stdole.IUnknown
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Creates an array containing the supplied set of values. The lower bound of the array is determined by the `Option Base` setting at the component scope, defaulting to 0 if `Option Base` is not specified  ." & vbCrLf & _
+                 "### Syntax" & vbCrLf & _
+                 "`resultArray = Array([ArgList])  `" & vbCrLf & _
+                 "### Parameters" & vbCrLf & _
+                 "`ArgList` (ParamArray): The comma-delimited list of values to include in the array  ." & vbCrLf & _
+                 "### Return Value" & vbCrLf & _
+                 "A `Variant` containing an array. The lower bound of the array index is set by an `Option Base` statement at the component scope (0 if not specified)  ." & vbCrLf & _
+                 "### Example" & vbCrLf & _
+                 "```vb" & vbCrLf & _
+                 "Option Base 1" & vbCrLf & _
+                 "Dim myArray As Variant" & vbCrLf & _
+                 "' Create an array with elements 1, 2, and 3. The first index will be 1  ." & vbCrLf & _
+                 "myArray = Array(1, 2, 3) ' myArray(1) is 1, myArray(2) is 2, myArray(3) is 3" & vbCrLf & _
+                 "' Access the second element, which due to `Option Base 1`, is myArray(2)" & vbCrLf & _
+                 "Dim secondElement As Variant" & vbCrLf & _
+                 "secondElement = myArray(2) ' secondElement is now 2" & vbCrLf & _
+                 "```" & vbCrLf & _
+                 "If `Option Base 1` is not specified, the lower bound of the array defaults to 0, and myArray(0) would be 1, myArray(1) would be 2, etc.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function Array Lib "<hiddenmodule>" Alias "#-30" (ParamArray ArgList As Variant()) As Variant
+
+    ' [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    ' [Description("Creates an array containing the supplied set of values. The lower bound of the array is determined by the `Option Base` setting at the component scope, defaulting to 0 if `Option Base` is not specified  ." & vbCrLf & _
+    '              "### Syntax" & vbCrLf & _
+    '              "`resultArray = Array([ArgList])  `" & vbCrLf & _
+    '              "### Parameters" & vbCrLf & _
+    '              "`ArgList` (ParamArray): The comma-delimited list of values to include in the array  ." & vbCrLf & _
+    '              "### Return Value" & vbCrLf & _
+    '              "A `Variant` containing an array. The lower bound of the array index is set by an `Option Base` statement at the component scope (0 if not specified)  ." & vbCrLf & _
+    '              "### Example" & vbCrLf & _
+    '              "```vb" & vbCrLf & _
+    '              "Option Base 1" & vbCrLf & _
+    '              "Dim myArray As Variant" & vbCrLf & _
+    '              "' Create an array with elements 1, 2, and 3. The first index will be 1  ." & vbCrLf & _
+    '              "myArray = Array(1, 2, 3) ' myArray(1) is 1, myArray(2) is 2, myArray(3) is 3" & vbCrLf & _
+    '              "' Access the second element, which due to `Option Base 1`, is myArray(2)" & vbCrLf & _
+    '              "Dim secondElement As Variant" & vbCrLf & _
+    '              "secondElement = myArray(2) ' secondElement is now 2" & vbCrLf & _
+    '              "```" & vbCrLf & _
+    '              "If `Option Base 1` is not specified, the lower bound of the array defaults to 0, and myArray(0) would be 1, myArray(1) would be 2, etc.")]
+    ' [Hidden, Restricted]
+    ' ' Note, this function uses special internal bindings and so may not behave like a regular function
+    ' Public DeclareWide PtrSafe Function _ArrayBase1 Lib "<hiddenmodule>" Alias "#-31" (ParamArray ArgList As Variant()) As Variant
+    
+    ' destructuring assignment, courtesy of wqweto [ https://discord.com/channels/927638153546829845/1047281206858887178/threads/1165935542375030815 ]
+    Property Let Array(ParamArray ArgList() As Variant, rhs As Variant)
+    	If IsArray(rhs) = False Then
+        	Err.Raise 5, , "expected an array"
+    	End If
+        Dim rhsLBound As Long = LBound(rhs)
+        Dim elementIndex As Long
+        For elementIndex = LBound(ArgList) To UBound(ArgList)
+            If Not IsMissing(ArgList(elementIndex)) Then
+                ArgList (elementIndex) = rhs(rhsLBound + elementIndex)
+            End If
+        Next
+    End Property
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub Int3Breakpoint Lib "<hiddenmodule>" Alias "#-12" ()
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Allows injecting custom BYTE values into the codegen stage.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub Emit Lib "<hiddenmodule>" Alias "#-60" (ParamArray values())
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Allows injecting custom values into the codegen stage.  The size of the output is inferred from the value datatype.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub EmitAny Lib "<hiddenmodule>" Alias "#-62" (ParamArray values())
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the COM ProgID associated with the type.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredTypeProgId Lib "<hiddenmodule>" Alias "#-63" () As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the COM Interface IID associated with the type.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredTypeIid Lib "<hiddenmodule>" Alias "#-67" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the COM Event Interface IID associated with the type.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredTypeEventIid Lib "<hiddenmodule>" Alias "#-68" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the COM Class CLSID as a string, associated with the type")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredTypeClsid Lib "<hiddenmodule>" Alias "#-64" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("(GENERIC FUNCTION) Returns the minimum value of an enumeration type (resolved at compile time)")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredMinEnumValue Lib "<hiddenmodule>" Alias "#-65" () As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("(GENERIC FUNCTION) Returns the maximum value of an enumeration type (resolved at compile time)")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetDeclaredMaxEnumValue Lib "<hiddenmodule>" Alias "#-66" () As Long
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Allows injecting custom BYTE values into the codegen stage.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function StackOffset Lib "<hiddenmodule>" Alias "#-61" (Variable As Any) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Allows injecting custom BYTE values into the codegen stage.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function StackArgsSize Lib "<hiddenmodule>" Alias "#-70" () As Long
+    
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function UnprotectedAccess Lib "<hiddenmodule>" Alias "#-71" (Variable As Any) As Object
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub CheckBadFPUInstruction Lib "<hiddenmodule>" Alias "#-58" ()
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the pointer to a variable. This function is used in advanced scenarios such as when interfacing with APIs that require direct memory access  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`variablePointer = VarPtr(Var)  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Var` (Any): The variable whose pointer is to be obtained  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "A `LongPtr` that represents the address of the variable in memory  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim myVar As Integer" & vbCrLf & _
+                    "Dim ptr As LongPtr" & vbCrLf & _
+                    "myVar = 123" & vbCrLf & _
+                    "' Get pointer to myVar" & vbCrLf & _
+                    "ptr = VarPtr(myVar) ' ptr now contains the memory address of myVar" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function VarPtr Lib "<hiddenmodule>" Alias "#-13" (ByVal Var As Any) As LongPtr
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function InternalDebugHoverEval Lib "<hiddenmodule>" Alias "#-14" (ByVal Expression As Any) As String
+        
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a numeric value specifying an error. Number is the Err object's default property  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorNumber = Err.Number  `" & vbCrLf & _
+                    "`Err.Number = [errorNumber]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Number` (Long): Numeric value specifying an error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Number` property returns a `Long` representing the error number. If no error has occurred, it returns zero (`0`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise 6 ' Raise an Overflow error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""6""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""0\""  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Number` property is automatically set to the corresponding error number when an error is raised with `Err.Raise`. If you're creating custom errors, you can also set this property to your own error number. It's a common practice to check the `Err.Number` property within an error-handling routine to determine the cause of the error and respond accordingly.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrNumber Lib "<hiddenmodule>" Alias "#-39" () As Long
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a numeric value specifying an error. Number is the Err object's default property  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorNumber = Err.Number  `" & vbCrLf & _
+                    "`Err.Number = [errorNumber]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Number` (Long): Numeric value specifying an error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Number` property returns a `Long` representing the error number. If no error has occurred, it returns zero (`0`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise 6 ' Raise an Overflow error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""6""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error number is: "" & Err.Number ' Displays ""0\""  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Number` property is automatically set to the corresponding error number when an error is raised with `Err.Raise`. If you're creating custom errors, you can also set this property to your own error number. It's a common practice to check the `Err.Number` property within an error-handling routine to determine the cause of the error and respond accordingly.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrNumber Lib "<hiddenmodule>" Alias "#-40" (ByVal Value As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a string expression representing the object or application that generated the error. `Source` property is especially useful for debugging purposes  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorSource = Err.Source  `" & vbCrLf & _
+                    "`Err.Source = [errorSource]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Source` (String): The name of the object or application that generated the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Source` property returns a `String` representing the name of the source of the error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, ""MyApplication"", ""Custom error occurred""" & vbCrLf & _
+                    "MsgBox ""The error source is: "" & Err.Source ' Displays ""MyApplication""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Source` property provides information about the origin of the error. When an error is raised via `Err.Raise`, the `Source` can be set to a string that identifies where the error originated. This is typically the name of the application or the object that caused the error. After an `Err.Clear` is issued, the `Source` property is set to an empty string until another error is raised.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrSource Lib "<hiddenmodule>" Alias "#-41" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a string expression representing the object or application that generated the error. `Source` property is especially useful for debugging purposes  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorSource = Err.Source  `" & vbCrLf & _
+                    "`Err.Source = [errorSource]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Source` (String): The name of the object or application that generated the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Source` property returns a `String` representing the name of the source of the error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, ""MyApplication"", ""Custom error occurred""" & vbCrLf & _
+                    "MsgBox ""The error source is: "" & Err.Source ' Displays ""MyApplication""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `Err.Source` property provides information about the origin of the error. When an error is raised via `Err.Raise`, the `Source` can be set to a string that identifies where the error originated. This is typically the name of the application or the object that caused the error. After an `Err.Clear` is issued, the `Source` property is set to an empty string until another error is raised.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrSource Lib "<hiddenmodule>" Alias "#-42" (ByVal Value As String)
+        
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a string expression specifying the error description  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorDescription = Err.Description  `" & vbCrLf & _
+                    "`Err.Description = ""errorDescription""  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Description` (String): The description of the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Description` property returns a `String` describing the error. If no error has occurred, it returns an empty string (`""""`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 513, ""ExampleClass"", ""Example error""" & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays ""Example error""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays an empty string  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This property is used within an error-handling routine to identify the error that occurred. When an error is raised with `Err.Raise`, the `Err.Description` property is automatically populated with a message that describes the error. Programmers can also set this property to provide a custom error message, which can be useful for debugging or providing more specific error information to users. To reset the error description, `Err.Clear` is used or the `Err.Description` can be set to an empty string (`""""`).")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrDescription Lib "<hiddenmodule>" Alias "#-43" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets a string expression specifying the error description  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`errorDescription = Err.Description  `" & vbCrLf & _
+                    "`Err.Description = ""errorDescription""  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`Description` (String): The description of the error. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The `Description` property returns a `String` describing the error. If no error has occurred, it returns an empty string (`""""`)  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Temporarily ignore errors  ." & vbCrLf & _
+                    "' Cause an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 513, ""ExampleClass"", ""Example error""" & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays ""Example error""  ." & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "MsgBox ""The error description is: "" & Err.Description ' Displays an empty string  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This property is used within an error-handling routine to identify the error that occurred. When an error is raised with `Err.Raise`, the `Err.Description` property is automatically populated with a message that describes the error. Programmers can also set this property to provide a custom error message, which can be useful for debugging or providing more specific error information to users. To reset the error description, `Err.Clear` is used or the `Err.Description` can be set to an empty string (`""""`).")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrDescription Lib "<hiddenmodule>" Alias "#-44" (ByVal Value As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets the fully qualified path to the help file associated with a specific error. Setting this property allows a developer to direct users to the appropriate help content when an error is encountered  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`helpFilePath = Err.HelpFile  `" & vbCrLf & _
+                    "`Err.HelpFile = ""[helpFilePath]""" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`HelpFile` (String): The path to the help file that provides detailed information about the error. It can be a .hlp, .chm file, or a URL to a help resource. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "As a return value, `HelpFile` provides a `String` that is the path to the help file associated with the current error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Simulate an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, , , ""C:Help FilesApplicationHelp.chm""" & vbCrLf & _
+                    "If Err.Number <> 0 Then" & vbCrLf & _
+                    "    MsgBox ""For more information, see the help file: "" & Err.HelpFile" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `HelpFile` property is commonly used in conjunction with `Err.HelpContext` for providing a direct link to specific help topics. By setting the `HelpFile`, you enable the application to offer users detailed explanations or troubleshooting steps pertinent to the error they encounter. This could significantly improve the user's ability to understand and rectify issues without further support.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrHelpFile Lib "<hiddenmodule>" Alias "#-45" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Returns or sets the fully qualified path to the help file associated with a specific error. Setting this property allows a developer to direct users to the appropriate help content when an error is encountered  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`helpFilePath = Err.HelpFile  `" & vbCrLf & _
+                    "`Err.HelpFile = ""[helpFilePath]""" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "`HelpFile` (String): The path to the help file that provides detailed information about the error. It can be a .hlp, .chm file, or a URL to a help resource. Read/write  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "As a return value, `HelpFile` provides a `String` that is the path to the help file associated with the current error  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "On Error Resume Next ' Enable error-handling routine  ." & vbCrLf & _
+                    "' Simulate an error  ." & vbCrLf & _
+                    "Err.Raise vbObjectError + 9999, , , ""C:Help FilesApplicationHelp.chm""" & vbCrLf & _
+                    "If Err.Number <> 0 Then" & vbCrLf & _
+                    "    MsgBox ""For more information, see the help file: "" & Err.HelpFile" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "Err.Clear ' Clear the error  ." & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "The `HelpFile` property is commonly used in conjunction with `Err.HelpContext` for providing a direct link to specific help topics. By setting the `HelpFile`, you enable the application to offer users detailed explanations or troubleshooting steps pertinent to the error they encounter. This could significantly improve the user's ability to understand and rectify issues without further support.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrHelpFile Lib "<hiddenmodule>" Alias "#-46" (ByVal Value As String)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Retrieves or sets the context ID for a topic within a Help file linked to an error. If a Help file is associated with the error, this property can be used to automatically display the relevant topic when a help request is made  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Err.HelpContext  `" & vbCrLf & _
+                    "`Err.HelpContext = contextID  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`contextID` (Long): Numeric expression specifying the context ID for the appropriate Help topic  ." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "The property returns or sets a `Long` specifying the context ID for a Help topic  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When setting this property, it typically corresponds to the `HelpContextID` property of a twinBASIC error. If no applicable topic is available, the property should be set to 0  ." & vbCrLf & _
+                    "This property is particularly useful in centralized error handling routines, where the Help context can direct users to the relevant content based on the error encountered.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrHelpContext Lib "<hiddenmodule>" Alias "#-47" () As Long
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Retrieves or sets the context ID for a topic within a Help file linked to an error. If a Help file is associated with the error, this property can be used to automatically display the relevant topic when a help request is made  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Err.HelpContext  `" & vbCrLf & _
+                    "`Err.HelpContext = contextID  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`contextID` (Long): Numeric expression specifying the context ID for the appropriate Help topic  ." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "The property returns or sets a `Long` specifying the context ID for a Help topic  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When setting this property, it typically corresponds to the `HelpContextID` property of a twinBASIC error. If no applicable topic is available, the property should be set to 0  ." & vbCrLf & _
+                    "This property is particularly useful in centralized error handling routines, where the Help context can direct users to the relevant content based on the error encountered.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrHelpContext Lib "<hiddenmodule>" Alias "#-48" (ByVal Value As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Generates a runtime error that can be handled with error handling code (such as an `On Error` statement)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.Raise(Number, [Source], [Description], [HelpFile], [HelpContext])  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Number` (Long): Required. The error number. Can be a user-defined number (use `vbObjectError + someNumber`) or a standard twinBASIC error number  ." & vbCrLf & _
+                    "`Source` (String): Optional. The name of the source of the error. Generally, this is the name of the application or object that generated the error  ." & vbCrLf & _
+                    "`Description` (String): Optional. A string expression describing the error  ." & vbCrLf & _
+                    "`HelpFile` (String): Optional. The fully qualified path to the Help file in which help on this error can be found. If omitted, the `Err` object's `HelpFile` property is cleared  ." & vbCrLf & _
+                    "`HelpContext` (Long): Optional. The context ID within the Help file that provides help for this error. If omitted, the `Err` object's `HelpContext` property is cleared  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "This method has no return value  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "When `Err.Raise` is called with valid arguments, the current program execution is halted and the `Err` object's properties are set. If there's an enabled error handler (via an `On Error` statement), execution passes to that error handler  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Custom error information" & vbCrLf & _
+                    "Sub CauseError()" & vbCrLf & _
+                    "    Err.Raise vbObjectError + 9999, ""CauseError"", ""This is a custom error message"", ""C:\HelpFiles\MyApplicationHelp.chm"", 205" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, a custom error is raised with `Err.Raise`, using a user-defined error number and providing custom error information including the source, description, and Help context. Remember to catch the error with proper error handling in your application to prevent unwanted program termination.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub ErrRaise Lib "<hiddenmodule>" Alias "#-49" (ByVal Value As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Resets the properties of the `Err` object, clearing all previously set error information, thereby setting the `Err.Number` to zero (`0`), `Err.Description`, `Err.Source`, `Err.HelpFile`, `Err.HelpContext` to empty  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.Clear  `" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This method does not take any parameters  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "This method has no return value  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "Use `Err.Clear` to explicitly clear the `Err` object after an error has been handled, especially if the handling is in a loop or could occur multiple times. It ensures that an error does not carry over from one part of the code to another  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Sub CheckError()" & vbCrLf & _
+                    "    On Error Resume Next" & vbCrLf & _
+                    "    ' Code that may cause an error goes here" & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    If Err.Number <> 0 Then" & vbCrLf & _
+                    "        ' Handle error" & vbCrLf & _
+                    "        ' ..  ." & vbCrLf & _
+                    "        ' Clear the error that was handled" & vbCrLf & _
+                    "        Err.Clear" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "    ' Code that continues after error handling" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.Clear` method is used after error handling is complete to ensure that subsequent code does not mistakenly react to an error that has already been handled. This is especially important in a loop or when errors are expected and managed inline.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub ErrClear Lib "<hiddenmodule>" Alias "#-50" (ByVal Value As Long)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Retrieves the last system error code produced by a call to a dynamic link library (DLL)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim errorCode As Long  `" & vbCrLf & _
+                    "`errorCode = Err.LastDllError  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` that contains the system error code. If no error has occurred or if the error has been cleared, the return value is zero (`0`)  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `LastDllError` property is Windows-specific and it holds the last error code set by a call to a system function. It is generally used after calling a Windows API function to determine whether the function succeeded and, if not, to get detailed error information  ." & vbCrLf & _
+                    "The value of `LastDllError` is preserved until the next Windows API function is called, after which `LastDllError` can change  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Suppose we have a declaration for a Windows API function" & vbCrLf & _
+                    "' Public Declare PtrSafe Function SomeWindowsAPIFunction Lib ""user32"" Alias ""SomeFunction"" () As Boolean" & vbCrLf & _
+                    "Sub CheckLastError()" & vbCrLf & _
+                    "    Dim result As Boolean" & vbCrLf & _
+                    "    result = SomeWindowsAPIFunction()" & vbCrLf & _
+                    "    If result = False Then" & vbCrLf & _
+                    "        Dim lastError As Long" & vbCrLf & _
+                    "        lastError = Err.LastDllError" & vbCrLf & _
+                    "        ' Handle the error based on the last error code" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastDllError` property is used after a call to a hypothetical Windows API function to check if the function succeeded and to handle the error based on the last system error code if it did not  ." & vbCrLf & _
+                    "It's important to retrieve the `LastDllError` immediately following the API call, as subsequent calls may change the value.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrLastDllError Lib "<hiddenmodule>" Alias "#-51" () As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Retrieves the last system error code produced by a call to a dynamic link library (DLL)  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim errorCode As Long  `" & vbCrLf & _
+                    "`errorCode = Err.LastDllError  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` that contains the system error code. If no error has occurred or if the error has been cleared, the return value is zero (`0`)  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `LastDllError` property is Windows-specific and it holds the last error code set by a call to a system function. It is generally used after calling a Windows API function to determine whether the function succeeded and, if not, to get detailed error information  ." & vbCrLf & _
+                    "The value of `LastDllError` is preserved until the next Windows API function is called, after which `LastDllError` can change  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Suppose we have a declaration for a Windows API function" & vbCrLf & _
+                    "' Public Declare PtrSafe Function SomeWindowsAPIFunction Lib ""user32"" Alias ""SomeFunction"" () As Boolean" & vbCrLf & _
+                    "Sub CheckLastError()" & vbCrLf & _
+                    "    Dim result As Boolean" & vbCrLf & _
+                    "    result = SomeWindowsAPIFunction()" & vbCrLf & _
+                    "    If result = False Then" & vbCrLf & _
+                    "        Dim lastError As Long" & vbCrLf & _
+                    "        lastError = Err.LastDllError" & vbCrLf & _
+                    "        ' Handle the error based on the last error code" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastDllError` property is used after a call to a hypothetical Windows API function to check if the function succeeded and to handle the error based on the last system error code if it did not  ." & vbCrLf & _
+                    "It's important to retrieve the `LastDllError` immediately following the API call, as subsequent calls may change the value.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrLastDllError Lib "<hiddenmodule>" Alias "#-52" (ByVal Value As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Retrieves the last HRESULT return value from object method calls  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim hresult As Long  `" & vbCrLf & _
+                    "`hresult = Err.LastHresult  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is read-only  ." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The return value is a `Long` representing the raw HRESULT value from the most recent object method call. Failure HRESULTs are negative values, whereas non-failure HRESULTs (indicating success or status) are positive  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `LastHresult` allows for the examination of return values from COM object method calls that do not necessarily trigger an error in the runtime. Negative HRESULT values correspond to failures and are the ones that trigger an error within twinBASIC, which can then be captured using the `Err` object. However, positive HRESULT values, which indicate success or non-error statuses, do not trigger errors and thus do not disrupt the normal flow of the program  ." & vbCrLf & _
+                    "To handle both success and failure codes effectively, `LastHresult` should be checked immediately after the object method call, as any subsequent calls may change its value  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume we have a COM object with a method that returns an HRESULT" & vbCrLf & _
+                    "' Dim comObject As SomeComObject" & vbCrLf & _
+                    "Sub CheckHresult()" & vbCrLf & _
+                    "    Dim result As Long" & vbCrLf & _
+                    "    ' Call a method that returns an HRESULT value" & vbCrLf & _
+                    "    comObject.SomeMethod" & vbCrLf & _
+                    "    ' Check the HRESULT returned from the method call" & vbCrLf & _
+                    "    result = Err.LastHresult" & vbCrLf & _
+                    "    If result > 0 Then" & vbCrLf & _
+                    "        ' Handle the non-failure HRESULT if necessary" & vbCrLf & _
+                    "    End If" & vbCrLf & _
+                    "End Sub" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In this example, the `Err.LastHresult` property is used after a call to a COM object method to check if the method succeeded without triggering a twinBASIC runtime error. The handling of non-failure HRESULTs is demonstrated.")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrLastHresult Lib "<hiddenmodule>" Alias "#-53" () As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Allows a developer to set their own HRESULT when returning from an object method  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.ReturnHResult = [value]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is write-only  ." & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`[value]  `" & vbCrLf & _
+                    "A `Long` representing the raw HRESULT value to be returned. Positive values indicate a non-failure result  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `ReturnHResult` provides a mechanism to set an HRESULT explicitly when exiting an object method. This is particularly useful for returning non-failure (positive) HRESULTs, which indicate success or status information not conveyed by standard success codes. While `Err.Raise` is typically used to generate failure HRESULTs (negative values), `ReturnHResult` allows for setting specific non-failure results  ." & vbCrLf & _
+                    "A calling procedure can use `Err.LastHresult` to read the positive HRESULT that was returned from the method. It is important to set the `ReturnHResult` only when necessary, typically just before the method exit point, to ensure that the intended HRESULT is the one that's actually returned  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' This example demonstrates setting a non-failure HRESULT upon successfully" & vbCrLf & _
+                    "' completing a method within a COM object  ." & vbCrLf & _
+                    "Function MyMethod() As Variant" & vbCrLf & _
+                    "    ' Perform method actions here..  ." & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    ' Indicate success with a specific non-failure HRESULT" & vbCrLf & _
+                    "    Err.ReturnHResult = 123 ' Set a positive HRESULT of 123 indicating a specific success condition" & vbCrLf & _
+                    "End Function" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In the example above, `Err.ReturnHResult` is set to 123, a positive HRESULT value chosen to indicate a specific success condition. After the method completes, the caller can check `Err.LastHresult` to read this specific HRESULT value  ." & vbCrLf & _
+                    "### See Also" & vbCrLf & _
+                    "`Err.Raise`, `Err.LastHresult`, `Err.Number`, `Err.Description`")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function GetErrReturnHResult Lib "<hiddenmodule>" Alias "#-54" () As Long
+        
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    [Description("Allows a developer to set their own HRESULT when returning from an object method  ." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Err.ReturnHResult = [value]  `" & vbCrLf & _
+                    "### Properties" & vbCrLf & _
+                    "This property is write-only  ." & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`[value]  `" & vbCrLf & _
+                    "A `Long` representing the raw HRESULT value to be returned. Positive values indicate a non-failure result  ." & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "In twinBASIC, `ReturnHResult` provides a mechanism to set an HRESULT explicitly when exiting an object method. This is particularly useful for returning non-failure (positive) HRESULTs, which indicate success or status information not conveyed by standard success codes. While `Err.Raise` is typically used to generate failure HRESULTs (negative values), `ReturnHResult` allows for setting specific non-failure results  ." & vbCrLf & _
+                    "A calling procedure can use `Err.LastHresult` to read the positive HRESULT that was returned from the method. It is important to set the `ReturnHResult` only when necessary, typically just before the method exit point, to ensure that the intended HRESULT is the one that's actually returned  ." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' This example demonstrates setting a non-failure HRESULT upon successfully" & vbCrLf & _
+                    "' completing a method within a COM object  ." & vbCrLf & _
+                    "Function MyMethod() As Variant" & vbCrLf & _
+                    "    ' Perform method actions here..  ." & vbCrLf & _
+                    "    ' ..  ." & vbCrLf & _
+                    "    ' Indicate success with a specific non-failure HRESULT" & vbCrLf & _
+                    "    Err.ReturnHResult = 123 ' Set a positive HRESULT of 123 indicating a specific success condition" & vbCrLf & _
+                    "End Function" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "In the example above, `Err.ReturnHResult` is set to 123, a positive HRESULT value chosen to indicate a specific success condition. After the method completes, the caller can check `Err.LastHresult` to read this specific HRESULT value  ." & vbCrLf & _
+                    "### See Also" & vbCrLf & _
+                    "`Err.Raise`, `Err.LastHresult`, `Err.Number`, `Err.Description`")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Sub LetErrReturnHResult Lib "<hiddenmodule>" Alias "#-55" (ByVal Value As Long)
+                    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub EnsureContainerIsLoaded Lib "<hiddenmodule>" Alias "#129" (ByVal Control As Object)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub ResetFirstMethodAccessFlag Lib "<hiddenmodule>" Alias "#130" (ByVal tbObject As Object)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub MemZero Lib "<hiddenmodule>" Alias "#131" (ByVal ptr As LongPtr, ByVal length As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub GetClasInstanceAxMiscFlags Lib "<hiddenmodule>" Alias "#132" (ByVal classInstance As Object, ByRef outAxFlags As Long)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function GetClassInstanceSerializer Lib "<hiddenmodule>" Alias "#136" (ByVal classInstance As Object) As LongPtr
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function GetClassInstanceRefCount Lib "<hiddenmodule>" Alias "#146" (ByVal classInstance As Object) As Long
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns an array of child controls, given the container control")]
+    Public DeclareWide PtrSafe Function RuntimeGetChildControlsList Lib "<hiddenmodule>" Alias "#137" (ByVal Container As Object, ByVal ControlType As Long) As Variant
+        
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("For internal use only")]
+    Public DeclareWide PtrSafe Function RuntimeCreateGetMessageHook Lib "<hiddenmodule>" Alias "#138" () As IGetMessageHook
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function vbaCastObj Lib "<hiddenmodule>" Alias "#139" (ByVal Obj As stdole.IUnknown, ByVal iid As Any) As stdole.IUnknown
+
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedExchangePointer Lib "<hiddenmodule>" Alias "#140" (ByRef Target As LongPtr, ByVal NewValue As LongPtr) As LongPtr
+    
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedCompareExchangePointer Lib "<hiddenmodule>" Alias "#141" (ByRef Target As LongPtr, ByVal NewValue As LongPtr, ByVal OldValueCompare As LongPtr) As LongPtr
+
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedCompareExchange32 Lib "<hiddenmodule>" Alias "#142" (ByRef Target As Long, ByVal NewValue As Long, ByVal OldValueCompare As Long) As Long
+    
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedCompareExchange64 Lib "<hiddenmodule>" Alias "#143" (ByRef Target As LongLong, ByVal NewValue As LongLong, ByVal OldValueCompare As LongLong) As LongLong
+    
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedIncrement32 Lib "<hiddenmodule>" Alias "#144" (ByRef Target As Long) As Long
+    
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function InterlockedDecrement32 Lib "<hiddenmodule>" Alias "#145" (ByRef Target As Long) As Long
+        
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function GetShortcutTextByEnum Lib "<hiddenmodule>" Alias "#147" (ByVal ShortcutEnumId As Long) As String
+        
+    [UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeSetWithEvents Lib "<hiddenmodule>" Alias "#148" (ByVal eIID As LongPtr, ByVal Container As LongPtr, ByVal InOutObjPtr As LongPtr, ByVal NewObj As LongPtr, ByVal Flags As Long) As String
+
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeReadFileDataBase64 Lib "<hiddenmodule>" Alias "#149" (ByVal FilePath As String) As String
+    
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeRaisePropertyNotifySinkChangedEvent Lib "<hiddenmodule>" Alias "#150" (ByVal Object As Object, ByVal dispId As Long)
+    
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Sub RuntimeGetPropertyPageClsidByName Lib "<hiddenmodule>" Alias "#154" (ByVal PropertyPageName As String, ByRef out As Any)
+    
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(True)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeMapDispIdToPropertyPageClsid Lib "<hiddenmodule>" Alias "#155" (ByVal Instance As Object, ByVal dispId As Long, ByRef out As Any) As Long
+
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(True)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeGetTypeInfoPropertyList Lib "<hiddenmodule>" Alias "#156" (ByVal Instance As Object, ByVal Mode As Long) As String
+    
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(False)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function RuntimeCreateRecurseProtectedObjectWrapper Lib "<hiddenmodule>" Alias "#157" (ByVal Value As Object) As Object
+        
+    [UseGetLastError(False), DLLStackCheck(False), PreserveSig(True), SimplerByVals(True)]
+    [Description("")]
+    Public DeclareWide PtrSafe Function GetInheritedOwner Lib "<hiddenmodule>" Alias "#159" (ByVal Value As Object) As Object
+    
+    [PreserveSig(True), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub SetClassOverrideDispatch Lib "<hiddenmodule>" Alias "#161" (ByVal classInstance As Object, ByVal overrideInstance As Object)
+    
+    
+End Module
+
+[InterfaceId("48C6725B-1D8F-4805-8A8F-5C756526AF6F")]
+Public Interface IGetMessageHook Extends stdole.IUnknown
+    Enum EnumDescendantsModeFlags
+        ExactWindow = 1
+        AllDescendants = 2
+        DirectChildren = 4
+    End Enum
+    Sub RegisterMessage(ByVal ParentHWND As LongPtr, ByVal Mode As EnumDescendantsModeFlags, ByVal MessageType As Integer, ByVal Callback As GetMessageHookHelper.GetMessageHandler)
+    Sub Start()
+    Sub Stop()
+End Interface
+
+Module GetMessageHookHelper
+    Type HookPOINT
+        x As Long
+        y As Long
+    End Type
+    Type HookMSG
+        hwnd As LongPtr
+        message As Long
+        wParam As LongPtr
+        lParam As LongPtr
+        time As Long
+        pt As HookPOINT
+    End Type
+    Public Delegate Function GetMessageHandler (ByRef msg As HookMSG) As LongPtr
+End Module

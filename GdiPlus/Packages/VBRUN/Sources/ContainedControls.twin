@@ -1,0 +1,12 @@
+[InterfaceId("C0324960-2AAA-11CF-AD67-00AA00614F3E")]
+'[ DualInterface, DispInterface]
+[Description("A collection that allows access to the controls contained within the control that were added to the control by the developer who uses the control.")]
+Public Interface ContainedControls Extends stdole.IDispatch
+    [DispId(1)]
+    /* voffset &H001C*/ Property Get Count() As Long
+    [DispId(0)]
+    /* voffset &H0020*/ Property Get Item(ByVal index As Long) As Object
+    [DispId(-4)]
+    /* voffset &H0024*/ Function _NewEnum() As IUnknown
+End Interface
+ 

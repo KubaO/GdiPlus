@@ -1,0 +1,230 @@
+#If FEATURE_PICTUREBOX And FEATURE_LABEL And FEATURE_FRAME And FEATURE_COMMANDBUTTON And FEATURE_CHECKBOX And FEATURE_COMBOBOX And FEATURE_LISTBOX And FEATURE_PROPERTYPAGE And FEATURE_DRAWING Then
+[Description("")]
+[FormDesignerId("C878D560-72EB-40C5-BC0B-3D96E34625A5")]
+[ClassId("^5AAF0EB7-8D85-4509-82BE-EDEBF8B761BF")]              ' will be XOR'd with the root project GUID to provide a stable but unique CLSID
+[InterfaceId("A2AC4F2C-3337-4A86-A7D9-BC713DAAF051")]
+[EventInterfaceId("8177D0F7-0707-4531-AAA2-643992256B1A")]
+Private Class StandardFont
+    
+    Protected InternalNoChange As Boolean = False
+    Protected InternalSelectedPropertyName As String
+    
+    ' Sub New()
+    '     MsgBox "New StandardFont"
+    ' End Sub
+    
+    Protected Sub ApplyChanges() _
+            Handles PropertyPage.ApplyChanges
+        Dim ctl As Object
+        For Each ctl In Me.SelectedControls
+            On Error GoTo NotPutter
+            'MsgBox "trying prop-putref " & InternalSelectedPropertyName
+            CallByName(ctl, InternalSelectedPropertyName, vbSet, CopyStdFont(picSampleText.Font))
+        TryNext:
+            On Error GoTo 0
+        Next
+        Me.Changed = False
+        Exit Sub
+    NotPutter:
+        Resume TrySetter
+    TrySetter:
+        'MsgBox "trying prop-put " & InternalSelectedPropertyName
+        CallByName(ctl, InternalSelectedPropertyName, vbLet, CopyStdFont(picSampleText.Font))
+        GoTo TryNext
+    End Sub
+    
+    Protected Sub SelectionChanged() _
+               Handles PropertyPage.SelectionChanged
+        If lstProperties.ListCount = 0 Then
+            RefreshProperties()
+        End If
+    End Sub
+    
+    Protected Sub RefreshProperties()
+        ' Populate the fonts    
+        Dim fontIdx As Long
+        For fontIdx = 0 To Screen.FontCount - 1
+            lstFonts.AddItem Screen.Fonts(CInt(fontIdx))
+        Next fontIdx
+
+        lstProperties.Clear()
+        
+        If Me.SelectedControls.Count > 0 Then
+            Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+            'MsgBox "FontProps:" & RuntimeGetTypeInfoPropertyList(selectedControl, 1)
+            Dim fontProps As String = RuntimeGetTypeInfoPropertyList(selectedControl, 1)
+            Dim fontProp As String
+            For Each fontProp In Split(fontProps, ";")
+                If Len(fontProp) > 0 Then
+                    lstProperties.AddItem(fontProp)
+                End If
+                NextProp:
+            Next
+        End If
+        
+        If lstProperties.ListCount = 0 Then
+            lstProperties.Enabled = False
+            lstFonts.Enabled = False
+            lstSizes.Enabled = False
+            chkBold.Enabled = False
+            chkItalic.Enabled = False
+            chkUnderline.Enabled = False
+            chkStrikeout.Enabled = False
+        Else
+            lstProperties.ListIndex = 0
+        End If
+        Exit Sub
+    End Sub
+    
+    Protected Sub RefreshSampleText()
+        picSampleText.Cls
+        DoEvents()          ' FIXME why is this needed
+        
+        #If FEATURE_DRAWING Then
+        Dim sampleText As String = picSampleText.Font.Name
+        Dim textWidth As Double = picSampleText.TextWidth(sampleText)
+        Dim textHeight As Double = picSampleText.TextHeight(sampleText)
+        picSampleText.CurrentX = (picSampleText.Width - textWidth) / 2
+        picSampleText.CurrentY = (picSampleText.Height - textHeight) / 2
+        picSampleText.Print sampleText
+        #End If
+    End Sub
+    
+    Protected Function CopyStdFont(ByRef origFont As StdFont) As StdFont
+        Dim copyFont As StdFont = New StdFont
+        If origFont IsNot Nothing Then
+            copyFont.Name = origFont.Name
+            copyFont.Size = origFont.Size
+            copyFont.Bold = origFont.Bold
+            copyFont.Underline = origFont.Underline
+            copyFont.Italic = origFont.Italic
+            copyFont.Strikethrough = origFont.Strikethrough
+        End If
+        Return copyFont
+    End Function
+    
+    Protected Sub lstPropertiesClick() _ 
+            Handles lstProperties.Click
+        If Me.Changed = True Then
+            ApplyChanges() ' auto apply change when switching properties
+        End If
+
+        InternalSelectedPropertyName = lstProperties.Text
+'        MsgBox(lstProperties.List(lstProperties.ListIndex))        
+        Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+        Dim origFont As StdFont = CType(Of StdFont)(CallByName(selectedControl, InternalSelectedPropertyName, vbGet))
+        Dim copyFont As StdFont = CopyStdFont(origFont)
+        Set picSampleText.Font = copyFont
+        InternalNoChange = True
+        lstFonts.Text = copyFont.Name
+        lstSizes.Text = CStr(copyFont.Size)
+        chkBold.Value = If(copyFont.Bold, vbChecked, vbUnchecked)
+        chkItalic.Value = If(copyFont.Italic, vbChecked, vbUnchecked)
+        chkUnderline.Value = If(copyFont.Underline, vbChecked, vbUnchecked)
+        chkStrikeout.Value = If(copyFont.Strikethrough, vbChecked, vbUnchecked)
+        InternalNoChange = False
+        RefreshSampleText()
+    End Sub
+    
+    Protected Sub lstSizesClick() _ 
+               Handles lstSizes.Click, lstSizes.Change
+        If InternalNoChange = False Then
+            picSampleText.Font.Size = CDbl(lstSizes.Text)
+            RefreshSampleText()
+            Me.Changed = True
+        End If
+    End Sub
+    
+    Protected Sub chkBoldClick() _ 
+               Handles chkBold.Click
+        If InternalNoChange = False Then
+            picSampleText.Font.Bold = If(chkBold.Value = vbChecked, True, False)
+            RefreshSampleText()
+            Me.Changed = True
+        End If
+    End Sub
+    
+    Protected Sub chkItalicClick() _ 
+                  Handles chkItalic.Click
+        If InternalNoChange = False Then
+            picSampleText.Font.Italic = If(chkItalic.Value = vbChecked, True, False)
+            RefreshSampleText()
+            Me.Changed = True
+        End If
+    End Sub
+    
+    Protected Sub chkUnderlineClick() _ 
+                  Handles chkUnderline.Click
+        If InternalNoChange = False Then
+            picSampleText.Font.Underline = If(chkUnderline.Value = vbChecked, True, False)
+            RefreshSampleText()
+            Me.Changed = True
+        End If
+    End Sub
+    
+    Protected Sub chkStrikeoutClick() _ 
+                  Handles chkStrikeout.Click
+        If InternalNoChange = False Then
+            picSampleText.Font.Strikethrough = If(chkStrikeout.Value = vbChecked, True, False)
+            RefreshSampleText()
+            Me.Changed = True
+        End If
+    End Sub
+        
+    Protected Sub lstSizesKeyPress(KeyAscii As Integer) _ 
+                  Handles lstSizes.KeyPress
+        If (KeyAscii >= Asc("0")) And (KeyAscii <= Asc("9")) Then
+        ElseIf KeyAscii = Asc(".") Then
+        ElseIf KeyAscii = vbKeyBack Then
+        ElseIf KeyAscii = vbKeyDelete Then
+        Else
+            KeyAscii = 0
+        End If
+    End Sub
+    
+    Protected Function IsFontNameValid(FontName As String) As Boolean
+        Dim fontIdx As Long
+        For fontIdx = 0 To Screen.FontCount - 1
+            If StrComp(Screen.Fonts(CInt(fontIdx)), FontName, vbTextCompare) = 0 Then
+                Return True
+            End If
+        Next fontIdx
+        Return False
+    End Function
+    
+    Protected Sub lstFontsChange() _
+            Handles lstFonts.Change, lstFonts.Click
+        If InternalNoChange = False Then
+            ' See if the entered value is a real font
+            If IsFontNameValid(lstFonts.Text) Then
+                chkBold.Enabled = True
+                chkItalic.Enabled = True
+                chkUnderline.Enabled = True
+                chkStrikeout.Enabled = True
+                lstSizes.Enabled = True
+                picSampleText.Enabled = True
+                picSampleText.Font.Name = lstFonts.Text
+                picSampleText.Font.Size = CDbl(lstSizes.Text)
+                picSampleText.Font.Bold = If(chkBold.Value = vbChecked, True, False)
+                picSampleText.Font.Italic = If(chkItalic.Value = vbChecked, True, False)
+                picSampleText.Font.Underline = If(chkUnderline.Value = vbChecked, True, False)
+                picSampleText.Font.Strikethrough = If(chkStrikeout.Value = vbChecked, True, False)
+                picSampleText.BackColor = vbWhite
+                RefreshSampleText()
+                Me.Changed = True
+            Else
+                picSampleText.Cls
+                chkBold.Enabled = False
+                chkItalic.Enabled = False
+                chkUnderline.Enabled = False
+                chkStrikeout.Enabled = False
+                lstSizes.Enabled = False
+                picSampleText.Enabled = False
+                picSampleText.BackColor = RGB(215, 215, 215)
+                Me.Changed = False
+            End If
+        End If
+    End Sub
+    
+End Class
+#End If

@@ -1,0 +1,72 @@
+{
+	"configuration.inherits": "Defaults",
+	"project.appTitle": "GdiPlus",
+	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
+	"project.buildType": "Standard EXE",
+	"project.description": "GdiPlus",
+	"project.exportAfterSave": true,
+	"project.exportPath": "${SourcePath}\\${ProjectName}",
+	"project.exportPathIsV2": true,
+	"project.featureFlagsUI": 134217770,
+	"project.featureFlagsUI2": 4294958593,
+	"project.forceDpiAwarenessAtStartup": "SYSTEM_DPI_AWARE",
+	"project.id": "{36057D8B-2239-4205-A267-309AE927D5B7}",
+	"project.largeAddressAware": true,
+	"project.name": "GdiPlus",
+	"project.optionExplicit": true,
+	"project.references": [
+		{
+			"hasBeenSplit": true,
+			"id": "{F50B82D0-DCAB-43FE-9631-11959D4A4728}",
+			"isCompilerPackage": true,
+			"licence": "MIT",
+			"name": "[COMPILER PACKAGE] twinBASIC - VB Compatibility Package (Forms)",
+			"path32": "/Packages/WindowsControlsPackage",
+			"path64": "/Packages/WindowsControlsPackage",
+			"publishedDate": "09-FEB-2022",
+			"publishedTime": "15:48:54",
+			"publisher": "TWINBASIC-COMPILER",
+			"symbolId": "VB",
+			"versionBuild": 0,
+			"versionMajor": 0,
+			"versionMinor": 0,
+			"versionRevision": 31
+		},
+		{
+			"id": "{00020430-0000-0000-C000-000000000046}",
+			"lcid": 0,
+			"name": "OLE Automation",
+			"path32": "C:\\Windows\\SysWow64\\stdole2.tlb",
+			"path64": "C:\\Windows\\System32\\stdole2.tlb",
+			"symbolId": "stdole",
+			"versionMajor": 2,
+			"versionMinor": 0
+		},
+		{
+			"autoCtlExt": true,
+			"id": "{1FCDB98D-617D-4995-9736-2ED0E4746A10}",
+			"licence": "CC0 1.0 Universal",
+			"name": "[IMPORTED] Windows Development Library for twinBASIC v9.2.634",
+			"path32": "/Packages/WinDevLib",
+			"path64": "/Packages/WinDevLib",
+			"publishedDate": "27-DEC-2025",
+			"publishedTime": "13:32:10",
+			"publisher": "fafalone",
+			"symbolId": "WinDevLib",
+			"versionBuild": "634",
+			"versionMajor": "9",
+			"versionMinor": "2",
+			"versionRevision": "0"
+		}
+	],
+	"project.settingsVersion": 1,
+	"project.startupObject": "Form1",
+	"project.warnings": {
+		"errors": [],
+		"hints": [],
+		"ignored": [],
+		"info": [],
+		"warnings": []
+	},
+	"runtime.useUnicodeStandardLibrary": true
+}

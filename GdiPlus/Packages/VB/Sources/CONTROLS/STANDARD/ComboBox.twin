@@ -1,0 +1,1052 @@
+#If FEATURE_COMBOBOX Then
+Private Class ComboBoxEDITSubclasser
+    Implements IWindowElementEventsCommon
+    Protected ComboBox As ComboBoxBaseCtl    'CAREFUL! circular ref, has to be broken manually by owner
+    Public WindowHandleEDIT As WindowElement
+    #If FEATURE_OLEDRAGDROP Then
+    Protected MouseDownNeedsManualRelease As Boolean
+    Protected isPointerOverSelection As Boolean
+    #end if
+
+    Sub New(ByRef ComboBox As ComboBoxBaseCtl, ByVal ComboBoxContext As ControlContext, ByVal hwnd As LongPtr, ByVal Flags As Long)
+        Set Me.ComboBox = ComboBox
+        WindowHandleEDIT.Pointer = ComboBoxContext.RuntimeUICtxSubClassWindowElement(hwnd, Flags)
+        WindowHandleEDIT.RuntimeUIActivatePrePostMessages(True)
+        WindowHandleEDIT.RuntimeUISetAndSinkEvents(Me)
+    End Sub
+    
+    Sub Class_Terminate()
+        'Debug.Print "~ComboBoxEDITSubclasser"
+        'Debug.TracePrint "ComboBox EDIT unsubclass"
+        WindowHandleEDIT.RuntimeUIUnSubclass()
+        WindowHandleEDIT.RuntimeUIUnSinkEvents(Me)
+    End Sub
+    
+    Public Function SendMessageEditCtl(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+        Return WindowHandleEDIT.SendMessage(msg, wParam, lParam)
+    End Function
+    
+    Public Property Get IsReadOnly() As Boolean
+        Return Me.WindowHandleEDIT.GetStyleFlag(ES_READONLY)
+    End Property
+    
+    Public Property Let IsReadOnly(ByVal Value As Boolean)
+        SendMessageEditCtl(EditMessages.EM_SETREADONLY, If(Value, 1, 0), 0)
+    End Property
+    
+    Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+            Implements IWindowElementEventsCommon.GetColors
+
+        UnprotectedAccess(ComboBox).InternalHandleGetColors(hdc, BackBrushOut, ControlType)
+    End Sub
+    
+    #If FEATURE_OLEDRAGDROP Then
+    Protected Sub HandleMouseMove(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants, _
+                                    ByVal X As Single, ByVal Y As Single) _
+            Implements IWindowElementEventsCommon.MouseMove
+                
+        If ComboBox.OLEDragMode = vbOLEDragAutomatic Then
+            ' If the pointer is over a selected area of text, then that becomes the OLE drop source
+            '  (i.e. the pointer changes from IBeam to pointer, and dragging works)
+            ' Shamelessly looted from VBCCR
+            Dim WindowHandleEDIT As Any = Me.WindowHandleEDIT
+            Dim P1 As POINT
+            WindowHandleEDIT.RuntimeUIGetHandle().CommonCursorPosRelativeToWindow(P1)
+                
+            Dim SelStart As Long
+            Dim SelEnd As Long
+            Dim pointerCharPos As Long = CLng(SendMessageEditCtl(EM_CHARFROMPOS, 0, P1.x + (P1.y << 16)) And &HFFFF&)
+            Dim pointerPos As Long = CLng(SendMessageEditCtl(EM_POSFROMCHAR, pointerCharPos, 0))
+            SendMessageEditCtl(EM_GETSEL, VarPtr(SelStart), VarPtr(SelEnd))
+            isPointerOverSelection = ((pointerCharPos >= SelStart) And (pointerCharPos <= SelEnd) And (pointerPos > -1) And ((SelEnd - SelStart) > 0))
+            WindowHandleEDIT.RuntimeUIOverrideCursor(If(isPointerOverSelection, vbArrow, vbDefault))
+        End If
+    End Sub
+        
+    Protected Sub HandlePreMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants, _
+                                    ByVal X As Single, ByVal Y As Single, _
+                                    ByRef SwallowMessage As Boolean) _
+            Implements IWindowElementEventsCommon.PreMouseDown
+                
+        If ComboBox.OLEDragMode = vbOLEDragAutomatic And Me.isPointerOverSelection Then
+            If WindowHandleEDIT.CommonDragDetect() Then
+                #If FEATURE_OLEDRAGDROP Then
+                If CommonOLEDrag(Me, ComboBox.SelText, False, True) = vbDropEffectMove Then
+                    ComboBox.SelText = ""
+                End If
+                #End If
+            Else
+                MouseDownNeedsManualRelease = True
+            End If
+        End If
+    End Sub
+    
+    Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants, _
+                                    ByVal X As Single, ByVal Y As Single) _
+            Implements IWindowElementEventsCommon.MouseDown
+                
+        If MouseDownNeedsManualRelease = True Then
+            MouseDownNeedsManualRelease = False
+            USER32.ReleaseCapture()
+        End If
+    End Sub
+    
+    Protected Sub HandlePaint(Handled As Boolean) _
+            Implements IWindowElementEventsCommon.Paint
+        UnprotectedAccess(ComboBox).InternalEnforceSimpleListIntegralHeight()
+    End Sub 
+         
+    Protected Sub HandlePreProcessMessage(ByVal hwnd As LongPtr, ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, MutedReturnValue As Variant, PostMessageCookie As Long) _
+                   Implements IWindowElementEventsCommon.PreProcessMessage
+        If Message = WM_KEYDOWN Then
+            If (wParam = vbKeyUp) Or (wParam = vbKeyDown) Or (wParam = vbKeyPageUp) Or (wParam = vbKeyPageDown) Then
+                If ComboBox.Locked Then
+                    MutedReturnValue = 0
+                End If
+            End If
+        ElseIf Message = WM_MOUSEWHEEL Then
+            If ComboBox.Locked Then
+                MutedReturnValue = 0
+            End If
+        End If
+    End Sub
+    #end if
+End Class
+    
+Private Class ComboBoxLISTSubclasser
+    Implements IWindowElementEventsCommon
+    Protected ComboBox As ComboBoxBaseCtl    'CAREFUL! circular ref, has to be broken manually by owner
+    Public WindowHandleLIST As WindowElement
+
+        Sub New(ByRef ComboBox As ComboBoxBaseCtl, ByVal ComboBoxContext As ControlContext, ByVal hwnd As LongPtr, ByVal Flags As Long)
+            Set Me.ComboBox = ComboBox
+            WindowHandleLIST.Pointer = ComboBoxContext.RuntimeUICtxSubClassWindowElement(hwnd, Flags)
+            WindowHandleLIST.RuntimeUIActivatePrePostMessages(True)
+            WindowHandleLIST.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Sub Class_Terminate()
+'            Debug.Print "~ComboBoxLISTSubclasser"
+            'Debug.TracePrint "ComboBox EDIT unsubclass"
+            WindowHandleLIST.RuntimeUIUnSubclass()
+            WindowHandleLIST.RuntimeUIUnSinkEvents(Me)
+        End Sub
+        
+        Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+
+            UnprotectedAccess(ComboBox).InternalHandleGetColors(hdc, BackBrushOut, ControlType)
+        End Sub
+        
+        Type ShortPOINTS
+            X As Integer
+            Y As Integer
+        End Type
+        
+        Protected Sub HandleWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+
+            If Horizontal = False Then
+                UnprotectedAccess(ComboBox).InternalCheckTopIndexChanged(ComboBox.WheelScrollEvent)
+            End If
+        End Sub
+        
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+                
+            If WindowHandleLIST.CommonHandleVerticalScroll(ScrollType, ComboBox.ListCount) Then
+                RaiseEventByName(ComboBox, "Scroll")
+            End If
+        End Sub
+        
+        Protected Sub PreProcessMessage(ByVal hwnd As LongPtr, ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, MutedReturnValue As Variant, PostMessageCookie As Long) _
+                Implements IWindowElementEventsCommon.PreProcessMessage
+                
+            Select Case Message
+                Case WM_MOUSEMOVE, WM_KEYDOWN
+                    If ComboBox.Locked Then
+                        MutedReturnValue = 0
+                    End If
+                Case WM_LBUTTONDOWN
+                    If ComboBox.Locked Then
+                        Dim listRect As tbRECT = WindowHandleLIST.GetClientRect()
+                        Dim listWidth As Long = (listRect.Right - listRect.Left)
+                        Dim listHeight As Long = (listRect.Bottom - listRect.Top)
+                        
+                        ' Only prevent this if the click is ON our list.  If it is outside the list, then pass it on
+                        Dim X As Integer = CType(Of ShortPOINTS)(VarPtr(lParam)).X
+                        Dim Y As Integer = CType(Of ShortPOINTS)(VarPtr(lParam)).Y
+                        If (X < 0) Or (Y < 0) Or (X > listWidth) Or (Y > listHeight) Then
+                            ' Click is outside of the list
+                        Else
+                            ' Click is inside of the list, consume it.
+                            MutedReturnValue = 0
+                        End If
+                    End If
+            End Select
+        End Sub
+        
+End Class
+
+[ClassId("F49CBB8B-7C72-40BA-9EF9-483C9E4737E3")]
+[InterfaceId("769A6BB2-5E8C-43BE-93F8-C816A1BFA4A4")] ' FIXME implement {33AD4F09-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class ComboBoxBaseCtl
+     
+    #Region "INHERITANCE"
+
+        Inherits BaseControlFocusable
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements ITwinBasicDesignerExtensions2
+        Implements IScheduledCallback
+        Implements IWindowElementEventsCommon
+         
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description(""), Serialize(True, "!Style")]
+            Public Style As VBRUN.ComboBoxConstants '= VBRUN.ComboBoxConstants.vbComboDropdown   ' this is correct for import purposes.
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = VBRUN.ControlBorderStyleConstants.vbFixedSingleBorder
+        [Description(""), Serialize(True, "!Sorted")]
+            Public Sorted As Boolean
+        [Description(""), Serialize(True, "!IntegralHeight")]
+            Public IntegralHeight As Boolean = True
+        [Serialize(False)]
+        [Description("")]
+            Public NewIndex As Long
+        [Description("VB6 doesn't trigger the Scroll event for mouse-wheel events.  Set this to True to generate Scroll events in response to mouse-wheel notifications")]
+            Public WheelScrollEvent As Boolean = True
+
+        [Serialize(True, "Locked")]
+        [Description("")]
+            Protected LockedINIT As Boolean
+        [Serialize(True, "ItemData")]
+        ' This field is purposely declared as a Long not LongPtr, since item data stored in the form designer needs to be platform agnostic
+            Protected ItemData_INIT() As Long
+        [Serialize(True, "List")]
+            Protected List_INIT() As String
+        [Serialize(True, "Text")]
+            Protected Text_INIT As String
+            
+            Protected PendingSyncScrollbar As Boolean
+            Protected CachedTopIndex As Long
+            Protected IsInitializing As Boolean
+            Protected IsDesignMode As Boolean
+            #If FEATURE_OLEDRAGDROP Then
+            Protected OLEDragDropHandler As OLEDragDropHandler
+            
+            Public OLEDragMode As VBRUN.OLEDragConstants
+        
+            [CustomDesigner("designer_RestrictedOLEDropMode")]
+                Public OLEDropMode As VBRUN.OLEDropConstants
+            #End If
+            
+            Protected IsDropped As Boolean
+            Protected EDITSubclasser As ComboBoxEDITSubclasser
+            Protected LISTSubclasser As ComboBoxLISTSubclasser
+            Protected SubclasssersTiedToHwnd As HWND
+            
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+
+            
+        [Description("When DropDownVisibleItemsCount = 0, the system decides the item count of the drop down list.  Set to any other value to set a fixed row height.")]
+            Public MaxDropDownItems As Long = 0
+            
+            Protected InternalMuteChangeEvent As Boolean
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #endif
+        
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end if
+            
+    #End Region
+
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+            Event Change()
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+            Event DropDown()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+            Event Scroll()
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+            Event CloseUp()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+
+    #End Region
+
+    #Region "MEMBERS"
+
+        Public Sub New()
+            BaseControlFocusable.New(ControlTypeConstants.vbComboBox)
+        End Sub
+    
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+    
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                                           
+            Me.InternalStateReset()     ' resets all the base class state
+            
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            
+            Me.NewIndex = -1
+            Me.CachedTopIndex = 0
+            Me.IsInitializing = True
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "ComboBox"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderComboBox)
+            InitData.Caption = Me.Text_INIT
+            InitData.WindowStyles = GetStyles()
+            InitData.Flags = NeedsPrePostMessages Or _
+                                ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardDragOver Or _
+                                ForwardValidate
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Protected Function GetStyles() As Long
+            Dim styles As Long = CLng(ComboBoxStyles.CBS_HASSTRINGS) + ComboBoxStyles.CBS_AUTOHSCROLL + _
+                        If(Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder, WS_BORDER, 0&) + _
+                        If(Me.Sorted, ComboBoxStyles.CBS_SORT, 0&) + _
+                        If(Me.IntegralHeight = False, ComboBoxStyles.CBS_NOINTEGRALHEIGHT, 0&)
+            
+            Dim cbStyles As Long
+            Select Case Me.Style
+                Case vbComboDropdown: cbStyles = ComboBoxStyles.CBS_DROPDOWN
+                Case vbComboSimple: cbStyles = ComboBoxStyles.CBS_SIMPLE
+                Case vbComboDropdownList: cbStyles = ComboBoxStyles.CBS_DROPDOWNLIST ': Debug.Print "Dropdownlist!"
+            End Select
+            
+            Return styles + cbStyles
+        End Function
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            Dim OLEDragDropHandler As Any = Me.OLEDragDropHandler
+            If OLEDragDropHandler IsNot Nothing Then OLEDragDropHandler.Disconnect()
+            #end if
+
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            Set Me.Font = Nothing
+            UnsubclassNow()
+           
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub UnsubclassNow()
+            ' This ensures we unsubclass before hitting WM_NCDESTROY, which can cause hard crashes if not done.
+            'Debug.Print "UnsubclassNow! "
+            Set Me.LISTSubclasser = Nothing
+            Set Me.EDITSubclasser = Nothing
+        End Sub
+
+        Protected Sub PostProcessMessage(ByVal hwnd As LongPtr, ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef ReturnValue As LongPtr, ByVal PostMessageCookie As Long) _
+                Implements IWindowElementEventsCommon.PostProcessMessage
+
+            If IsInitializing = True Then Exit Sub
+                
+            Select Case Message
+                Case ComboBoxMessages.CB_ADDSTRING, _
+                        ComboBoxMessages.CB_INSERTSTRING, _
+                        ComboBoxMessages.CB_DELETESTRING, _
+                        ComboBoxMessages.CB_RESETCONTENT
+                    If PendingSyncScrollbar = False Then
+                        ' Calling SyncScrollBarNow causes a performance hit, see https://github.com/twinbasic/twinbasic/issues/1968
+                        PendingSyncScrollbar = True
+                        ControlContext.RuntimeUICtxScheduleCallback(Me)
+                    End If
+                    
+                Case WM_SETFONT
+                    Dim ListSubclasser As Any = Me.LISTSubclasser
+                    If ListSubclasser IsNot Nothing Then
+                        'Debug.Print "COMBO: Got WM_SETFONT"
+                        ' We have to send a matching font change to the LIST, otherwise item height does not get reported properly
+                        ListSubclasser.WindowHandleLIST.RuntimeUIGetHandle().SendMessageW(WM_SETFONT, wParam, lParam)
+                        SyncScrollBarNow
+                    End If
+                    
+                Case WM_DESTROY
+                    If hwnd = Me.SubclasssersTiedToHwnd Then
+                        UnsubclassNow()
+                    End If
+                    
+            End Select
+        End Sub
+
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            'Stop
+            
+            ' Set the font into the control first.  If IntegralHeight is active, then the control will adjust accordingly.
+            SyncFontProperties()
+            Dim style As Any = Me.Style
+            If style <> vbComboSimple Then
+                Me.InternalSyncHeight()
+            End If
+            
+            ' Subclass the OS provided list and edit controls for this combo.
+            Dim info As Any = RootWindowElementBase.GetComboBoxInfo()
+            Dim FlagsList As Long
+            Dim FlagsEdit As Long
+            
+            If style = vbComboDropdownList Then
+                FlagsList = ForwardGotFocus Or ForwardLostFocus
+                FlagsEdit = ForwardGotFocus Or ForwardLostFocus
+            Else
+                FlagsList = ForwardGotFocus Or ForwardLostFocus
+                FlagsEdit = ForwardGotFocus Or ForwardLostFocus Or ForwardKeyDown Or ForwardKeyUp Or ForwardKeyPress
+            End If
+            
+            'Debug.TracePrint "ComboBox.HandleCreate " & Hex(ObjPtr(Me))
+            
+            ' FIXME why is this getting here twice (for PPages like VBCCR.TreeView anyway)
+            Set Me.LISTSubclasser = Nothing
+            Set Me.EDITSubclasser = Nothing
+            
+            'Debug.Print "HWND: " & Me.hWnd, ", info.hwndItem: ", info.hwndItem
+            If info.hwndList <> 0 Then
+                Set Me.LISTSubclasser = New ComboBoxLISTSubclasser(Me, Me.ControlContext, info.hwndList, FlagsEdit)
+            End If
+            If info.hwndItem <> 0 Then
+                Set Me.EDITSubclasser = New ComboBoxEDITSubclasser(Me, Me.ControlContext, info.hwndItem, FlagsEdit Or MuteSpecialKeyBeeps)
+            End If
+            Me.SubclasssersTiedToHwnd = Me.hWnd     ' we use this to prevent WM_DESTROY handling from wrongly unsubsclassing when the control is being rebuilt (SyncRecreate), because WM_DESTROY occurs AFTER this setup code on the next HWND 
+            
+            'Debug.Print "New Me.EDITSubclasser: " & ObjPtr(Me.EDITSubclasser)
+            
+            Dim LISTSubclasser As Any = Me.LISTSubclasser
+            If LISTSubclasser IsNot Nothing Then
+                LISTSubclasser.WindowHandleLIST.SetStyleFlag(WS_VSCROLL, True)
+            End If
+            
+            Me.Locked = Me.LockedINIT
+            
+            If (Me.IsDesignMode = False) OrElse (style <> vbComboDropdownList) Then
+                ' FIXME could send CB_INITSTORAGE to pre-allocate the storage here
+                Dim Item As String
+                For Each Item In Me.List_INIT
+                    AddItem(Item)
+                Next
+
+                ' FIXME handle ItemData list is longer than List
+                Dim ItemData As Long
+                Dim ItemDataIndex As Long
+                For Each ItemData In Me.ItemData_INIT
+                    Me.ItemData(ItemDataIndex) = CLngPtr(ItemData)
+                    ItemDataIndex += 1
+                Next
+
+                InternalMuteChangeEvent = True
+                Me.Text = Me.Text_INIT
+                InternalMuteChangeEvent = False
+            Else
+            	' Match VBx behaviour here - use the control name as a fake Text
+                AddItem(Me.Name)
+                Me.ListIndex = 0
+            End If
+            
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #endif
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #End If
+            
+            RaiseEvent Initialize()
+            IsInitializing = False
+        End Sub
+        
+        Protected Sub SyncRecreate() _
+                Handles Style.OnPropertyLet, _
+                        Sorted.OnPropertyLet, _
+                        IntegralHeight.OnPropertyLet
+            'Debug.Print "SyncRecreate"
+            Dim Locked As Any = Me.Locked
+            Dim Text As Any = Me.Text
+            Dim ListIndex As Any = Me.ListIndex
+            Dim ListCount As Any = Me.ListCount
+
+            Dim List() As String
+            Dim ItemData() As LongPtr
+            ReDim List(ListCount)
+            ReDim ItemData(ListCount)
+            
+            Dim index As Long
+            While index < ListCount
+            	List(index) = Me.List(index)
+            	ItemData(index) = Me.ItemData(index)
+                index += 1
+            Wend
+            
+            Erase List_INIT ' prevent auto repopulation from the initialization data
+            Erase ItemData_INIT
+            
+            RecreateWindow(GetStyles())
+            'MsgBox ListCount
+            index = 0
+            While index < ListCount
+                AddItem(List(index))
+            	Me.ItemData(index) = ItemData(index)
+                index += 1
+            Wend
+            'MsgBox Me.ListCount
+                        
+            Me.Locked = Locked
+            Me.Text = Text
+            If ListIndex <> -1 Then Me.ListIndex = ListIndex
+
+            'Debug.Print ObjPtr(Me.EDITSubclasser)
+        End Sub
+        
+        Protected Sub InternalEnforceSimpleListIntegralHeight()
+            If (Me.Style = vbComboSimple) And (Me.IntegralHeight) Then
+                If Me.LISTSubclasser IsNot Nothing Then
+                    Dim rectOuter As tbRECT
+                    Dim rectList As tbRECT
+                    Me.InternalHWND.GetWindowRect(rectOuter)
+                    LISTSubclasser.WindowHandleLIST.RuntimeUIGetHandle().GetWindowRect(rectList)
+                    'Debug.Print Me.Name & ", list-top: " & Abs(rectList.Top) & ", list-bottom: " & Abs(rectList.Bottom)
+                    'Debug.Print Me.Name & ", list size diff: " & (Abs(rectOuter.Bottom) - Abs(rectList.Bottom))
+                    rectOuter.Bottom = rectList.Bottom
+                    With InternalBaseControlInfo
+                        .PixelsHeight = RootWindowElementBase.RuntimeUIScaleY(rectOuter.Bottom - rectOuter.Top, vbPixels, vbScaledPixels)
+                    '    Debug.Print Me.Name & ", integral height (before): " & PixelsHeightINIT
+                    '    Debug.Print Me.Name & ", integral height (after): " & .PixelsHeight
+                        If .PixelsHeight > Int(.PixelsHeight) Then
+                            .PixelsHeight = CLng(Int(.PixelsHeight)) + 1
+                        End If
+                    End With
+                    'Me.InternalSyncDesignerDimensions()
+                End If
+            End If
+        End Sub
+        
+        Protected Sub InternalHandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+
+            ' FIXME hide me
+            HandleGetColorsCommon2(hdc, BackBrushOut, Me)
+        End Sub
+        
+        ' Protected Sub HandleEraseBackground(ByVal hdc As LongPtr, ByRef Handled As Boolean) _
+        '         Handles WindowHandleLIST.EraseBackground
+                
+        '     Dim rect As tbRECT = USER32_GetClientRect(Me.WindowHandleLIST)
+        '     'Dim bkColorBrush As LongPtr = CreateSolidBrush(TranslateColor(BackColor))'USER32_GetSysColorBrush(5) ' COLOR_WINDOW()
+        '     Dim bkColorBrush As LongPtr = CreateSolidBrush(vbRed) 'USER32_GetSysColorBrush(5) ' COLOR_WINDOW()
+        '     USER32_FillRectangle(hdc, rect, bkColorBrush)
+        '     Handled = True     ' swallow up the event
+        ' End Sub
+        
+        Protected Function InternalCheckTopIndexChanged(Optional ByVal RaiseScrollEvent As Boolean = True) As Boolean
+            ' FIXME hide me
+            Dim topIndex As Long = Me.TopIndex
+            'Debug.Print "InternalCheckTopIndexChanged.0, topIndex:" & topIndex & ", CachedTopIndex: " & CachedTopIndex
+            If CachedTopIndex <> topIndex Then
+                CachedTopIndex = topIndex
+                'Debug.Print "InternalCheckTopIndexChanged.1"
+                
+                If LISTSubclasser IsNot Nothing Then
+                    'Debug.Print "InternalCheckTopIndexChanged.2"
+                    LISTSubclasser.WindowHandleLIST.SetScrollValue(Me.TopIndex, SB_VERT)
+                End If
+                If RaiseScrollEvent Then RaiseEvent Scroll
+                Return True
+            End If
+            Return False
+        End Function
+
+        Protected Sub HandleCommand(ByVal NotificationCode As ComboBoxNotifications, _
+                                    ByVal Identifier As Integer, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Command
+                
+            Select Case NotificationCode
+                Case CBN_SELCHANGE
+                    'Debug.Print "CBN_SELCHANGE"
+                    Dim SelIndex As Long = Me.ListIndex
+                    If (Me.Style <> vbComboDropdownList) And (Me.EDITSubclasser IsNot Nothing) Then
+                        Me.InternalMuteChangeEvent = True
+                        Me.Text = Me.List(SelIndex)
+                        Me.InternalMuteChangeEvent = False
+                    End If
+                    Call InternalCheckTopIndexChanged
+                    RaiseEvent Click
+                    Handled = True
+                Case CBN_EDITCHANGE
+                    #If FEATURE_DATA_BINDINGS Then
+                    OnDataChanged()
+                    #End If
+                    RaiseEvent Change()
+                    Handled = True
+                Case CBN_DBLCLK
+                    RaiseEvent DblClick()
+                    Handled = True
+                Case CBN_DROPDOWN
+                    ' Dim info As Any = WindowsAPI.USER32_GetComboBoxInfo(Me.RootWindowElementBase)                    
+                    
+                    If LISTSubclasser IsNot Nothing Then
+                        Dim rc As tbRECT
+                        Dim listHwnd As Any = LISTSubclasser.WindowHandleLIST.RuntimeUIGetHandle()
+                        listHwnd.GetWindowRect(rc)
+                        Dim itemHeight As Long = CLng(RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(CB_GETITEMHEIGHT, 0, ByVal vbNullPtr))
+                        
+                        If Me.MaxDropDownItems Then
+                            Dim maxItemCount As Long
+                            If Me.ListCount > MaxDropDownItems Then
+                                maxItemCount = Me.MaxDropDownItems
+                            Else
+                                maxItemCount = Me.ListCount
+                            End If
+                            RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(CB_SETMINVISIBLE, maxItemCount, 0)
+                            listHwnd.SetWindowPos(vbNullPtr, rc.Left, rc.Top, rc.Right - rc.Left, (itemHeight * maxItemCount) + 1, SWP_NOZORDER Or SWP_NOACTIVATE)
+                        Else
+                            'If Me.IntegralHeight = False Then
+                                ' this is also required when IntegralHeight is ON, for the case when the built EXE doesn't have a Visual Styles manifest
+                                ' FIXME bodge fix.  not sure why this is currently necessary, but without it, the default
+                                ' list height is 1 pixel
+                            'MsgBox "Fixing drop height: " & itemHeight & ", old height: " & (rc.Bottom - rc.Top)
+                                'If (rc.Bottom - rc.Top) < itemHeight Then
+                                    'MsgBox "itemHeight: " & itemHeight
+                                    'Debug.Print "rc.Bottom - rc.Top: " & (rc.Bottom - rc.Top)
+                                    listHwnd.SetWindowPos(vbNullPtr, rc.Left, rc.Top, rc.Right - rc.Left, (itemHeight * 8) + 1, SWP_NOZORDER Or SWP_NOACTIVATE)
+                                'End If
+                            'End If
+                        End If
+                        
+                        'Me.ScheduleCallback(Me)
+                        
+                        'SyncScrollBarNow
+                    End If
+                    
+                    IsDropped = True
+                    RaiseEvent DropDown()
+                    Handled = True
+                Case CBN_CLOSEUP
+                    IsDropped = False
+                    RaiseEvent CloseUp()
+                    Handled = True
+            End Select
+        End Sub
+        
+        Public Sub AddItem(ByVal Value As String, Optional ByVal Index As Variant)
+            Dim strPointer As Any = StrPtrSafe(Value)
+            Const WM_SETREDRAW As Long = &HB
+            'Me.SendMessageCtl(WM_SETREDRAW, 0, 0)
+            If IsMissing(Index) Then
+                Me.NewIndex = CLng(SendMessageCtl(ComboBoxMessages.CB_ADDSTRING, 0, strPointer))
+            Else
+                ' FIXME error when Index is out of range
+                Me.NewIndex = CLng(SendMessageCtl(ComboBoxMessages.CB_INSERTSTRING, CLng(Index), strPointer))
+            End If
+            'Me.SendMessageCtl(WM_SETREDRAW, 1, 0)
+        End Sub
+        
+        Public Sub RemoveItem(ByVal Index As Variant)
+            SendMessageCtl(ComboBoxMessages.CB_DELETESTRING, CLng(Index), 0)
+        End Sub
+        
+        Public Sub Clear()
+            SendMessageCtl(ComboBoxMessages.CB_RESETCONTENT, 0, 0)
+        End Sub
+        
+        Protected Sub SyncScrollBarNow()
+            If LISTSubclasser IsNot Nothing Then
+            	LISTSubclasser.WindowHandleLIST.CommonSyncScrollBarV(Me.ListCount - 1)
+            End If
+        End Sub
+                
+        [Serialize(False)]
+        Public Property Get ItemData(ByVal Index As Long) As LongPtr
+            ' FIXME error if out of range
+            ' Note Index is limited to 32767 due to Win95/98/ME support (see docs for CB_GETTEXT)
+            ' FIXME In the official matching _ListBox interface, we need to change Index to Integer
+            Return SendMessageCtl(ComboBoxMessages.CB_GETITEMDATA, Index, 0)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let ItemData(ByVal Index As Long, ByVal Value As LongPtr)
+            ' FIXME error if out of range
+            SendMessageCtl(ComboBoxMessages.CB_SETITEMDATA, Index, Value)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get List(ByVal Index As Long) As String
+        	Return RootWindowElementBase.CommonGetComboBoxStringByIndex(Index)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let List(ByVal Index As Long, ByVal Value As String)
+            ' FIXME error if out of range
+            RemoveItem(Index)
+            AddItem(Value, Index)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListCount() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETCOUNT, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get TopIndex() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETTOPINDEX, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let TopIndex(ByVal Value As Long)
+            SendMessageCtl(ComboBoxMessages.CB_SETTOPINDEX, Value, 0)
+            Me.Refresh
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListIndex() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETCURSEL, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let ListIndex(ByVal Value As Long)
+            If Me.ListIndex <> Value Then
+                SendMessageCtl(ComboBoxMessages.CB_SETCURSEL, Value, 0)
+                Me.Refresh
+                RaiseEvent Click()
+            End If
+        End Property
+
+        [Serialize(False)]
+        Public Property Get Text() As String
+            Return GetWindowTextCtl()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Text(ByVal Value As String)
+            If Style = ComboBoxConstants.vbComboDropdownList Then
+                Dim index As Long = CLng(SendMessageCtl(CB_FINDSTRINGEXACT, -1, StrPtrSafe(Value)))
+                If index <> -1 Then
+                    Me.ListIndex = index
+                End If
+            Else
+                If Me.Text <> Value Then
+                    SendMessageCtl(WM_SETTEXT, 0, StrPtrSafe(Value))
+                    Me.Refresh
+                    If Not InternalMuteChangeEvent Then
+                        RaiseEvent Change()
+                    End If
+                End If
+            End If
+            
+            #If FEATURE_DATA_BINDINGS Then
+            OnDataChanged()
+            #End If
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Me.Text
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As String)
+            Me.Text = Value
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Get Locked() As Boolean
+            ' FIXME
+            If Me.EDITSubclasser IsNot Nothing Then
+                Return Me.EDITSubclasser.IsReadOnly
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Let Locked(Value As Boolean)
+            ' FIXME
+            If Me.EDITSubclasser IsNot Nothing Then
+                Me.EDITSubclasser.IsReadOnly = If(Value, 1, 0)
+                Me.Refresh
+            End If
+        End Property
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        Protected Sub BorderStyleChanged() _  
+        	    Handles BorderStyle.OnPropertyLet
+                
+            CommonSyncBorderStyle(Me)
+        End Sub
+        
+        Protected Function HasEditCtl() As Boolean
+            Return (Me.EDITSubclasser IsNot Nothing) And (Me.Style <> vbComboDropdownList)
+        End Function
+        
+        [Serialize(False)]
+        Public Property Get SelStart() As Long
+            If HasEditCtl() Then
+                Dim startPos As Long
+                Me.EDITSubclasser.SendMessageEditCtl(EM_GETSEL, VarPtr(startPos), 0)
+                Return startPos
+            Else
+                Err.Raise 380
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelStart(Value As Long)
+            If HasEditCtl() Then
+                Me.EDITSubclasser.SendMessageEditCtl(EM_SETSEL, Value, Value)
+                Me.Refresh
+            Else
+                Err.Raise 380
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get SelLength() As Long
+            If HasEditCtl() Then
+                Dim startPos As Long
+                Dim endPos As Long
+                Me.EDITSubclasser.SendMessageEditCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+                Return endPos - startPos
+            Else
+                Err.Raise 380
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelLength(Value As Long)
+            If HasEditCtl() Then
+                Dim startPos As Long = Me.SelStart
+                Me.EDITSubclasser.SendMessageEditCtl(EM_SETSEL, startPos, startPos + Value)
+                Me.Refresh
+            Else
+                Err.Raise 380
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get SelText() As String
+            If HasEditCtl() Then
+                Dim startPos As Long
+                Dim endPos As Long
+                Me.EDITSubclasser.SendMessageEditCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+                Return Mid$(Me.Text, startPos + 1, endPos - startPos)
+            Else
+                Err.Raise 380
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelText(Value As String)
+            If HasEditCtl() Then
+                Dim startPos As Long
+                Dim endPos As Long
+                Me.EDITSubclasser.SendMessageEditCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+                Dim text As String = Me.Text
+                Me.Text = VBA.Left$(text, startPos) & Value & VBA.Mid$(text, endPos + 1)
+                Me.SelStart = startPos + Len(Value)
+            Else
+                Err.Raise 380
+            End If
+        End Property
+                
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub SyncOLEDropMode() _
+                Handles OLEDropMode.OnPropertyLet
+                
+            BaseSyncOLEDropMode(Me, Me.OLEDropMode, Me.OLEDragDropHandler, False, False)
+        End Sub
+        
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            Me.Text = If(IsNull(fieldValue), "", CStr(fieldValue))
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = Me.Text
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #End If
+        #end if
+                        
+        Protected Sub DesignerArrayFieldUpdated(ByVal FieldName As String) _
+                Implements ITwinBasicDesignerExtensions2.DesignerArrayFieldUpdated
+        
+            If FieldName = "List" Then
+                Me.Clear()
+                Dim Item As String
+                For Each Item In List_INIT
+                    AddItem(Item)
+                Next
+            End If
+        End Sub
+        
+        Protected Sub IScheduledCallbackExecute() _
+                Implements IScheduledCallback.Execute
+        
+            SyncScrollBarNow
+            PendingSyncScrollbar = False
+        End Sub
+                
+        ' Private Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native ComboBox")]
+[WindowsControl("/miscellaneous/ICONS??/ComboBox??.png")]
+[ClassId("33AD4F08-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("56190F3A-14CF-4B74-A98D-69F805BB4825")] ' FIXME implement {33AD4F09-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class ComboBox
+    Inherits ComboBoxBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

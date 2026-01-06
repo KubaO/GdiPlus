@@ -1,0 +1,221 @@
+#If FEATURE_LABEL And FEATURE_COMMANDBUTTON And FEATURE_COMBOBOX And FEATURE_LISTBOX And FEATURE_PROPERTYPAGE Then
+[Description("")]
+[FormDesignerId("FAC186AE-C330-44BF-B6E9-17BB9EB48D67")]
+[ClassId("^A1B894A5-31B2-4353-BE2B-3F898601D169")]				' will be XOR'd with the root project GUID to provide a stable but unique CLSID
+[InterfaceId("E4B14DC7-18EE-4FB9-A4D2-096F8C48D93E")]
+[EventInterfaceId("B1CC5F63-6ACC-4E7A-8EAE-2D283F013583")]
+Private Class StandardColor
+
+    ' Sub New()
+    '     MsgBox "New StandardColor"
+    ' End Sub
+        
+    Protected InternalSelectedPropertyName As String
+    Protected InternalNoChange As Boolean
+    
+    Protected Sub ApplyChanges() _
+            Handles PropertyPage.ApplyChanges
+        Dim newColor As OLE_COLOR = CLng(lstColorPalette.ItemData(lstColorPalette.ListIndex))
+        Dim ctl As Object
+        For Each ctl In Me.SelectedControls
+            On Error Resume Next
+            CallByName(ctl, InternalSelectedPropertyName, vbLet, newColor)
+            On Error GoTo 0
+        Next
+        Me.Changed = False
+        RefreshProperyValues()
+        UpdateCustomColor(newColor)
+    End Sub
+    
+    Protected Sub SelectionChanged() _
+               Handles PropertyPage.SelectionChanged
+        If lstProperties.ListCount > 0 Then
+            RefreshProperyValues()
+        Else
+            RefreshProperties()
+        End If
+    End Sub
+    
+    Protected Sub RefreshProperyValues()
+        If Me.SelectedControls.Count > 0 Then
+            Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+            For propertyIdx As Long = 0 To lstProperties.ListCount - 1
+                Dim colorProp As String = lstProperties.List(propertyIdx)
+                On Error Resume Next
+                    lstProperties.ItemData(propertyIdx) = CLng(CallByName(selectedControl, colorProp, vbGet))
+            Next
+            lstProperties.Refresh
+        End If
+    End Sub
+    
+    Protected Sub RefreshProperties()
+        lstProperties.Clear()
+        
+        If Me.SelectedControls.Count > 0 Then
+            Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+            'MsgBox "ColorProps:" & RuntimeGetTypeInfoPropertyList(selectedControl, 0)
+            Dim colorProps As String = RuntimeGetTypeInfoPropertyList(selectedControl, 0)
+            Dim colorProp As String
+            For Each colorProp In Split(colorProps, ";")
+                If Len(colorProp) > 0 Then
+                    On Error GoTo IgnoreProp
+                        Dim actualValue As Long = CLng(CallByName(selectedControl, colorProp, vbGet))
+                    On Error GoTo 0
+                    AddColorPropertyEntry(colorProp, actualValue)
+                End If
+                NextProp:
+            Next
+        End If
+        
+        If lstProperties.ListCount = 0 Then
+            lstProperties.Enabled = False
+            lstColorSet.Enabled = False
+            lstColorPalette.Enabled = False
+            btnEdit.Enabled = False
+        Else
+            lstProperties.ListIndex = 0
+        End If
+        DisplayColorPalette()
+        Exit Sub
+    
+    IgnoreProp:
+        Resume NextProp
+    End Sub
+
+    Protected Sub AddColorPropertyEntry(ByVal EntryName As String, ByVal ColorValue As Long)
+        lstProperties.AddItem(EntryName)
+        lstProperties.ItemData(lstProperties.ListCount - 1) = ColorValue
+    End Sub
+    
+    Protected Sub AddColorPaletteEntry(ByVal EntryName As String, ByVal ColorValue As Long)
+        lstColorPalette.AddItem(EntryName)
+        lstColorPalette.ItemData(lstColorPalette.ListCount - 1) = ColorValue
+    End Sub
+    
+    Protected Function Hex32(ByVal value As Long) As String
+        Return "&H" & Right$("00000000" & Hex$(value), 8)
+    End Function
+    
+    Protected Sub UpdateCustomColor(ByVal newColor As OLE_COLOR)
+        lstColorPalette.List(0) = "<Custom " & Hex32(newColor) & ">"
+        lstColorPalette.ItemData(0) = newColor
+        lstColorPalette.Refresh
+    End Sub
+    
+    Protected Sub DisplayColorPalette()
+        lstColorPalette.Clear
+        Dim activeColor As Long = CLng(lstProperties.ItemData(lstProperties.ListIndex))
+        AddColorPaletteEntry("<Custom " & Hex32(activeColor) & ">", activeColor)
+                
+        If lstColorSet.ListIndex = 0 Then
+            AddColorPaletteEntry("Black", vbBlack)
+            AddColorPaletteEntry("Blue", vbBlue)
+            AddColorPaletteEntry("Cyan", vbCyan)
+            AddColorPaletteEntry("Green", vbGreen)
+            AddColorPaletteEntry("Magenta", vbMagenta)
+            AddColorPaletteEntry("Red", vbRed)
+            AddColorPaletteEntry("White", vbWhite)
+            AddColorPaletteEntry("Yellow", vbYellow)
+        Else
+            AddColorPaletteEntry("3D Dark Shadow", vb3DDKShadow)
+            AddColorPaletteEntry("3D Face", vb3DFace)
+            AddColorPaletteEntry("3D Highlight", vb3DHighlight)
+            AddColorPaletteEntry("3D Light", vb3DLight)
+            AddColorPaletteEntry("3D Shadow", vb3Dshadow)
+            AddColorPaletteEntry("Active Border", vbActiveBorder)
+            AddColorPaletteEntry("Active Title Bar", vbActiveTitleBar)
+            AddColorPaletteEntry("Active Title Bar Gradient", vbActiveTitleBarGradient)
+            AddColorPaletteEntry("Active Title Bar Text", vbActiveTitleBarText)
+            AddColorPaletteEntry("Application Workspace", vbApplicationWorkspace)
+            AddColorPaletteEntry("Button Face", vbButtonFace)
+            AddColorPaletteEntry("Button Shadow", vbButtonShadow)
+            AddColorPaletteEntry("Button Text", vbButtonText)
+            AddColorPaletteEntry("Desktop", vbDesktop)
+            AddColorPaletteEntry("Gray Text", vbGrayText)
+            AddColorPaletteEntry("Highlight", vbHighlight)
+            AddColorPaletteEntry("Highlight Text", vbHighlightText)
+            AddColorPaletteEntry("Hot Track Text", vbHotTrackText)
+            AddColorPaletteEntry("Inactive Border", vbInactiveBorder)
+            AddColorPaletteEntry("Inactive Caption Text", vbInactiveCaptionText)
+            AddColorPaletteEntry("Inactive Title Bar", vbInactiveTitleBar)
+            AddColorPaletteEntry("Inactive Title Bar Gradient", vbInactiveTitleBarGradient)
+            AddColorPaletteEntry("Inactive Title Bar Text", vbInactiveTitleBarText)
+            AddColorPaletteEntry("Info Background", vbInfoBackground)
+            AddColorPaletteEntry("Info Text", vbInfoText)
+            AddColorPaletteEntry("Menu Bar", vbMenuBar)
+            AddColorPaletteEntry("Menu Bar (Flat)", vbMenuBarFlat)
+            AddColorPaletteEntry("Menu Highlight", vbMenuHighlight)
+            AddColorPaletteEntry("Menu Text", vbMenuText)
+            AddColorPaletteEntry("Scroll Bars", vbScrollBars)
+            AddColorPaletteEntry("Title Bar Text", vbTitleBarText)
+            AddColorPaletteEntry("Window Background", vbWindowBackground)
+            AddColorPaletteEntry("Window Frame", vbWindowFrame)
+            AddColorPaletteEntry("Window Text", vbWindowText)
+        End If
+        
+        InternalNoChange = True
+        For colorPaletteIdx As Long = 0 To lstColorPalette.ListCount - 1
+            If lstColorPalette.ItemData(colorPaletteIdx) = activeColor Then
+                lstColorPalette.ListIndex = colorPaletteIdx
+            End If
+        Next
+        InternalNoChange = False
+    End Sub
+    
+    Protected Sub lstColorSetClick() _
+               Handles lstColorSet.Click
+        If InternalNoChange = False Then
+            DisplayColorPalette()
+            lstColorPalette.SetFocus()
+        End If
+    End Sub
+    
+    Protected Sub lstColorPaletteClick() _
+                  Handles lstColorPalette.Click
+        If InternalNoChange = False Then
+            Me.Changed = True
+        End If
+    End Sub
+    
+    Protected Sub lstColorPaletteDblClick() _
+                  Handles lstColorPalette.DblClick
+        If lstColorPalette.ListIndex = 0 Then
+            btnEditClick()
+        End If
+    End Sub
+    
+    Protected Sub SyncColorSetToActiveColor()
+        ' Sync the color set to match the active color
+        InternalNoChange = True
+        Dim activeColor As Long = CLng(lstProperties.ItemData(lstProperties.ListIndex))
+        If activeColor < 0 Then
+            lstColorSet.ListIndex = 1   ' Windows System colors
+        Else
+            lstColorSet.ListIndex = 0   ' Standard colors
+        End If
+        InternalNoChange = False
+    End Sub
+    
+    Protected Sub lstPropertiesClick() _
+                  Handles lstProperties.Click
+        If Me.Changed = True Then
+            ApplyChanges() ' auto apply change when switching properties
+        End If
+        InternalSelectedPropertyName = lstProperties.List(lstProperties.ListIndex)
+        SyncColorSetToActiveColor()
+        DisplayColorPalette()
+    End Sub
+        
+    Protected Sub btnEditClick() _
+                  Handles btnEdit.Click
+        Dim activeColor As OLE_COLOR = CLng(lstProperties.ItemData(lstProperties.ListIndex))
+        Dim newColor As Long
+        If ColorPickerDlg(Me.hWnd, activeColor, newColor) = True Then
+            UpdateCustomColor(newColor)
+            lstColorPalette.ListIndex = 0
+            Me.Changed = True
+        End If
+    End Sub
+
+End Class
+#End If

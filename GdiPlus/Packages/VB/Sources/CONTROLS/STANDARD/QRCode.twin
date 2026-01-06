@@ -1,0 +1,536 @@
+#If FEATURE_QRCODE Then
+[ClassId("2DF77CA1-254A-470C-9B7F-5E5B4087BC74")]
+[InterfaceId("3D0193E0-9353-4218-BBC5-227B90550E9C")]
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class QRCodeBaseCtl
+             
+    #Region "INHERITANCE"
+    
+        Inherits BaseControlWindowlessNoFocus
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #End If
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+
+    #End Region
+        
+    #Region "STATE"
+
+        [Serialize(True, "Payload")]
+            Protected PayLoad_INIT As String = "https://www.twinbasic.com"
+            
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = ControlBorderStyleConstants.vbNoBorder
+        
+        [Description("")]
+            Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+        
+        [CustomDesigner("designer_MultiLineText")]
+        [Serialize(True, "ToolTipText")]
+            Protected ToolTipTextINIT As String
+            
+        [Serialize(True, "Enabled")]
+            Protected EnabledINIT As Boolean = True
+        
+        [Serialize(False)]
+            Protected InternalPicture As StdPicture
+            
+            Protected IsDesignMode As Boolean
+        
+        [NonBrowsable]
+        [Serialize(True)]
+            Protected InternalSectionId As Integer = -1
+            
+        [Description("")]
+        [Serialize(True, "MousePointer")]
+            Protected MousePointerINIT As VBRUN.MousePointerConstants '= VBRUN.MousePointerConstants.vbDefault
+    
+        [Serialize(True, "MouseIcon")]
+        [CustomDesigner("designer_IconBytes")]
+            Protected ReadOnly MouseIconINIT() As Byte
+
+        #If FEATURE_OLEDRAGDROP Then
+        Public OLEDragMode As VBRUN.OLEDragConstants
+        
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #end if
+                    
+        #If FEATURE_HELP Then
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end if
+        
+    #End Region
+
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+
+    #End Region
+               
+    #Region "MEMBERS"
+
+        [Description("Determines if the QR code is rendered as a square (1:1 aspect ratio), or stretched to fill the control rectangle")]
+        Public Square As Boolean = True
+        
+        [Serialize(False)]
+        Public Payload As Variant           ' supports data as well as text
+        
+        [CustomDesigner("designer_SpectrumWindows")]
+        Public ForeColor As OLE_COLOR = vbBlack
+        Public ModuleSize As Long = 120
+        Public SquareModules As Boolean = True
+        Public EccMode As QRCodegenEccConstants = QRCodegenEccConstants.vbQRCodegenEccLOW
+        Public EccBoost As Boolean = True
+        Public MinVersion As Long = 1
+        Public MaxVersion As Long = 40
+        Public MaskType As QRCodegenMaskConstants = QRCodegenMaskConstants.vbQRCodegenMaskAUTO
+        
+        Sub New()
+            BaseControlWindowlessNoFocus.New(ControlTypeConstants.vbImage)
+        End Sub
+        
+        Protected Sub CreateQRPicture()
+            If EccMode < vbQRCodegenEccLow Then EccMode = vbQRCodegenEccLow
+            If EccMode > vbQRCodegenEccHigh Then EccMode = vbQRCodegenEccHigh
+            If MinVersion < 1 Then MinVersion = 1
+            If MinVersion > 40 Then MinVersion = 40
+            If MaxVersion < 1 Then MaxVersion = 1
+            If MaxVersion > 40 Then MaxVersion = 40
+            If MinVersion > MaxVersion Then MinVersion = 1
+            If MaskType < vbQRCodegenMaskAuto Then MaskType = vbQRCodegenMaskAuto
+            If MaskType > vbQRCodegenMask7 Then MaskType = vbQRCodegenMaskAuto
+                        
+            If Len(Payload) = 0 Then
+                Set InternalPicture = Nothing
+            Else
+                Set InternalPicture = QRCodegenBarcode(Payload, TranslateColor(ForeColor), ModuleSize, SquareModules, EccMode, MinVersion, MaxVersion, MaskType, EccBoost)
+            End If
+        End Sub
+        
+        Protected Sub SyncPicture() _
+            Handles Payload.OnPropertyLet, _
+                    ForeColor.OnPropertyLet, _
+                    ModuleSize.OnPropertyLet, _
+                    SquareModules.OnPropertyLet, _
+                    EccMode.OnPropertyLet, _
+                    EccBoost.OnPropertyLet, _
+                    MinVersion.OnPropertyLet, _
+                    MaxVersion.OnPropertyLet, _
+                    MaskType.OnPropertyLet
+            
+            CreateQRPicture()
+            Me.Refresh()
+        End Sub
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateResetRectDockable()     ' resets all the base class state()
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #endif
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            Me.Payload = Empty
+            Set Me.InternalPicture = Nothing
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "QRCode"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            Payload = PayLoad_INIT
+            CreateQRPicture()
+            
+            Dim InitData As WindowCreationData
+            InitData.InternalSectionId = InternalSectionId + 1
+            InitData.Flags = RequiresWindowlessPaintingWithEvents Or _
+                                ForwardEnsureEnabled Or _
+                                ForwardButtonClick Or _
+                                ForwardDoubleClick Or _
+                                ManualMouseCapture Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseMove Or _
+                                ForwardMouseUp Or _
+                                ForwardDragOver
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            With InternalBaseControlInfo
+                .ToolTipText = Me.ToolTipTextINIT
+                .MousePointer = Me.MousePointerINIT
+                .WindowlessEnabled = Me.EnabledINIT
+            End With
+            
+            #If FEATURE_OLEDRAGDROP Then
+            InitOleDragDropHelper()
+            #End If
+            
+            CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then 
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, False, True)
+        End Sub
+        #End If
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here  
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #end if
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+              
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #End If
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #end If
+            RaiseEvent Initialize()
+        End Sub
+                        
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+                
+            If Visible = False And Me.IsDesignMode = False Then Exit Sub
+                
+            Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API 
+                            
+                Dim ps_hdc As Any = ps.hdc
+                Dim rect As tbRECT
+                rect.Left = CLng(Me.PixelsLeft * UnitPixelScale)
+                rect.Top = CLng(Me.PixelsTop * UnitPixelScale)
+                rect.Right = rect.Left + CLng(Me.PixelsWidth * UnitPixelScale)
+                rect.Bottom = rect.Top + CLng(Me.PixelsHeight * UnitPixelScale)
+
+                If (rect.Right > rect.Left) And (rect.Bottom > rect.Top) Then
+                    
+                    'Dim oldBkMode As Long =
+                        ps_hdc.SetBkMode(1)
+                    
+                    If Me.InternalPicture IsNot Nothing Then
+                        
+                        Dim Picture As OlePicture = Me.InternalPicture
+                        
+                        ' If RenderPictureAsIcon = True Then
+                        '     Dim picWidth As Long
+                        '     Dim picHeight As Long
+                        '     VB.ScaleOLEPictureDimensionsToPixels(vbPicTypeNone, Picture.Width, picWidth, Picture.Height, picHeight)
+                        '     Set Picture = RuntimeCreateScaledPicture(Picture, picWidth, picHeight, True, True)
+                        ' End If
+                        
+                        ' Dim PictureType As Any = CType(Of PictureTypeConstants)(Picture.Type)
+                        ' Dim PictureWidth As Any = Picture.Width
+                        ' Dim PictureHeight As Any = Picture.Height
+                        
+                        Const STRETCH_HALFTONE = 4
+                        Dim OldStretchMode As Long = ps_hdc.SetStretchBltMode(STRETCH_HALFTONE)
+                        ps_hdc.SetBrushOrgEx(0, 0, 0)
+                        
+                        ' SelectClipRgn seems to have some issues when used alongside SetWindowOrgEx/SetViewpointOrgEx
+                        ' so instead we now use IntersectClipRect
+                       ' Dim hrgn As LongPtr = CreateRectRgn(rect.Left, rect.Top, rect.Right, rect.Bottom)
+                        'SelectClipRgn(ps_hdc, hrgn)
+                        Dim savedDCInfoIdx As Any = ps_hdc.SaveDC()
+                        ps_hdc.IntersectClipRect(rect.Left, rect.Top, rect.Right, rect.Bottom)
+        
+                        Dim DrawWidth As Long = rect.Right - rect.Left
+                        Dim DrawHeight As Long = rect.Bottom - rect.Top
+                        
+                        ' If Stretch = False Then
+                        '     If (PictureType = vbPicTypeEMetafile) Or (PictureType = vbPicTypeMetafile) Then
+                        '         ' Picture.Height/Width are not DPI scaled by OLE here.  They are just a guide anyway, so we just use it as an aspect ratio
+                        '         Dim aspectRatio As Double = PictureHeight / PictureWidth
+                        '         DrawHeight = CLng(DrawWidth * aspectRatio)
+                        '     Else
+                        '         ScaleOLEPictureDimensionsToPixels(PictureType, PictureWidth, DrawWidth, PictureHeight, DrawHeight)
+                        '         If PictureDpiScaling = True Then
+                        '             DrawWidth = CLng(DrawWidth * UnitPixelScale)
+                        '             DrawHeight = CLng(DrawHeight * UnitPixelScale)
+                        '         End If
+                        '     End If
+                        ' End If
+                        
+                        If Square Then
+                            Dim SquareSize As Long = DrawWidth
+                            If DrawHeight < SquareSize Then SquareSize = DrawHeight
+                            
+                            PictureRender(Picture, ps_hdc, rect.Left + ((DrawWidth - SquareSize) \ 2), rect.Top + ((DrawHeight - SquareSize) \ 2), SquareSize, SquareSize)
+                        Else
+                            PictureRender(Picture, ps_hdc, rect.Left, rect.Top, DrawWidth, DrawHeight)
+                        End If
+                        
+                        ps_hdc.RestoreDC(savedDCInfoIdx)
+                        
+                        'SelectClipRgn(ps_hdc, 0)
+                        'DeleteObject(hrgn)
+                        ps_hdc.SetStretchBltMode(OldStretchMode)()
+
+                    Else
+                        
+                        If Me.IsDesignMode Then
+                            Dim brush As LongPtr = GDI32.CreateSolidBrush(&H303030)
+                            ps_hdc.FillRect(rect, brush)
+                            ps_hdc.SetTextColor(vbWhite)
+                            Const TA_CENTER As Long = 6
+                            ps_hdc.SetTextAlign(TA_CENTER)
+                            ps_hdc.ExtTextOutW(rect.Left + ((rect.Right - rect.Left) \ 2), rect.Top + 5, 0, rect, "(no payload text)", 17, 0)
+                            GDI32.DeleteObject(brush)
+                        End If
+                        
+                    End If
+                    
+                    If BorderStyle = vbFixedSingleBorder Then
+                        Dim bfStyle As Long = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+                        Dim bfFlags As Long = BorderFlags.BF_RECT Or BorderFlags.BF_ADJUST
+                        bfFlags += If(Appearance = vbAppearFlat, BorderFlags.BF_MONO, 0&)
+                        ps_hdc.DrawEdge(rect, bfStyle, bfFlags)
+                    End If
+                
+                End If
+                
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+                
+            ' ForwardMouseDown has already forwarded the message on to the actual control handler
+            If Me.OLEDragMode = vbOLEDragAutomatic Then
+                If Me.Picture IsNot Nothing Then
+                    If RootWindowElementBase.CommonDragDetectLightweight() Then
+                        If CommonOLEDrag(Me, Me.Picture, False, True) = vbDropEffectMove Then
+                            Set Me.Picture = Nothing
+                        End If
+                    End If
+                End If
+            End If
+        End Sub
+        #end if
+                        
+        Protected Sub SignificantChange() _
+                Handles Appearance.OnPropertyLet, _
+                        BorderStyle.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+
+        Public Sub Refresh()
+            Me.WindowlessRefresh()
+            'WindowsAPI.USER32_RedrawWindow(Me.RootWindowElementBase, 0, 0, RDW_ERASE Or RDW_INVALIDATE)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Picture() As StdPicture
+            Return InternalPicture
+        End Property
+
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Variant
+            If Me.Picture IsNot Nothing Then
+                Return Me.Picture
+            End If
+        End Property
+                
+        [Serialize(False)]
+        Public Property Get ToolTipText() As String
+            Return InternalBaseControlInfo.ToolTipText
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let ToolTipText(ByVal Value As String)
+            InternalBaseControlInfo.ToolTipText = Value
+            RootWindowElementBase.RuntimeUIToolTipChanged()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get MouseIcon() As StdPicture
+            Return InternalBaseControlInfo.MouseIcon
+        End Property
+
+        [Serialize(False)]
+        Public Property Set MouseIcon(Value As StdPicture)
+            Set InternalBaseControlInfo.MouseIcon = Value
+            CommonMousePointerChanged()
+        End Property
+
+        [Serialize(False)]
+        Public Property Let MouseIcon(Value As StdPicture)
+            Set InternalBaseControlInfo.MouseIcon = Value
+            CommonMousePointerChanged()
+        End Property
+        
+        Protected Sub HandleResizeWindowless(ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, _
+                                               ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long) _
+                    Implements IWindowElementEventsCommon.ResizeWindowless
+                    
+            On Error Resume Next
+            Dim containerHwnd As LongPtr = CLngPtr(BaseControlWindowlessNoFocus.Container.hwnd)
+            On Error GoTo 0
+            
+            If containerHwnd = 0 Then
+                ' Windowless UC container...  FIXME need to pass on the RECTs to refine the InvalidateRect passed to the UC site
+                CommonRaiseViewChanged(BaseControlWindowlessNoFocus.Container)
+                Exit Sub
+            End If
+            
+            With InternalBaseControlInfo
+                Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+                .PixelsLeft = newLeft / UnitPixelScale
+                .PixelsTop = newTop / UnitPixelScale
+                .PixelsWidth = newWidth / UnitPixelScale
+                .PixelsHeight = newHeight / UnitPixelScale
+            End With
+            
+            CommonResizeWindowless(containerHwnd, 0, oldLeft, oldTop, oldWidth, oldHeight, newLeft, newTop, newWidth, newHeight)
+        End Sub
+                
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            If IsNull(fieldValue) OrElse Len(fieldValue) = 0 Then
+                Set Me.InternalPicture = Nothing
+            Else
+                Me.Payload = CStr(fieldValue)
+                SyncPicture()
+            End If
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = PictureToByteArray(Me.Picture)
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #end if
+        
+        [Serialize(False)]
+        Public Property Get MousePointer() As MousePointerConstants
+            Return InternalBaseControlInfo.MousePointer
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+            InternalBaseControlInfo.MousePointer = Value
+            CommonMousePointerChanged()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Enabled() As Boolean
+            Return InternalBaseControlInfo.WindowlessEnabled
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Enabled(ByVal Value As Boolean)
+            InternalBaseControlInfo.WindowlessEnabled = Value
+            Me.SignificantChange()
+        End Property
+                
+        Protected Sub HandleGetOpaqueRegion(out As LongPtr) _
+                Implements IWindowElementEventsCommon.GetOpaqueRegion
+            
+            If Me.Visible Then
+                ' we can exclude our area from the container painting, for less flickering            
+                out = GDI32.CreateRectRgn(RootWindowElementBase.RuntimeUIGetCurrentLeft(), RootWindowElementBase.RuntimeUIGetCurrentTop(), RootWindowElementBase.RuntimeUIGetCurrentLeft() + RootWindowElementBase.RuntimeUIGetCurrentWidth(), RootWindowElementBase.RuntimeUIGetCurrentTop() + RootWindowElementBase.RuntimeUIGetCurrentHeight())
+            End If
+        End Sub
+
+    #End Region
+    
+End Class
+
+[Description("A Win32 native QRCode")]
+[WindowsControl("/miscellaneous/ICONS64/QRCODE.png")]
+[ClassId("49496C81-371F-4754-B8C0-E0FBF5F42321")]
+[InterfaceId("BCBB317B-6538-4679-BA01-6EEC70A6A157")]
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class QRCode
+    Inherits QRCodeBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

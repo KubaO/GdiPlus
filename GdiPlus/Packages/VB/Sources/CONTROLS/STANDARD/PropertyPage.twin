@@ -1,0 +1,866 @@
+#If FEATURE_PROPERTYPAGE Then
+[WindowsControl("no_designer")]
+[ClassId("33AD5018-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("5DE41174-FC12-47FB-BDCC-FA752DE51110")]    ' FIXME implement {33AD5019-6699-11CF-B70C-00AA0060D393} for backcompat
+' WARNING: above InterfaceId is referred to as IID_ITBPropertyPage in tB Sources
+[COMCreatable(False)]
+[COMExtensible(True)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class PropertyPage
+        
+     #Region "INHERITANCE"
+     
+        Inherits BasePropertyPage
+        Inherits GraphicsBase
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+            
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IPropertyPage2
+        Implements ITbCommonContainerPrivate
+        Implements ITwinBasicDesignerExtensions2
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        Implements IOleContainer
+        #End If
+        Implements IWindowElementEventsCommon
+        Implements IWindowElementEventsCommonRoot
+    
+        ' Public Sub LogInternal(msg As String)
+        ' On Error GoTo EH
+        '     Static Count As Long
+    
+        '     Dim f As Integer
+        '     Dim path As String
+
+        '     path = "Z:\vbPropPageInternal.log"
+    
+        '     f = FreeFile
+
+        '     Open path For Append As #f
+        '     Print #f, Format$(Now, "yyyy-mm-dd hh:nn:ss") & "  " & msg
+        '     Close #f
+        '     Exit Sub
+
+        ' EH:
+        '     ' Best-effort cleanup to ensure the file is never left open
+        '     On Error Resume Next
+        '     If f <> 0 Then Close #f
+        ' End Sub
+                    
+    #End Region
+        
+    #Region "STATE"
+
+            Protected IsInitialized As Boolean
+            Protected IsDesignMode As Boolean
+            Protected InternalSharedState As PropertyPageSharedState
+            Protected InternalSelectedControls As SelectedControls
+            Protected InternalEarlyTerminated As Boolean
+            
+        [Serialize(True, "Picture")]
+        [CustomDesigner("designer_PictureBytes")]
+            Protected ReadOnly PictureINIT() As Byte
+        
+        [Unimplemented]
+        [Serialize(True, "Palette")]
+        [CustomDesigner("designer_PictureBytes")]
+            Protected ReadOnly PaletteINIT() As Byte
+        [Unimplemented]
+        [Serialize(False)]
+            Public Palette As StdPicture
+
+            #If FEATURE_HELP Then
+            Public HelpContextID As Long
+            #End If
+                        
+        ' Protected Sub IPropertyPageInternal_DisconnectBase()
+        '     Set PropertyPageBase = Nothing
+        ' End Sub
+                
+        Protected Sub SetPageSite(ByVal pPageSite As IPropertyPageSite) _
+                Implements IPropertyPage2.SetPageSite
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+        
+            'LogInternal(CurrentProcedureName & ":" & ObjPtr(pPageSite))
+        
+            ' We do this for the PropertyPage dialog to disconnect from us, so that we are only held by reference to the host
+            ' the PropertyPage dialog remains in memory, until we decide to terminate it explicitly.
+            'MsgBox "IPropertyPage2_SetPageSite"
+            'CType(Of IPropertyPageInternal)(OuterPropertyPage).DisconnectBase()     ' Hmmm what's causing this crash?
+            'InternalDisconnectBase()
+        
+            'MsgBox CurrentProcedureName
+            With InternalSharedState
+                If (pPageSite IsNot Nothing) And (.LiveSite IsNot Nothing) Then
+                    Const E_UNEXPECTED As Long = &H8000FFFF
+                    Err.ReturnHResult = E_UNEXPECTED
+                Else
+                    Set .LiveSite = pPageSite
+                End If
+            End With
+        End Sub
+                
+        Protected Sub Activate(ByVal hWndParent As HWND, pRect As tbRECT, ByVal bModal As Long) _
+                       Implements IPropertyPage2.Activate
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            ' 'MsgBox CurrentProcedureName & " (" & pRect.Left & ", " & pRect.Top & ")-(" & pRect.Right & ", " & pRect.Bottom & ")"
+             'SetWindowPos(OuterPropertyPage.hWnd, vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, SWP_NOACTIVATE)
+             InternalHWND.SetWindowPos(vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, 0)
+             'SetParent(OuterPropertyPage.hWnd, hWndParent)
+             InternalHWND.InternalMakeTrueChildOf(hWndParent)      ' SetParent on its own causes issues when switching between apps
+        End Sub
+        
+        Protected Sub Apply() _
+                       Implements IPropertyPage2.Apply
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            ' 'MsgBox CurrentProcedureName
+            ' ' FIXME what about if validation failed or something here?
+            With InternalSharedState
+                If .HasChanged = False Then
+                    Exit Sub
+                End If
+                .HasChanged = False
+            End With
+            RaiseEvent ApplyChanges()
+        End Sub
+        
+        Protected Sub Deactivate() _
+                       Implements IPropertyPage2.Deactivate
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            ' Deactivate only gets called on pages that have been activated, so is not reliable for a Terminate event.
+        
+            'InternalEarlyTerminated = True
+            'RaiseEvent Terminate()
+            ''MsgBox CurrentProcedureName
+        End Sub
+                
+        Protected Sub GetPageInfo(pPageInfo As PROPPAGEINFO) _
+                       Implements IPropertyPage2.GetPageInfo
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            'MsgBox CurrentProcedureName & " Caption: " & Caption
+            Dim rect As tbRECT
+            InternalHWND.GetWindowRect(rect)
+        
+            pPageInfo.cb = LenB(Of PROPPAGEINFO)
+            pPageInfo.size.cx = rect.Right - rect.Left
+            pPageInfo.size.cy = rect.Bottom - rect.Top
+            pPageInfo.pszTitle = OLE32.OleAllocString(Caption)
+            pPageInfo.pszDocString = vbNullPtr
+            pPageInfo.pszHelpFile = vbNullPtr
+            pPageInfo.dwHelpContext = 0
+        End Sub
+        
+        Protected Sub Help(ByVal pszHelpDir As LongPtr) _
+                       Implements IPropertyPage2.Help
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            ' MsgBox CurrentProcedureName
+        End Sub
+        
+        Protected Sub IsPageDirty() _
+                       Implements IPropertyPage2.IsPageDirty
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            'MsgBox CurrentProcedureName
+            Const S_OK As Long = 0
+            Const S_FALSE As Long = 1
+            Err.ReturnHResult = If(InternalSharedState.HasChanged, S_OK, S_FALSE)
+        End Sub
+        
+        Protected Sub Move(pRect As tbRECT) _
+                       Implements IPropertyPage2.Move
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName)
+            ' ' Not seen this actually used 
+            'SetWindowPos(OuterPropertyPage.hWnd, vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, SWP_NOACTIVATE)
+            InternalHWND.SetWindowPos(vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, 0)
+            ' 'MsgBox CurrentProcedureName & " (" & pRect.Left & ", " & pRect.Top & ")-(" & pRect.Right & ", " & pRect.Bottom & ")"
+        End Sub
+                
+        Protected Sub SetObjects(ByVal cObjects As Long, ppUnk As IUnknown) _
+                       Implements IPropertyPage2.SetObjects
+        
+            If ppUnk IsNot Nothing Then
+                [_HiddenModule].EnsureContainerIsLoaded(Me)
+            End If
+            'LogInternal(CurrentProcedureName & ":" & cObjects)
+            'If cObjects <> 1 Then
+            '    MsgBox CurrentProcedureName & ", cObjects: " & cObjects
+            'End If
+            
+            ' FIXME hosts have a habit of calling SetObject with the same args multiple times, so we could potentially filter them
+            
+            With InternalSharedState
+                ReDim .SelectedObjects(cObjects - 1)
+                vbaCopyBytes cObjects * LenB(Of LongPtr), VarPtr(.SelectedObjects(0)), VarPtr(ppUnk)
+                ' AddRef on each 
+                For objectIdx As Long = 0 To cObjects - 1
+                    'MsgBox "123"
+                    [_HiddenModule].vbaObjAddref(ObjPtr(.SelectedObjects(objectIdx)))
+                Next
+            End With
+            
+            RaiseEvent SelectionChanged()
+            'MsgBox CurrentProcedureName & ", cObjects: " & cObjects
+            'MsgBox CType(Of Object)(SelectedObjects(0)).Name
+        End Sub
+        
+        Protected Sub Show(ByVal nCmdShow As Long) _
+                       Implements IPropertyPage2.Show
+            [_HiddenModule].EnsureContainerIsLoaded(Me)
+            'LogInternal(CurrentProcedureName & ":" & nCmdShow)
+            'MsgBox CurrentProcedureName & ", nCmdShow: " & nCmdShow
+            InternalHWND.ShowWindow(nCmdShow)
+        End Sub
+        
+        Protected Sub TranslateAccelerator(pMsg As MSG) _
+                       Implements IPropertyPage2.TranslateAccelerator
+            'LogInternal(CurrentProcedureName)
+            'MsgBox CurrentProcedureName
+            Err.ReturnHResult = E_NOTIMPL        ' Mnemonics not yet supported
+        End Sub
+        
+        Protected Sub EditProperty(ByVal dispId As Long) _
+                       Implements IPropertyPage2.EditProperty
+            'LogInternal(CurrentProcedureName & ":" & dispId)
+            ' FIXME should implement this
+            'MsgBox CurrentProcedureName & ": " & Hex(dispId)
+        End Sub
+        
+        Public Property Get StandardSize() As EnumStandardSize      ' FYI: Not exposed in VB6 object model, only in the property sheet
+            Dim smallSize As Any = PixelsFromDLUs(250, 62, False)
+            Dim largeSize As Any = PixelsFromDLUs(250, 110, False)
+            Dim rect As tbRECT
+            Me.InternalHWND.GetWindowRect(rect)
+            Dim actualWidth As Long = rect.Right - rect.Left
+            Dim actualHeight As Long = rect.Bottom - rect.Top
+            If (smallSize.cx = actualWidth) And (smallSize.cy = actualHeight) Then
+                Return EnumStandardSize.StandardSizeSmall
+            ElseIf (largeSize.cx = actualWidth) And (largeSize.cy = actualHeight) Then
+                Return EnumStandardSize.StandardSizeLarge
+            End If
+            Return EnumStandardSize.StandardSizeCustom
+        End Property
+        
+        Public Property Let StandardSize(ByVal Value As EnumStandardSize)       ' FYI: Not exposed in VB6 object model, only in the property sheet
+            Dim dluY As Long
+            If Value = StandardSizeSmall Then
+                dluY = 62
+            ElseIf Value = StandardSizeLarge Then
+                dluY = 110
+            End If
+            If dluY <> 0 Then
+                With PixelsFromDLUs(250, dluY, False)
+                    Me.InternalHWND.SetWindowPos(0, 0, 0, .cx, .cy, SWP_NOMOVE)
+                    'MsgBox "Change size (large, " & sysFont.Name & sysFont.Size & ") " & .cx & "x" & .cy
+                End With
+            End If
+        End Property
+        
+        [Unimplemented]
+            Public PaletteMode As VBRUN.PaletteModeConstants
+        [Unimplemented]
+            Public RightToLeft As Boolean
+                             
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+            
+        [Unimplemented]
+            Public Function Point(ByVal X As Single, ByVal Y As Single) As Long
+            End Function
+                        
+            Public Sub ValidateControls()
+                On Error GoTo Error
+                If Me.ActiveControl IsNot Nothing Then
+                    If Me.ActiveControl.CausesValidation Then
+                        Dim Cancel As Boolean = False
+                        On Error Resume Next
+                        RaiseEventByName2(Me.ActiveControl, "Validate", Cancel)
+                        If Cancel Then
+                            On Error GoTo 0
+                            Err.Raise 380, , "Invalid property value"
+                        End If
+                    End If
+                End If
+                Exit Sub
+                Error:
+            End Sub
+                        
+    #End Region
+
+    #Region "EVENTS"
+    
+        Event ApplyChanges()
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        Event EditProperty(PropertyName As String)
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        Event Initialize()
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        Event Paint()
+        [DefaultDesignerEvent]
+            Event SelectionChanged()
+        Event Terminate()
+        [Description("This event only fires when the application is per-monitor DPI aware (PROCESS_PER_MONITOR_DPI_AWARE)")]
+        Event DPIChange(ByVal NewDPI As Long)
+        
+    #End Region
+               
+    #Region "MEMBERS"
+            
+        Protected Sub Class_Terminate()
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            
+            'MsgBox("Class_Terminate")
+            'LogInternal(CurrentProcedureName)
+            RaiseEvent Terminate()
+            SetObjects(0, Nothing)        ' It seems that the OLE host doesn't do this automatically, despite IPropertyPage docs suggesting hosts should
+
+            ' FIXME need to ensure the proper destruction of the OuterPropertyPage here.
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, False, False)
+        End Sub
+        #End If
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateResetRect()     ' resets all the base class state()
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            Me.InternalStateResetGraphics()
+            
+            Me.IsInitialized = False
+            Set Me.Palette = Nothing
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            ' This allows dispatch calls to pass on to the outer form controller, allowing for extensibility  
+            'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler SerializeInfo.RuntimeUISrzGetRootClassDispatch()  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
+            Me.IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+        
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                BackColor = SystemColorConstants.vbButtonFace
+            End If
+            
+            SyncPictureINIT()
+            
+            With InternalBaseControlInfo
+                .BaseGraphicsInfoPtr = InitBaseGraphicsInfo()
+            End With
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(If(Me.HasDC, EnumWindowAtoms.AtomIdx_ThunderPropertyPageDC, EnumWindowAtoms.AtomIdx_ThunderPropertyPage))
+            'InitData.Caption = vbNullString
+            InitData.WindowStyles = If(Me.ClipControls = True, WS_CLIPCHILDREN, 0&)
+            'InitData.ExtendedStyles = 0
+            InitData.Flags = ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardDoubleClick Or _
+                                ForwardDragOver Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardMouseMove Or _
+                                ManualMouseCapture Or _
+                                ForwardButtonClick Or _
+                                ScaleAdjustMouseEvents
+            InitData.Flags2 = IsPropertyPage
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            InitGraphics(Me.RootWindowElementBase)
+            #If FEATURE_OLEDRAGDROP Then
+            InitOleDragDropHelper()
+            #End If
+'            Me.[_BaseGraphics].SyncScaleMode(Me, Me.RootWindowElementBase)
+        End Sub
+        
+        Protected Sub HandleDPIChange(ByVal newDPI As Long) _
+                Implements IWindowElementEventsCommon.DPIChange
+            RaiseEvent DPIChange(newDPI)
+        End Sub
+        
+        Protected Sub HandleDestroy() _
+                 Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            
+            RaiseEvent Terminate()
+            
+            ' disconnect anything that causes a circular reference here
+            Me.InternalStateResetGraphics()
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            
+            Dim SerializeInfo As SerializeInfo
+            SerializeInfo.Pointer = GetClassInstanceSerializer(Me)
+            SetClassOverrideDispatch(Me, Nothing)
+            
+            #If FEATURE_DRAWING Then
+            Set Font = Nothing
+            #End If
+            
+            [_HiddenModule].ResetFirstMethodAccessFlag(Me)
+        End Sub
+                
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+
+            If IsInitialized = False Then InitializeMe
+            'RaiseEvent Load()
+            
+            InternalIsFirstResizeEventAfterLoad = True
+        End Sub
+        
+        Protected Sub HandlePreLoad() _
+                Implements IWindowElementEventsCommonRoot.PreLoadForm
+
+            ' At this point the HWND is available, but not correct size etc.
+            SyncScaleMode(Me, Me.RootWindowElementBase)
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #End If
+            
+            ' This has to happen here, as it can be accessed via ActiveX ambient properties during creation
+            #If FEATURE_DRAWING Then
+            InternalSyncFontProperties(True, False)
+            #End If
+        End Sub
+        
+        ' Protected Sub HandlePreLoad2() _
+        '         Handles RootWindowElementBase.PreLoadForm2
+            
+        '     RaiseEvent Initialize()
+            
+        ' End Sub
+        
+        
+        Protected Sub InitializeMe()
+            
+            SyncScaleMode(Me, RootWindowElementBase)
+            
+            ' FIXME this is in lieu of having a working Create event here
+            InternalChangeHDC(0, Me.hWnd, RootWindowElementBase, Me.Picture, Me, True)
+            IsInitialized = True
+            
+        End Sub
+           
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+                
+            'Debug.Print Now() & " PropertyPage.Paint"
+            'Sleep(2000)
+            
+            ' Dim ps As PAINTSTRUCT
+            ' Me.RootWindowElementBase.BeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API directly
+            '     ' FIXME check paint order
+            '     RootWindowElementBase.PaintContainedWindowlessElements(ps.hdc)
+            '     RaiseEvent Paint()
+            ' Me.RootWindowElementBase.EndPaint(ps)
+            ' Handled = True     ' swallow up the event
+            
+            If IsInitialized = False Then InitializeMe
+    
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API 
+                
+                OnPaint(ps.hdc)
+            
+                RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+        End Sub
+                        
+        [Serialize(False)]
+        Public Property Get DpiScaleFactorX() As Double ' exposed as X/Y for future 
+            Return RootWindowElementBase.RuntimeUIGetUnitScale()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get DpiScaleFactorY() As Double ' exposed as X/Y for future 
+            Return RootWindowElementBase.RuntimeUIGetUnitScale()
+        End Property
+        
+        Protected Sub InternalRaisePaint() _
+                Implements ITbCommonContainerPrivate.RaisePaint
+            
+            RaiseEvent Paint()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get ActiveControl() As Control
+            Return CType(Of Control)(RootWindowElementBase.RuntimeUIGetFormActiveControl())
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Object
+            Return Me.Controls
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Count() As Long
+            Return CLng(Me.Controls.Count)
+        End Property
+                
+        Public Sub SetFocus()
+            RootWindowElementBase.SetFocus()
+        End Sub
+    
+        [Enumerator]
+        Public Function InternalEnumerator() As stdole.IUnknown     ' FIXME should not be exposed
+            Return CallByDispId(Me.Controls, -4, vbGet)
+        End Function
+        
+        Protected Sub SetPendingPopupMenu(Menu As Menu) _
+                Implements ITbCommonContainerPrivate.SetPendingPopupMenu
+        End Sub
+        
+        Protected Sub MenuRedrawRequired() _
+                       Implements ITbCommonContainerPrivate.MenuRedrawRequired
+            ' VB6 doesn't draw the menu bar immediately, to prevent excessive flashing when multiple menus are updated
+            RootWindowElementBase.RuntimeUIRedrawMenuDeferred()
+            'DrawMenuBar(CLngPtr(hWnd))
+        End Sub
+        
+        Protected Sub BuildMenus(existingMenuHandle As HMENU, windowListMenu As LongPtr, Container As Control, Level As Long, IsPopUp As Boolean, BoldMenuItem As Menu) _
+                       Implements ITbCommonContainerPrivate.BuildMenus
+        End Sub
+
+        Protected Sub RebuildMenus(ByVal IsRuntimeChange As Boolean) _
+                       Implements ITbCommonContainerPrivate.RebuildMenus
+        End Sub
+        
+        Protected Sub RaiseChange() _
+                       Implements ITbCommonContainerPrivate.RaiseChange
+        End Sub
+                
+        Protected Sub RaiseResize() _
+                       Implements ITbCommonContainerPrivate.RaiseResize
+        End Sub
+        
+        Protected Sub RaiseResize2() _
+                       Implements ITbCommonContainerPrivate.RaiseResize2
+        End Sub
+        
+        Protected Sub RaiseViewChanged() _
+                       Implements ITbCommonContainerPrivate.RaiseViewChanged
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Width() As Double
+            Return RootWindowElementBase.CommonGetFormWidth()
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Width(ByVal ValueTwips As Double)
+            RootWindowElementBase.CommonSetFormWidth(InternalBaseControlInfo, Me.ControlContext, ValueTwips, IsDesignMode)
+        End Property
+    
+        [Serialize(False)]
+        Public Property Get Height() As Double
+            Return RootWindowElementBase.CommonGetFormHeight()
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Height(ByVal ValueTwips As Double)
+            RootWindowElementBase.CommonSetFormHeight(InternalBaseControlInfo, Me.ControlContext, ValueTwips, IsDesignMode)
+        End Property
+                        
+        Protected Sub SyncPictureINIT()
+            Dim Picture As StdPicture
+            CommonLoadPictureInit(Picture, Me.PictureINIT)
+            Set Me.Picture = Picture
+        End Sub
+        
+        Protected Sub DesignerArrayFieldUpdated(ByVal FieldName As String) _
+                Implements ITwinBasicDesignerExtensions2.DesignerArrayFieldUpdated
+            Set Picture = Nothing
+            SyncPictureINIT()
+        End Sub
+        
+        #If FEATURE_ACTIVEX_CONTROLS Then
+        Protected Sub IOleContainerEnumObjects(ByVal grfFlags As Long, ppenum As IEnumUnknown) _
+                Implements IOleContainer.EnumObjects
+
+    '        Debug.Print "IOleContainer_EnumObjects"
+            PutMemPtr(VarPtr(ppenum), vbNullPtr)    ' OUT semantics            
+            
+            Set ppenum = CType(Of IEnumUnknown)(RootWindowElementBase.RuntimeUICreateControlsEnumerator(grfFlags, 4))
+        End Sub
+    
+        Protected Sub IOleContainerLockContainer(ByVal fLock As Long) _
+                Implements IOleContainer.LockContainer
+        
+    '        Debug.Print "IOleContainer_LockContainer"
+        End Sub
+    
+        Protected Sub IOleContainerParseDisplayName(ByVal pbc As stdole.IUnknown, ByVal pszDisplayName As LongPtr, pchEaten As Long, ppmkOut As VBRUN.tbInternal_IMoniker) _
+                Implements IOleContainer.ParseDisplayName
+        
+            PutMemPtr(VarPtr(ppmkOut), vbNullPtr)    ' OUT semantics            
+            
+    '        Debug.Print "IOleContainer_ParseDisplayName"
+        End Sub
+        #End If
+        
+        
+        
+        
+        ' Protected Sub IPropertyPage2_SetPageSite(ByVal pPageSite As IPropertyPageSite)
+        '     LogInternal(CurrentProcedureName & ":" & ObjPtr(pPageSite))
+        '     'MsgBox CurrentProcedureName
+        '     If (pPageSite IsNot Nothing) And (liveSite IsNot Nothing) Then
+        '         Const E_UNEXPECTED As Long = &H8000FFFF
+        '         Err.ReturnHResult = E_UNEXPECTED
+        '     Else
+        '         Set liveSite = pPageSite
+                
+        '         If pPageSite Is Nothing Then
+        '             RaiseEvent Terminate()
+        '         End If
+        '     End If
+        ' End Sub
+                
+        ' Protected Sub IPropertyPage2_Activate(ByVal hWndParent As LongPtr, pRect As tbRECT, ByVal bModal As Long)
+        '     LogInternal(CurrentProcedureName)
+        '     'MsgBox CurrentProcedureName & " (" & pRect.Left & ", " & pRect.Top & ")-(" & pRect.Right & ", " & pRect.Bottom & ")"
+        '     SetWindowPos(Me.hWnd, vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, SWP_NOACTIVATE)
+        '     InternalSetParent(Me.hWnd, hWndParent)
+        '     'MsgBox CurrentProcedureName & "[DONE]"
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_Apply()
+        '     LogInternal(CurrentProcedureName)
+        '     'MsgBox CurrentProcedureName
+        '     ' FIXME what about if validation failed or something here?
+        '     InternalHasChanged = False
+            
+        '     RaiseEvent ApplyChanges()
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_Deactivate()
+        '     LogInternal(CurrentProcedureName)
+        '     'InternalEarlyTerminated = True
+        '     'RaiseEvent Terminate()
+        '     'IPropertyPage2_SetObjects(0, Nothing)        ' It seems that the OLE host doesn't do this automatically, despite IPropertyPage docs suggesting hosts should
+        '     'MsgBox CurrentProcedureName
+        ' End Sub
+                
+        ' Protected Sub IPropertyPage2_GetPageInfo(pPageInfo As PROPPAGEINFO)
+        '     LogInternal(CurrentProcedureName)
+        '     'MsgBox CurrentProcedureName
+        '     pPageInfo.cb = LenB(Of PROPPAGEINFO)
+        '     pPageInfo.size.cx = 1000            ' FIXME what to use here
+        '     pPageInfo.size.cy = 500
+        '     pPageInfo.pszTitle = OleAllocString(Me.Caption)
+        '     pPageInfo.pszDocString = vbNullPtr
+        '     pPageInfo.pszHelpFile = vbNullPtr
+        '     pPageInfo.dwHelpContext = 0
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_Help(ByVal pszHelpDir As LongPtr)
+        '     MsgBox CurrentProcedureName
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_IsPageDirty()
+        '     LogInternal(CurrentProcedureName)
+        '     ' FIXME needs to use Changed property?
+        '     'MsgBox CurrentProcedureName
+        '     Const S_OK As Long = 0
+        '     Const S_FALSE As Long = 1
+        '     Err.ReturnHResult = If(InternalHasChanged, S_OK, S_FALSE)
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_Move(pRect As tbRECT)
+        '     LogInternal(CurrentProcedureName)
+        '     ' Not seen this actually used 
+        '     SetWindowPos(Me.hWnd, vbNullPtr, pRect.Left, pRect.Top, pRect.Right - pRect.Left, pRect.Bottom - pRect.Top, SWP_NOACTIVATE)
+        '     'MsgBox CurrentProcedureName & " (" & pRect.Left & ", " & pRect.Top & ")-(" & pRect.Right & ", " & pRect.Bottom & ")"
+        ' End Sub
+                
+        ' Protected Sub IPropertyPage2_SetObjects(ByVal cObjects As Long, ppUnk As IUnknown)
+        '     LogInternal(CurrentProcedureName & ":" & cObjects)
+        '     'If cObjects <> 1 Then
+        '     '    MsgBox CurrentProcedureName & ", cObjects: " & cObjects
+        '     'End If
+            
+        '     ' FIXME hosts have a habit of calling SetObject with the same args multiple times, so we could potentially filter them
+            
+        '     ReDim InternalSharedState.SelectedObjects(cObjects - 1)
+        '     vbaCopyBytes cObjects * LenB(Of LongPtr), VarPtr(InternalSharedState.SelectedObjects(0)), VarPtr(ppUnk)
+            
+        '     ' AddRef on each 
+        '     For objectIdx As Long = 0 To cObjects - 1
+        '         'MsgBox "123"
+        '         [_HiddenModule].vbaObjAddref(ObjPtr(InternalSharedState.SelectedObjects(objectIdx)))
+        '     Next
+            
+        '     RaiseEvent SelectionChanged()
+        '     'MsgBox CurrentProcedureName & ", cObjects: " & cObjects
+        '     'MsgBox CType(Of Object)(SelectedObjects(0)).Name
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_Show(ByVal nCmdShow As Long)
+        '     LogInternal(CurrentProcedureName & ":" & nCmdShow)
+        '     'MsgBox CurrentProcedureName & ", nCmdShow: " & nCmdShow
+        '     ShowWindow(Me.hWnd, nCmdShow)
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_TranslateAccelerator(pMsg As MSG)
+        '     LogInternal(CurrentProcedureName)
+        '     'MsgBox CurrentProcedureName
+        '     Err.ReturnHResult = E_NOTIMPL        ' Mnemonics not yet supported
+        ' End Sub
+        
+        ' Protected Sub IPropertyPage2_EditProperty(ByVal dispId As Long)
+        '     LogInternal(CurrentProcedureName & ":" & dispId)
+        '     ' FIXME should implement this
+        '     'MsgBox CurrentProcedureName & ": " & Hex(dispId)
+        ' End Sub
+        
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+        
+'        Protected InternalHasChanged As Boolean
+
+        [Serialize(False)]
+        Public Property Get Changed() As Boolean
+            Return InternalSharedState.HasChanged
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Changed(ByVal Value As Boolean)
+            Const PROPPAGESTATUS_DIRTY As Long = 1
+            InternalSharedState.HasChanged = Value
+            If InternalSharedState.LiveSite IsNot Nothing Then
+                 InternalSharedState.LiveSite.OnStatusChange(If(Value, PROPPAGESTATUS_DIRTY, 0&))    ' need to check if this is really what VB6 sends for the non-dirty state, since the host calls IsPageDirty anyway
+             End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get SelectedControls() As SelectedControls
+            Return InternalSelectedControls
+        End Property
+        
+        Protected Sub HandlePreInitialize() _
+                Implements IWindowsControl.PreInitialize
+            ' This event fires once the PropertyPage has been event-registered into its outer class
+            Set InternalSelectedControls = New SelectedControls(VarPtr(InternalSharedState))
+
+            Dim SerializeInfo As SerializeInfo
+            SerializeInfo.Pointer = GetClassInstanceSerializer(Me)
+            ' We could handle this better if we had full inheritance support
+            ' This is needed to make properties on the outer interface accessible at design time in property lists etc.
+            'Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
+            'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler rootObject  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
+
+            Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
+            SetClassOverrideDispatch(Me, rootObject)
+            
+            RaiseEvent Initialize()
+        End Sub
+        
+        Protected Function OnGetControlType() As ControlTypeConstants _
+                Overrides GraphicsBase.OnGetControlType
+            Return ControlTypeConstants.vbPropertyPage
+        End Function
+        
+    #End Region
+    
+End Class
+
+[ClassId("04B875EB-AFC1-424C-A75C-A4D04C1E8FBF")]
+[InterfaceId("2CE46480-1A08-11CF-AD63-00AA00614F3E")]
+[COMCreatable(False)]
+Private Class SelectedControls
+    Protected SharedStatePtr As LongPtr
+    Sub New(ByVal SharedStatePtr As LongPtr)
+        Me.SharedStatePtr = SharedStatePtr
+    End Sub
+    
+    Property Get Count() As Long
+        With CType(Of PropertyPageSharedState)(SharedStatePtr)
+            If IsArrayInitialized(.SelectedObjects) = False Then
+                Return 0
+            End If
+            Return UBound(.SelectedObjects) + 1
+        End With
+    End Property
+
+    [DefaultMember]
+    Property Get Item(ByVal Index As Long) As Object
+        With CType(Of PropertyPageSharedState)(SharedStatePtr)
+            Dim selectedObject As Any = .SelectedObjects(Index)
+            Return CType(Of Object)(selectedObject)
+        End With
+    End Property
+
+    [Enumerator]
+    Property Get _NewEnum() As Variant
+        'MsgBox "_NewEnum"
+        With CType(Of PropertyPageSharedState)(SharedStatePtr)
+            ' FIXME shouldn't need to wrap in a collection
+            Dim coll As Collection = New Collection
+            Dim selectedObject As stdole.IUnknown
+            If IsArrayInitialized(.SelectedObjects) = True Then
+                For Each selectedObject In .SelectedObjects
+                    'MsgBox "_NewEnum:each"
+                    Dim temp As Object = selectedObject
+                    coll.Add(temp)
+                    'MsgBox "_NewEnum:each"
+                Next
+            End If
+            Return CallByDispId(coll, -4, vbGet)
+        End With
+    End Property
+End Class
+
+#End If

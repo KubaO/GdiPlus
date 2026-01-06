@@ -1,0 +1,234 @@
+[InterfaceId("33AD4F79-6699-11CF-B70C-00AA0060D393")]
+' FIXME add descriptions here 
+' FIXME this is duplicated in package 'twinBASIC - App global object class'
+Private Interface _App Extends stdole.IUnknown      ' FIXME needs to suppot IDispatch
+    [RedirectToStaticImplementation("HiddenModule2.GetAppPath")]
+    Property Get Path() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppEXEName")]
+    Property Get EXEName() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppTitle")]
+    Property Get Title() As String
+    [RedirectToStaticImplementation("HiddenModule2.LetAppTitle")]
+    Property Let Title(ByVal Value As String)
+    [RedirectToStaticImplementation("HiddenModule2.GetAppPrevInstance")]
+    Property Get PrevInstance() As Boolean
+    [Unimplemented]
+    Property Get StartMode() As Integer
+    [Unimplemented]
+    Property Get TaskVisible() As Boolean
+    [Unimplemented]
+    Property Let TaskVisible(ByVal value As Boolean)
+    [Unimplemented]
+    Property Get OleServerBusyTimeout() As Long
+    [Unimplemented]
+    Property Let OleServerBusyTimeout(ByVal value As Long)
+    [Unimplemented]
+    Property Get OleServerBusyMsgTitle() As String
+    [Unimplemented]
+    Property Let OleServerBusyMsgTitle(ByVal value As String)
+    [Unimplemented]
+    Property Get OleServerBusyMsgText() As String
+    [Unimplemented]
+    Property Let OleServerBusyMsgText(ByVal value As String)
+    [Unimplemented]
+    Property Get OleServerBusyRaiseError() As Boolean
+    [Unimplemented]
+    Property Let OleServerBusyRaiseError(ByVal value As Boolean)
+    [Unimplemented]
+    Property Get OleRequestPendingTimeout() As Long
+    [Unimplemented]
+    Property Let OleRequestPendingTimeout(ByVal value As Long)
+    [Unimplemented]
+    Property Get OleRequestPendingMsgTitle() As String
+    [Unimplemented]
+    Property Let OleRequestPendingMsgTitle(ByVal value As String)
+    [Unimplemented]
+    Property Get OleRequestPendingMsgText() As String
+    [Unimplemented]
+    Property Let OleRequestPendingMsgText(ByVal value As String)
+    [RedirectToStaticImplementation("HiddenModule2.GetAppMajor")]
+    Property Get Major() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.GetAppMinor")]
+    Property Get Minor() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.GetAppRevision")]
+    Property Get Revision() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.GetAppComments")]
+    Property Get Comments() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppCompanyName")]
+    Property Get CompanyName() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppFileDescription")]
+    Property Get FileDescription() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppLegalCopyright")]
+    Property Get LegalCopyright() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppLegalTrademarks")]
+    Property Get LegalTrademarks() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppProductName")]
+    Property Get ProductName() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetApphInstance")]
+    Property Get hInstance() As LongPtr
+    [Unimplemented]
+    Property Get NonModalAllowed() As Boolean
+    [Unimplemented]
+    Property Get LogPath() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppLogMode")]
+    Property Get LogMode() As LogModeConstants      ' FIXME Currently only supports vbLogOff and vbLogAuto for IDE detection purposes.
+    [Unimplemented]
+    Property Get UnattendedApp() As Boolean
+    [RedirectToStaticImplementation("HiddenModule2.GetAppThreadID")]
+    Property Get ThreadID() As Long
+    [RedirectToStaticImplementation("HiddenModule2.GetAppHelpFile")]
+    Property Get HelpFile() As String
+    [RedirectToStaticImplementation("HiddenModule2.LetAppHelpFile")]
+    Property Let HelpFile(ByVal Value As String)
+    [Unimplemented]
+    Property Get RetainedProject() As Boolean
+    [Unimplemented]
+    Sub StartLogging(ByVal LogTarget As String, ByVal LogModes As Long)
+    [Unimplemented]
+    Sub LogEvent(ByVal LogBuffer As String, ByVal EventType As Variant)
+    [RedirectToStaticImplementation("HiddenModule2.GetAppIsInIDE")]
+    Property Get IsInIDE() As Boolean
+    [RedirectToStaticImplementation("HiddenModule2.GetAppBuild")]
+    Property Get Build() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.GetAppModulePath")]
+    Property Get ModulePath() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppLastBuildPath")]
+    Property Get LastBuildPath() As String
+    [RedirectToStaticImplementation("HiddenModule2.GetAppIsElevated")]
+    Property Get IsElevated() As Boolean
+    
+End Interface
+ 
+[InterfaceId("33AD4F49-6699-11CF-B70C-00AA0060D393")]
+' FIXME need to match vtable layout to VB6 version
+Private Interface _Clipboard Extends stdole.IUnknown        ' FIXME needs to suppot IDispatch
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardClear")]
+    Sub Clear()
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardGetData")]
+    [Unimplemented]
+    Function GetData([TypeHint(ClipboardConstants)] ByVal Format As Variant) As stdole.StdPicture
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardSetData")]
+    [Unimplemented]
+    Sub SetData(ByVal Picture As stdole.StdPicture, [TypeHint(ClipboardConstants)] Optional ByVal Format As Variant)
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardGetText")]
+    Function GetText([TypeHint(ClipboardConstants)] Optional ByVal Format As Variant) As String
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardSetText")]
+    Sub SetText(ByVal Str As String, [TypeHint(ClipboardConstants)] Optional ByVal Format As Variant)
+    [RedirectToStaticImplementation("HiddenModule2.ClipboardGetFormat")]
+    Function GetFormat([TypeHint(ClipboardConstants)] ByVal Format As Integer) As Boolean
+End Interface
+
+[InterfaceId("33AD4F41-6699-11CF-B70C-00AA0060D393")]
+' FIXME need to match vtable layout to VB6 version
+Private Interface _Screen Extends stdole.IUnknown        ' FIXME needs to suppot IDispatch
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetHeight")]
+    Property Get Height() As Single
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetFontCount")]
+    Property Get FontCount() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetFonts")]
+    Property Get Fonts(ByVal Index As Integer) As String
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetActiveForm")]
+    Property Get ActiveForm() As Form
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetActiveControl")]
+    Property Get ActiveControl() As Control
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetMousePointer")]
+    [TypeHint(MousePointerConstants)]
+    Property Get MousePointer() As Integer
+    [RedirectToStaticImplementation("HiddenModule2.ScreenLetMousePointer")]
+    Property Let MousePointer([TypeHint(MousePointerConstants)] ByVal Value As Integer)
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetTwipsPerPixelX")]
+    Function TwipsPerPixelX() As Single
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetTwipsPerPixelY")]
+    Function TwipsPerPixelY() As Single
+    [RedirectToStaticImplementation("HiddenModule2.ScreenLetMouseIcon")]
+    Property Let MouseIcon(ByVal Value As StdPicture)
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetMouseIcon")]
+    Property Get MouseIcon() As StdPicture
+    [RedirectToStaticImplementation("HiddenModule2.ScreenSetMouseIcon")]
+    Property Set MouseIcon(ByVal Value As StdPicture)
+    [RedirectToStaticImplementation("HiddenModule2.ScreenGetWidth")]
+    Property Get Width() As Single
+End Interface
+
+[InterfaceId("7AD780F0-BF29-4EE3-B58A-834A40C14F3B")]    ' not official IID, VB6 uses this via IDispatch only
+Private Interface _Forms Extends stdole.IUnknown        ' FIXME needs to support IDispatch
+    [RedirectToStaticImplementation("HiddenModule2.FormsGetCount")]
+    Property Get Count() As Long
+    [RedirectToStaticImplementation("HiddenModule2.FormsGetItem")]
+    [DispId(0)]
+    Property Get Item(ByVal Index As Long) As Form
+    [RedirectToStaticImplementation("HiddenModule2.FormsAdd")]
+    Function Add(ByVal Name As String) As Form
+    [RedirectToStaticImplementation("HiddenModule2.FormsNewEnum")]
+    [Enumerator]
+    [Hidden, Restricted]
+    Function _NewEnum() As stdole.IUnknown
+End Interface
+
+[InterfaceId("FCFB3D22-A0FA-1068-A738-08002B3371B5")]
+' FIXME need to match vtable layout to VB6 version
+Private Interface VBGlobal Extends stdole.IUnknown
+'    [ RedirectToStaticImplementation ("_HiddenModule.CreateGlobalObject") ]
+    Property Get App() As App
+'    [ RedirectToStaticImplementation ("_HiddenModule.CreateGlobalObject") ]
+    Property Get Clipboard() As Clipboard
+'    [ RedirectToStaticImplementation ("_HiddenModule.CreateGlobalObject") ]
+    Property Get Screen() As Screen
+'    [ RedirectToStaticImplementation ("_HiddenModule.CreateGlobalObject") ]
+    Property Get Forms() As _Forms      ' VB6 uses late bound Object here
+    
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoadResPicture")]
+    Function LoadResPicture(ByVal id As Variant, [TypeHint(LoadResConstants)] ByVal restype As Integer, Optional ByVal width As Long = 0, Optional ByVal height As Long) As stdole.IPictureDisp
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoadResData")]
+    Function LoadResData(ByVal id As Variant, ByVal Type As Variant) As Variant
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoadResString")]
+    Function LoadResString(ByVal id As Long) As String
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoadResIdList")]
+    Function LoadResIdList(ByVal Type As Variant) As Variant
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoadPicture")]
+    Function LoadPicture(Optional ByVal FileName As Variant, [TypeHint(LoadPictureSizeConstants)] Optional ByVal Size As Variant, [TypeHint(LoadPictureColorConstants)] Optional ByVal ColorDepth As Variant, Optional ByVal X As Variant, Optional ByVal Y As Variant) As stdole.IPictureDisp
+    
+    [RedirectToStaticImplementation("HiddenModule2.GlobalLoad")]
+    Sub Load(ByVal object As Object)
+    [RedirectToStaticImplementation("HiddenModule2.GlobalUnload")]
+    Sub Unload(ByVal object As Object)
+
+    #If FEATURE_PRINTER Then
+    [RedirectToStaticImplementation("PrintersGlobals.GlobalGetPrinter")]
+    Property Get Printer() As Printer
+    
+    [RedirectToStaticImplementation("PrintersGlobals.GlobalSetPrinter")]
+    Property Set Printer(ByVal rhs As Printer)
+    
+    [RedirectToStaticImplementation("PrintersGlobals.GlobalGetPrinters")]
+    Property Get Printers() As Printers
+    #End If
+End Interface
+
+[CoClassId("33AD4F78-6699-11CF-B70C-00AA0060D393")]
+[COMCreatable(False)]
+Public CoClass App
+    [Default] Interface _App
+    '[Default, Source] Interface AppEvents         ' FIXME empty events class
+End CoClass
+ 
+[CoClassId("33AD4F48-6699-11CF-B70C-00AA0060D393")]
+[COMCreatable(False)]
+Public CoClass Clipboard
+    [Default] Interface _Clipboard
+    '[Default, Source] Interface ClipboardEvents         ' FIXME empty events class
+End CoClass
+
+[CoClassId("33AD4F40-6699-11CF-B70C-00AA0060D393")]
+[COMCreatable(False)]
+Public CoClass Screen
+    [Default] Interface _Screen
+    '[Default, Source] Interface ScreenEvents         ' FIXME empty events class
+End CoClass
+
+[CoClassId("FCFB3D23-A0FA-1068-A738-08002B3371B5")]
+[CoClassCustomConstructor("CreateGlobalObject")]
+[AppObject]
+Public CoClass Global
+    [Default] Interface VBGlobal
+End CoClass

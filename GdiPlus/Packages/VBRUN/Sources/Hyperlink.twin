@@ -1,0 +1,11 @@
+[InterfaceId("888A5A60-B283-11CF-8AD5-00A0C90AEA82")]
+'[ DualInterface, DispInterface]
+[Description("The Hyperlink object allows browser navigation in a suitable host")]
+Public Interface Hyperlink Extends stdole.IDispatch
+    [DispId(3)]
+    /* voffset &H001C*/ Sub GoForward()
+    [DispId(4)]
+    /* voffset &H0020*/ Sub GoBack()
+    [DispId(5)]
+    /* voffset &H0024*/ Sub NavigateTo(ByVal Target As String, Optional ByVal Location As String, Optional ByVal FrameName As String)
+End Interface 

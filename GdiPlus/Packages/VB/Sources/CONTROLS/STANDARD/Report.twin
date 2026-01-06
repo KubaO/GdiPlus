@@ -1,0 +1,2214 @@
+#If FEATURE_REPORT Then
+[InterfaceId("E274535E-AA5B-49C5-83B1-2243A98D82F3")]
+Public Interface ITbRecordset                           ' Should be private really, but used by Sample 0
+    Property Get EOF() As Boolean
+    Sub MoveNext()
+    Function GetFieldBinder(ByRef FieldName As String) As Object        ' implementor can return a general IDispatch object, or something that implements ITbExpression
+End Interface
+
+[COMCreatable(False)]
+Private Class ObjectFieldBinderByName
+    Implements ITbExpression
+    
+    Public Object As Object
+    Public FieldName As String
+    
+    Sub New(Object As Object, FieldName As String)
+        Set Me.Object = Object
+        Me.FieldName = FieldName
+    End Sub
+    
+    Function GetValue() As Variant _
+            Implements ITbExpression.Evaluate
+        
+        Return CallByName(Object, FieldName, vbGet)
+    End Function
+End Class
+
+[COMCreatable(False)]
+Private Class ExpressionGenericFieldBinder
+    Implements ITbExpression
+ 
+    Protected Field As Object
+    
+    Sub New(Field As Object)
+        Set Me.Field = Field
+    End Sub
+    
+    Protected Function Evaluate() As Variant _
+            Implements ITbExpression.Evaluate
+    
+        Return Field.Value
+    End Function
+End Class
+
+[COMCreatable(False)]
+Private Class ExpressionGenericRecordsetWrapper
+    Implements ITbRecordset
+    
+    Dim Recordset As Object
+    
+    Sub New(Recordset As Object)
+        Set Me.Recordset = Recordset
+        
+        On Error Resume Next
+        Recordset.MoveFirst
+    End Sub
+    
+    Protected Property Get EOF() As Boolean _
+            Implements ITbRecordset.EOF
+        Return Recordset.EOF
+    End Property
+    
+    Protected Sub MoveNext() _
+            Implements ITbRecordset.MoveNext
+        Recordset.MoveNext
+    End Sub
+    
+    Protected Function GetFieldBinder(ByRef FieldName As String) As Object _
+            Implements ITbRecordset.GetFieldBinder
+        On Error Resume Next
+        Dim Field As Object = Recordset.Fields(FieldName)
+        If Field IsNot Nothing Then
+            Return New ExpressionGenericFieldBinder(Field)
+        End If
+        ' It's generally more optimal to bind to the recordset field directly (as above), but we could have just returned the Recordset.Fields object
+        ' and let the expression engine look the field up for each iteration
+        ' Return Recordset.Fields
+    End Function
+    
+End Class
+
+[ClassId("5FC86B4D-5CB0-442F-97FA-9A25DCB21A0A")]
+[InterfaceId("60A45893-2E98-4A68-914E-C3B7F4802D5A")]
+[COMCreatable(False)]
+[ComImport(True)]
+Private Class ReportPage
+    Public PageNumber As Long
+    Public MetaFile As LongPtr
+    Public MetaFileTwipsPerPixelX As Double
+    Public MetaFileTwipsPerPixelY As Double
+    Public IsLastPage As Boolean
+        
+    Public Sub New(ByVal PageNumber As Long, ByVal MetaFile As LongPtr, ByVal IsLastPage As Boolean, ByVal twipsPerPixelX As Double, ByVal twipsPerPixelY As Double)
+        Me.PageNumber = PageNumber
+        Me.MetaFile = MetaFile
+        Me.IsLastPage = IsLastPage
+        Me.MetaFileTwipsPerPixelX = twipsPerPixelX
+        Me.MetaFileTwipsPerPixelY = twipsPerPixelY
+    End Sub
+    
+    Sub Class_Terminate()
+        If Me.MetaFile <> vbNullPtr Then
+            GDI32.DeleteEnhMetaFile(Me.MetaFile)
+        End If
+    End Sub
+End Class
+
+Private Class ReportScrollElement
+    Implements IWindowElementEventsCommon
+    Protected Report As ReportBaseCtl    'CAREFUL! circular ref, has to be broken manually by owner
+    Public ScrollElement As WindowElement
+
+        Sub New(ByRef Report As ReportBaseCtl, ByVal ReportContext As ControlContext, ByVal hwnd As LongPtr)
+            Set Me.Report = Report
+            Me.ScrollElement.Pointer = ReportContext.RuntimeUICtxSubClassWindowElement(hwnd, 0)
+            ScrollElement.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Sub Class_Terminate()
+'            Debug.Print "~ReportScrollElement"
+            'Debug.TracePrint "ReportScrollElement EDIT unsubclass"
+            ScrollElement.RuntimeUIUnSubclass()
+            ScrollElement.RuntimeUIUnSinkEvents(Me)
+        End Sub
+                
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+                
+            UnprotectedAccess(Report).InternalScroll(ScrollType, ScrollElement)
+        End Sub
+End Class
+
+[ClassId("F05FBC2A-209B-4167-B1D5-CA25E4C644BE")]
+[InterfaceId("B1A4587A-46D7-44D6-804B-AF1FB26D93A9")]
+' WARNING: above InterfaceId is referred to as IID_ITBReport in tB Sources
+[COMCreatable(False)]
+[COMExtensible(True)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class ReportBaseCtl
+     
+     #Region "INHERITANCE"
+     
+        Inherits BaseForm
+        Inherits GraphicsBase
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements ITbCustomBinder
+        Implements IWindowElementEventsCommon
+        Implements IWindowElementEventsCommonRoot
+                
+    # End Region
+        
+    #Region "STATE"
+    
+        Enum ZoomAutoFitConstants
+            vbZoomAutoFit       ' updates ZoomPercent to maximize the fit of the page in the window
+            vbZoomAutoFitOnce   ' updates ZoomPercent to maximize the fit of the page in the window, only once on opening the report
+            vbZoomAutoFitNever  ' allows manual control of ZoomPercent
+        End Enum
+
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("Note: affects PREVIEW only.  Does not get printed")]
+             Public PaperColor As OLE_COLOR = VBRUN.vbWhite
+            
+            Protected IsInitialized As Boolean
+            Protected IsDesignMode As Boolean
+            
+        [NonBrowsable]
+            Public InternalControlSections() As ControlsSection
+            
+            Protected ExpressionService As TbExpressionService
+        
+        [Serialize(True, "Icon")]
+        [CustomDesigner("designer_IconBytes")]
+            Protected ReadOnly IconINIT() As Byte
+
+        Public ReadOnly TopMost As Boolean                      ' FIXME could make this not ReadOnly
+        
+        [Description("Opacity, given as a percentage, 0 - 100")]
+        Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window")]
+        Public TransparencyKey As OLE_COLOR = -1
+
+            #If FEATURE_HELP Then
+            Public HelpContextID As Long
+            #End If
+            
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+        [Serialize(True, "MinWidth")]
+        [Description("The minimum width of the CLIENT area, in twips")]
+            Protected MinWidthINIT As Double
+        [Serialize(True, "MinHeight")]
+        [Description("The minimum height of the CLIENT area, in twips")]
+            Protected MinHeightINIT As Double
+        [Serialize(True, "MaxWidth")]
+        [Description("The maximum width of the CLIENT area, in twips")]
+            Protected MaxWidthINIT As Double
+        [Serialize(True, "MaxHeight")]
+        [Description("The maximum height of the CLIENT area, in twips")]
+            Protected MaxHeightINIT As Double
+                                                    
+    #End Region
+
+    #Region "EVENTS"
+    
+        Event Activate()
+        Event Deactivate()
+        Event Initialize()
+        [DefaultDesignerEvent] Event Load()
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event BeforePaintSection(ByVal Section As ControlsSection)
+        Event Resize()
+        Event Terminate()
+        Event Unload(Cancel As Integer)
+        Event QueryUnload(Cancel As Integer, UnloadMode As Integer)
+        [Description("This event only fires when the application is per-monitor DPI aware (PROCESS_PER_MONITOR_DPI_AWARE)")]
+        Event DPIChange(ByVal NewDPI As Long)
+        
+    #End Region
+               
+    #Region "MEMBERS"
+
+        Protected Sub Class_Terminate()
+            DeleteCachedBufferBitmap()
+            ReleaseGdiStuff()
+            RaiseEvent Terminate()
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+
+            Me.InternalStateReset()     ' resets all the base class state
+            Dim blankRECT As tbRECT
+            Me.FirstPaint = True
+            Me.AlreadyPainting = False
+            Set Me.CachedPages = New Collection
+            Me.CachedBufferBitmapWidth = 0
+            Me.CachedBufferBitmapHeight = 0
+            Me.CachedBufferHDC = vbNullPtr
+            Me.CachedBufferBitmap = vbNullPtr
+            Me.CachedBufferOrigBitmap = vbNullPtr
+            Me.BehindPageBackBrush = vbNullPtr
+            Me.ScrollbarsBackBrush = vbNullPtr
+            Me.PaperBackBrush = vbNullPtr
+            Me.WhiteBackBrush = vbNullPtr
+            Me.ToolbarBackBrush = vbNullPtr
+            Me.PageOutlinePen = vbNullPtr
+            Me.GdiStuffPrepared = False
+            Me.CurrentPageIsLast = False
+            Me.hwnd_ScrollH = vbNullPtr
+            Me.hwnd_ScrollV = vbNullPtr
+            Me.ScrollBarsVisible = False
+            Erase Me.Expressions
+            Me.ExpressionsCount = 0
+            Erase Me.AggregateControls
+            Me.AggregateControlsCount = 0
+            Me.moveFirstButtonRect = blankRECT
+            Me.movePrevButtonRect = blankRECT
+            Me.moveNextButtonRect = blankRECT
+            Me.moveLastButtonRect = blankRECT
+            Me.zoomOutButtonRect = blankRECT
+            Me.zoomInButtonRect = blankRECT
+            Me.zoomTextRect = blankRECT
+            Me.printButtonRect = blankRECT
+            Me.activebutton = 0
+            Me.hoverbutton = 0
+            Me.Page = 1
+            Me.Pages = 999
+            Me.RecordNum = 1
+            Set Me.InternalIcon = Nothing
+            Set Me.InternalRecordset = Nothing
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "Report"
+            End If
+            ' This allows dispatch calls to pass on to the outer form controller, allowing for extensibility  
+            'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler SerializeInfo.RuntimeUISrzGetRootClassDispatch()  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
+            Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
+            SetClassOverrideDispatch(GetInheritedOwner(Me), rootObject)
+            
+            Me.IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            CommonLoadPictureInit(Me.InternalIcon, Me.IconINIT)
+            
+            With InternalBaseControlInfo
+                .BaseGraphicsInfoPtr = InitBaseGraphicsInfo()
+                .MinWidth = MinWidthINIT
+                .MinHeight = MinHeightINIT
+                .MaxWidth = MaxWidthINIT
+                .MaxHeight = MaxHeightINIT
+            End With
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+                   
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderForm)
+            InitData.Caption = ""
+            InitData.WindowStyles = If(GraphicsBase.ClipControls = True, WS_CLIPCHILDREN, 0&) Or _
+                                        InternalGetBaseWindowStyles()
+            InitData.ExtendedStyles = If(TopMost = True, WS_EX_TOPMOST, 0&) Or _
+                                        InternalGetBaseWindowStylesEx()
+            InitData.Flags = ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardDoubleClick Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardMouseMove Or _
+                                ManualMouseCapture Or _
+                                ForwardButtonClick Or _
+                                ScaleAdjustMouseEvents Or _
+                                IsReportMode
+            #If FEATURE_MDI Then
+                If Me.MDIChild Then InitData.Flags += IsMDIChild
+            #endif
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            InitGraphics(RootWindowElementBase)
+'            Me.GraphicsBase.SyncScaleMode(Me, Me.RootWindowElementBase)
+        End Sub
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            
+            Dim Section As ControlsSection
+            For Each Section In InternalControlSections
+                UnprotectedAccess(Section).InternalCleanup()
+            Next
+            
+            ' disconnect anything that causes a circular reference here
+            'Debug.Print "Form::HandleDestroy"            
+            'Set Me.GraphicsBase = Nothing
+            Set Me.SetRootWindowElementBaseScrollH = Nothing
+            Set Me.SetRootWindowElementBaseScrollV = Nothing
+            Set Me.CachedPages = Nothing
+            
+'            Debug.Print "Form.HandleDestroy"
+
+            SetClassOverrideDispatch(GetInheritedOwner(Me), Nothing)
+            Set Me.SetRootWindowElementBaseScrollH = Nothing
+            Set Me.SetRootWindowElementBaseScrollV = Nothing
+            
+            Erase Me.Expressions
+            Me.ExpressionsCount = 0
+            Erase Me.AggregateControls
+            
+            Set ExpressionService  = Nothing
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+    
+        Protected Sub HandleDPIChange(ByVal newDPI As Long) _
+                Implements IWindowElementEventsCommon.DPIChange
+            RaiseEvent DPIChange(newDPI)
+        End Sub
+        
+        Type Expression
+            Expr As String
+            Eval As ITbExpression
+            Control As Control
+            CurrentValue As Variant
+        End Type
+        
+        Protected Expressions() As Expression
+        Protected ExpressionsCount As Long
+
+        Protected AggregateControls() As Control
+        Protected AggregateControlsCount As Long
+        
+        Protected Function ConvertVBxReportPlaceholdersToExpression(ByVal Caption As String) As String
+            Dim expression As String = "='"
+            Dim startPos As Long = 1
+            Caption = Replace(Caption, "'", "''")
+            Dim captionLen As Long = Len(Caption)
+            Dim CountOfPlaceholders As Long = 0
+            Do
+                Dim placeholderPos As Long = InStr$(startPos, Caption, "%")
+                If placeholderPos = 0 Then Exit Do
+                If placeholderPos = captionLen Then Exit Do
+                
+                expression &= Mid$(Caption, startPos, placeholderPos - startPos)
+                
+                Dim placeholderChar As Long = Asc(Mid$(Caption, placeholderPos + 1, 1))
+                CountOfPlaceholders += 1
+                Select Case placeholderChar
+                    Case Asc("p"):      ' Current Page Number
+                        expression &= "' & Report.Page & '"
+                    Case Asc("P"):      ' Total number of pages
+                        expression &= "' & Report.Pages & '"
+                    Case Asc("d"):      ' Current Date (short)
+                        expression &= "' & FormatDateTime(Now, vbShortDate) & '"
+                    Case Asc("D"):      ' Current Date (long)
+                        expression &= "' & FormatDateTime(Now, vbLongDate) & '"
+                    Case Asc("t"):      ' Current Time (short)
+                        expression &= "' & FormatDateTime(Now, vbShortTime) & '"
+                    Case Asc("T"):      ' Current Time (long)
+                        expression &= "' & FormatDateTime(Now, vbLongTime) & '"
+                    Case Asc("i"):      ' Report title
+                        expression &= "' & Report.Caption & '"
+                    Case Else
+                        ' It wasn't a valid placeholder, so just output the % character
+                        expression &= "%"
+                        placeholderPos -= 1
+                        CountOfPlaceholders -= 1
+                End Select
+                startPos = placeholderPos + 2
+            Loop
+            If CountOfPlaceholders > 0 Then
+                expression &= Mid$(Caption, startPos, (captionLen - startPos) + 1) & "'"
+                Return expression
+            End If
+        End Function
+        
+        Protected Sub BindExpressions()
+            On Error Resume Next
+            Dim ctl As Control
+            For Each ctl In Me.Controls
+                Dim dataField As String = ""
+                dataField = CStr(ctl.DataField)
+                If Len(dataField) = 0 Then
+                    ' Check if the Label Caption uses VBx placeholders
+                    #If FEATURE_LABEL Then
+                        If TypeOf ctl Is Label Then
+                            If InStr(ctl.Caption, "%") > 0 Then
+                                dataField = ConvertVBxReportPlaceholdersToExpression(CStr(ctl.Caption))
+                            End If
+                        End If
+                    #End If
+                End If
+                If Left(dataField, 1) = "=" Then
+                    'Debug.Print "*** EXPRESSION: ", ctl.Name, dataField
+                    If Len(ctl.DataSource) = 0 Then
+                        If (ExpressionsCount Mod 128) = 0 Then
+                            ReDim Preserve Expressions(ExpressionsCount + 128)
+                        End If
+                        With Expressions(ExpressionsCount)
+                            .Expr = dataField
+                            
+                            If ExpressionService Is Nothing Then
+                                Set ExpressionService = New TbExpressionService
+                                ExpressionService.AddStdLibraryBinder()
+                                ExpressionService.AddCustomBinderObject("Report", Me, IsAppObject)
+                                ExpressionService.AddCustomBinder(Me)
+                            End If
+                            
+                            Set .Eval = ExpressionService.Compile(Right$(dataField, Len(dataField) - 1))
+                            
+                            Set .Control = ctl
+                        End With
+                        ExpressionsCount += 1
+                        
+                        #If FEATURE_LABEL Then
+                            If TypeOf ctl Is Label Then
+                                Dim ControlLabel As Any = CType(Of Label)(ctl)
+                                If ControlLabel.DataFieldAggregate <> vbAggregateNone Then
+                                    If (AggregateControlsCount Mod 128) = 0 Then
+                                        ReDim Preserve AggregateControls(AggregateControlsCount + 128)
+                                    End If
+                                    Set AggregateControls(AggregateControlsCount) = ctl
+                                    AggregateControlsCount += 1
+                                End If
+                            End If
+                        #End If
+                    End If
+                End If
+            Next
+        End Sub
+        
+        Protected Sub EvaluateExpressions()
+            On Error Resume Next
+            Dim ExpressionIdx As Long
+            For ExpressionIdx = 0 To ExpressionsCount - 1
+                With Expressions(ExpressionIdx)
+                    .CurrentValue = CVErr(5)        ' in case next line throws
+                    .CurrentValue = .Eval.Evaluate()
+                    
+                    #If FEATURE_LABEL Then
+                    If TypeOf .Control Is Label Then
+                        If IsError(.CurrentValue) Then
+                            .Control.Caption = "#Error"
+                        Else
+                            .Control.Caption = .CurrentValue
+                        End If
+                    Else
+                    #End If
+                        #If FEATURE_QRCODE Then
+                        If TypeOf .Control Is QRCode Then
+                            If IsError(.CurrentValue) Then
+                                .Control.Payload = ""
+                            Else
+                                .Control.Payload = .CurrentValue
+                            End If
+                        Else
+                        #End If
+                            If IsError(.CurrentValue) Then
+                                .Control.Value = 0
+                            Else
+                                .Control.Value = .CurrentValue
+                            End If
+                        #If FEATURE_QRCODE Then
+                        End If
+                        #End If
+                    #If FEATURE_LABEL Then
+                    End If
+                    #End If
+                End With
+            Next
+        End Sub
+        
+        Protected Sub UpdateAggregates()
+        #If FEATURE_LABEL Then
+            On Error Resume Next
+            Dim AggregateControlIdx As Long
+            For AggregateControlIdx = 0 To AggregateControlsCount - 1
+                With CType(Of Label)(AggregateControls(AggregateControlIdx))
+                    .DataFieldAggregateValue += CDec(.Caption)
+                    .Caption = CStr(.DataFieldAggregateValue)
+                End With
+            Next
+        #End If
+        End Sub
+                
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+
+            If Moveable = False Then SyncMoveable()
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+            
+            If IsInitialized = False Then InitializeMe
+            RaiseEvent Load()
+            
+            Const GCL_STYLE As Long = -26
+            Const CS_DBLCLKS As Long = 8
+            Dim hWnd As Any = Me.hWnd
+            Dim dwClssStyle As Long = InternalHWND.GetClassLongA(GCL_STYLE)
+            InternalHWND.SetClassLongA(GCL_STYLE, dwClssStyle And Not CS_DBLCLKS)
+            
+            ' FIXME need to release hwnd_ScrollV / hwnd_ScrollH
+            Dim scrollSizeX As Long = CLng(16 * Me.DpiScaleFactorX)
+            Dim scrollSizeY As Long = CLng(16 * Me.DpiScaleFactorY)
+            Dim TOOLBARPADDEDHEIGHT As Long = CLng(TOOLBARHEIGHT * DpiScaleFactorY) + CLng(TOOLBARPADDINGY * DpiScaleFactorY) * 2
+            Dim actualHeight As Long = RootWindowElementBase.RuntimeUIGetCurrentHeight() - TOOLBARPADDEDHEIGHT
+            hwnd_ScrollV = USER32.CreateWindowExW(0, "SCROLLBAR", vbNullString, WS_CHILD Or ScrollBarStyles.SBS_VERT, RootWindowElementBase.RuntimeUIGetCurrentWidth() - scrollSizeX, 0, scrollSizeX, actualHeight - scrollSizeY, hWnd, vbNullPtr, vbNullPtr, vbNullPtr)
+            hwnd_ScrollH = USER32.CreateWindowExW(0, "SCROLLBAR", vbNullString, WS_CHILD Or ScrollBarStyles.SBS_HORZ, 0, actualHeight - scrollSizeY, RootWindowElementBase.RuntimeUIGetCurrentWidth() - scrollSizeX, scrollSizeY, hWnd, vbNullPtr, vbNullPtr, vbNullPtr)
+                        
+            Set SetRootWindowElementBaseScrollH = New ReportScrollElement(Me, Me.ControlContext, hwnd_ScrollH)
+            Set SetRootWindowElementBaseScrollV = New ReportScrollElement(Me, Me.ControlContext, hwnd_ScrollV)
+            
+            ResyncScrollBars()
+            
+            ' Shouldn't the bindings happen automatically, and get updated automatically?
+            BindExpressions()
+            
+            'InternalIsFirstResizeEventAfterLoad = True
+        End Sub
+        
+        Protected Sub ResyncScrollBars()
+            ' Check if we NEED scrollbars
+            Dim TOOLBARPADDEDHEIGHT As Long = CLng(TOOLBARHEIGHT * DpiScaleFactorY) + CLng(TOOLBARPADDINGY * DpiScaleFactorY) * 2
+            Dim availableHeight As Long = RootWindowElementBase.RuntimeUIGetCurrentHeight() - TOOLBARPADDEDHEIGHT
+            Dim availableWidth As Long = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+
+            Dim pageWidth As Double = GraphicsBase.ScaleX(CSng(PixelsReportWidth), vbScaledPixels, vbPixels)
+            Dim pageHeight As Double = GraphicsBase.ScaleY(CSng(PixelsReportHeight), vbScaledPixels, vbPixels)
+            
+            Dim leftMarginWidth As Double = GraphicsBase.ScaleX(CSng(PixelsLeftMargin), vbScaledPixels, vbPixels)
+            Dim rightMarginWidth As Double = GraphicsBase.ScaleX(CSng(PixelsRightMargin), vbScaledPixels, vbPixels)
+            Dim topMarginWidth As Double = GraphicsBase.ScaleY(CSng(PixelsTopMargin), vbScaledPixels, vbPixels)
+            Dim bottomMarginWidth As Double = GraphicsBase.ScaleY(CSng(PixelsBottomMargin), vbScaledPixels, vbPixels)
+            
+            Dim zoomedPageWidth As Long = (((pageWidth + leftMarginWidth + rightMarginWidth) * ZoomPercent) \ 100) + (PreviewPageBorderWidth * 2)
+            Dim zoomedPageHeight As Long = (((pageHeight + topMarginWidth + bottomMarginWidth) * ZoomPercent) \ 100) + (PreviewPageBorderWidth * 2)
+            
+            If (zoomedPageWidth > availableWidth) Or (zoomedPageHeight > availableHeight) Then
+                ' Scrollbars are needed                
+                ' adjust for scrollbars
+                'Debug.Print "availableHeight BEFORE: ", availableHeight
+                availableWidth -= CLng(16 * DpiScaleFactorX)
+                availableHeight -= CLng(16 * DpiScaleFactorY)
+                'Debug.Print "availableHeight AFTER: ", availableHeight
+                
+                Dim SCROLLINFO As SCROLLINFO
+                SCROLLINFO.cbSize = LenB(Of SCROLLINFO)
+                SCROLLINFO.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS
+                SCROLLINFO.nMin = 0
+                SCROLLINFO.nMax = zoomedPageWidth
+                SCROLLINFO.nPage = availableWidth
+                SCROLLINFO.nPos = 0
+                hwnd_ScrollH.SetScrollInfo(SB_CTL, SCROLLINFO, 1)
+                
+                SCROLLINFO.cbSize = LenB(Of SCROLLINFO)
+                SCROLLINFO.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS
+                SCROLLINFO.nMin = 0
+                SCROLLINFO.nMax = zoomedPageHeight
+                SCROLLINFO.nPage = availableHeight
+                SCROLLINFO.nPos = 0
+                hwnd_ScrollV.SetScrollInfo(SB_CTL, SCROLLINFO, 1)
+            
+                'Debug.Print "Me.RootWindowElementBase.CurrentHeight: " & Me.RootWindowElementBase.CurrentHeight
+                Dim scrollSizeX As Long = CLng(16 * Me.DpiScaleFactorX)
+                Dim scrollSizeY As Long = CLng(16 * Me.DpiScaleFactorY)
+                Dim actualHeight As Long = RootWindowElementBase.RuntimeUIGetCurrentHeight() - TOOLBARPADDEDHEIGHT
+                hwnd_ScrollV.SetWindowPos(vbNullPtr, RootWindowElementBase.RuntimeUIGetCurrentWidth() - scrollSizeX, 0, scrollSizeX, actualHeight - scrollSizeY, SWP_NOZORDER Or SWP_NOACTIVATE)
+                hwnd_ScrollH.SetWindowPos(vbNullPtr, 0, actualHeight - scrollSizeY, RootWindowElementBase.RuntimeUIGetCurrentWidth() - scrollSizeX, scrollSizeY, SWP_NOZORDER Or SWP_NOACTIVATE)
+                
+                hwnd_ScrollH.ShowWindow(SW_SHOWNORMAL)
+                hwnd_ScrollV.ShowWindow(SW_SHOWNORMAL)
+                
+                Me.ScrollBarsVisible = True
+                'Debug.Print "*** SCROLLBARS VISIBLE"
+            Else
+                hwnd_ScrollH.ShowWindow(SW_HIDE)
+                hwnd_ScrollV.ShowWindow(SW_HIDE)
+                Me.ScrollBarsVisible = False
+                'Debug.Print "*** SCROLLBARS INVISIBLE"
+            End If
+        End Sub
+      
+        Protected hwnd_ScrollH As HWND
+        Protected hwnd_ScrollV As HWND
+        Protected ScrollBarsVisible As Boolean
+        
+        Protected SetRootWindowElementBaseScrollH As ReportScrollElement
+        Protected SetRootWindowElementBaseScrollV As ReportScrollElement
+        
+        Protected Sub HandlePreLoad() _
+                Implements IWindowElementEventsCommonRoot.PreLoadForm
+
+            ' At this point the HWND is available, but not correct size etc.
+            If IsDesignMode = False Then
+                IconChanged()
+            End If
+            
+            SyncScaleMode(Me, Me.RootWindowElementBase)
+            
+            ' This has to happen here, as it can be accessed via ActiveX ambient properties during creation
+            'Stop
+            #If FEATURE_DRAWING Then
+            InternalSyncFontProperties(True, True)
+            #End if
+        End Sub
+        
+        Protected Sub HandlePreInitialize() _
+                Implements IWindowsControl.PreInitialize
+            ' This event fires once the Form has been event-registered into its outer class
+        
+            ' This is where VB6 raises this event, i.e. before any HWND creation, and before any OLE integration etc.
+            'Debug.Print "IInitializeControl_PreInitialize"
+            RaiseEvent Initialize()
+        End Sub
+                
+        ' Protected Sub HandlePreLoad2() _
+        '         Handles RootWindowElementBase.PreLoadForm2
+            
+        '     RaiseEvent Initialize()
+            
+        ' End Sub
+                
+        ' Protected Sub HandleActivateMDIChild() _
+        '         Handles RootWindowElementBase.ActivateMDIChild
+        '     Dim rootMenu As LongPtr
+        '     Dim windowListMenu As LongPtr
+        '     CommonBuildMenus(Menus, Me.Controls, rootMenu, windowListMenu, Me, 0, False, Nothing)
+        '     'Debug.Print "MDI Child windowListMenu: " & windowListMenu
+        '     RootWindowElementBase.SetMDIMenu(rootMenu, windowListMenu)
+        ' End Sub
+        
+        ' Protected Sub HandleDeactivateMDIChild() _
+        '         Handles RootWindowElementBase.DeactivateMDIChild
+        '    RootWindowElementBase.SetMDIMenu(vbNullPtr, vbNullPtr)
+        ' End Sub
+        
+        Protected Sub HandleActivate() _
+                Implements IWindowElementEventsCommonRoot.Activate
+                
+            RaiseEvent Activate()
+        End Sub
+
+        Protected Sub HandleDeactivate() _
+                Implements IWindowElementEventsCommonRoot.Deactivate
+                
+            RaiseEvent Deactivate()
+        End Sub
+                
+        Protected Sub InitializeMe()
+            
+            SyncScaleMode(Me, Me.RootWindowElementBase)
+            
+            ' FIXME this is in lieu of having a working Create event here
+            InternalChangeHDC(0, Me.hWnd, Me.RootWindowElementBase, Nothing, Me, True)
+            IsInitialized = True
+            
+        End Sub
+                    
+        Protected Sub DrawSection(ByRef Section As ControlsSection, ByVal width As Double)
+                        
+            With CType(Of SectionRenderState)(UnprotectedAccess(Section).GetRenderStatePtr())
+                
+                Dim topBorderHeight As Long = 0 'CLng(Section.TopBorderHeight * DpiScaleFactorY)
+                Dim mainHeight As Long = CLng(Section.PixelsHeight * DpiScaleFactorY)
+                Dim bottomBorderHeight As Long = CLng(Section.PixelsBorderBottomHeight * DpiScaleFactorY)
+                Dim sectionHeight As Any = topBorderHeight + mainHeight + bottomBorderHeight
+                
+                
+                Dim sourceRect As tbRECT
+                sourceRect.Right = 10000000 ' CLng(width * 10000)       ' FIXME watch we don't overflow
+                sourceRect.Bottom = 10000000 'CLng(sectionHeight * 10000)  'CLng(10000000)' * 10000)
+                
+                Dim sectionMetaDC As hdc
+                sectionMetaDC = sectionMetaDC.CreateEnhMetaFileW(vbNullString, sourceRect, vbNullString)
+                
+                If Section.CachedBackBrush = 0 Then Section.CacheGdiStuff()
+                
+                RootWindowElementBase.RuntimeUISetDrawingSectionId(Section.CachedOrdinal)
+                
+                Dim rect As tbRECT
+                If Section.BackStyle = vbBFOpaque Then
+                    Dim BackBrush As LongPtr
+                    If .UseAlternateColor AndAlso (Section.SectionType = Detail) Then
+                        BackBrush = Section.CachedAlternateBackBrush
+                    Else
+                        BackBrush = Section.CachedBackBrush
+                    End If
+                                        
+                    rect.Right = CLng(width)
+                    rect.Bottom = CLng(sectionHeight)
+                    sectionMetaDC.FillRect(rect, BackBrush)
+                End If
+
+                If topBorderHeight > 0 Then
+                    rect.Right = CLng(width)
+                    rect.Bottom = CLng(topBorderHeight)
+                    'sectionMetaDC.FillRect(rect, Section.CachedBorderTopBrush)
+                End If
+                
+                If bottomBorderHeight > 0 Then
+                    rect.Right = CLng(width)
+                    rect.Top = CLng(topBorderHeight + mainHeight)
+                    rect.Bottom = rect.Top + CLng(bottomBorderHeight)
+                    sectionMetaDC.FillRect(rect, Section.CachedBorderBottomBrush)
+                End If
+                
+                ' SetWindowOrgEx(sectionMetaDC, 0, -CLng(OffsetY + topBorderHeight), vbNullPtr)
+                sectionMetaDC.SetWindowOrgEx(0, -CLng(topBorderHeight), ByVal vbNullPtr)
+            
+                Dim savedDcIndex As Long = sectionMetaDC.SaveDC()
+                sectionMetaDC.IntersectClipRect(0, 0, CLng(width), mainHeight)
+                                
+                On Error Resume Next
+                    Me.CurrentPaintingSectionDC = sectionMetaDC.Value
+                    RaiseEvent BeforePaintSection(Section)
+                    Me.CurrentPaintingSectionDC = vbNullPtr
+                On Error GoTo 0
+                
+                OnPaint(sectionMetaDC)
+                sectionMetaDC.RestoreDC(savedDcIndex)
+            
+                .MetaFile = sectionMetaDC.CloseEnhMetaFile()
+                GDI32.GetEnhMetaFileHeader(.MetaFile, LenB(Of ENHMETAHEADER), .MetaFileHeader)
+                .OffsetY = 0
+                .Height = sectionHeight
+                .UseAlternateColor = Not .UseAlternateColor
+            End With
+        End Sub
+         
+        ' Returns True if rendering was complete
+        Protected Function RenderSection(ByRef Section As ControlsSection, ByVal hdc As HDC, ByRef OffsetY As Double, ByRef AvailableHeight As Long, ByVal IsConsideredEmptyPage As Boolean) As Boolean
+                    
+            With CType(Of SectionRenderState)(UnprotectedAccess(Section).GetRenderStatePtr())
+            
+                If .PendingPageBreak Then
+                    GDI32.DeleteEnhMetaFile(.MetaFile)
+                    .MetaFile = vbNullPtr
+                    .RenderComplete = True
+                    .PendingPageBreak = False
+                    Return True
+                End If
+                
+                If .Height > AvailableHeight Then
+                    If IsConsideredEmptyPage = False Then
+                        If Section.KeepTogether = True Then
+                            .RenderComplete = False
+                            Return False
+                        End If
+                    End If
+                End If
+                
+                If UnprotectedAccess(Section).ShouldForceBreakBefore() Then
+                    If IsConsideredEmptyPage = False Then
+                        .RenderComplete = False
+                        Return False
+                    End If
+                End If
+                
+            ' Stop
+                'Dim OffsetY2 As Long
+                hdc.SetWindowOrgEx(0, -CLng(OffsetY), ByVal vbNullPtr)       ' Could use OffsetY2 instead as that works
+                        
+                'If Section.SectionType = PageFooter Then
+                '    Debug.Print "MetaRendering FOOTER at (0," & OffsetY & ")"
+                'End If
+                
+                'Dim sourceRect As tbRECT
+                'sourceRect.Right = CLng(zoomedPageWidthWithoutMargins * 10000)       ' FIXME watch we don't overflow * 10000)       ' FIXME watch we don't overflow
+                'sourceRect.Bottom = CLng(zoomedPageHeightWithoutMargins * 10000)
+                Dim scaleX As Double = (.MetaFileHeader.szlMicrometers.cx / .MetaFileHeader.szlDevice.cx) / 10
+                Dim scaleY As Double = (.MetaFileHeader.szlMicrometers.cy / .MetaFileHeader.szlDevice.cy) / 10
+                        
+                ' SetWindowOrgEx(hdc, -PreviewPageBorderWidth, -PreviewPageBorderWidth, vbNullPtr)
+                        
+                ' Dim topBorderHeight As Long = 0 'CLng(Section.TopBorderHeight * DpiScaleFactorY)
+                ' Dim mainHeight As Long = CLng(Section.PixelsHeight * DpiScaleFactorY)
+                ' Dim bottomBorderHeight As Long = CLng(Section.PixelsBorderBottomHeight * DpiScaleFactorY)
+                'Dim sectionHeight As Any = topBorderHeight + mainHeight + bottomBorderHeight
+                
+                Dim sourceRect As tbRECT
+                sourceRect.Right = CLng(10000000 / scaleX) 'CLng((Me.PixelsWidth * DpiScaleFactorX) / scaleX)
+                sourceRect.Bottom = CLng(10000000 / scaleY) 'CLng((Me.PixelsHeight * DpiScaleFactorY) / scaleY)
+                        
+                'Debug.Print "AvailableHeight: " & AvailableHeight
+                
+                sourceRect.Top = -.OffsetY
+                Dim savedDcIndex2 As Long = hdc.SaveDC()
+                Dim remainingRenderHeight As Any = .Height - .OffsetY
+                
+                'sourceRect.Top += OffsetY2
+                'sourceRect.Bottom += OffsetY2
+                
+                hdc.IntersectClipRect(0, 0, CLng(Width), AvailableHeight)
+                
+                'Stop
+                RuntimePatchGetClipBoxForHdc(hdc.Value)
+                hdc.PlayEnhMetaFile(.MetaFile, sourceRect)
+                RuntimePatchGetClipBoxForHdc(vbNullPtr)
+                
+                hdc.RestoreDC(savedDcIndex2)
+                
+                If remainingRenderHeight > AvailableHeight Then
+                    .OffsetY += AvailableHeight
+                    OffsetY += AvailableHeight
+                    AvailableHeight = 0
+                    .RenderComplete = False
+                    Return False
+                Else
+                    OffsetY += remainingRenderHeight
+                    AvailableHeight -= remainingRenderHeight
+                    
+                    If UnprotectedAccess(Section).ShouldForceBreakAfter() Then
+                        .PendingPageBreak = True
+                        .RenderComplete = False
+                        Return False
+                    Else
+                        GDI32.DeleteEnhMetaFile(.MetaFile)
+                        .MetaFile = vbNullPtr
+                        .RenderComplete = True
+                        Return True
+                    End If
+                                    
+                End If
+                
+            End With
+            
+        End Function
+        
+        [Serialize(False)]
+        Protected InternalRecordset As ITbRecordset
+
+        [Serialize(False)]
+        Public Property Get Recordset() As Object
+            Return InternalRecordset
+        End Property
+        
+        [Serialize(False)]
+        Public Property Set Recordset(Value As Object)
+            If TypeOf Value Is ITbRecordset Then
+                Set InternalRecordset = CType(Of ITbRecordset)(Value)
+            Else
+                Set InternalRecordset = New ExpressionGenericRecordsetWrapper(Value)
+            End If
+        End Property
+
+        [Description("Returns/sets the amount by which the ZoomPercent is increased/decreased when the +/- buttons are pressed on the preview toolbar")]
+        Public ZoomStep As Long = 10
+        
+        Protected moveFirstButtonRect As tbRECT
+        Protected movePrevButtonRect As tbRECT
+        Protected moveNextButtonRect As tbRECT
+        Protected moveLastButtonRect As tbRECT
+        Protected zoomOutButtonRect As tbRECT
+        Protected zoomInButtonRect As tbRECT
+        Protected zoomTextRect As tbRECT
+        Protected printButtonRect As tbRECT
+        Protected activebutton As Long
+        Protected hoverbutton As Long
+        
+        Const TOOLBARPADDINGY As Long = 5
+        Const TOOLBARHEIGHT As Long = 18
+        Const TOOLBARPADDINGX As Long = 6
+        Const RECORDSELECTORSWIDTH As Long = 140
+        Const ZOOMCONTROLSWIDTH As Long = 80
+        Const PRINTBUTTONWIDTH As Long = 30
+        
+        Protected Sub HandleButtonPressed(ByVal buttonId As Long)
+            Select Case buttonId
+                Case 1: 
+                    Page = 1
+                    Me.RefreshNoErase()
+                Case 2: 
+                    If (Page > 1) Then Page -= 1
+                    Me.RefreshNoErase()
+                Case 3: 
+                    If CurrentPageIsLast = False Then
+                    Page += 1
+                        Me.RefreshNoErase()
+                    End If
+                Case 4: 
+                    Page = -1
+                    Me.RefreshNoErase()
+                Case 5:
+                    ZoomPercent -= ZoomStep
+                    ZoomAutoFit = vbZoomAutoFitNever
+                    If ZoomPercent < 0 Then ZoomPercent = 0
+                    ResyncScrollBars()
+                    Me.RefreshNoErase()
+                Case 6:
+                    ZoomPercent += ZoomStep
+                    ZoomAutoFit = vbZoomAutoFitNever
+                    ResyncScrollBars()
+                    Me.RefreshNoErase()
+                Case 7:
+                    #If FEATURE_PRINTER Then
+                    Me.PrintReport(False)
+                    #End If
+                End Select
+            Exit Sub
+        End Sub
+        
+        Protected Sub HandleMouseUp(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseUp
+                
+            USER32.ReleaseCapture()
+            RaiseEvent MouseUp(CInt(Button), CInt(ShiftState), X, Y)
+            UpdateHoverButton(X, Y)
+            If activebutton = hoverbutton Then
+                HandleButtonPressed(activebutton)
+            End If
+            Dim buttonReleased As Long = activebutton
+            activebutton = 0
+            RedrawButton(buttonReleased)
+        End Sub
+        
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+                
+            If Button = vbLeftButton Then
+                Dim xPixels As Long = CLng((X / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+                Dim yPixels As Long = CLng((Y / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+                ' in backwards drawing order
+                If IsInSubRect(xPixels, yPixels, moveNextButtonRect) Then
+                    activebutton = 3
+                    Me.InternalHWND.InvalidateRect(moveNextButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, moveLastButtonRect) Then
+                    activebutton = 4
+                    Me.InternalHWND.InvalidateRect(moveLastButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, movePrevButtonRect) Then
+                    activebutton = 2
+                    Me.InternalHWND.InvalidateRect(movePrevButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, moveFirstButtonRect) Then
+                    activebutton = 1
+                    Me.InternalHWND.InvalidateRect(moveFirstButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, zoomOutButtonRect) Then
+                    activebutton = 5
+                    Me.InternalHWND.InvalidateRect(zoomOutButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, zoomInButtonRect) Then
+                    activebutton = 6
+                    Me.InternalHWND.InvalidateRect(zoomInButtonRect, 0)
+                ElseIf IsInSubRect(xPixels, yPixels, printButtonRect) Then
+                    activebutton = 7
+                    Me.InternalHWND.InvalidateRect(printButtonRect, 0)
+                End If
+                Me.InternalHWND.SetCapture()
+            End If
+            RaiseEvent MouseDown(CInt(Button), CInt(ShiftState), X, Y)
+        End Sub
+        
+        Protected Sub UpdateHoverButton(ByVal X As Single, ByVal Y As Single)
+            Dim xPixels As Long = CLng((X / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+            Dim yPixels As Long = CLng((Y / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY()) * RootWindowElementBase.RuntimeUIGetUnitScale())
+            ' in backwards drawing order
+            Dim newHoverbutton As Long = 0
+            If IsInSubRect(xPixels, yPixels, moveNextButtonRect) Then
+                newHoverbutton = 3
+            ElseIf IsInSubRect(xPixels, yPixels, moveLastButtonRect) Then
+                newHoverbutton = 4
+            ElseIf IsInSubRect(xPixels, yPixels, movePrevButtonRect) Then
+                newHoverbutton = 2
+            ElseIf IsInSubRect(xPixels, yPixels, moveFirstButtonRect) Then
+                newHoverbutton = 1
+            ElseIf IsInSubRect(xPixels, yPixels, zoomOutButtonRect) Then
+                newHoverbutton = 5
+            ElseIf IsInSubRect(xPixels, yPixels, zoomInButtonRect) Then
+                newHoverbutton = 6
+            ElseIf IsInSubRect(xPixels, yPixels, printButtonRect) Then
+                newHoverbutton = 7
+            End If
+            
+            If newHoverbutton <> hoverbutton Then
+                RedrawButton(newHoverbutton)
+                RedrawButton(hoverbutton)
+                hoverbutton = newHoverbutton
+            End If
+        End Sub
+        
+        Protected Sub RedrawButton(ByVal buttonId As Long)
+            Select Case buttonId
+                Case 1: Me.InternalHWND.InvalidateRect(moveFirstButtonRect, 0)
+                Case 2: Me.InternalHWND.InvalidateRect(movePrevButtonRect, 0)
+                Case 3: Me.InternalHWND.InvalidateRect(moveNextButtonRect, 0)
+                Case 4: Me.InternalHWND.InvalidateRect(moveLastButtonRect, 0)
+                Case 5: Me.InternalHWND.InvalidateRect(zoomOutButtonRect, 0)
+                Case 6: Me.InternalHWND.InvalidateRect(zoomInButtonRect, 0)
+                Case 7: Me.InternalHWND.InvalidateRect(printButtonRect, 0)
+            End Select
+        End Sub
+        
+        Protected Sub HandleMouseMove(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseMove
+                
+            UpdateHoverButton(X, Y)
+            RaiseEvent MouseMove(CInt(Button), CInt(ShiftState), X, Y)
+        End Sub
+        
+        Protected Sub DrawToolbar(ByVal hdc As HDC, rect As tbRECT, ByVal IsFirst As Boolean, ByVal IsLast As Boolean)
+            Dim rectCopy As tbRECT = rect
+            hdc.FillRect(rectCopy, ToolbarBackBrush)
+            
+            rectCopy.Top += CLng(TOOLBARPADDINGY * DpiScaleFactorY)
+            rectCopy.Bottom -= CLng(TOOLBARPADDINGY * DpiScaleFactorY)
+            
+            Dim recordSelectorRect As tbRECT = rectCopy
+            recordSelectorRect.Right = CLng(RECORDSELECTORSWIDTH * DpiScaleFactorX)
+            Dim xOffset As Long
+            Dim areaWidth As Long = rect.Right - rect.Left
+            Dim TOOLBARCONTENTWIDTH As Long = CLng(RECORDSELECTORSWIDTH * DpiScaleFactorX) + (CLng(TOOLBARPADDINGX * DpiScaleFactorX) * 2) + CLng(ZOOMCONTROLSWIDTH * DpiScaleFactorX) + (CLng(TOOLBARPADDINGX * DpiScaleFactorX) * 2) + CLng(PRINTBUTTONWIDTH * DpiScaleFactorX)
+            
+            If TOOLBARCONTENTWIDTH < areaWidth Then
+                xOffset = (areaWidth - TOOLBARCONTENTWIDTH) \ 2
+            Else
+                xOffset = CLng(TOOLBARPADDINGX * Me.DpiScaleFactorX)
+            End If
+            recordSelectorRect.Left += xOffset
+            recordSelectorRect.Right += xOffset
+                                
+            #If FEATURE_DRAWING Then
+            Dim ifont As IFont = GraphicsBase.Font
+            #else
+            Dim ifont As IFont = CType(Of IFont)(New StdFont)
+            #End If
+            Dim Text As String = CStr(Page)
+            'Debug.Print "Drawing toolbar ", Text
+            'USER32_FillRectangle(hdc, recordSelectorRect, backBrushWhite)
+            
+            Dim UnitPixelScale As Double = RootWindowElementBase.RuntimeUIGetUnitScale()
+            DrawRecordSelectors(hdc, recordSelectorRect, WhiteBackBrush, activebutton, hoverbutton, IsFirst, IsLast, UnitPixelScale, moveFirstButtonRect, movePrevButtonRect, moveNextButtonRect, moveLastButtonRect, Text, ifont.hFont, vbBlack)
+            
+            recordSelectorRect.Left = recordSelectorRect.Right + (CLng(TOOLBARPADDINGX * DpiScaleFactorX) * 2)
+            recordSelectorRect.Right = recordSelectorRect.Left + CLng(ZOOMCONTROLSWIDTH * DpiScaleFactorX)
+            DrawZoomSelectors(hdc, recordSelectorRect, WhiteBackBrush, activebutton, hoverbutton, UnitPixelScale, zoomOutButtonRect, zoomInButtonRect, zoomTextRect, CLng(Me.ZoomPercent) & "%", ifont.hFont, vbBlack)
+            'DrawRecordSelectors(hdc, recordSelectorRect, backBrushWhite, activebutton, hoverbutton, IsFirst, IsLast, RootWindowElementBase.UnitPixelScale, moveFirstButtonRect, movePrevButtonRect, moveNextButtonRect, moveLastButtonRect, "100%", ifont.hFont, vbBlack)            
+
+            recordSelectorRect.Left = recordSelectorRect.Right + (CLng(TOOLBARPADDINGX * DpiScaleFactorX) * 2)
+            recordSelectorRect.Right = recordSelectorRect.Left + CLng(PRINTBUTTONWIDTH * DpiScaleFactorX)
+            DrawPrintButton(hdc, recordSelectorRect, WhiteBackBrush, activebutton, hoverbutton, UnitPixelScale, printButtonRect)
+        End Sub
+        
+        Protected CachedPages As Collection       ' holds ReportPage objects
+        
+        [Serialize(False)]
+        Public Page As Long
+        [Serialize(False)]
+        Public Pages As Long
+        
+        [Serialize(False)]
+        Public RecordNum As Long
+        
+        Protected CurrentPageIsLast As Boolean
+        
+        Protected Function CreateMetaFileForReportPage(ByVal pageNum As Long) As ReportPage
+            'Debug.Print "Caching page: " & pageNum
+            
+            
+            Dim actualHeight As Double = GraphicsBase.ScaleY(CSng(PixelsReportHeight), vbScaledPixels, vbPixels)
+            Dim width As Double = GraphicsBase.ScaleX(CSng(PixelsReportWidth), vbScaledPixels, vbPixels)
+            
+            ' FIXME we don't want this to actually change the width of the viewer window
+            ' but we currently have to do this for all the control drawing to work correctly
+            'Dim oldWidth As Any = Me.Width
+            'Me.Width = width
+            'Sleep(1000)
+            
+            Dim sourceRect As tbRECT
+            sourceRect.Right = CLng(width * 10000)       ' FIXME watch we don't overflow
+            sourceRect.Bottom = CLng(actualHeight * 10000)
+                    
+            'Dim metaDC As LongPtr = CreateEnhMetaFileW(referenceDC, vbNullString, sourceRect, vbNullString)
+            Dim metaDC As HDC
+            metaDC = metaDC.CreateEnhMetaFileW(vbNullString, sourceRect, vbNullString)
+                    
+            Dim DetailSection As ControlsSection
+            Dim ReportHeaderSection As ControlsSection
+            Dim ReportFooterSection As ControlsSection
+            Dim PageHeaderSection As ControlsSection
+            Dim PageFooterSection As ControlsSection
+                    
+            Dim Section As ControlsSection
+            Dim SectionOrdinal As Long = 0
+            For Each Section In InternalControlSections
+                Select Case Section.SectionType
+                    Case Detail: Set DetailSection = Section
+                    Case ReportHeader: Set ReportHeaderSection = Section
+                    Case ReportFooter: Set ReportFooterSection = Section
+                    Case PageHeader: Set PageHeaderSection = Section
+                    Case PageFooter: Set PageFooterSection = Section
+                End Select
+                Section.CachedOrdinal = SectionOrdinal
+                SectionOrdinal += 1
+            Next
+                    
+            Dim yOffset As Double
+            
+            'Debug.Print "Caching page: " & pageNum & " *** 1"
+            EvaluateExpressions()
+            
+            Dim AvailableHeight As Long = CLng(actualHeight)
+            Dim pageHeaderHeight As Long = PageHeaderSection.CalcTotalHeight(DpiScaleFactorY)
+            Dim pageFooterHeight As Long = PageFooterSection.CalcTotalHeight(DpiScaleFactorY)
+            
+            'Debug.Print "*** AVAILABLE HEIGHT: " & AvailableHeight
+            'Debug.Print "*** pageFooterHeight: " & pageFooterHeight
+            
+            ' At a minimum, we must be able to fit the page header and footer on a page
+            If (pageHeaderHeight + pageFooterHeight) > AvailableHeight Then
+                USER32.MessageBoxW(vbNullPtr, "Sections do not fit vertically on the page", "twinBASIC Report error", 0&)
+                'Err.Raise 5, , "Sections do not fit vertically on the page"                'MsgBox "Sections do not fit vertically on the page"
+            End If
+            
+            AvailableHeight -= pageFooterHeight
+            Dim pageFooterOffset As Double = AvailableHeight
+            
+            With CType(Of SectionRenderState)(UnprotectedAccess(ReportHeaderSection).GetRenderStatePtr())
+                If .RenderComplete = False Then
+                    If .MetaFile = vbNullPtr Then
+                        DrawSection(ReportHeaderSection, width)
+                    End If
+                    RenderSection(ReportHeaderSection, metaDC, yOffset, AvailableHeight, True)
+                End If
+
+                'Debug.Print "Caching page: " & pageNum & " *** 2"
+                        
+                ' Only draw the page header once the report header has been fully output
+                ' If the report header is split over multiple pages, the page header only starts being output on pages AFTER the report header is completely rendered (matches MS ACCESS)
+            
+                If .RenderComplete = True Then
+                    DrawSection(PageHeaderSection, width)
+                    RenderSection(PageHeaderSection, metaDC, yOffset, AvailableHeight, True)
+                End If
+                
+                Dim HeaderSectionRenderComplete As Any = .RenderComplete
+            End With
+            
+            
+            ' Draw the page footer
+            DrawSection(PageFooterSection, width)
+            RenderSection(PageFooterSection, metaDC, pageFooterOffset, CLng(pageFooterHeight), True)
+                  
+            
+            'Debug.Print "Caching page: " & pageNum & " *** 3"
+            
+            If HeaderSectionRenderComplete = True Then
+                Dim ItemsOnPage As Long
+                
+                With CType(Of SectionRenderState)(UnprotectedAccess(DetailSection).GetRenderStatePtr())
+                    If .RenderComplete = False Then
+                        If .MetaFile <> vbNullPtr Then
+                            'Stop
+                            If RenderSection(DetailSection, metaDC, yOffset, AvailableHeight, True) = False Then
+                                ' the detail section has spanned multiple pages...
+                                GoTo RenderPartialComplete
+                            End If
+                            ItemsOnPage += 1
+                        End If
+                    End If
+                End With
+                
+                'Debug.Print "Caching page: " & pageNum & " *** 4"
+                
+                If InternalRecordset IsNot Nothing Then
+                    While InternalRecordset.EOF = False
+                        'Debug.Print "Got row: " & CurrentRowNum
+                        EvaluateExpressions()
+                        UpdateAggregates()
+                        DrawSection(DetailSection, width)
+                        InternalRecordset.MoveNext
+                        RecordNum += 1
+                        
+                        'Stop
+                        If RenderSection(DetailSection, metaDC, yOffset, AvailableHeight, ItemsOnPage = 0) = False Then
+                            GoTo RenderPartialComplete
+                        End If
+                        ItemsOnPage += 1
+                    Wend
+                Else
+                    If RecordNum = 1 Then
+                        EvaluateExpressions()
+                        DrawSection(DetailSection, width)
+                        RecordNum += 1
+                        
+                        If RenderSection(DetailSection, metaDC, yOffset, AvailableHeight, ItemsOnPage = 0) = False Then
+                            GoTo RenderPartialComplete
+                        End If
+                        ItemsOnPage += 1
+                    End If
+                End If
+                
+                'Debug.Print "Caching page: " & pageNum & " *** 5"
+                
+                With CType(Of SectionRenderState)(UnprotectedAccess(ReportFooterSection).GetRenderStatePtr())
+                    If ((InternalRecordset Is Nothing) OrElse (InternalRecordset.EOF = True)) And (.RenderComplete = False) Then
+                        If .MetaFile = vbNullPtr Then
+                            DrawSection(ReportFooterSection, width)
+                        End If
+                        RenderSection(ReportFooterSection, metaDC, yOffset, AvailableHeight, ItemsOnPage = 0)
+                    End If
+                End With
+            End If
+            
+        RenderPartialComplete:
+            'Me.Width = oldWidth            
+            'Debug.Print "Caching page: " & pageNum & " *** 6"
+            
+        DoneTest:
+            Const LOGPIXELSX As Long = &H58
+            Const LOGPIXELSY As Long = &H5A
+            Dim twipsPerPixelX As Double = 1440 / metaDC.GetDeviceCaps(LOGPIXELSX)
+            Dim twipsPerPixelY As Double = 1440 / metaDC.GetDeviceCaps(LOGPIXELSY)
+            
+            Dim metaFile As LongPtr = metaDC.CloseEnhMetaFile()
+            Return New ReportPage(pageNum, metaFile, UnprotectedAccess(ReportFooterSection).IsRenderComplete(), twipsPerPixelX, twipsPerPixelY)
+        End Function
+        
+        Public ZoomPercent As Double = 100
+        Public ZoomAutoFit As ZoomAutoFitConstants = vbZoomAutoFit
+        Protected FirstPaint As Boolean
+        
+        [Serialize(True, "ReportWidth")]
+        Public PixelsReportWidth As Double = 300
+        [Serialize(True, "ReportHeight")]
+        Public PixelsReportHeight As Double = 900
+                
+        [Serialize(True, "LeftMargin")]
+        Public PixelsLeftMargin As Double = 96 / 2.54    ' 1cm
+        [Serialize(True, "RightMargin")]
+        Public PixelsRightMargin As Double = 96 / 2.54    ' 1cm
+        [Serialize(True, "TopMargin")]
+        Public PixelsTopMargin As Double = 96 / 2.54    ' 1cm
+        [Serialize(True, "BottomMargin")]
+        Public PixelsBottomMargin As Double = 96 / 2.54    ' 1cm
+        
+        Const PreviewPageBorderWidthOuter As Long = 14
+        Const PreviewPageBorderWidthInner As Long = 6
+        Const PreviewPageBorderWidth As Long = PreviewPageBorderWidthOuter + PreviewPageBorderWidthInner
+        
+        Protected CachedBufferBitmapWidth As Long
+        Protected CachedBufferBitmapHeight As Long
+        Protected CachedBufferHDC As HDC
+        Protected CachedBufferBitmap As LongPtr
+        Protected CachedBufferOrigBitmap As LongPtr
+        
+        Protected Const BehindPageBackColor As Long = &H909090
+        Protected Const BehindPageBackColor2 As Long = &H101028
+        Const ToolbarBackColor As Long = &HE0E0E0
+        Protected BehindPageBackBrush As LongPtr
+        Protected ScrollbarsBackBrush As LongPtr
+        Protected PaperBackBrush As LongPtr
+        Protected WhiteBackBrush As LongPtr
+        Protected ToolbarBackBrush As LongPtr
+        Protected PageOutlinePen As LongPtr
+        Protected GdiStuffPrepared As Boolean
+        
+        Protected Sub DeleteCachedBufferBitmap()
+            If CachedBufferHDC.Value <> 0 Then
+                CachedBufferHDC.SelectObject(CachedBufferOrigBitmap)
+                GDI32.DeleteObject(CachedBufferBitmap)
+                CachedBufferHDC.DeleteDC()
+                CachedBufferHDC = 0
+            End If
+        End Sub
+        
+        Protected Sub RecreateCachedBufferBitmap()
+            DeleteCachedBufferBitmap
+            CachedBufferBitmapWidth = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+            CachedBufferBitmapHeight = RootWindowElementBase.RuntimeUIGetCurrentHeight()
+            Dim nullHwnd As HWND
+            Dim screenDC As HDC = nullHwnd.GetDC()
+            CachedBufferHDC = screenDC.CreateCompatibleDC()
+            CachedBufferBitmap = screenDC.CreateCompatibleBitmap(RootWindowElementBase.RuntimeUIGetCurrentWidth(), RootWindowElementBase.RuntimeUIGetCurrentHeight())
+            CachedBufferOrigBitmap = CachedBufferHDC.SelectObject(CachedBufferBitmap)
+            nullHwnd.ReleaseDC(screenDC)
+        End Sub
+                         
+        Protected Sub PrepareGdiStuff()
+            BehindPageBackBrush = GDI32.CreateSolidBrush(BehindPageBackColor)
+            ScrollbarsBackBrush = GDI32.CreateSolidBrush(TranslateColor(vbScrollBars))
+            WhiteBackBrush = GDI32.CreateSolidBrush(vbWhite)
+            ToolbarBackBrush = GDI32.CreateSolidBrush(ToolbarBackColor)
+            PageOutlinePen = GDI32.CreatePen(PS_SOLID, 1, vbBlack)
+            PaperBackBrush = GDI32.CreateSolidBrush(TranslateColor(PaperColor))
+            GdiStuffPrepared = True
+        End Sub
+        
+        Protected Sub PreviewPaperColorChanged() _
+                Handles PaperColor.OnPropertyLet
+
+            If GdiStuffPrepared Then
+                GDI32.DeleteObject(PaperBackBrush)
+                PaperBackBrush = GDI32.CreateSolidBrush(TranslateColor(PaperColor))
+            End If
+        End Sub
+        
+        Protected Sub ReleaseGdiStuff()
+            If GdiStuffPrepared = True Then
+                GDI32.DeleteObject(BehindPageBackBrush)
+                GDI32.DeleteObject(ScrollbarsBackBrush)
+                GDI32.DeleteObject(WhiteBackBrush)
+                GDI32.DeleteObject(ToolbarBackBrush)
+                GDI32.DeleteObject(PageOutlinePen)
+                GDI32.DeleteObject(PaperBackBrush)
+            End If
+            GdiStuffPrepared = False
+            
+            Dim Section As ControlsSection
+            For Each Section In InternalControlSections
+                Section.ReleaseGdiStuff()
+            Next
+        End Sub
+        
+        Protected AlreadyPainting As Boolean
+        
+        Protected Function GetCachedPageByCurrentPageNum() As ReportPage
+            While (CachedPages.Count < Page) Or (Page = -1)
+                If (CachedPages.Count > 0) Then
+                    With CType(Of ReportPage)(CachedPages.Item(CachedPages.Count))
+                        If .IsLastPage Then
+                            Page = .PageNumber
+                            Exit While
+                        End If
+                    End With
+                End If
+                        
+                Dim pageNum As Long = CachedPages.Count + 1
+                CachedPages.Add(CreateMetaFileForReportPage(pageNum))
+                'Debug.Print "CachedPages.Count AFTER adding: " & CachedPages.Count
+            Wend
+                    
+            Return CType(Of ReportPage)(CachedPages.Item(Page))
+        End Function
+        
+        Protected Sub PrintSinglePageViewer(ByVal hdc As HDC)
+            ' We're printing one specific page.
+            'Debug.Print "PRINTING -- CurrentPageNum: " & Page & ", CachedPages.Count: " & CachedPages.Count
+            Dim CachedReportPage As Any = GetCachedPageByCurrentPageNum()
+                    
+            CurrentPageIsLast = CachedReportPage.IsLastPage
+                    
+            If (CachedReportPage.MetaFile = 0) Then
+                Err.Raise 5     ' invalid
+            End If
+                    
+            Dim TOOLBARPADDEDHEIGHT As Long = CLng(TOOLBARHEIGHT * DpiScaleFactorY) + CLng(TOOLBARPADDINGY * DpiScaleFactorY) * 2
+                    
+            Dim actualHeight As Long = CLng(RootWindowElementBase.RuntimeUIGetCurrentHeight() - TOOLBARPADDEDHEIGHT)
+            Dim actualWidth As Long = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+                    
+            Dim toolbarRect As tbRECT
+            toolbarRect.Left = 0
+            toolbarRect.Right = actualWidth
+            toolbarRect.Top = actualHeight
+            toolbarRect.Bottom = RootWindowElementBase.RuntimeUIGetCurrentHeight()
+            DrawToolbar(hdc, toolbarRect, Page = 1, CachedReportPage.IsLastPage)
+                    
+            Dim borderRect As tbRECT
+                    
+            Dim scrollX As Long
+            Dim scrollY As Long
+
+            Dim pixWidth As Any = GraphicsBase.ScaleX(CSng(PixelsReportWidth), vbScaledPixels, vbPixels)
+            Dim pixHeight As Any = GraphicsBase.ScaleY(CSng(PixelsReportHeight), vbScaledPixels, vbPixels)
+                    
+            Dim leftMarginWidth As Double = GraphicsBase.ScaleX(CSng(PixelsLeftMargin), vbScaledPixels, vbPixels)
+            Dim rightMarginWidth As Double = GraphicsBase.ScaleX(CSng(PixelsRightMargin), vbScaledPixels, vbPixels)
+            Dim topMarginWidth As Double = GraphicsBase.ScaleY(CSng(PixelsTopMargin), vbScaledPixels, vbPixels)
+            Dim bottomMarginWidth As Double = GraphicsBase.ScaleY(CSng(PixelsBottomMargin), vbScaledPixels, vbPixels)
+                    
+            Dim marginsWidth As Double = leftMarginWidth + rightMarginWidth
+            Dim pixWidthWithoutMargins As Double = pixWidth
+            pixWidth += CSng(marginsWidth)
+                    
+            Dim marginsHeight As Double = topMarginWidth + bottomMarginWidth
+            Dim pixHeightWithoutMargins As Double = pixHeight
+            pixHeight += CSng(marginsHeight)
+                    
+            If (ZoomAutoFit = vbZoomAutoFit) OrElse ((ZoomAutoFit = vbZoomAutoFitOnce) And FirstPaint) Then
+                ' Update the ZoomPercent so that the page will be fully visible with no scrollbars
+                Dim autoZoomPercentWidth As Double = (actualWidth - (PreviewPageBorderWidth * 2)) / pixWidth
+                Dim autoZoomPercentHeight As Double = (actualHeight - (PreviewPageBorderWidth * 2)) / pixHeight
+                If autoZoomPercentWidth < autoZoomPercentHeight Then
+                    ZoomPercent = autoZoomPercentWidth * 100
+                Else
+                    ZoomPercent = autoZoomPercentHeight * 100
+                End If
+                ResyncScrollBars()
+                Dim zoomPercentAdjust As Long
+                While ScrollBarsVisible And (zoomPercentAdjust < 10)
+                    'Debug.Print "ZoomPercent adjustment " & zoomPercentAdjust
+                    ZoomPercent -= 0.1
+                    ResyncScrollBars()
+                    zoomPercentAdjust += 1
+                Wend
+                
+                Me.InternalHWND.InvalidateRect(zoomTextRect, 1)
+            End If
+            FirstPaint = False
+
+            Dim zoomedPageWidthWithoutMargins As Long = ((pixWidthWithoutMargins * ZoomPercent) \ 100)
+            Dim zoomedPageHeightWithoutMargins As Long = ((pixHeightWithoutMargins * ZoomPercent) \ 100)
+                    
+            Dim zoomedPageWidth As Long = ((pixWidth * ZoomPercent) \ 100)
+            Dim zoomedPageHeight As Long = ((pixHeight * ZoomPercent) \ 100)
+            Dim zoomedPageWidthWithPadding As Long = zoomedPageWidth + (PreviewPageBorderWidth * 2)
+            Dim zoomedPageHeightWithPadding As Long = zoomedPageHeight + (PreviewPageBorderWidth * 2)
+                                        
+            If Me.ScrollBarsVisible Then
+                scrollX = SetRootWindowElementBaseScrollH.ScrollElement.GetScrollValue(SB_CTL)
+                scrollY = SetRootWindowElementBaseScrollV.ScrollElement.GetScrollValue(SB_CTL)
+                        
+                Dim scrollSizeX As Long = CLng(16 * Me.DpiScaleFactorX)
+                Dim scrollSizeY As Long = CLng(16 * Me.DpiScaleFactorY)
+                actualWidth -= scrollSizeX
+                actualHeight -= scrollSizeY
+                        
+                ' We must fill the bottom right corner square
+                borderRect.Left = actualWidth
+                borderRect.Top = actualHeight
+                borderRect.Right = actualWidth + scrollSizeX
+                borderRect.Bottom = actualHeight + scrollSizeY
+                hdc.FillRect(borderRect, ScrollbarsBackBrush)
+            End If
+                    
+            'zoomedPageWidth += CLng(leftMarginWidth * ZoomPercent / 100) + CLng(rightMarginWidth * ZoomPercent / 100)
+            'zoomedPageWidthWithPadding += CLng(leftMarginWidth * ZoomPercent / 100) + CLng(rightMarginWidth * ZoomPercent / 100)
+            Dim marginX As Any = -CLng(leftMarginWidth * ZoomPercent / 100)
+            Dim marginY As Any = -CLng(topMarginWidth * ZoomPercent / 100)
+                                        
+                    
+            If zoomedPageWidthWithPadding < actualWidth Then
+                ' adjust scrollX to make it centered
+                Dim offsetX As Long = (actualWidth - zoomedPageWidthWithPadding) \ 2
+                borderRect.Left = 0
+                borderRect.Top = 0
+                borderRect.Right = offsetX
+                borderRect.Bottom = actualHeight
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                borderRect.Left = offsetX + zoomedPageWidthWithPadding
+                borderRect.Right = actualWidth
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                scrollX -= offsetX
+            End If
+            If zoomedPageHeightWithPadding < actualHeight Then
+                ' adjust scrollY to make it centered
+                Dim offsetY As Long = (actualHeight - zoomedPageHeightWithPadding) \ 2
+                borderRect.Left = 0
+                borderRect.Top = 0
+                borderRect.Right = actualWidth
+                borderRect.Bottom = offsetY
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                borderRect.Top = offsetY + zoomedPageHeightWithPadding
+                borderRect.Bottom = actualHeight
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                scrollY -= offsetY
+            End If
+                                        
+                    
+                                
+            Dim dcSaveIndex As Long = hdc.SaveDC()
+                            
+            hdc.IntersectClipRect(0, 0, actualWidth, actualHeight)
+                    
+            'Debug.Print "zoomedPageWidth: ", zoomedPageWidth
+            If zoomedPageWidth = 0 Or zoomedPageHeight = 0 Then
+                borderRect.Left = 0
+                borderRect.Top = 0
+                borderRect.Right = actualWidth
+                borderRect.Bottom = actualHeight
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+            Else
+                ' TOP SIDE BORDER
+                borderRect.Left = -scrollX
+                borderRect.Top = -scrollY
+                borderRect.Right = zoomedPageWidthWithPadding - scrollX
+                borderRect.Bottom = PreviewPageBorderWidthOuter - scrollY
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                borderRect.Left = PreviewPageBorderWidthOuter - scrollX
+                borderRect.Top = PreviewPageBorderWidthOuter - scrollY
+                borderRect.Right = (zoomedPageWidthWithPadding - PreviewPageBorderWidthOuter) - scrollX
+                borderRect.Bottom = (PreviewPageBorderWidth - scrollY)
+                GradientFillRect(hdc, borderRect, BehindPageBackColor, BehindPageBackColor2, True)
+                        
+                ' BOTTOM SIDE BORDER
+                borderRect.Top = (zoomedPageHeightWithPadding - PreviewPageBorderWidth) - scrollY
+                borderRect.Bottom = (zoomedPageHeightWithPadding - PreviewPageBorderWidthOuter) - scrollY
+                GradientFillRect(hdc, borderRect, BehindPageBackColor2, BehindPageBackColor, True)
+                borderRect.Left = -scrollX
+                borderRect.Top = (zoomedPageHeightWithPadding - PreviewPageBorderWidthOuter) - scrollY
+                borderRect.Right = zoomedPageWidthWithPadding - scrollX
+                borderRect.Bottom = zoomedPageHeightWithPadding - scrollY
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                                            
+                Dim i As Long
+                While i < PreviewPageBorderWidth
+                    hdc.ExcludeClipRect(i - scrollX, i - scrollY, PreviewPageBorderWidth - scrollX, (i + 1) - scrollY)
+                    hdc.ExcludeClipRect(((zoomedPageWidthWithPadding - i) - PreviewPageBorderWidth) - scrollX, i - scrollY, (zoomedPageWidthWithPadding - i) - scrollX, (i + 1) - scrollY)
+                    hdc.ExcludeClipRect(i - scrollX, ((zoomedPageHeightWithPadding - i) - 1) - scrollY, PreviewPageBorderWidth - scrollX, (zoomedPageHeightWithPadding - i) - scrollY)
+                    hdc.ExcludeClipRect(((zoomedPageWidthWithPadding - i) - PreviewPageBorderWidth) - scrollX, ((zoomedPageHeightWithPadding - i) - 1) - scrollY, (zoomedPageWidthWithPadding - i) - scrollX, (zoomedPageHeightWithPadding - i) - scrollY)
+                    i += 1
+                Wend
+                        
+                ' LEFT SIDE BORDER
+                borderRect.Left = -scrollX
+                borderRect.Top = -scrollY
+                borderRect.Right = PreviewPageBorderWidthOuter - scrollX
+                borderRect.Bottom = zoomedPageHeightWithPadding - scrollY
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                borderRect.Left = PreviewPageBorderWidthOuter - scrollX
+                borderRect.Top = -scrollY
+                borderRect.Bottom = zoomedPageHeightWithPadding - scrollY
+                borderRect.Right = PreviewPageBorderWidth - scrollX
+                GradientFillRect(hdc, borderRect, BehindPageBackColor, BehindPageBackColor2, False)
+                        
+                ' ' RIGHT SIDE BORDER
+                borderRect.Left = (zoomedPageWidthWithPadding - PreviewPageBorderWidth) - scrollX
+                borderRect.Right = (zoomedPageWidthWithPadding - PreviewPageBorderWidthOuter) - scrollX
+                GradientFillRect(hdc, borderRect, BehindPageBackColor2, BehindPageBackColor, False)
+                borderRect.Left = (zoomedPageWidthWithPadding - PreviewPageBorderWidthOuter) - scrollX
+                borderRect.Top = -scrollY
+                borderRect.Right = zoomedPageWidthWithPadding - scrollX
+                borderRect.Bottom = zoomedPageHeightWithPadding - scrollY
+                hdc.FillRect(borderRect, BehindPageBackBrush)
+                                    
+                        
+                ' Soften the corners
+                'SetPixelV(hdc, PreviewPageBorderWidthOuter - 3, PreviewPageBorderWidthOuter - 3, vbRed)
+                ' SetPixelV(hdc, PreviewPageBorderWidthOuter + 1, PreviewPageBorderWidthOuter, color1)
+                ' SetPixelV(hdc, PreviewPageBorderWidthOuter, PreviewPageBorderWidthOuter + 1, color1)
+                                            
+                ' Draw a black border around the page
+                Dim fillBrush As LongPtr = GDI32.GetStockObject(NULL_BRUSH)
+                Dim oldPen As LongPtr = hdc.SelectObject(PageOutlinePen)
+                Dim oldBrush As LongPtr = hdc.SelectObject(fillBrush)
+                Dim pageXStart As Long = (PreviewPageBorderWidth - 1) - scrollX
+                Dim pageYStart As Long = (PreviewPageBorderWidth - 1) - scrollY
+                hdc.Rectangle(pageXStart, pageYStart, pageXStart + zoomedPageWidth + 2, pageYStart + zoomedPageHeight + 2)
+                hdc.SelectObject(oldPen)
+                hdc.SelectObject(oldBrush)
+                        
+                ' Fill the page with the back color
+                        
+                borderRect.Left = PreviewPageBorderWidth - scrollX
+                borderRect.Top = PreviewPageBorderWidth - scrollY
+                borderRect.Right = borderRect.Left + zoomedPageWidth
+                borderRect.Bottom = borderRect.Top + zoomedPageHeight
+                hdc.FillRect(borderRect, PaperBackBrush)
+            End If
+                    
+            hdc.RestoreDC(dcSaveIndex)
+            dcSaveIndex = hdc.SaveDC()
+                    
+            hdc.IntersectClipRect((PreviewPageBorderWidth - scrollX), PreviewPageBorderWidth - scrollY, (PreviewPageBorderWidth - scrollX) + zoomedPageWidth - marginX, ((PreviewPageBorderWidth - scrollY) - marginY) + zoomedPageHeight)
+            hdc.ExcludeClipRect(toolbarRect.Left, toolbarRect.Top, toolbarRect.Right, toolbarRect.Bottom)
+                    
+            If Me.ScrollBarsVisible Then
+                ' the corner where the two scrollbars meet
+                hdc.ExcludeClipRect(actualWidth, actualHeight, actualWidth + scrollSizeX, actualHeight + scrollSizeY)
+            End If
+                    
+            ' In order to get PlayEnhMetaFile to play ball, we have to scale the RECT that we pass to it
+            'Dim pageHeight As Double = Me.ScaleY(CSng(Me.PixelsReportHeight), vbScaledPixels, vbPixels) 'RootWindowElementBase.CurrentHeight - TOOLBARPADDEDHEIGHT
+            'Dim pageWidth As Double = Me.ScaleX(CSng(Me.PixelsReportWidth), vbScaledPixels, vbPixels)
+                    
+            Dim info As ENHMETAHEADER
+            GDI32.GetEnhMetaFileHeader(CachedReportPage.MetaFile, LenB(Of ENHMETAHEADER), info)
+                    
+            'Debug.Print "device reference: " & info.szlDevice.cx & "x" & info.szlDevice.cy
+            'Stop
+            
+            Dim sourceRect As tbRECT
+            sourceRect.Right = CLng(zoomedPageWidthWithoutMargins * 10000)       ' FIXME watch we don't overflow * 10000)       ' FIXME watch we don't overflow
+            sourceRect.Bottom = CLng(zoomedPageHeightWithoutMargins * 10000)
+            Dim scaleX As Double = (info.szlMicrometers.cx / info.szlDevice.cx) / 10
+            Dim scaleY As Double = (info.szlMicrometers.cy / info.szlDevice.cy) / 10
+                    
+            If ZoomPercent <> 100 Then
+                Dim zoomFactor As Any = ZoomPercent / 100
+                If zoomFactor = 0 Then
+                    GoTo ZoomZero
+                End If
+            End If
+                    
+            hdc.SetWindowOrgEx(-PreviewPageBorderWidth + scrollX + marginX, -PreviewPageBorderWidth + scrollY + marginY, ByVal vbNullPtr)
+                                        
+            sourceRect.Right = CLng(sourceRect.Right / scaleX) 'CLng((Me.PixelsWidth * DpiScaleFactorX) / scaleX)
+            sourceRect.Bottom = CLng(sourceRect.Bottom / scaleY) 'CLng((Me.PixelsHeight * DpiScaleFactorY) / scaleY)
+                    
+'                    Stop
+            ' Dim resampleScale As Long = 8
+            ' Dim hdcResample As LongPtr = CreateCompatibleDC(hdc)
+            ' Dim hbmpResample As LongPtr = CreateCompatibleBitmap(hdc, RootWindowElementBase.CurrentWidth * resampleScale, RootWindowElementBase.CurrentHeight * resampleScale)
+            ' Dim oldBitmapResample As LongPtr = SelectObject(hdcResample, hbmpResample)
+            ' sourceRect.Right = CLng(sourceRect.Right * resampleScale)
+            ' sourceRect.Bottom = CLng(sourceRect.Bottom * resampleScale)
+            ' Const HALFTONE As Long = 4
+            ' SetStretchBltMode(hdcResample, HALFTONE)
+            ' SetWindowExtEx(hdcResample, RootWindowElementBase.CurrentWidth, RootWindowElementBase.CurrentHeight, vbNullPtr)
+            ' SetViewportExtEx(hdcResample, RootWindowElementBase.CurrentWidth, RootWindowElementBase.CurrentHeight, vbNullPtr)
+            ' PlayEnhMetaFile(hdcResample, CachedReportPage.MetaFile, sourceRect)
+            ' StretchBlt(hdc, 0, 0, RootWindowElementBase.CurrentWidth, RootWindowElementBase.CurrentHeight, hdcResample, 0, 0, RootWindowElementBase.CurrentWidth * resampleScale, RootWindowElementBase.CurrentHeight * resampleScale, vbSrcCopy)
+            ' SelectObject(hdcResample, oldBitmapResample)
+
+            'sourceRect.Left = CLng(leftMarginWidth * ZoomPercent / 100)
+            'sourceRect.Right += CLng(leftMarginWidth * ZoomPercent / 100)
+                    
+            'SetWindowOrgEx(hdc, 0, CLng(200), vbNullPtr)
+            
+            RuntimePatchGetClipBoxForHdc(hdc.Value)
+            hdc.PlayEnhMetaFile(CachedReportPage.MetaFile, sourceRect)
+            RuntimePatchGetClipBoxForHdc(vbNullPtr)
+            
+        ZoomZero:
+            hdc.RestoreDC(dcSaveIndex)
+        End Sub
+        
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+                
+            If GdiStuffPrepared = False Then PrepareGdiStuff()
+            If AlreadyPainting = True Then Exit Sub
+            AlreadyPainting = True
+        
+            Dim RootWindowElementBase As Any = Me.RootWindowElementBase
+            
+            If IsInitialized = False Then InitializeMe
+            Dim hdc As HDC
+    
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API 
+                                
+                If RootWindowElementBase.RuntimeUIIsIdeSnapshotting() = False Then
+                    
+                    ' We use a buffer HDC to prevent flickering
+                    If CachedBufferBitmapWidth < RootWindowElementBase.RuntimeUIGetCurrentWidth() Or _
+                        CachedBufferBitmapHeight < RootWindowElementBase.RuntimeUIGetCurrentHeight() Then
+                        RecreateCachedBufferBitmap
+                    End If
+                        
+                    hdc = CachedBufferHDC.Value
+                    PrintSinglePageViewer(hdc)
+                    ps.hdc.BitBlt(0, 0, RootWindowElementBase.RuntimeUIGetCurrentWidth(), RootWindowElementBase.RuntimeUIGetCurrentHeight(), hdc, 0, 0, vbSrcCopy)
+                Else
+                    hdc = ps.hdc.Value
+                    Dim Section As Any = Me.InternalControlSections(RootWindowElementBase.RuntimeUIGetDrawingSectionId())
+                    With Section
+                        
+                        Section.CacheGdiStuff()
+                        
+                        If .BackStyle = vbBFOpaque Then
+                            RootWindowElementBase.FillWithBrush(hdc, .CachedBackBrush)
+                        Else
+                            RootWindowElementBase.FillWithBrush(hdc, PaperBackBrush)
+                        End If
+                        Dim topBorderHeight As Long = 0'CLng(.TopBorderHeight * DpiScaleFactorY)
+                        Dim mainHeight As Long = CLng(.PixelsHeight * DpiScaleFactorY)
+                        Dim bottomBorderHeight As Long = CLng(.PixelsBorderBottomHeight * DpiScaleFactorY)
+                        If topBorderHeight > 0 Then
+                            Dim rect As tbRECT
+                            rect.Right = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+                            rect.Bottom = topBorderHeight
+                            'FillRect(hdc, rect, .CachedBorderTopBrush)
+                        End If
+                        If bottomBorderHeight > 0 Then
+                            rect.Right = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+                            rect.Top = topBorderHeight + mainHeight
+                            rect.Bottom = rect.Top + bottomBorderHeight
+                            hdc.FillRect(rect, .CachedBorderBottomBrush)
+                        End If
+                        hdc.SetWindowOrgEx(0, -topBorderHeight, ByVal vbNullPtr)
+                        
+                        Dim savedDcIndex As Long = hdc.SaveDC()
+                        hdc.IntersectClipRect(0, 0, CLng(RootWindowElementBase.RuntimeUIGetCurrentWidth()), mainHeight)
+                        OnPaint(hdc)
+                        hdc.RestoreDC(savedDcIndex)
+                        
+                        hdc.SetWindowOrgEx(0, 0, ByVal vbNullPtr)
+                    End With
+                End If
+                
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+            
+            AlreadyPainting = False
+        End Sub
+                        
+        Protected Sub CanClose(ByRef Cancel As Integer) _
+                Implements IWindowElementEventsCommonRoot.CanClose
+            
+            RaiseEvent Unload(Cancel)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get DpiScaleFactorX() As Double ' exposed as X/Y for future 
+            Return RootWindowElementBase.RuntimeUIGetUnitScale()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get DpiScaleFactorY() As Double ' exposed as X/Y for future 
+            Return RootWindowElementBase.RuntimeUIGetUnitScale()
+        End Property
+                        
+        [Serialize(False)]
+        Public Property Get Count() As Long
+            Return CLng(Me.Controls.Count)
+        End Property
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            Me.InternalHWND.CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        [Serialize(False)]
+        Protected InternalIcon As StdPicture
+        
+        [Serialize(False)]
+        Public Property Get Icon() As StdPicture
+            Return InternalIcon
+        End Property
+
+        Protected Sub IconChanged()
+            Dim InternalIcon As Any = Me.InternalIcon
+            If (InternalIcon IsNot Nothing) AndAlso (InternalIcon.Type = vbPicTypeIcon) Then
+                Const ICON_SMALL As Long = 0
+                Const ICON_BIG As Long = 1
+                Const ICON_SMALL2 As Long = 2
+                RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(WM_SETICON, ICON_SMALL, InternalIcon.Handle)
+            End If
+        End Sub
+
+        [Serialize(False)]
+        Public Property Set Icon(Value As StdPicture)
+            Set InternalIcon = Value
+            IconChanged()
+        End Property
+
+        [Serialize(False)]
+        Public Property Let Icon(Value As StdPicture)    ' Weirdly, VBx also implements the Let for this
+            Set InternalIcon = Value
+            IconChanged()
+        End Property
+        
+        Public Sub Move(ByVal Left As Single, Optional ByVal Top As Variant, Optional ByVal Width As Variant, Optional ByVal Height As Variant)
+            If InternalMove(Me, Left, Top, Width, Height) Then
+                ControlContext.RuntimeUICtxChangedPosition()
+            End If
+        End Sub
+        
+        Public Sub SetFocus()
+            RootWindowElementBase.SetFocus()
+        End Sub
+    
+        [Enumerator]
+        Public Function InternalEnumerator() As stdole.IUnknown     ' FIXME should not be exposed
+            Return CallByDispId(Me.Controls, -4, vbGet)
+        End Function
+        
+        Protected Sub HandleQueryUnload(Cancel As Integer, ByVal UnloadMode As Long) _
+                Implements IWindowElementEventsCommonRoot.QueryUnload
+
+            RaiseEvent QueryUnload(Cancel, CInt(UnloadMode))
+        End Sub
+        
+        Protected CurrentPaintingSectionDC As HDC
+        
+        [Serialize(False)]
+        Public Property Get hDC() As LongPtr                            ' FIXME use HDC return value once ALIAS is fully aligned
+            If CurrentPaintingSectionDC.Value <> vbNullPtr Then
+                Return CurrentPaintingSectionDC.Value
+            Else
+                If Me.RootWindowElementBase.Pointer <> vbNullPtr Then
+                    Return GraphicsBase.hDC
+                End If
+            End If
+        End Property
+        
+        Protected Sub InternalScroll(ByVal ScrollType As Long, ByVal ScrollElement As WindowElement)
+            ' FIXME hide me
+            If CommonHandleScroll(ScrollElement, ScrollType, 1) Then
+                'Debug.Print "ScrollH: " & WindowsAPI.USER32_GetScrollValue(SetRootWindowElementBaseScrollH, SB_CTL)
+                Me.RefreshNoErase()
+            End If
+        End Sub
+                
+        Protected Function CommonHandleScroll(WindowElement As WindowElement, ByVal ScrollType As Long, ByVal Scale As Long) As Boolean
+            Dim OldValue As Long = WindowElement.GetScrollValue(SB_CTL)
+            Dim NewValue As Long
+            Select Case ScrollType
+                Case SCROLLNOTIFY.SB_TOP
+                    NewValue = 0
+                Case SCROLLNOTIFY.SB_BOTTOM
+                    NewValue = 0
+                Case SCROLLNOTIFY.SB_LINEUP
+                    NewValue = OldValue - Scale
+                Case SCROLLNOTIFY.SB_LINEDOWN
+                    NewValue = OldValue + Scale
+                Case SCROLLNOTIFY.SB_PAGEUP
+                    NewValue = OldValue - WindowElement.GetScrollPageSize(SB_CTL)
+                Case SCROLLNOTIFY.SB_PAGEDOWN
+                    NewValue = OldValue + WindowElement.GetScrollPageSize(SB_CTL)
+                Case SCROLLNOTIFY.SB_THUMBPOSITION
+                    NewValue = OldValue
+                Case SCROLLNOTIFY.SB_THUMBTRACK
+                    NewValue = WindowElement.GetScrollValueHot(SB_CTL)
+                Case Else
+                    Exit Function
+            End Select
+             
+            If NewValue < 0 Then
+                NewValue = 0
+            End If
+
+            ' If NewValue > RangeMax Then
+            '     NewValue = RangeMax
+            ' End If
+
+            If NewValue <> OldValue Then
+                WindowElement.SetScrollValue(NewValue, SB_CTL)
+                Return True
+            End If
+            Return False
+        End Function
+        
+        Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            
+            If Me.ScrollBarsVisible = False Then Exit Sub
+            Dim ScrollType As Long
+            If Horizontal Then
+                If Delta < 0 Then
+                    ScrollType = SCROLLNOTIFY.SB_LINEUP
+                Else
+                    ScrollType = SCROLLNOTIFY.SB_LINEDOWN
+                End If
+                If CommonHandleScroll(SetRootWindowElementBaseScrollH.ScrollElement, ScrollType, 10) Then
+                    'Debug.Print "ScrollH: " & WindowsAPI.USER32_GetScrollValue(SetRootWindowElementBaseScrollH, SB_CTL)
+                    Me.RefreshNoErase()
+                End If
+            Else
+                If Delta > 0 Then
+                    ScrollType = SCROLLNOTIFY.SB_LINEUP
+                Else
+                    ScrollType = SCROLLNOTIFY.SB_LINEDOWN
+                End If
+                If CommonHandleScroll(SetRootWindowElementBaseScrollV.ScrollElement, ScrollType, 10) Then
+                    'Debug.Print "ScrollV: " & WindowsAPI.USER32_GetScrollValue(SetRootWindowElementBaseScrollV, SB_CTL)
+                    Me.RefreshNoErase()
+                End If
+            End If
+        End Sub
+        
+        Protected Sub RefreshNoErase()
+            RootWindowElementBase.RedrawWindow(0, 0, RDW_INVALIDATE Or RDW_UPDATENOW)
+        End Sub
+        
+        Protected Sub HandleResize() _
+                Implements IWindowElementEventsCommon.Resize
+            
+            If Me.FirstPaint = False Then
+                Me.ResyncScrollBars
+                Me.RefreshNoErase
+            End If
+        End Sub
+        
+        Enum ReportSizeConstants
+            [ ]
+            [A4 Portrait]
+            [A4 Landscape]
+            [A3 Portrait]
+            [A3 Landscape]
+            [A5 Portrait]
+            [A5 Landscape]
+            [Letter Portrait]
+            [Letter Landscape]
+            [Tabloid Portrait]
+            [Tabloid Landscape]
+            [Legal Portrait]
+            [Legal Landscape]
+            [Statement Portrait]
+            [Statement Landscape]
+            [Executive Portrait]
+            [Executive Landscape]
+        End Enum
+        
+        Public Property Get ChangePageSize() As ReportSizeConstants
+            Return ReportSizeConstants.[ ]
+        End Property
+        
+        Enum PageRangeConstants
+            rptRangeAllPages = 0
+            rptRangeFromTo = 1
+        End Enum
+        
+        #If FEATURE_PRINTER Then
+        Public Sub PrintReport(Optional ShowDialog As Boolean = True, Optional Range As PageRangeConstants, Optional PageFrom As Long, Optional PageTo As Long)
+            If ShowDialog = True Then
+                Err.Raise 5, , "Not yet supported.  Use PrintReport(ShowDialog:=False)"
+            End If
+            
+            ' FIXME page size is currently locked to A4, need to support the logic of selecting the most appropriate
+            ' paper size as supported by the printer driver.
+            
+            'MsgBox "NOTE:"
+            Printer.PaperSize = CInt(vbPRPSA4)
+            'Printer.OutputFile = "Z:\test46.pdf"
+            
+            'MessageBoxW(vbNullPtr, "Printed: Microsoft Print To PDF (" & Printer.OutputFile & ")", "twinBASIC", 0&)
+            USER32.MessageBoxW(vbNullPtr, "PLEASE NOTE: Printer papersize is currently locked to A4 in this beta edition of twinBASIC", "twinBASIC", 0&)
+            
+            Dim tbPrinter As ITwinBasicPrinter = CType(Of ITwinBasicPrinter)(Printer)
+            tbPrinter.PreparePrintForm()
+            
+            Page = 1
+            Do
+                If Page <> 1 Then
+                    Printer.NewPage()
+                End If
+                
+                Dim CachedReportPage As Any = GetCachedPageByCurrentPageNum()
+                        
+                CurrentPageIsLast = CachedReportPage.IsLastPage
+                        
+                If (CachedReportPage.MetaFile = 0) Then
+                    Err.Raise 5     ' invalid
+                End If
+                
+                Dim info As ENHMETAHEADER
+                GDI32.GetEnhMetaFileHeader(CachedReportPage.MetaFile, LenB(Of ENHMETAHEADER), info)
+                        
+                Dim actualHeight As Double = GraphicsBase.ScaleY(CSng(PixelsReportHeight), vbScaledPixels, vbTwips)
+                Dim width As Double = GraphicsBase.ScaleX(CSng(PixelsReportWidth), vbScaledPixels, vbTwips)
+                
+                ' FIXME we don't want this to actually change the width of the viewer window
+                ' but we currently have to do this for all the control drawing to work correctly
+                'Dim oldWidth As Any = Me.Width
+                'Me.Width = width
+                'Sleep(1000)
+                
+                Dim sourceRect As tbRECT
+                sourceRect.Right = CLng(width * 10000)       ' FIXME watch we don't overflow
+                sourceRect.Bottom = CLng(actualHeight * 10000)
+                        
+                Dim destTwipsX As Double = 1440 / UnprotectedAccess(Printer).InternalHDC.GetDeviceCaps(LOGPIXELSX)
+                Dim destTwipsY As Double = 1440 / UnprotectedAccess(Printer).InternalHDC.GetDeviceCaps(LOGPIXELSY)
+                
+                If (destTwipsX = 0) Or (destTwipsY = 0) Then
+                Err.Raise 5     ' invalid
+                End If
+                
+                ' was using CachedReportPage.MetaFileTwipsPerPixelX/Y here
+                sourceRect.Right = CLng(sourceRect.Right * 10 / destTwipsX)
+                sourceRect.Bottom = CLng(sourceRect.Bottom * 10 / destTwipsY)
+                    
+                Dim scaleX As Double = (info.szlMicrometers.cx / info.szlDevice.cx)
+                Dim scaleY As Double = (info.szlMicrometers.cy / info.szlDevice.cy)
+                
+                'MsgBox scaleX & ":" & scaleY
+                        
+                Dim leftMarginWidth As Double = GraphicsBase.ScaleX(CSng(PixelsLeftMargin), vbScaledPixels, vbPixels)
+                Dim topMarginWidth As Double = GraphicsBase.ScaleY(CSng(PixelsTopMargin), vbScaledPixels, vbPixels)
+                
+                ' adjust the left/top margin
+                UnprotectedAccess(Printer).InternalHDC.SetWindowOrgEx(-CLng(leftMarginWidth * CachedReportPage.MetaFileTwipsPerPixelX / destTwipsX), -CLng(topMarginWidth * CachedReportPage.MetaFileTwipsPerPixelY / destTwipsY), ByVal vbNullPtr)
+                                            
+                sourceRect.Right = CLng(sourceRect.Right / scaleX)
+                sourceRect.Bottom = CLng(sourceRect.Bottom / scaleY)
+                
+                UnprotectedAccess(Printer).InternalHDC.PlayEnhMetaFile(CachedReportPage.MetaFile, sourceRect)
+                Page += 1
+                
+            Loop Until CurrentPageIsLast
+            
+            Printer.EndDoc()
+            
+            
+            ' Dim sourceRect As tbRECT
+            ' Dim sourceWND As LongPtr = RootWindowElementBaseBase.Handle
+            ' GetClientRect(sourceWND, sourceRect)
+                
+            ' FIXME using this to get the source LOGPIXELSX/Y
+            ' Dim metaDC As LongPtr = CreateEnhMetaFileW(vbNullPtr, vbNullString, vbNullPtr, vbNullString)
+            ' Dim sourceTwipsX As Double = 1440 / GetDeviceCaps(metaDC, LOGPIXELSX)
+            ' Dim sourceTwipsY As Double = 1440 / GetDeviceCaps(metaDC, LOGPIXELSY)
+            
+            
+            ' Dim destTwipsX As Double = 1440 / GetDeviceCaps(CLngPtr(Printer.hDC), LOGPIXELSX)
+            ' Dim destTwipsY As Double = 1440 / GetDeviceCaps(CLngPtr(Printer.hDC), LOGPIXELSY)
+                
+            ' If (destTwipsX = 0) Or (destTwipsY = 0) Then
+            '     Err.Raise 5     ' invalid
+            ' End If
+        
+            ' Dim metaFile As LongPtr = CloseEnhMetaFile(metaDC)
+                                
+            ' If (metaFile = 0) Then
+            '     Err.Raise 5     ' invalid
+            ' End If
+        
+            ' Dim sourceRect As tbRECT
+            ' sourceRect.Right = CLng(sourceRect.Right * sourceTwipsX / destTwipsX)
+            ' sourceRect.Bottom = CLng(sourceRect.Bottom * sourceTwipsY / destTwipsX)
+                
+            ' If OutputAtCurrentPosition = True Then
+            '     sourceRect.Left += CLng(tbPrinter_GraphicsBase.InternalCurrentX)
+            '     sourceRect.Right += sourceRect.Left
+            '     sourceRect.Top += CLng(tbPrinter_GraphicsBase.InternalCurrentY)
+            '     sourceRect.Bottom += sourceRect.Top
+            
+            '     If tbPrinter_GraphicsBase.ScaleMode = ScaleModeConstants.vbUser Then
+            '         sourceRect.Left += CLng(-tbPrinter_GraphicsBase.ScaleLeft / destTwipsX)
+            '         sourceRect.Top += CLng(-tbPrinter_GraphicsBase.ScaleTop / destTwipsX)
+            '     End If
+            ' End If
+            
+            
+            'PlayEnhMetaFile(CLngPtr(Printer.hDC), metaFile, sourceRect)
+            
+            'DeleteEnhMetaFile(metaFile)
+            
+            'PrintSinglePage(CLngPtr(Printer.hDC))
+        End Sub
+        #End If
+        
+        Protected Function Bind(ByVal Symbol As String, ByVal ArgCount As Long) As ITbExpression _
+                Implements ITbCustomBinder.Bind
+            If ArgCount = 0 Then
+                ' See if the recordset exposes a field name Symbol
+                If Me.InternalRecordset IsNot Nothing Then
+                    Dim retVal As Object = Me.InternalRecordset.GetFieldBinder(Symbol)
+                    If retVal IsNot Nothing Then
+                        If TypeOf retVal Is ITbExpression Then
+                            Return CType(Of ITbExpression)(retVal)
+                        Else
+                            Return New ObjectFieldBinderByName(retVal, Symbol)
+                        End If
+                    End If
+                End If
+            End If
+        End Function
+        
+        [Serialize(False)]
+        [Description("The minimum width of the CLIENT area, in twips")]
+        Property Get MinWidth() As Double
+            Return RootWindowElementBase.RuntimeUIScaleX(CSng(InternalBaseControlInfo.MinWidth), vbScaledPixels, vbTwips)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The minimum width of the CLIENT area, in twips")]
+        Property Let MinWidth(ByVal Value As Double)
+            InternalBaseControlInfo.MinWidth = RootWindowElementBase.RuntimeUIScaleX(CSng(Value), vbTwips, vbScaledPixels)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The minimum height of the CLIENT area, in twips")]
+        Property Get MinHeight() As Double
+            Return RootWindowElementBase.RuntimeUIScaleY(CSng(InternalBaseControlInfo.MinHeight), vbScaledPixels, vbTwips)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The minimum height of the CLIENT area, in twips")]
+        Property Let MinHeight(ByVal Value As Double)
+            InternalBaseControlInfo.MinHeight = RootWindowElementBase.RuntimeUIScaleY(CSng(Value), vbTwips, vbScaledPixels)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The maximum width of the CLIENT area, in twips")]
+        Property Get MaxWidth() As Double
+            Return RootWindowElementBase.RuntimeUIScaleX(CSng(InternalBaseControlInfo.MaxWidth), vbScaledPixels, vbTwips)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The maximum width of the CLIENT area, in twips")]
+        Property Let MaxWidth(ByVal Value As Double)
+            InternalBaseControlInfo.MaxWidth = RootWindowElementBase.RuntimeUIScaleX(CSng(Value), vbTwips, vbScaledPixels)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The maximum height of the CLIENT area, in twips")]
+        Property Get MaxHeight() As Double
+            Return RootWindowElementBase.RuntimeUIScaleY(CSng(InternalBaseControlInfo.MaxHeight), vbScaledPixels, vbTwips)
+        End Property
+        
+        [Serialize(False)]
+        [Description("The maximum height of the CLIENT area, in twips")]
+        Property Let MaxHeight(ByVal Value As Double)
+            InternalBaseControlInfo.MaxHeight = RootWindowElementBase.RuntimeUIScaleY(CSng(Value), vbTwips, vbScaledPixels)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Width() As Double
+            Return RootWindowElementBase.CommonGetFormWidth()
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Width(ByVal ValueTwips As Double)
+            RootWindowElementBase.CommonSetFormWidth(InternalBaseControlInfo, Me.ControlContext, ValueTwips, IsDesignMode)
+        End Property
+    
+        [Serialize(False)]
+        Public Property Get Height() As Double
+            Return RootWindowElementBase.CommonGetFormHeight()
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Height(ByVal ValueTwips As Double)
+            RootWindowElementBase.CommonSetFormHeight(InternalBaseControlInfo, Me.ControlContext, ValueTwips, IsDesignMode)
+        End Property
+                
+        Protected Function OnGetControlType() As ControlTypeConstants _
+                Overrides GraphicsBase.OnGetControlType
+            Return ControlTypeConstants.vbReport
+        End Function
+    #End Region
+    
+End Class
+
+[WindowsControl("no_designer")]
+[ClassId("09040293-ECF8-4DEB-B7DE-DB264DC6ABF5")]
+[InterfaceId("E8890622-E14E-4A04-92F2-2F846863CC24")]
+' WARNING: above InterfaceId is referred to as IID_ITBReport in tB Sources
+[COMCreatable(False)]
+[COMExtensible(True)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Report
+    Inherits ReportBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#end If

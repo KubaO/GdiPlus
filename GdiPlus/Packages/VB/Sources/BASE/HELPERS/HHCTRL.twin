@@ -1,0 +1,10 @@
+Private Module HHCTRLModule
+
+    Type HHCTRL
+        Ignore As Byte
+    
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function HtmlHelpW Lib "hhctrl.ocx" (ByVal hwndCaller As LongPtr, ByVal pszFile As String, ByVal uCommand As Long, ByRef dwData As Any) As LongPtr
+    End Type
+    
+End Module

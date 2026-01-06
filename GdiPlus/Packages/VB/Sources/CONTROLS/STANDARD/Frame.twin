@@ -1,0 +1,403 @@
+#If FEATURE_FRAME Then
+[ClassId("6A059CC4-5A82-461B-981F-569CA2B865B1")]
+[InterfaceId("00352073-61B4-4327-9C8B-722D3B158F5E")]    ' FIXME implement {33AD4EE9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class FrameBaseCtl
+    
+    #Region "INHERITANCE"
+
+        Inherits BaseControlNotFocusable2
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vb3DFace   ' FIXME this is linked to Appearance
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbButtonText   ' FIXME this is linked to Appearance
+        [Description("")]
+            Public ClipControls As Boolean = True
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = VBRUN.ControlBorderStyleConstants.vbFixedSingleBorder
+
+        [Serialize(True, "Caption")]
+            Protected Caption_INIT As String
+        
+            Protected IsDesignMode As Boolean
+
+        
+        [Unimplemented]
+            Public RightToLeft As Boolean
+            
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+            
+        #If FEATURE_MULTIFRAME Then
+            Public MultiFramePosition As Long = -1
+            Public MultiFrameSize As Double
+        [Serialize(False)]
+            Public OriginalMultiFramePosition As Long = -1
+        #End If
+
+                        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+            
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+                        
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        [Unimplemented]
+            Public WhatsThisHelpID As Long
+        
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #End If
+        
+# End Region
+
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        Event MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) ' new to tB
+        
+    #End Region
+               
+    #Region "MEMBERS"
+    
+        Public Sub New()
+            BaseControlNotFocusable2.New(ControlTypeConstants.vbFrame)
+        End Sub
+        
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+    
+            Me.InternalStateReset()     ' resets all the base class state
+            #If FEATURE_OLEDRAGDROP Then
+                Me.InternalStateResetOLEDragDrop()
+            #End If
+             
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                Caption_INIT = "Frame"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderFrame)
+            InitData.Caption = Caption_INIT
+            InitData.WindowStyles = GetStyles()
+            InitData.ExtendedStyles = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY) 'Or WS_EX_NOACTIVATE
+            InitData.Flags = IsContainer Or _
+                                ManualMouseCapture Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardMouseMove Or _
+                                ForwardButtonClick Or _
+                                ForwardDragOver Or _
+                                ForwardDoubleClick Or _
+                                IgnoreWmCommandButtonClicks
+            InitData.Flags2 = AlwaysPaintInSnapshots
+            'Debug.Print "InitData.WindowStyles: " & Hex(InitData.WindowStyles)
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            #If FEATURE_OLEDRAGDROP Then
+            InitOleDragDropHelper()
+            #End If
+        End Sub
+        
+        Protected Function GetStyles() As Long
+            Dim styles As Long = CLng(ButtonStyles.BS_GROUPBOX) + _
+                    If(BaseControlNotFocusable2.Appearance = AppearanceConstants.vbAppearFlat, ButtonStyles.BS_FLAT, 0&) + _
+                    If(Me.ClipControls = True, WS_CLIPCHILDREN, 0&)
+            Return styles
+        End Function
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, False, False)
+        End Sub
+        #End If
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+
+            ' disconnect anything that causes a circular reference here
+            Set Me.Font = Nothing
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+        
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            RaiseEvent MouseWheel(Delta, Horizontal)
+        End Sub
+                
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #End If
+            RaiseEvent Initialize()
+        End Sub
+        
+        Protected Sub SyncRecreate() _
+                Handles ClipControls.OnPropertyLet
+                
+            Dim Caption As String = Me.Caption
+            RecreateWindow(GetStyles())
+            Me.Caption = Caption
+        End Sub
+        
+        Protected Sub HandleEraseBackground(ByVal hdc As HDC, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.EraseBackground
+'           
+            'Dim BackColor1 As Long = CLng(Rnd() * &HFFFFFF)
+            'Debug.Print "Frame.EraseBackground " & Hex(hdc)
+            'Debug.Print
+            RootWindowElementBase.FillWithBrush(hdc, CreateBackBrush(BackColor))
+            
+            RootWindowElementBase.PaintContainedWindowlessElements(hdc.Value)
+            
+            ' If ClipControls = True And IsDesignMode = False Then
+            '     CommonRedrawChildren(Me)      ' Why is this needed.  It is really slow! (see https://github.com/twinbasic/twinbasic/issues/1346 for demo where it causes a lot of glitching)
+            ' End If
+            
+            Handled = True     ' swallow up the event
+        End Sub
+        
+        ' Protected Sub HandlePaint(ByVal hdc As LongPtr) _
+        '         Handles RootWindowElementBase.AfterPaint
+                
+        '     ' Debug.Print "Frame.AfterPaint " & Hex(hdc)
+            
+        '     ' Dim windowDC As LongPtr
+        '     ' 'Debug.Print "GetPaintHDC(): " & Hex(hdc)
+        '     ' If hdc = vbNullPtr Then
+        '     '     Dim hwnd As LongPtr = RootWindowElementBase.Handle
+        '     '     hdc = GetDC(hwnd)
+        '     '     windowDC = hdc
+        '     ' End If
+        '     ' 'WindowsAPI.USER32_FillWithBrush(Me.RootWindowElementBase, hdc, CreateBackBrush(BackColor))
+            
+        '     ' RootWindowElementBase.PaintContainedWindowlessElements(hdc)
+            
+        '     ' If ClipControls = True And IsDesignMode = False Then
+        '     '     CommonRedrawChildren(Me)
+        '     ' End If
+            
+        '     ' If windowDC <> vbNullPtr Then
+        '     '     ReleaseDC(hwnd, windowDC)
+        '     ' End If
+            
+        ' End Sub
+        
+        Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+                
+            'Debug.Print "Frame.HandleGetColors", Hex(Me.BackColor)
+            HandleGetColorsCommon(hdc, BackBrushOut, Me)
+        End Sub
+                
+        [Serialize(False)]
+        Public Property Get Caption() As String
+            Return GetWindowTextCtl()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Caption(ByVal Value As String)
+            SendMessageCtl(WM_SETTEXT, 0, StrPtrSafe(Value))
+        End Property
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+        
+        Protected Sub HandlePaint(Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+            
+            'Debug.Print "Frame.Paint"
+            
+            If Me.BorderStyle = VBRUN.ControlBorderStyleConstants.vbNoBorder Then
+                Dim ps As PAINTSTRUCT
+                RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API 
+                        
+                   ' WindowsAPI.USER32_FillWithBrush(Me.RootWindowElementBase, ps.hdc, CreateBackBrush(BackColor))
+                    'Dim hwnd As LongPtr = RootWindowElementBase.Handle
+                    'Dim hdc As LongPtr = GetDC(hwnd)
+                    'RootWindowElementBase.PaintContainedWindowlessElements(hdc)
+                    'ReleaseDC(hwnd, hdc)
+                    RootWindowElementBase.PaintContainedWindowlessElements(ps.hdc.Value)
+                    
+                RootWindowElementBase.RuntimeUIEndPaint(ps)
+                Handled = True     ' swallow up the event
+            End If
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Me.Caption
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(Value As String)
+            Me.Caption = Value
+        End Property
+        
+    #If FEATURE_MULTIFRAME Then
+        Protected Sub MultiFrameSizeChanged() _
+            Handles MultiFrameSize.OnPropertyLet
+            On Error Resume Next
+            Dim multiFrame As MultiFrame = CType(Of MultiFrame)(Me.Container)
+            If multiFrame IsNot Nothing Then
+                multiFrame.InternalChangedSizeOfFrame()
+            End If
+        End Sub
+        
+        Protected Sub MultiFramePositionChanged() _
+            Handles MultiFramePosition.OnPropertyLet
+            On Error Resume Next
+            Dim multiFrame As MultiFrame = CType(Of MultiFrame)(Me.Container)
+            If multiFrame IsNot Nothing Then
+                UnprotectedAccess(multiFrame).InternalChangedPositionOfFrame(Me)
+            End If
+        End Sub
+    #End If
+                
+        Protected Sub HandleGetCaption(out As String) _
+                Implements IWindowElementEventsCommon.GetCaption
+            If Me.Enabled And Me.InternalHWND.IsWindowVisible() Then       ' for mnemonics, just pretend no caption if we're not available
+                out = Me.Caption
+            End If
+        End Sub
+        
+        Protected Sub HandleInvokeMnemonic(ByVal IsUnique As Boolean, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.InvokeMnemonic
+            Handled = True
+            ' exactly the same as Label handling. being a container does not affect the algo
+            'Debug.Print "Menmonic (frame): " & Me.Name & ", IsUnique: " & IsUnique
+            
+            Dim nextCtl As Object
+            RootWindowElementBase.RuntimeUIGetNextControlByTabIndex(Me.TabIndex, nextCtl, False, True)
+            If nextCtl IsNot Nothing Then
+               'Debug.Print " -> nextCtl: " & nextCtl.Name
+               RootWindowElementBase.RuntimeUIInvokeMnemonicOfControl(nextCtl, IsUnique)
+            End If
+        End Sub
+        
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+        
+    #End Region
+
+End Class
+
+[Description("A Win32 native Frame")]
+[WindowsControl("/miscellaneous/ICONS??/Frame??.png")]
+[ClassId("33AD4EE8-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("DD008396-4554-4880-8D73-5EC498665905")]    ' FIXME implement {33AD4EE9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Frame
+    Inherits FrameBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

@@ -1,0 +1,715 @@
+#If FEATURE_TEXTBOX Then
+[ClassId("5DA35DED-56F7-4A6A-BE5D-5A9A3419F889")]
+[InterfaceId("CE786FC8-391A-46B9-AA96-C618D0E391EF")]    ' FIXME implement {33AD4EE1-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class TextBoxBaseCtl
+    
+    #Region "INHERITANCE"
+
+        Inherits BaseControlFocusable
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #endif
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description("")]
+            Public MultiLine As Boolean
+        [Description("")]
+            Public HideSelection As Boolean = True
+        [Description("")]
+            Public ScrollBars As VBRUN.ScrollBarConstants = VBRUN.ScrollBarConstants.vbSBNone
+        [Description("")]
+            Public MaxLength As Long = 0        ' FIXME this should be direct prop-get/let to EM_GETLIMITTEXT
+        [Description("")]
+            Public PasswordChar As String = vbNullString    ' FIXME this should be a direct prop-get/let to EM_SETPASSWORDCHAR
+        [Serialize(True, "Alignment")]
+        [Description("")]
+            Protected AlignmentINIT As VBRUN.AlignmentConstants
+        [Description("If set to True, TextBox content will be auto-selected when TAB key is used to focus their controls.  This property is ignored if the Form.TabFocusAutoSelect is set to False.")]
+        [Serialize(True, "TabFocusAutoSelect")]
+            Protected TabFocusAutoSelectINIT As Boolean = True
+        [Description("")]
+            Public NumbersOnly As Boolean
+        [Description("Set this to True to generate Scroll events in response to mouse-wheel notifications")]
+            Public WheelScrollEvent As Boolean = True
+        [Description("Get/Sets the Cue Banner string that is displayed when the text value is empty")]
+            Public TextHint As String
+        [Description("Get/Sets whether the TextHint string is also displayed when the empty control is focused")]
+            Public TextHintAlways As Boolean
+                
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = VBRUN.ControlBorderStyleConstants.vbFixedSingleBorder
+    
+        [Serialize(True, "Locked")]
+        [Description("")]
+            Protected LockedINIT As Boolean
+
+        [CustomDesigner("designer_MultiLineText")]
+        [Serialize(True, "Text")]
+            Protected Text_INIT As String
+                        
+            #If FEATURE_OLEDRAGDROP Then
+            Protected OLEDragDropHandler As OLEDragDropHandler
+            Protected MouseDownNeedsManualRelease As Boolean
+            Public OLEDragMode As VBRUN.OLEDragConstants
+            Public OLEDropMode As VBRUN.OLEDropConstants
+            #end If
+            Protected IsInitialized As Boolean
+            Protected isPointerOverSelection As Boolean
+            Protected IsDesignMode As Boolean
+                        
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+        Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+        Public TransparencyKey As OLE_COLOR = -1
+                
+        [Unimplemented]
+            Public LinkItem As String
+        [Unimplemented]
+            Public LinkMode As VBRUN.LinkModeConstants
+        [Unimplemented]
+            Public LinkTopic As String
+        [Unimplemented]
+            Public LinkTimeout As Long = 50
+        
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+        [Unimplemented]
+            Public Sub LinkExecute(ByVal Command As String)
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkPoke()
+            End Sub
+            
+        [Unimplemented]
+            Public Sub LinkRequest()
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkSend()
+            End Sub
+
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #end if
+               
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end If
+
+    #End Region
+
+    #Region "EVENTS"
+
+        [DefaultDesignerEvent]
+        [Description("")]
+            Event Change()
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+            
+        [Unimplemented] Event LinkClose()
+        [Unimplemented] Event LinkError(LinkErr As Integer)
+        [Unimplemented] Event LinkNotify()
+        [Unimplemented] Event LinkOpen(Cancel As Integer)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+
+        Event Scroll()      ' new to tB
+        Event MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) ' new to tB
+        
+    #End Region
+               
+    #Region "MEMBERS"
+    
+        Sub New()
+            BaseControlFocusable.New(ControlTypeConstants.vbTextBox)
+        End Sub
+                    
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                        
+            Me.InternalStateReset()     ' resets all the base class state
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #endif
+            
+            Me.IsInitialized = False
+            Me.isPointerOverSelection = False
+            #If FEATURE_OLEDRAGDROP Then
+            Me.MouseDownNeedsManualRelease = False
+            #end if
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                Text_INIT = "TextBox"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Dim extendedStyles As Long = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+                
+                If Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                    If BaseControlFocusable.Appearance = AppearanceConstants.vbAppear3d Then
+                        extendedStyles += WS_EX_CLIENTEDGE
+                    End If
+                End If
+                
+                'extendedStyles += If(Me.RightToLeft, WS_EX_LAYOUTRTL, 0)
+            
+            With InternalBaseControlInfo
+                .TabFocusAutoSelect = TabFocusAutoSelectINIT
+            End With
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderTextBox)
+            InitData.Caption = Me.Text_INIT
+            InitData.WindowStyles = GetStyles()
+            InitData.ExtendedStyles = extendedStyles
+            InitData.Flags = ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardValidate Or _
+                                ForwardDoubleClick Or _
+                                ForwardDragOver
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+        End Sub
+        
+        Protected Function GetStyles() As Long
+        	
+            Dim ScrollBars As Any = Me.ScrollBars
+            Dim MultiLine As Any = Me.MultiLine
+            Dim styles As Long = If(MultiLine And ((ScrollBars = ScrollBarConstants.vbVertical) Or (ScrollBars = ScrollBarConstants.vbSBNone)), 0&, EditStyles.ES_AUTOHSCROLL) + _ 
+                                    If(MultiLine, EditStyles.ES_MULTILINE Or EditStyles.ES_WANTRETURN Or EditStyles.ES_AUTOVSCROLL, 0&) + _
+                                    If(Me.HideSelection = False, EditStyles.ES_NOHIDESEL, 0&) + _
+                                    If(Me.NumbersOnly, EditStyles.ES_NUMBER, 0&)
+            
+            Dim scrollStyles As Long
+            If MultiLine Then
+                Select Case ScrollBars
+                    Case ScrollBarConstants.vbHorizontal: scrollStyles = WS_HSCROLL
+                    Case ScrollBarConstants.vbVertical: scrollStyles = WS_VSCROLL
+                    Case ScrollBarConstants.vbBoth: scrollStyles = WS_HSCROLL Or WS_VSCROLL
+                End Select
+            End If
+                            
+            Dim borderStyles As Long
+            If Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                If BaseControlFocusable.Appearance = AppearanceConstants.vbAppear3d Then
+                Else
+                     borderStyles = WS_BORDER
+                End If
+            End If
+            
+            Dim alignStyles As Long
+            Select Case Me.AlignmentINIT
+                Case vbLeftJustify: alignStyles = EditStyles.ES_LEFT
+                Case vbRightJustify: alignStyles = EditStyles.ES_RIGHT
+                Case vbCenter: alignStyles = EditStyles.ES_CENTER
+            End Select
+            
+            Return styles + scrollStyles + borderStyles + alignStyles
+            
+        End Function
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            Dim OLEDragDropHandler As Any = Me.OLEDragDropHandler
+            If OLEDragDropHandler IsNot Nothing Then OLEDragDropHandler.Disconnect()
+            #End If
+            
+            Set Me.Font = Nothing
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #end if
+        
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+
+        Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            
+            RaiseEvent MouseWheel(Delta, Horizontal)
+        End Sub
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            Me.Locked = Me.LockedINIT
+            SyncMaxLength()
+            If Len(Me.TextHint) > 0 Then SyncTextHint()
+            If Len(Me.PasswordChar) > 0 Then SyncPasswordChar()
+            IsInitialized = True
+                        
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #end if
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #end if
+            RaiseEvent Initialize()
+        End Sub
+        
+        Protected Sub SyncRecreate() _
+                Handles MultiLine.OnPropertyLet, _
+                        HideSelection.OnPropertyLet, _
+                        ScrollBars.OnPropertyLet
+                
+            Dim Locked As Long = Me.Locked
+            Dim MaxLength As Long = Me.MaxLength
+            Dim PasswordChar As String = Me.PasswordChar
+            Dim Text As String = Me.Text
+            
+            RecreateWindow(GetStyles())
+                
+            Me.Locked = Locked
+            Me.MaxLength = MaxLength
+            Me.PasswordChar = PasswordChar
+            Me.Text = Text
+        End Sub
+        
+        Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+                
+            hdc.SetTextColor(hdc.TranslateColor(Me.ForeColor))
+            hdc.SetBkColor(hdc.TranslateColor(Me.BackColor))
+            BackBrushOut = Me.CreateBackBrush(Me.BackColor)
+        End Sub
+        
+        Protected Sub HandleCommand(ByVal NotificationCode As EditNotifications, ByVal Identifier As Integer, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Command
+                
+            Select Case NotificationCode
+                Case EN_CHANGE
+                    #If FEATURE_DATA_BINDINGS Then
+                    OnDataChanged()
+                    #end if
+                    If IsInitialized Then RaiseEvent Change()
+                    Handled = True
+                Case EN_HSCROLL, EN_VSCROLL
+                    If WheelScrollEvent = True OrElse RootWindowElementBase.RuntimeUIIsProcessingMouseWheelMessage() = False Then
+                        RaiseEvent Scroll
+                    End If
+                    Handled = True
+            End Select
+        End Sub
+                
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub HandlePreMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single, _
+                                        ByRef SwallowMessage As Boolean) _
+                Implements IWindowElementEventsCommon.PreMouseDown
+                
+            If OLEDragMode = vbOLEDragAutomatic Then
+            	If Me.isPointerOverSelection Then
+                    If RootWindowElementBase.CommonDragDetect() Then
+                        If CommonOLEDrag(Me, Me.SelText, False, True) = vbDropEffectMove Then
+                            Me.SelText = ""
+                        End If
+                        SwallowMessage = True
+                    Else
+                        MouseDownNeedsManualRelease = True
+                    End If
+            	End If
+            End If
+        End Sub
+        #end if
+        
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+                
+            RaiseEvent MouseDown(CInt(Button), CInt(ShiftState), X, Y)
+            
+            #If FEATURE_OLEDRAGDROP Then
+            If MouseDownNeedsManualRelease = True Then
+                MouseDownNeedsManualRelease = False
+                USER32.ReleaseCapture()
+                RaiseEvent MouseUp(CInt(Button), CInt(ShiftState), X, Y)
+            End If
+            #End If
+        End Sub
+            
+        Protected Sub HandleMouseMove(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseMove
+                
+            #If FEATURE_OLEDRAGDROP Then
+            If Me.OLEDragMode = vbOLEDragAutomatic Then
+            	' If the pointer is over a selected area of text, then that becomes the OLE drop source
+                '  (i.e. the pointer changes from IBeam to pointer, and dragging works)
+                ' Shamelessly looted from VBCCR
+                Dim P1 As POINT
+                Dim SelStart As Long
+                Dim SelEnd As Long
+                USER32.GetCursorPos(P1)
+                RootWindowElementBase.RuntimeUIGetHandle().ScreenToClient(P1)
+                Dim pointerCharPos As Long = CLng(SendMessageCtl(EM_CHARFROMPOS, 0, P1.x + (P1.y << 16)) And &HFFFF&)
+                Dim pointerPos As Long = CLng(SendMessageCtl(EM_POSFROMCHAR, pointerCharPos, 0))
+                SendMessageCtl(EM_GETSEL, VarPtr(SelStart), VarPtr(SelEnd))
+                isPointerOverSelection = ((pointerCharPos >= SelStart) And (pointerCharPos <= SelEnd) And (pointerPos > -1) And ((SelEnd - SelStart) > 0))
+                RootWindowElementBase.RuntimeUIOverrideCursor(If(isPointerOverSelection, vbArrow, vbDefault))
+            End If
+            #End If
+            RaiseEvent MouseMove(CInt(Button), CInt(ShiftState), X, Y)
+        End Sub
+        
+        Protected InternalMouseUpWasCaptured As Boolean
+        Protected InternalNextMouseUpIsFromDblClick As Boolean
+        
+        Protected Sub HandlePreMouseUp(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants, _
+                                    ByVal X As Single, ByVal Y As Single, ByRef SwallowMessage As Boolean) _
+                Implements IWindowElementEventsCommon.PreMouseUp
+                
+            InternalMouseUpWasCaptured = (USER32.GetCapture() = Me.hWnd)
+        End Sub
+        
+        Protected Sub HandleMouseDoubleClick(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDoubleClick
+                
+            InternalNextMouseUpIsFromDblClick = True
+        End Sub
+        
+        Protected Sub HandleMouseUp(ByVal Button As VBRUN.MouseButtonConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants, _
+                                    ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseUp
+                
+            RaiseEvent MouseUp(CInt(Button), CInt(ShiftState), X, Y)
+            If (InternalMouseUpWasCaptured = True) And (InternalNextMouseUpIsFromDblClick = False) Then RaiseEvent Click
+            InternalNextMouseUpIsFromDblClick = False
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get SelStart() As Long
+            Dim startPos As Long
+            SendMessageCtl(EM_GETSEL, VarPtr(startPos), 0)
+            Return startPos
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelStart(Value As Long)
+            SendMessageCtl(EM_SETSEL, Value, Value)
+            SendMessageCtl(EM_SCROLLCARET, 0, 0)
+        End Property
+        
+        Protected Sub SyncTextHint() _
+        	    Handles TextHint.OnPropertyLet, _
+                        TextHintAlways.OnPropertyLet
+                
+            SendMessageCtl(EM_SETCUEBANNER, If(Me.TextHintAlways, 1, 0), StrPtr(Me.TextHint))
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get SelLength() As Long
+            Dim startPos As Long
+            Dim endPos As Long
+            SendMessageCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+            Return endPos - startPos
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelLength(Value As Long)
+            Dim startPos As Long = Me.SelStart
+            SendMessageCtl(EM_SETSEL, startPos, startPos + Value)
+            SendMessageCtl(EM_SCROLLCARET, 0, 0)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get SelText() As String
+            Dim startPos As Long
+            Dim endPos As Long
+            SendMessageCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+            Return Mid$(Me.Text, startPos + 1, endPos - startPos)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let SelText(Value As String)
+            Dim startPos As Long
+            Dim endPos As Long
+            SendMessageCtl(EM_GETSEL, VarPtr(startPos), VarPtr(endPos))
+            Dim text As String = Me.Text
+            Me.Text = VBA.Left$(text, startPos) & Value & VBA.Mid$(text, endPos + 1)
+            Me.SelStart = startPos + Len(Value)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Text() As String
+            Return GetWindowTextCtl()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Text(ByVal Value As String)
+            If Me.Text <> Value Then
+                SendMessageCtl(WM_SETTEXT, 0, StrPtrSafe(Value))
+                Me.Refresh
+                RaiseEvent Change()
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Me.Text
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As String)
+            Me.Text = Value
+        End Property
+                
+        Protected Sub SyncMaxLength() _
+                Handles MaxLength.OnPropertyLet
+                
+            SendMessageCtl(EditMessages.EM_SETLIMITTEXT, Me.MaxLength, 0)
+        End Sub
+        
+        Protected Sub SyncPasswordChar() _
+                Handles PasswordChar.OnPropertyLet
+                
+            Dim passwordCharLen As Long = Len(Me.PasswordChar)
+            SendMessageCtl(EditMessages.EM_SETPASSWORDCHAR, If(passwordCharLen > 0, AscW(Me.PasswordChar), 0), 0)
+        End Sub
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Get Locked() As Boolean
+            Return GetStyleFlagCtl(ES_READONLY)
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Let Locked(Value As Boolean)
+            SendMessageCtl(EditMessages.EM_SETREADONLY, If(Value, 1, 0), 0)
+        End Property
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Get Alignment() As VBRUN.AlignmentConstants
+            Dim styles As Long = GetWindowLongCtl(WindowProperties.GWL_STYLE)
+            If styles And ES_CENTER Then
+                Return VBRUN.AlignmentConstants.vbCenter
+            ElseIf styles And ES_RIGHT Then
+                Return VBRUN.AlignmentConstants.vbRightJustify
+            Else
+                Return VBRUN.AlignmentConstants.vbLeftJustify
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Let Alignment(Value As VBRUN.AlignmentConstants)
+            Dim styles As Long = GetWindowLongCtl(WindowProperties.GWL_STYLE)
+            styles = styles And Not (ES_CENTER Or ES_RIGHT)
+            
+            Select Case Value
+                Case vbLeftJustify: styles += EditStyles.ES_LEFT
+                Case vbRightJustify: styles += EditStyles.ES_RIGHT
+                Case vbCenter: styles += EditStyles.ES_CENTER
+            End Select
+            
+            SetWindowLongCtl(WindowProperties.GWL_STYLE, styles)
+            Me.Refresh
+        End Property
+        
+        Protected Sub SyncProperties() _
+        	    Handles NumbersOnly.OnPropertyLet
+            
+            Dim styles As Long = GetWindowLongCtl(WindowProperties.GWL_STYLE)
+            styles = styles And Not (ES_NUMBER)
+            
+            styles += If(Me.NumbersOnly, EditStyles.ES_NUMBER, 0&)
+            
+            SetWindowLongCtl(WindowProperties.GWL_STYLE, styles)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+                
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub SyncOLEDropMode() _
+                Handles OLEDropMode.OnPropertyLet
+                
+            BaseSyncOLEDropMode(Me, Me.OLEDropMode, Me.OLEDragDropHandler, False, True)
+        End Sub
+        #end if
+        
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+                
+            ' EN_VSCROLL / EN_HSCROLL isn't generated when dragging the thumb track for some reason
+            If ScrollType = SCROLLNOTIFY.SB_THUMBTRACK Then
+            	RaiseEvent Scroll
+            End If
+        End Sub
+        
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            Me.Text = If(IsNull(fieldValue), "", CStr(fieldValue))
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = Me.Text
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #end if
+        
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            Me.InternalhWnd.CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+            
+        [Serialize(False)]
+        Public Property Get TabFocusAutoSelect() As Boolean
+            Return InternalBaseControlInfo.TabFocusAutoSelect
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let TabFocusAutoSelect(ByVal Value As Boolean)
+            InternalBaseControlInfo.TabFocusAutoSelect = Value
+        End Property
+                
+        Protected Sub BorderStyleChanged() _  
+                Handles BorderStyle.OnPropertyLet
+            
+            CommonSyncBorderStyle(Me)
+        End Sub
+        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native TextBox")]
+[WindowsControl("/miscellaneous/ICONS??/TextBox??.png")]
+[ClassId("33AD4EE0-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("A69E94C6-BD03-45A0-92F5-05CDD19D5D6E")]    ' FIXME implement {33AD4EE1-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class TextBox
+    Inherits TextBoxBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

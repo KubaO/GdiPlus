@@ -1,0 +1,722 @@
+[InterfaceId("0000010c-0000-0000-C000-000000000046")]
+Private Interface IPersist Extends stdole.IUnknown
+    Sub GetClassID(ByRef pClassID As GUID)
+End Interface
+ 
+[InterfaceId("7FD52380-4E07-101B-AE2D-08002B2EC713")]
+Private Interface IPersistStreamInit Extends IPersist
+    Sub IsDirty()
+    Sub Load(ByVal pstm As IStream)
+    Sub Save(ByVal pstm As IStream, ByVal fClearDirty As Long)
+    Sub GetSizeMax(ByRef pcbSize As LongLong)
+    Sub InitNew()
+End Interface
+
+[InterfaceId("00000109-0000-0000-C000-000000000046")]
+Private Interface IPersistStream Extends IPersist
+    Sub IsDirty()
+    Sub Load(ByVal pstm As IStream)
+    Sub Save(ByVal pstm As IStream, ByVal fClearDirty As Long)
+    Sub GetSizeMax(ByRef pcbSize As LongLong)
+End Interface
+
+[InterfaceId("0000010A-0000-0000-C000-000000000046")]
+Private Interface IPersistStorage Extends IPersist
+    Sub IsDirty()
+    Sub InitNew(ByVal pStg As IStorage)
+    Sub Load(ByVal pStg As IStorage)
+    Sub Save(ByVal pStg As IStorage)
+    Sub SaveCompleted(ByVal pStgNew As IStorage)
+    Sub HandsOffStorage()
+End Interface
+
+[InterfaceId("55272A00-42CB-11CE-8135-00AA004BB851")]
+Private Interface IPropertyBag Extends stdole.IUnknown
+    Sub Read(ByVal pszPropName As String, ByRef pVar As Variant, ByVal pErrorLog As stdole.IUnknown)
+    Sub Write(ByVal pszPropName As String, ByRef pVar As Variant)
+End Interface
+
+[InterfaceId("37D84F60-42CB-11CE-8135-00AA004BB851")]
+Private Interface IPersistPropertyBag Extends IPersist
+    Sub InitNew()
+    Sub Load(ByVal pPropBag As IPropertyBag, ByVal pErrorLog As stdole.IUnknown)
+    Sub Save(ByVal pPropBag As IPropertyBag, ByVal fClearDirty As Long, ByVal fSaveAllProperties As Long)
+End Interface
+
+[InterfaceId("00000118-0000-0000-C000-000000000046")]
+Private Interface IOleClientSite Extends stdole.IUnknown
+	Sub SaveObject()
+    Sub GetMoniker(ByVal dwAssign As Long, ByVal dwWhichMoniker As Long, ByRef ppmk As VBRUN.tbInternal_IMoniker)
+    Sub GetContainer(ByRef ppContainer As IOleContainer)
+    Sub ShowObject()
+    Sub OnShowWindow(ByVal fShow As Long)
+    Sub RequestNewObjectLayout()
+End Interface
+
+[InterfaceId("00000104-0000-0000-C000-000000000046")]
+Private Interface IEnumOLEVERB Extends stdole.IUnknown
+    Type OLEVERB
+        lVerb As Long
+        lpszVerbName As LongPtr
+        fuFlags As Long
+        grfAttribs As Long
+    End Type
+    Sub Next(ByVal celt As Long, ByRef rgelt As OLEVERB, ByRef pceltFetched As Long)
+    Sub Skip(ByVal celt As Long)
+    Sub Reset()
+    Sub Clone(ByRef ppenum As IEnumOLEVERB)
+End Interface
+
+[InterfaceId("0000011d-0000-0000-C000-000000000046")]
+Private Interface IOleLink Extends stdole.IUnknown
+    Sub SetUpdateOptions(ByVal dwUpdateOpt As Long)
+    Function GetUpdateOptions() As Long
+    Sub SetSourceMoniker(ByVal pmk As stdole.IUnknown /*IMoniker*/, ByVal rclsid As LongPtr)
+    Function GetSourceMoniker() As stdole.IUnknown /*IMoniker*/
+    Sub SetSourceDisplayName(ByVal pszStatusText As LongPtr)
+    Function GetSourceDisplayName() As LongPtr
+    Sub BindToSource(ByVal bindflags As Long, ByVal pbc As stdole.IUnknown /*IMoniker*/)
+    Sub BindIfRunning()
+    Function GetBoundSource() As stdole.IUnknown
+    Sub UnbindSource()
+    Sub Update(ByVal pbc As stdole.IUnknown)
+End Interface
+                
+[InterfaceId("00000112-0000-0000-C000-000000000046")]
+Private Interface IOleObject Extends stdole.IUnknown
+    Type SIZEL
+        cx As Long
+        cy As Long
+    End Type
+
+    Sub SetClientSite(ByVal pClientSite As IOleClientSite)
+    Sub GetClientSite(ByRef ppClientSite As IOleClientSite)
+    Sub SetHostNames(ByVal szContainerApp As LongPtr, ByVal szContainerObj As LongPtr)
+    Sub Close(ByVal dwSaveOption As Long)
+    Sub SetMoniker(ByVal dwWhichMoniker As Long, ByVal pmk As VBRUN.tbInternal_IMoniker)
+    Sub GetMoniker(ByVal dwAssign As Long, ByVal dwWhichMoniker As Long, ByRef pmk As VBRUN.tbInternal_IMoniker)
+    Sub InitFromData(ByVal pDataObject As VBRUN.tbInternal_IDataObject, ByVal fCreation As Long, ByVal dwReserved As Long)
+    Sub GetClipboardData(ByVal dwReserved As Long, ByRef ppDataObject As VBRUN.tbInternal_IDataObject)
+    Sub DoVerb(ByVal iVerb As Long, ByVal lpmsg As LongPtr, ByVal pActiveSite As IOleClientSite, ByVal lindex As Long, ByVal hwndParent As HWND, ByRef lprcPosRect As tbRECT)
+    Sub EnumVerbs(ByRef ppEnumOleVerb As IEnumOLEVERB)
+    Sub Update()
+    Sub IsUpToDate()
+    Sub GetUserClassID(ByVal pClsid As LongPtr)
+    Sub GetUserType(ByVal dwFormOfType As Long, ByVal pszUserType As LongPtr)
+    Sub SetExtent(ByVal dwDrawAspect As Long, ByRef psizel As SIZEL)
+    Sub GetExtent(ByVal dwDrawAspect As Long, ByRef psizel As SIZEL)
+    Sub Advise(ByVal pAdvSink As VBRUN.tbInternal_IAdviseSink, ByRef pdwConnection As Long)
+    Sub Unadvise(ByVal dwConnection As Long)
+    Sub EnumAdvise(ByRef ppenumAdvise As VBRUN.tbInternal_IEnumSTATDATA)
+    Sub GetMiscStatus(ByVal dwAspect As Long, ByRef pdwStatus As Long)
+    Sub SetColorScheme(ByVal pLogpal As LongPtr)
+End Interface
+
+[InterfaceId("b196b288-bab4-101a-b69c-00aa00341d07")]
+Private Interface IOleControl Extends stdole.IUnknown
+    Type CONTROLINFO
+        cb As Long
+        hAccel As LongPtr
+        cAccel As Integer
+        dwFlags As Long
+    End Type
+
+    Type MSG
+        hwnd As HWND
+        message As Long
+        wParam As LongPtr
+        lParam As LongPtr
+        time As Long
+        pt As POINT
+    End Type
+
+    Sub GetControlInfo(ByRef pCI As CONTROLINFO)
+    Sub OnMnemonic(ByRef pMsg As MSG)
+    Sub OnAmbientPropertyChange(ByVal dispID As Long)
+    Sub FreezeEvents(ByVal bFreeze As Long)
+End Interface
+
+[InterfaceId("00020401-0000-0000-C000-000000000046")]
+Private Interface ITypeInfo Extends stdole.IUnknown
+End Interface
+
+[InterfaceId("B196B283-BAB4-101A-B69C-00AA00341D07")]
+Private Interface IProvideClassInfo Extends stdole.IUnknown
+    Sub GetClassInfo(ByRef ppTI As ITypeInfo)
+End Interface
+
+[InterfaceId("00020403-0000-0000-C000-000000000046")]
+Private Interface ITypeComp Extends stdole.IUnknown
+End Interface
+
+[InterfaceId("00020402-0000-0000-C000-000000000046")]
+Private Interface ITypeLib Extends stdole.IUnknown
+    Sub GetTypeInfoCount()      ' FIXME not HRESULT
+    Sub GetTypeInfo(ByVal Index As Long, ByRef ppTinfo As ITypeInfo)
+    Sub GetTypeInfoType(ByVal Index As Long, ByRef pTKind As Long)
+    Sub GetTypeInfoOfGuid(ByRef guid As GUID2, ByRef ppTinfo As ITypeInfo)
+    Sub GetLibAttr(ByRef ppTLibAttr As LongPtr)
+    Sub GetTypeComp(ByRef ppTComp As ITypeComp)
+    Sub GetDocumentation(ByVal Index As Long, ByRef pBstrName As String, ByRef pBstrDocString As String, ByRef pdwHelpContext As Long, ByRef pBstrHelpFile As String)
+    Sub IsName(ByVal szNameBuf As String, ByVal lHashVal As Long, ByRef pfName As Long)
+    Sub FindName(ByVal szNameBuf As String, ByVal lHashVal As Long, ByRef ppTinfo As ITypeInfo, ByRef rgMemId As Long, ByRef pcFound As Integer)    ' FIXME outputs an array
+    Sub ReleaseTLibAttr(ByVal ppTLibAttr As LongPtr)
+End Interface
+
+[InterfaceId("0000010d-0000-0000-C000-000000000046")]
+Private Interface IViewObject Extends stdole.IUnknown
+	Sub Draw(ByVal dwDrawAspect As Long, ByVal lindex As Long, ByVal pvAspect As LongPtr, _ 
+                ByVal ptd As LongPtr, ByVal hdcTargetDev As HDC, ByVal hdcDraw As HDC, _
+                ByRef lprcBounds As tbRECT, ByRef lprcWBounds As tbRECT, ByVal pfnContinue As LongPtr, ByVal dwContinue As LongPtr)
+    Sub GetColorSet(ByVal dwDrawAspect As Long, ByVal lindex As Long, ByVal pvAspect As LongPtr, _ 
+                ByVal ptd As LongPtr, ByVal hicTargetDev As LongPtr, ByVal ppColorSet As LongPtr)
+    Sub Freeze(ByVal dwDrawAspect As Long, ByVal lindex As Long, ByVal pvAspect As LongPtr, ByRef pdwFreeze As Long)
+    Sub Unfreeze(ByVal dwFreeze As Long)
+    Sub SetAdvise(ByVal aspects As Long, ByVal advf As Long, ByVal pAdvSink As VBRUN.tbInternal_IAdviseSink)
+    Sub GetAdvise(ByRef pAspects As Long, ByRef pAdvf As Long, ByRef ppAdvSink As VBRUN.tbInternal_IAdviseSink)
+End Interface
+
+[InterfaceId("00000127-0000-0000-C000-000000000046")]
+Private Interface IViewObject2 Extends IViewObject
+    Sub GetExtent(ByVal dwDrawAspect As Long, ByVal lindex As Long, ByVal ptd As LongPtr, ByRef lpsizel As SIZEL)
+End Interface
+    
+[InterfaceId("3AF24292-0C96-11CE-A0CF-00AA00600AB8")]
+Private Interface IViewObjectEx Extends IViewObject2
+    Sub GetRect(ByVal dwAspect As Long, ByRef pRect As tbRECT)
+    Sub GetViewStatus(ByRef pdwStatus As Long)
+    Sub QueryHitPoint(ByVal dwAspect As Long, ByRef pRectBounds As tbRECT, ByVal ptlLocXY As LongLong, ByVal lCloseHint As Long, ByRef pHitResult As Long)
+    Sub QueryHitRect(ByVal dwAspect As Long, ByRef pRectBounds As tbRECT, ByRef pRectLoc As tbRECT, ByVal lCloseHint As Long, ByRef pHitResult As Long)
+    Sub GetNaturalExtent(ByVal dwAspect As Long, ByVal lindex As Long, ByVal ptd As LongPtr, ByVal hicTargetDev As LongPtr, ByVal pExtentInfo As LongPtr, ByRef pSizel As SIZEL)
+End Interface
+
+[InterfaceId("D97ED766-D090-45C7-900C-C4A7B7612B09")]
+' this is a special twinBASIC interface, for monitoring requests to interfaces that are not implemented
+Private Interface IUnsupportedInterface Extends stdole.IUnknown
+    Sub UnsupportedInterfaceRequested(ByRef iid As GUID2, ByRef out As stdole.IUnknown)
+End Interface
+
+[InterfaceId("D90F2800-D7B1-4F62-82E4-8A1B52CA53E4")]
+Private Interface ITwinBasicInternalClassSupport Extends stdole.IUnknown
+    Sub OverrideDispatchHandler(ByVal DelegatedDispatchHandler As Object)
+    Sub FreezeRaiseEvents(ByVal Value As Boolean)
+    Function GetOverridenDispatchHandler() As Object
+End Interface
+
+[InterfaceId("00000114-0000-0000-C000-000000000046")]
+Private Interface IOleWindow Extends stdole.IUnknown
+    Sub GetWindow(ByRef phwnd As HWND)
+    Sub ContextSensitiveHelp(ByVal fEnterMode As Long)
+End Interface
+
+[InterfaceId("00000115-0000-0000-C000-000000000046")]
+Private Interface IOleInPlaceUIWindow Extends IOleWindow
+    Sub GetBorder(ByRef lprectBorder As tbRECT)
+    Sub RequestBorderSpace(ByRef pborderwidths As tbRECT)
+    Sub SetBorderSpace(ByRef pborderwidths As tbRECT)
+    Sub SetActiveObject(ByVal pActiveObject As IOleInPlaceActiveObject, ByVal pszObjName As LongPtr)
+End Interface
+
+[InterfaceId("00000116-0000-0000-C000-000000000046")]
+Private Interface IOleInPlaceFrame Extends IOleInPlaceUIWindow
+    Type OLEMENUGROUPWIDTHS
+    	width(0 To 5) As Long
+    End Type
+
+    Sub InsertMenus(ByVal hmenuShared As LongPtr, ByRef lpMenuWidths As OLEMENUGROUPWIDTHS)
+    Sub SetMenu(ByVal hmenuShared As LongPtr, ByVal holemenu As LongPtr, ByVal hwndActiveObject As HWND)
+    Sub RemoveMenus(ByVal hmenuShared As LongPtr)
+    Sub SetStatusText(ByVal pszStatusText As LongPtr)
+    Sub EnableModeless(ByVal fEnable As Long)
+    Sub TranslateAccelerator(ByRef lpmsg As MSG, ByVal wID As Integer)
+End Interface
+
+[InterfaceId("00000117-0000-0000-C000-000000000046")]
+Private Interface IOleInPlaceActiveObject Extends IOleWindow
+    Sub TranslateAccelerator(ByRef lpmsg As MSG)
+    Sub OnFrameWindowActivate(ByVal fActivate As Long)
+    Sub OnDocWindowActivate(ByVal fActivate As Long)
+    Sub ResizeBorder(ByRef prcBorder As tbRECT, ByVal pUIWindow As IOleInPlaceUIWindow, ByVal fFrameWindow As Long)
+    Sub EnableModeless(ByVal fEnable As Long)
+End Interface
+
+[InterfaceId("00000119-0000-0000-C000-000000000046")]
+Private Interface IOleInPlaceSite Extends IOleWindow
+    Type OLEINPLACEFRAMEINFO
+        cb As Long
+        fMDIApp As Long
+        hwndFrame As HWND
+        haccel As LongPtr
+        cAccelEntries As Long
+    End Type
+
+	Sub CanInPlaceActivate()
+    Sub OnInPlaceActivate()
+    Sub OnUIActivate()
+    Sub GetWindowContext(ByRef ppFrame As IOleInPlaceFrame, ByRef ppDoc As IOleInPlaceUIWindow, ByRef lprcPosRect As tbRECT, ByRef lprcClipRect As tbRECT, ByRef lpFrameInfo As OLEINPLACEFRAMEINFO)
+    Sub Scroll(ByVal scrollExtantX As Long, ByVal scrollExtantY As Long)  ' FIXME ByVal SIZE needs to be ByRef on X64
+    Sub OnUIDeactivate(ByVal fUndoable As Long)
+    Sub OnInPlaceDeactivate()
+    Sub DiscardUndoState()
+    Sub DeactivateAndUndo()
+    Sub OnPosRectChange(ByRef lprcPosRect As tbRECT)
+End Interface
+
+[InterfaceId("9C2CAD80-3424-11CF-B670-00AA004CD6D8")]
+Private Interface IOleInPlaceSiteEx Extends IOleInPlaceSite
+    Sub OnInPlaceActivateEx(ByVal pfNoRedrawPTR As LongPtr, ByVal dwFlags As Long)
+    Sub OnInPlaceDeactivateEx(ByVal fNoRedraw As Long)
+    Sub RequestUIActivate()
+End Interface
+
+[InterfaceId("922EADA0-3424-11CF-B670-00AA004CD6D8")]
+Private Interface IOleInPlaceSiteWindowless Extends IOleInPlaceSiteEx
+    Sub CanWindowlessActivate()
+    Sub GetCapture()
+    Sub SetCapture(ByVal fCapture As Long)
+    Sub GetFocus()
+    Sub SetFocus(ByVal fFocus As Long)
+    Sub GetDC(ByRef pRect As tbRECT, ByVal grfFlags As Long, ByRef phDC As HDC)
+    Sub ReleaseDC(ByVal hDC As HDC)
+    Sub InvalidateRect(ByRef pRect As tbRECT, ByVal fErase As Long)
+    Sub InvalidateRgn(ByVal hRGN As LongPtr, ByVal fErase As Long)
+    Sub ScrollRect(ByVal dx As Long, ByVal dy As Long, ByRef pRectScroll As tbRECT, ByRef pRectClip As tbRECT)
+    Sub AdjustRect(ByRef prc As tbRECT)
+    Sub OnDefWindowMessage(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef plResult As LongPtr)
+End Interface
+
+[InterfaceId("00000113-0000-0000-C000-000000000046")]
+Private Interface IOleInPlaceObject Extends IOleWindow
+	Sub InPlaceDeactivate()
+    Sub UIDeactivate()
+    Sub SetObjectRects(ByRef lprcPosRect As tbRECT, ByRef lprcClipRect As tbRECT)
+    Sub ReactivateAndUndo()
+End Interface
+
+[InterfaceId("1C2056CC-5EF4-101B-8BC8-00AA003E3B29")]
+Private Interface IOleInPlaceObjectWindowless Extends IOleInPlaceObject
+    Sub OnWindowMessage(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef lpResult As LongPtr)
+    Sub GetDropTarget(ByRef ppDropTarget As IDropTarget)
+End Interface
+
+[InterfaceId("B196B289-BAB4-101A-B69C-00AA00341D07")]
+Private Interface IOleControlSite Extends IUnknown
+    Type POINTL
+    	x As Long
+        y As Long
+    End Type
+    Type POINTF
+    	x As Single
+        y As Single
+    End Type
+    Sub OnControlInfoChanged()
+    Sub LockInPlaceActive(ByVal fLock As Long)
+    Sub GetExtendedControl(ByRef ppDisp As Object)
+    Sub TransformCoords(ByRef pPtlHimetric As POINTL, ByRef pPtfContainer As POINTF, ByVal dwFlags As Long)
+    Sub TranslateAccelerator(ByRef pMsg As MSG, ByVal grfModifiers As Long)
+    Sub OnFocus(ByVal fGotFocus As Long)
+    Sub ShowPropertyFrame()
+End Interface
+
+[InterfaceId("B196B28B-BAB4-101A-B69C-00AA00341D07")]
+Private Interface ISpecifyPropertyPages Extends stdole.IUnknown
+	Type CAUUID
+    	cElems As Long
+        pElems As LongPtr
+    End Type
+    Sub GetPages(ByRef pPages As CAUUID)
+End Interface
+
+[InterfaceId("376BD3AA-3845-101B-84ED-08002B2EC713")]
+Private Interface IPerPropertyBrowsing Extends stdole.IUnknown
+    Type CALPOLESTR
+        cElems As Long
+        pElems As LongPtr
+    End Type
+    
+    Type CADWORD
+        cElems As Long
+        pElems As Long
+    End Type
+
+    Function GetDisplayString(ByVal dispID As Long) As String
+    Sub MapPropertyToPage(ByVal dispID As Long, ByRef pClsid As GUID2)
+    Sub GetPredefinedStrings(ByVal dispID As Long, ByRef pCaStringsOut As CALPOLESTR, ByRef pCaCookiesOut As CADWORD)
+    Sub GetPredefinedValue(ByVal dispID As Long, ByVal dwCookie As Long, /* out */ ByRef pVarOut As Variant)
+End Interface
+
+[InterfaceId("4D07FC10-F931-11CE-B001-00AA006884E5")]
+Private Interface ICategorizeProperties Extends stdole.IUnknown
+    Sub MapPropertyToCategory(ByVal dispID As Long, ByRef categoryID As Long)
+    Sub GetCategoryName(ByVal propcat As Long, ByVal lcid As Long, ByRef categoryName As String)
+End Interface
+
+[InterfaceId("B196B28D-BAB4-101A-B69C-00AA00341D07")]
+Private Interface IPropertyPage Extends stdole.IUnknown
+    Type PROPPAGEINFO
+        cb As Long
+        pszTitle As LongPtr
+        size As SIZE
+        pszDocString As LongPtr
+        pszHelpFile As LongPtr
+        dwHelpContext As Long
+    End Type
+    Sub SetPageSite(ByVal pPageSite As IPropertyPageSite)
+    Sub Activate(ByVal hWndParent As HWND, ByRef pRect As tbRECT, ByVal bModal As Long)
+    Sub Deactivate()
+    Sub GetPageInfo(ByRef pPageInfo As PROPPAGEINFO)
+    Sub SetObjects(ByVal cObjects As Long, ByRef ppUnk As IUnknown) ' this is really a c-array array, but we only need 1 so this is OK
+    Sub Show(ByVal nCmdShow As Long)
+    Sub Move(ByRef pRect As tbRECT)
+    Sub IsPageDirty()
+    Sub Apply()
+    Sub Help(ByVal pszHelpDir As LongPtr)
+    Sub TranslateAccelerator(ByRef pMsg As MSG)
+End Interface
+
+[InterfaceId("01E44665-24AC-101B-84ED-08002B2EC713")]
+Private Interface IPropertyPage2 Extends IPropertyPage
+    Sub EditProperty(ByVal dispId As Long)
+End Interface
+
+[InterfaceId("B196B28C-BAB4-101A-B69C-00AA00341D07")]
+Private Interface IPropertyPageSite Extends stdole.IUnknown
+	Sub OnStatusChange(ByVal dwFlags As Long)
+    Sub GetLocaleID(ByRef pLocalID As Long)
+    Sub GetPageContainer(ByRef ppUnk As stdole.IUnknown)
+    Sub TranslateAccelerator(ByRef pMsg As MSG)
+End Interface
+
+[InterfaceId("C91431A3-9CEC-47C8-9406-31D66BB31CA4")]       ' FIXME copy also in WinNativeCommonCtrls
+Private Interface ITwinBasicDesignerExtensions Extends stdole.IUnknown
+    Sub GetPropertyExtensions(ByRef out() As String)
+    Sub InvokePropertyExtension(ByVal Name As String, ByRef MadeChanges As Boolean)
+    Sub DesignTimePrepareSnapshot()
+    Function GetClientObject() As stdole.IUnknown
+    Sub DesignerClick(ByVal X As Long, ByVal Y As Long)
+    Sub GetIViewObject(ByRef out As IViewObject, ByRef outRect As tbRECT, ByRef outIsVisible As Boolean, ByRef outUcIsInRootProject As Boolean)
+End Interface
+
+[InterfaceId("869A8FF9-5577-474F-A95E-22749D65EEFB")]
+Private Interface ITwinBasicDesignerExtensions2 Extends stdole.IUnknown
+    Sub DesignerArrayFieldUpdated(ByVal FieldName As String)
+End Interface
+
+[InterfaceId("820C4E6B-797D-4ACB-A97F-270EE495E87F")]
+Private Interface ITwinBasicRuntimeControlExtensions Extends stdole.IUnknown
+    Function GetWindowHandle() As HWND
+    Sub OnLostFocus()
+    Sub OnGotFocus()
+    Function IsNonVisualControl() As Boolean
+    Function GetMiscStatus() As Long
+End Interface
+
+[InterfaceId("00000126-0000-0000-C000-000000000046")]
+Private Interface IRunnableObject Extends stdole.IUnknown
+	Sub GetRunningClass(ByVal lpClsid As LongPtr)
+    Sub Run(ByVal pbc As LongPtr)
+    Sub LockRunning(ByVal fLock As Long, ByVal fLastUnlockCloses As Long)
+    Sub SetContainedObject(ByVal fContained As Long)
+End Interface
+
+[InterfaceId("00000100-0000-0000-C000-000000000046")]
+Private Interface IEnumUnknown Extends stdole.IUnknown
+    Sub Next(ByVal celt As Long, ByRef rgelt As stdole.IUnknown, ByRef pceltFetched As Long)
+    Sub Skip(ByVal celt As Long)
+    Sub Reset()
+    Sub Clone(ByRef ppenum As IEnumUnknown)
+End Interface
+
+[InterfaceId("0000011a-0000-0000-C000-000000000046")]
+Private Interface IParseDisplayName Extends stdole.IUnknown
+    Sub ParseDisplayName(ByVal pbc As stdole.IUnknown, ByVal pszDisplayName As LongPtr, ByRef pchEaten As Long, ByRef ppmkOut As VBRUN.tbInternal_IMoniker)  'IBindCtx
+End Interface
+
+[InterfaceId("0000011b-0000-0000-C000-000000000046")]
+Private Interface IOleContainer Extends IParseDisplayName
+    Enum OLECONTF
+        OLECONTF_EMBEDDINGS = 1
+        OLECONTF_LINKS = 2
+        OLECONTF_OTHERS = 4
+        OLECONTF_ONLYUSER = 8
+        OLECONTF_ONLYIFRUNNING = 16
+    End Enum
+    
+	Sub EnumObjects(ByVal grfFlags As OLECONTF, ByRef ppenum As IEnumUnknown)
+    Sub LockContainer(ByVal fLock As Long)
+End Interface
+
+[InterfaceId("FC4801A3-2BA9-11CF-A229-00AA003D7352")]
+Private Interface IObjectWithSite Extends stdole.IUnknown
+	Sub SetSite(ByVal pUnkSite As stdole.IUnknown)
+    Sub GetSite(ByVal riid As LongPtr, ByVal ppvSite As LongPtr)
+End Interface
+
+[InterfaceId("742B0E01-14E6-101B-914E-00AA00300CAB")]
+Private Interface ISimpleFrameSite Extends stdole.IUnknown
+    Sub PreMessageFilter(ByVal hwnd As HWND, ByVal msg As Long, ByVal wp As LongPtr, ByVal lp As LongPtr, ByRef plResult As LongPtr, ByRef pdwCookie As Long)
+    Sub PostMessageFilter(ByVal hwnd As HWND, ByVal msg As Long, ByVal wp As LongPtr, ByVal lp As LongPtr, ByRef plResult As LongPtr, ByVal pdwCookie As Long)
+End Interface
+
+[InterfaceId("40A050A0-3C31-101B-A82E-08002B2B2337")]
+Private Interface IVBGetControl Extends stdole.IUnknown
+	Sub EnumControls(ByVal dwOleContF As Long, ByVal dwWhich As Long, ByRef ppenum As IEnumUnknown)
+End Interface
+
+[InterfaceId("9BFBBC02-EFF1-101A-84ED-00AA00341D07")]
+Private Interface IPropertyNotifySink Extends stdole.IUnknown
+	Sub OnChanged(ByVal dispID As Long)
+	Sub OnRequestEdit(ByVal dispID As Long)
+End Interface
+
+[InterfaceId("2721DD1C-7767-472A-90C0-5573BCFFA3DB")]
+Private Interface ISupportsNotifySink       ' just used as an indicator to the compiler so that support for IPropertyNotifySink is implemented automatically
+End Interface
+
+[InterfaceId("00020400-0000-0000-C000-000000000046")]
+Private Interface IDispatchInternal Extends stdole.IUnknown
+    Type InternalIID
+        Data(16) As Byte
+    End Type
+    Function GetTypeInfoCount() As Long
+    Function GetTypeInfo(ByVal index As Long, ByVal lcid As Long) As stdole.IUnknown
+    Sub GetIDsOfNames(ByRef riid As InternalIID, ByRef Names As String, ByVal cNames As Long, ByVal lcid As Long, ByRef outDispIDs As Long)
+    Sub Invoke(ByVal dispIdMember As Long, ByRef riid As InternalIID, ByVal lcid As Long, ByVal method As Integer, ByVal args As LongPtr, ByRef pVarResult As Variant, ByVal excepInfo As LongPtr, ByRef pvargResult As Long)
+End Interface
+
+[InterfaceId("00020400-0000-0000-C000-000000000046")]
+Private Class PropertyNotifySink
+	 Events IPropertyNotifySink
+End Class
+
+[InterfaceId("7BF80980-BF32-101A-8BBB-00AA00300CAB")]
+Private Interface OlePicture Extends stdole.IUnknown
+    Property Get Handle() As LongPtr
+    Property Get hPal() As LongPtr
+    Property Get Type() As Long
+  	Property Get Width() As Long
+  	Property Get Height() As Long
+    Sub Render(ByVal hDC As HDC, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal xSrc As Long, ByVal ySrc As Long, ByVal cxSrc As Long, ByVal cySrc As Long, ByVal bounds As LongPtr)
+    Property Let hPal(ByVal Value As LongPtr)
+    Property Get CurDC() As LongPtr
+    Sub SelectPicture(ByVal hDCIn As HDC, ByRef phDCOut As HDC, ByRef phBmpOut As LongPtr)
+    Property Get KeepOriginalFormat() As Long
+    Property Let KeepOriginalFormat(ByVal Value As Long)
+    Sub PictureChanged()
+    Sub SaveAsFile(ByVal Stream As IStream, ByVal fSaveMemCopy As Long, ByRef pCbSize As Long)
+    Property Get Attributes() As Long
+End Interface
+
+[InterfaceId("E675F3F0-91B5-11D0-9484-00A0C91110ED")]
+Private Interface IDataFormatDisp
+End Interface
+
+Private Module StdDataFormatConsts
+    Public Enum FirstWeekOfYear
+    	fmtWeekUseSystem = 0
+        fmtFirstJan1 = 1
+        fmtFirstFourDays = 2
+        fmtFirstFullWeek = 3
+    End Enum
+    Public Enum FirstDayOfWeek
+    	fmtDayUseSystem = 0
+        fmtSunday = 1
+        fmtMonday = 2
+        fmtTuesday = 3
+        fmtWednesday = 4
+        fmtThursday = 5
+        fmtFriday = 6
+        fmtSaturday = 7
+    End Enum
+    Public Enum FormatType
+    	fmtGeneral = 0
+        fmtCustom = 1
+        fmtPicture = 2
+        fmtObject = 3
+        fmtCheckbox = 4
+        fmtBoolean = 5
+        fmtBytes = 6
+    End Enum
+End Module
+
+[InterfaceId("6C51B910-900B-11D0-9484-00A0C91110ED")]
+[OleAutomation(False)]
+Private Interface IStdDataFormatDisp' Extends IDataFormatDisp            FIXME why not working?
+    Property Get Type() As FormatType
+    Property Let Type(ByVal Value As FormatType)
+    Property Get Format() As String
+    Property Let Format(ByVal Value As String)
+    Property Get TrueValue() As Variant
+    Property Let TrueValue(ByRef Value As Variant)
+    Property Get FalseValue() As Variant
+    Property Let FalseValue(ByRef Value As Variant)
+    Property Get NullValue() As Variant
+    Property Let NullValue(ByRef Value As Variant)
+    Property Get FirstDayOfWeek() As FirstDayOfWeek
+    Property Let FirstDayOfWeek(ByVal Value As FirstDayOfWeek)
+    Property Get FirstWeekOfYear() As FirstWeekOfYear
+    Property Let FirstWeekOfYear(ByVal Value As FirstWeekOfYear)
+End Interface
+
+[ClassId("6D835690-900B-11D0-9484-00A0C91110ED")]
+[InterfaceId("6F294C5E-4596-4BF2-B242-D5560A7A9A94")]
+[COMCreatable(False)]
+[OleAutomation(False)]
+Private Class StdDataFormat
+	Implements IStdDataFormatDisp
+    
+    Public [Type] As FormatType
+    Public Format As String
+    Public TrueValue As String
+    Public FalseValue As String
+    Public NullValue As String
+    Public FirstDayOfWeek As FirstDayOfWeek
+    Public FirstWeekOfYear As FirstWeekOfYear
+    
+    ' the persisted values have some extra properties beyond what's in IStdDataFormatDisp...
+    Public LCID As Long
+    Public SubFormatType As Long
+    
+    Private Property Get _Type() As FormatType _
+            Implements IStdDataFormatDisp.Type
+        Return Type
+    End Property
+    Private Property Let _Type(ByVal Value As FormatType) _
+            Implements IStdDataFormatDisp.Type
+        Type = Value
+    End Property
+    Private Property Get _Format() As String _
+            Implements IStdDataFormatDisp.Format
+    	Return Format
+    End Property
+    Private Property Let _Format(ByVal Value As String) _
+            Implements IStdDataFormatDisp.Format
+    	Format = Value
+    End Property
+    Private Property Get _TrueValue() As Variant _
+            Implements IStdDataFormatDisp.TrueValue
+    	Return TrueValue
+    End Property
+    Private Property Let _TrueValue(ByRef Value As Variant) _
+            Implements IStdDataFormatDisp.TrueValue
+        TrueValue = CStr(Value)
+    End Property
+    Private Property Get _FalseValue() As Variant _
+            Implements IStdDataFormatDisp.FalseValue
+    	Return FalseValue
+    End Property
+    Private Property Let _FalseValue(ByRef Value As Variant) _
+            Implements IStdDataFormatDisp.FalseValue
+    	FalseValue = CStr(Value)
+    End Property
+    Private Property Get _NullValue() As Variant _
+            Implements IStdDataFormatDisp.NullValue
+    	Return NullValue
+    End Property
+    Private Property Let _NullValue(ByRef Value As Variant) _
+            Implements IStdDataFormatDisp.NullValue
+    	NullValue = CStr(Value)
+    End Property
+    Private Property Get _FirstDayOfWeek() As FirstDayOfWeek _
+            Implements IStdDataFormatDisp.FirstDayOfWeek
+    	Return FirstDayOfWeek
+    End Property
+    Private Property Let _FirstDayOfWeek(ByVal Value As FirstDayOfWeek) _
+            Implements IStdDataFormatDisp.FirstDayOfWeek
+    	FirstDayOfWeek = Value
+    End Property
+    Private Property Get _FirstWeekOfYear() As FirstWeekOfYear _
+            Implements IStdDataFormatDisp.FirstWeekOfYear
+        Return FirstWeekOfYear
+    End Property
+    Private Property Let _FirstWeekOfYear(ByVal Value As FirstWeekOfYear) _
+            Implements IStdDataFormatDisp.FirstWeekOfYear
+        FirstWeekOfYear = Value
+    End Property
+    
+End Class
+
+[InterfaceId("7C0FFAB2-CD84-11D0-949A-00A0C91110ED")]
+[OleAutomation(False)]
+Private Interface DataSourceListener Extends stdole.IUnknown
+    Sub dataMemberChanged(ByVal bstrDM As String)
+    Sub dataMemberAdded(ByVal bstrDM As String)
+    Sub dataMemberRemoved(ByVal bstrDM As String)
+End Interface
+
+[InterfaceId("7C0FFAB3-CD84-11D0-949A-00A0C91110ED")]
+[OleAutomation(False)]
+Private Interface DataSource Extends stdole.IUnknown
+    Function getDataMember(ByVal bstrDM As String, ByRef riid As GUID) As stdole.IUnknown
+    Function getDataMemberName(ByVal lIndex As Long) As String
+    Function getDataMemberCount() As Long
+    Sub addDataSourceListener(ByVal pDSL As DataSourceListener)
+    Sub removeDataSourceListener(ByVal pDSL As DataSourceListener)
+End Interface
+
+[InterfaceId("FCFB3D25-A0FA-1068-A738-08002B3371B5")]
+[COMExtensible]   ' turns off TYPEFLAG_FNONEXTENSIBLE, making this essentially the same as Object
+Public Interface Control
+End Interface
+
+[InterfaceId("B90F2800-D7B1-4F62-82E4-8A1B52CA53E4")]
+Private Interface IControlArrayCollection (Of T)
+	Property Get Count() As Long
+    Property Get LBound() As Long
+    Property Get UBound() As Long
+    [SpecialCompilerBinding(3)] [DefaultMember] Property Get Item(ByVal Index As Long) As T
+    [Enumerator] Property Get NewEnum() As stdole.IUnknown
+    Sub AddRuntimeControl(ByVal index As Long)
+    Sub RemoveRuntimeControl(ByVal index As Long)
+End Interface
+
+[InterfaceId("CF51ED10-62FE-11CF-BF86-00A0C9034836")]
+Private Interface IQuickActivate Extends stdole.IUnknown
+    Type QACONTAINER
+        cbSize As Long
+        pClientSite As IOleClientSite
+        pAdviseSink As stdole.IUnknown 'IAdviseSinkEx
+        pPropertyNotifySink As IPropertyNotifySink
+        pUnkEventSink As stdole.IUnknown
+        dwAmbientFlags As Long
+        colorFore As OLE_COLOR
+        colorBack As OLE_COLOR
+        pFont As IFont
+        pUndoMgr As stdole.IUnknown 'IOleUndoManager
+        dwAppearance As Long
+        lcid As Long
+        hpal As LongPtr
+        pBindHost As stdole.IUnknown 'IBindHost
+        pOleControlSite As IOleControlSite
+        pServiceProvider As stdole.IUnknown 'IServiceProvider
+    End Type
+    
+    Type QACONTROL
+    	cbSize As Long
+        dwMiscStatus As Long
+        dwViewStatus As Long
+        dwEventCookie As Long
+        dwPropNotifyCookie As Long
+        dwPointerActivationPolicy As Long
+    End Type
+
+    Sub QuickActivate(ByRef pQaContainer As QACONTAINER, ByRef pQaControl As QACONTROL)
+    Sub SetContentExtent(ByRef pSizel As SIZEL)
+    Sub GetContentExtent(ByRef pSizel As SIZEL)
+End Interface
+
+[InterfaceId("55980BA0-35AA-11CF-B671-00AA004CD6D8")]
+Private Interface IPointerInactive Extends stdole.IUnknown
+    Function GetActivationPolicy() As Long
+    Sub OnInactiveMouseMove(ByRef pRectBounds As tbRECT, ByVal x As Long, ByVal y As Long, ByVal grfKeyState As Long)
+    Sub OnInactiveSetCursor(ByRef pRectBounds As tbRECT, ByVal x As Long, ByVal y As Long, ByVal dwMouseMsg As Long, fSetAlways As Long)
+End Interface
+
+[InterfaceId("00020404-0000-0000-C000-000000000046")]
+[Hidden, OleAutomation(False)]
+Private Interface IEnumVARIANT_TB Extends stdole.IUnknown
+    /* voffset &H000C*/ Sub Next(ByVal celt As Long, ByRef rgvar As Variant, ByRef pceltFetched As Long)
+    /* voffset &H0010*/ Sub Skip(ByVal celt As Long)
+    /* voffset &H0014*/ Sub Reset()
+    /* voffset &H0018*/ Sub Clone(ByRef ppenum As stdole.IEnumVARIANT)
+End Interface

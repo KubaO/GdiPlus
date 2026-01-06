@@ -1,0 +1,1150 @@
+Public Module Constants
+	
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Function CreatePropertyBagObject Lib "<hiddenmodule>" Alias "#30" () As stdole.IUnknown
+    
+    Enum AspectTypeConstants
+        vbContent = 1
+        vbThumbnail = 2
+        vbIcon = 4
+        vbDocPrint = 8
+    End Enum
+     
+    Enum StorageTypeContants
+        vbHGlobal = 1
+        vbFile = 2
+        vbIStream = 4
+        vbIStorage = 8
+        vbGDI = 16
+        vbMetaFile = 32
+        vbEnhancedMetaFile = 64
+    End Enum
+    
+    Public Enum KeyCodeConstants '  In VBA, KeyCodeConstants is a module.  In VB6 it is an Enum!
+	    vbKeyLButton = 1
+	    vbKeyRButton = 2
+	    vbKeyCancel = 3
+	    vbKeyMButton = 4
+	    vbKeyBack = 8
+	    vbKeyTab = 9
+	    vbKeyClear = 12
+	    vbKeyReturn = 13
+	    vbKeyShift = 16
+	    vbKeyControl = 17
+	    vbKeyMenu = 18
+	    vbKeyPause = 19
+	    vbKeyCapital = 20
+	    vbKeyEscape = 27
+	    vbKeySpace = 32
+	    vbKeyPageUp = 33
+	    vbKeyPageDown = 34
+	    vbKeyEnd = 35
+	    vbKeyHome = 36
+	    vbKeyLeft = 37
+	    vbKeyUp = 38
+	    vbKeyRight = 39
+	    vbKeyDown = 40
+	    vbKeySelect = 41
+	    vbKeyPrint = 42
+	    vbKeyExecute = 43
+	    vbKeySnapshot = 44
+	    vbKeyInsert = 45
+	    vbKeyDelete = 46
+	    vbKeyHelp = 47
+	    vbKeyNumlock = 144
+        vbKeyScrollLock = 145
+	    vbKeyA = 65
+	    vbKeyB = 66
+	    vbKeyC = 67
+	    vbKeyD = 68
+	    vbKeyE = 69
+	    vbKeyF = 70
+	    vbKeyG = 71
+	    vbKeyH = 72
+	    vbKeyI = 73
+	    vbKeyJ = 74
+	    vbKeyK = 75
+	    vbKeyL = 76
+	    vbKeyM = 77
+	    vbKeyN = 78
+	    vbKeyO = 79
+	    vbKeyP = 80
+	    vbKeyQ = 81
+	    vbKeyR = 82
+	    vbKeyS = 83
+	    vbKeyT = 84
+	    vbKeyU = 85
+	    vbKeyV = 86
+	    vbKeyW = 87
+	    vbKeyX = 88
+	    vbKeyY = 89
+	    vbKeyZ = 90
+	    vbKey0 = 48
+	    vbKey1 = 49
+	    vbKey2 = 50
+	    vbKey3 = 51
+	    vbKey4 = 52
+	    vbKey5 = 53
+	    vbKey6 = 54
+	    vbKey7 = 55
+	    vbKey8 = 56
+	    vbKey9 = 57
+	    vbKeyNumpad0 = 96
+	    vbKeyNumpad1 = 97
+	    vbKeyNumpad2 = 98
+	    vbKeyNumpad3 = 99
+	    vbKeyNumpad4 = 100
+	    vbKeyNumpad5 = 101
+	    vbKeyNumpad6 = 102
+	    vbKeyNumpad7 = 103
+	    vbKeyNumpad8 = 104
+	    vbKeyNumpad9 = 105
+	    vbKeyMultiply = 106
+	    vbKeyAdd = 107
+	    vbKeySeparator = 108
+	    vbKeySubtract = 109
+	    vbKeyDecimal = 110
+	    vbKeyDivide = 111
+	    vbKeyF1 = 112
+	    vbKeyF2 = 113
+	    vbKeyF3 = 114
+	    vbKeyF4 = 115
+	    vbKeyF5 = 116
+	    vbKeyF6 = 117
+	    vbKeyF7 = 118
+	    vbKeyF8 = 119
+	    vbKeyF9 = 120
+	    vbKeyF10 = 121
+	    vbKeyF11 = 122
+	    vbKeyF12 = 123
+	    vbKeyF13 = 124
+	    vbKeyF14 = 125
+	    vbKeyF15 = 126
+	    vbKeyF16 = 127
+    End Enum
+
+    Public Enum ColorConstants
+    	vbBlack = 0
+        vbBlue = 16711680
+        vbCyan = 16776960
+        vbGreen = 65280
+        vbMagenta = 16711935
+        vbRed = 255
+        vbWhite = 16777215
+        vbYellow = 65535
+    End Enum
+    
+    Public Enum SystemColorConstants
+    	vbScrollBars = &H80000000
+        vbDesktop = &H80000001
+        vbActiveTitleBar = &H80000002
+        vbInactiveTitleBar = &H80000003
+        vbMenuBar = &H80000004
+        vbWindowBackground = &H80000005
+        vbWindowFrame = &H80000006
+        vbMenuText = &H80000007
+        vbWindowText = &H80000008
+        vbTitleBarText = &H80000009
+        vbActiveTitleBarText = &H80000009   'same As vbTitleBarText
+        vbActiveBorder = &H8000000A
+        vbInactiveBorder = &H8000000B
+        vbApplicationWorkspace = &H8000000C
+        vbHighlight = &H8000000D
+        vbHighlightText = &H8000000E
+        vbButtonFace = &H8000000F
+        vbButtonShadow = &H80000010
+        vbGrayText = &H80000011
+        vbButtonText = &H80000012
+        vbInactiveCaptionText = &H80000013
+        vbInactiveTitleBarText = &H80000013
+        vb3DHighlight = &H80000014
+        vb3DDKShadow = &H80000015
+        vb3DLight = &H80000016
+        vb3DFace = &H8000000F           ' same As vbButtonFace
+        vb3Dshadow = &H80000010             ' same As vbButtonShadow
+        vbInfoText = &H80000017
+        vbInfoBackground = &H80000018
+        vbHotTrackText = &H8000001A
+        vbActiveTitleBarGradient = &H8000001B
+        vbInactiveTitleBarGradient = &H8000001C
+        vbMenuHighlight = &H8000001D
+        vbMenuBarFlat = &H8000001E
+    End Enum
+
+    Public Enum FormShowConstants
+    	vbModeless = 0
+        vbModal = 1
+    End Enum
+    
+    Public Enum LoadResConstants
+    	vbResBitmap = 0
+        vbResIcon = 1
+        vbResCursor = 2
+        vbResBitmapFromIcon = 3         ' this is new to tB
+    End Enum
+
+    Public Enum MousePointerConstants
+    	vbDefault = 0
+        vbArrow = 1
+        vbCrosshair = 2
+        vbIbeam = 3
+        vbIconPointer = 4
+        vbSizePointer = 5
+        vbSizeNESW = 6
+        vbSizeNS = 7
+        vbSizeNWSE = 8
+        vbSizeWE = 9
+        vbUpArrow = 10
+        vbHourglass = 11
+        vbNoDrop = 12
+        vbArrowHourglass = 13
+        vbArrowQuestion = 14
+        vbSizeAll = 15
+        vbHand = 16                 ' new in tB
+        vbPin = 17                  ' new in tB
+        vbPerson = 18               ' new in tB
+        vbArrowCD = 19              ' new in tB
+        vbScrollN = 20              ' new in tB
+        vbScrollS = 21              ' new in tB
+        vbScrollE = 22              ' new in tB
+        vbScrollW = 23              ' new in tB                   
+        vbScrollNS = 24             ' new in tB                   
+        vbScrollWE = 25             ' new in tB                   
+        vbScrollNW = 26             ' new in tB                  
+        vbScrollNE = 27             ' new in tB                  
+        vbScrollSW = 28             ' new in tB                  
+        vbScrollSE = 29             ' new in tB                  
+        vbScrollAll = 30            ' new in tB                  
+        vbPen = 31                  ' new in tB
+        vbCustom = 99
+    End Enum
+
+    Public Enum MouseButtonConstants
+    	vbLeftButton = 1
+        vbRightButton = 2
+        vbMiddleButton = 4
+    End Enum
+
+    Public Enum ClipboardConstants
+    	vbCFText = 1
+        vbCFBitmap = 2
+        vbCFMetafile = 3
+        vbCFDIB = 8
+        vbCFPalette = 9
+        vbCFUnicodeText = 13
+        vbCFEMetafile = 14
+        vbCFFiles = 15
+        vbCFLink = &HFFFFBF00
+        vbCFRTF = &HFFFFBF01
+    End Enum
+    
+    Public Enum VerticalAlignmentConstants
+        vbVerticalAlignTop = 0
+        vbVerticalAlignMiddle = 1
+        vbVerticalAlignBottom = 2
+    End Enum
+
+    Public Enum AlignmentConstants
+    	vbLeftJustify = 0
+        vbRightJustify = 1
+        vbCenter = 2
+    End Enum
+
+    Public Enum AlignmentConstantsNoCenter
+    	tbLeftJustify = 0
+        tbRightJustify = 1
+    End Enum
+    
+    Public Enum CheckBoxConstants
+        vbUnchecked = 0
+        vbChecked = 1
+        vbGrayed = 2
+    End Enum
+    
+    Public Enum ListBoxConstants
+        vbListBoxStandard = 0
+        vbListBoxCheckbox = 1
+        vbListBoxColorSwatch = 2
+    End Enum
+    
+    Public Enum MultiSelectConstants
+        vbMultiSelectNone = 0
+        vbMultiSelectSimple = 1
+        vbMultiSelectExtended = 2
+    End Enum
+    
+    Public Enum ComboBoxConstants
+        vbComboDropdown = 0
+        vbComboSimple = 1
+        vbComboDropdownList = 2
+    End Enum
+    
+    Public Enum ControlBorderStyleConstants
+        vbNoBorder = 0
+        vbFixedSingleBorder = 1
+    End Enum
+    
+    [MustBeQualified]
+    Public Enum ControlBorderStyleConstantsCustom
+        vbNoBorder = 0
+        vbFixedSingleBorder = 1
+        vbCustomBorder = 2
+    End Enum
+        
+    Public Enum FormBorderStyleConstants
+        vbBSNone = 0
+        vbFixedSingle = 1
+        vbSizable = 2
+        vbFixedDialog = 3
+        ' vbFixedDouble=3				FIXME this Is real=but needs to be hidden in the form designer And intellisense
+        vbFixedToolWindow = 4
+        vbSizableToolWindow = 5
+        vbSizableNoTitleBar = 6	            ' New in tB
+        vbSizableToolWindowNoTitleBar = 7	' New in tB
+    End Enum
+
+    Public Enum ScrollBarConstants
+        vbSBNone = 0
+        vbHorizontal = 1
+        vbVertical = 2
+        vbBoth = 3
+    End Enum
+
+    Public Enum ShiftConstants
+        vbShiftMask = 1
+        vbCtrlMask = 2
+        vbAltMask = 4
+    End Enum
+
+    Public Enum StartUpPositionConstants
+        vbStartUpManual = 0
+        vbStartUpOwner = 1
+        vbStartUpScreen = 2
+        vbStartUpWindowsDefault = 3
+    End Enum
+    
+    Public Enum FormWindowStateConstants
+        vbNormal = 0
+        vbMinimized = 1
+        vbMaximized = 2
+    End Enum
+
+    Public Enum DockModeConstants
+        vbDockNone = 0
+        vbDockLeft = 1
+        vbDockTop = 2
+        vbDockRight = 3
+        vbDockBottom = 4
+        vbDockFill = 5
+    End Enum
+
+    Public Enum ControlTypeConstants
+        vbCommandButton = 0
+        vbListBox = 1
+        vbComboBox = 2
+        vbOptionButton = 3
+        vbCheckBox = 4
+        vbFrame = 5
+        vbLabel = 6
+        vbPictureBox = 7
+        vbTextBox = 8
+        vbTimer = 9
+        vbUserControl = 10
+        vbHScrollBar = 11
+        vbVScrollBar = 12
+        vbImage = 13
+        vbDirListBox = 14
+        vbDriveListBox = 15
+        vbFileListBox = 16
+        vbForm = 17
+        vbWebView2 = 18
+        vbActiveXExtender = 19
+        vbShape = 20
+        vbProgressBar = 21
+        vbTreeView = 22
+        vbOLEControl = 23
+        vbDataControl = 24
+        vbMenuControl = 25
+        vbSlider = 26
+        vbUpDown = 27
+        vbDTPicker = 28
+        vbMonthView = 29
+        vbListView = 30
+        vbImageList = 31
+        vbPropertyPage = 32
+        vbHwndControl = 33
+        vbReport = 34
+        vbCheckMark = 35
+    End Enum
+
+    Public Enum AppearanceConstants
+        vbAppearFlat = 0
+        vbAppear3d = 1
+    End Enum
+
+    Public Enum RasterOpConstants
+        vbDstInvert = &H550009&
+        vbMergeCopy = &HC000CA&
+        vbMergePaint = &HBB0226&
+        vbNotSrcCopy = &H330008&
+        vbNotSrcErase = &H1100A6&
+        vbPatCopy = &HF00021&
+        vbPatInvert = &H5A0049&
+        vbPatPaint = &HFB0A09&
+        vbSrcAnd = &H8800C6&
+        vbSrcCopy = &HCC0020&
+        vbSrcErase = &H440328&
+        vbSrcInvert = &H660046&
+        vbSrcPaint = &HEE0086&
+    End Enum
+
+    Public Enum ApplicationStartConstants
+        vbSModeAutomation = 1
+        vbSModeStandalone = 0
+    End Enum
+
+    Public Enum AsyncReadConstants
+        vbAsyncReadForceUpdate = &H10
+        vbAsyncReadGetFromCacheIfNetFail = &H80000&
+        vbAsyncReadOfflineOperation = 8
+        vbAsyncReadResynchronize = &H200
+        vbAsyncReadSynchronousDownload = 1
+    End Enum
+
+    Public Enum AsyncStatusCodeConstants
+        vbAsyncStatusCodeBeginDownloadData = 4
+        vbAsyncStatusCodeBeginSyncOperation = 15
+        vbAsyncStatusCodeCacheFileNameAvailable = 14
+        vbAsyncStatusCodeConnecting = 2
+        vbAsyncStatusCodeDownloadingData = 5
+        vbAsyncStatusCodeEndDownloadData = 6
+        vbAsyncStatusCodeEndSyncOperation = 16
+        vbAsyncStatusCodeError = 0
+        vbAsyncStatusCodeFindingResource = 1
+        vbAsyncStatusCodeMIMETypeAvailable = 13
+        vbAsyncStatusCodeRedirecting = 3
+        vbAsyncStatusCodeSendingRequest = 11
+        vbAsyncStatusCodeUsingCachedCopy = 10
+    End Enum
+
+    Public Enum AsyncTypeConstants
+        vbAsyncTypeByteArray = 2
+        vbAsyncTypeFile = 1
+        vbAsyncTypePicture = 0
+    End Enum
+
+
+    Public Enum BorderStyleConstants
+        vbBSDash = 2
+        vbBSDashDot = 4
+        vbBSDashDotDot = 5
+        vbBSDot = 3
+        vbBSInsideSolid = 6
+        vbBSSolid = 1
+        vbTransparent = 0
+    End Enum
+
+    Public Enum ButtonConstants
+        #If FEATURE_GRAPHICAL_BUTTONS Then
+            vbButtonGraphical = 1
+        #End If
+        vbButtonStandard = 0
+    End Enum
+
+    Public Enum DataBOFconstants
+        vbBOF = 1
+        vbMoveFirst = 0
+    End Enum
+
+    Public Enum DataEOFConstants
+        vbAddNew = 2
+        vbEOF = 1
+        vbMoveLast = 0
+    End Enum
+
+    Public Enum DataErrorConstants
+        vbDataErrContinue = 0
+        vbDataErrDisplay = 1
+    End Enum
+
+    Public Enum DataValidateConstants
+        vbDataActionAddNew = 5
+        vbDataActionBookmark = 9
+        vbDataActionCancel = 0
+        vbDataActionClose = 10
+        vbDataActionDelete = 7
+        vbDataActionFind = 8
+        vbDataActionMoveFirst = 1
+        vbDataActionMoveLast = 4
+        vbDataActionMoveNext = 3
+        vbDataActionMovePrevious = 2
+        vbDataActionUnload = 11
+        vbDataActionUpdate = 6
+    End Enum
+
+    Public Enum DefaultCursorTypeConstants
+        vbUseDefaultCursor = 0
+        vbUseODBCCursor = 1
+        vbUseServersideCursor = 2
+    End Enum
+
+    Public Enum DragConstants
+        vbBeginDrag = 1
+        vbCancel = 0
+        vbEndDrag = 2
+    End Enum
+
+    Public Enum DragModeConstants
+        vbAutomatic = 1
+        vbManual = 0
+    End Enum
+
+    Public Enum DragOverConstants
+        vbEnter = 0
+        vbLeave = 1
+        vbOver = 2
+    End Enum
+
+    Public Enum DrawModeConstants
+        vbBlackness = 1
+        vbCopyPen = 13
+        vbInvert = 6
+        vbMaskNotPen = 3
+        vbMaskPen = 9
+        vbMaskPenNot = 5
+        vbMergeNotPen = 12
+        vbMergePen = 15
+        vbMergePenNot = 14
+        vbNop = 11
+        vbNotCopyPen = 4
+        vbNotMaskPen = 8
+        vbNotMergePen = 2
+        vbNotXorPen = 10
+        vbWhiteness = 16
+        vbXorPen = 7
+    End Enum
+
+    Public Enum DrawStyleConstants
+        vbDash = 1
+        vbDashDot = 3
+        vbDashDotDot = 4
+        vbDot = 2
+        vbInsideSolid = 6
+        vbInvisible = 5
+        vbSolid = 0
+    End Enum
+
+    Public Enum FillStyleConstants
+        vbCross = 6
+        vbDiagonalCross = 7
+        vbDownwardDiagonal = 5
+        vbFSSolid = 0
+        vbFSTransparent = 1
+        vbHorizontalLine = 2
+        vbUpwardDiagonal = 4
+        vbVerticalLine = 3
+    End Enum
+    
+    [MustBeQualified]
+    Public Enum FillStyleConstantsEx
+        vbCross = 6
+        vbDiagonalCross = 7
+        vbDownwardDiagonal = 5
+        vbFSSolid = 0
+        vbFSTransparent = 1
+        vbHorizontalLine = 2
+        vbUpwardDiagonal = 4
+        vbVerticalLine = 3
+        
+        vbGradientNS = 8
+        vbGradientWE = 9
+    End Enum
+
+    Public Enum FormArrangeConstants
+        vbArrangeIcons = 3
+        vbCascade = 0
+        vbTileHorizontal = 1
+        vbTileVertical = 2
+    End Enum
+
+    Public Enum HitResultConstants
+        vbHitResultClose = 2
+        vbHitResultHit = 3
+        vbHitResultOutside = 0
+        vbHitResultTransparent = 1
+    End Enum
+
+    Public Enum MenuAccelConstants
+        vbMenuAccelCtrlA = 1
+        vbMenuAccelCtrlB = 2
+        vbMenuAccelCtrlC = 3
+        vbMenuAccelCtrlD = 4
+        vbMenuAccelCtrlE = 5
+        vbMenuAccelCtrlF = 6
+        vbMenuAccelCtrlG = 7
+        vbMenuAccelCtrlH = 8
+        vbMenuAccelCtrlI = 9
+        vbMenuAccelCtrlJ = 10
+        vbMenuAccelCtrlK = 11
+        vbMenuAccelCtrlL = 12
+        vbMenuAccelCtrlM = 13
+        vbMenuAccelCtrlN = 14
+        vbMenuAccelCtrlO = 15
+        vbMenuAccelCtrlP = 16
+        vbMenuAccelCtrlQ = 17
+        vbMenuAccelCtrlR = 18
+        vbMenuAccelCtrlS = 19
+        vbMenuAccelCtrlT = 20
+        vbMenuAccelCtrlU = 21
+        vbMenuAccelCtrlV = 22
+        vbMenuAccelCtrlW = 23
+        vbMenuAccelCtrlX = 24
+        vbMenuAccelCtrlY = 25
+        vbMenuAccelCtrlZ = 26
+        vbMenuAccelF1 = 27
+        vbMenuAccelF2 = 28
+        vbMenuAccelF3 = 29
+        vbMenuAccelF4 = 30
+        vbMenuAccelF5 = 31
+        vbMenuAccelF6 = 32
+        vbMenuAccelF7 = 33
+        vbMenuAccelF8 = 34
+        vbMenuAccelF9 = 35
+        vbMenuAccelF11 = 36
+        vbMenuAccelF12 = 37
+        vbMenuAccelCtrlF1 = 38
+        vbMenuAccelCtrlF2 = 39
+        vbMenuAccelCtrlF3 = 40
+        vbMenuAccelCtrlF4 = 41
+        vbMenuAccelCtrlF5 = 42
+        vbMenuAccelCtrlF6 = 43
+        vbMenuAccelCtrlF7 = 44
+        vbMenuAccelCtrlF8 = 45
+        vbMenuAccelCtrlF9 = 46
+        vbMenuAccelCtrlF11 = 47
+        vbMenuAccelCtrlF12 = 48
+        vbMenuAccelShiftF1 = 49
+        vbMenuAccelShfitF2 = 50
+        vbMenuAccelShiftF3 = 51
+        vbMenuAccelShiftF4 = 52
+        vbMenuAccelShiftF5 = 53
+        vbMenuAccelShiftF6 = 54
+        vbMenuAccelShiftF7 = 55
+        vbMenuAccelShiftF8 = 56
+        vbMenuAccelShiftF9 = 57
+        vbMenuAccelShiftF11 = 58
+        vbMenuAccelShiftF12 = 59
+        vbMenuAccelShiftCtrlF1 = 60
+        vbMenuAccelShiftCtrlF2 = 61
+        vbMenuAccelShiftCtrlF3 = 62
+        vbMenuAccelShiftCtrlF4 = 63
+        vbMenuAccelShiftCtrlF5 = 64
+        vbMenuAccelShiftCtrlF6 = 65
+        vbMenuAccelShiftCtrlF7 = 66
+        vbMenuAccelShiftCtrlF8 = 67
+        vbMenuAccelShiftCtrlF9 = 68
+        vbMenuAccelShiftCtrlF11 = 69
+        vbMenuAccelShiftCtrlF12 = 70
+        vbMenuAccelCtrlIns = 71
+        vbMenuAccelShiftIns = 72
+        vbMenuAccelDel = 73
+        vbMenuAccelShiftDel = 74
+        vbMenuAccelAltBksp = 75
+    End Enum
+
+    Public Enum MenuControlConstants
+        vbPopupMenuLeftAlign = 0
+        vbPopupMenuCenterAlign = 4
+        vbPopupMenuRightAlign = 8
+        vbPopupMenuLeftButton = 0
+        vbPopupMenuRightButton = 2
+    End Enum
+
+    Public Enum OldLinkModeConstants
+        vbHot = 1
+        vbServer = 1
+        vbCold = 2
+    End Enum
+
+    Public Enum OLEContainerActivateConstants	' this is a new Public Enum created by us for the OLEContainer AutoActivate field
+        vbOLE_ActivateManual = 0
+        vbOLE_ActivateGetFocus = 1
+        vbOLE_ActivateDoubleclick = 2
+        vbOLE_ActivateAuto = 3
+    End Enum
+
+    Public Enum OLEContainerDisplayTypeConstants			' this is a new Public Enum created by us for the OLEContainer DisplayType field
+        vbOLE_DisplayContent = 0
+        vbOLE_DisplayIcon = 1
+    End Enum
+
+    Public Enum OLEContainerTypesAllowedConstants			' this is a new Public Enum created by us for the OLEContainer OLETypeAllowed field
+        vbOLE_Linked = 0
+        vbOLE_Embedded = 1
+        vbOLE_Either = 2
+    End Enum
+
+    Public Enum OLEContainerSizeModeConstants			' this is a new Public Enum created by us for the OLEContainer SizeMode field
+        vbOLE_SizeClip = 0
+        vbOLE_SizeStretch = 1
+        vbOLE_SizeAutoSize = 2
+        vbOLE_SizeZoom = 3
+    End Enum
+
+    Public Enum OLEContainerUpdateOptionsConstants			' this is a new Public Enum created by us for the OLEContainer UpdateOptions field
+    vbOLE_UpdateAutomatic = 0
+    vbOLE_UpdateFrozen = 1
+    vbOLE_UpdateManual = 2
+    End Enum
+
+    Public Enum OLEContainerConstants
+        vbOLELinked = 0
+        vbOLEEmbedded = 1
+        vbOLENone = 3
+        vbOLEEither = 2
+        vbOLEAutomatic = 0
+        vbOLEFrozen = 1
+        vbOLEManual = 2
+        vbOLEActivateManual = 0
+        vbOLEActivateGetFocus = 1
+        vbOLEActivateDoubleclick = 2
+        vbOLEActivateAuto = 3
+        vbOLESizeClip = 0
+        vbOLESizeStretch = 1
+        vbOLESizeAutoSize = 2
+        vbOLESizeZoom = 3
+        vbOLEDisplayContent = 0
+        vbOLEDisplayIcon = 1
+        vbOLEChanged = 0
+        vbOLESaved = 1
+        vbOLEClosed = 2
+        vbOLERenamed = 3
+        vbOLEPrimary = 0
+        vbOLEShow = -1
+        vbOLEOpen = -2
+        vbOLEHide = -3
+        vbOLEUIActivate = -4
+        vbOLEInPlaceActivate = -5
+        vbOLEDiscardUndoState = -6
+        vbOLEFlagGrayed = 1
+        vbOLEFlagDisabled = 2
+        vbOLEFlagChecked = 8
+        vbOLEFlagSeparator = 2048
+        vbOLEMiscFlagMemStorage = 1
+        vbOLEMiscFlagDisableInPlace = 2
+    End Enum
+
+    #If FEATURE_OLEDRAGDROP Then
+    Public Enum OLEDragConstants
+        vbOLEDragManual = 0
+        vbOLEDragAutomatic = 1
+    End Enum
+
+    Public Enum OLEDropConstants
+        vbOLEDropNone = 0
+        vbOLEDropManual = 1
+        vbOLEDropAutomatic = 2
+    End Enum
+
+    Public Enum OLEDropEffectConstants
+        vbDropEffectNone = 0
+        vbDropEffectCopy = 1
+        vbDropEffectMove = 2
+        vbDropEffectLink = 4                    ' new in tB
+        vbDropEffectScroll = -2147483648
+    End Enum
+    #End If
+
+    Public Enum DatabaseTypeConstants			' this is a new Public Enum created by us for the Data DefaultType field
+        vbUseODBC = 1
+        vbUseJet = 2
+        vbUseACE = 3                            ' new in tB
+    End Enum
+
+    Public Enum NegotiatePositionConstants		' this is a new Public Enum created by us for the NegotiatePosition Menu field
+        vbNegotiatePositionNone = 0
+        vbNegotiatePositionLeft = 1
+        vbNegotiatePositionMiddle = 2
+        vbNegotiatePositionRight = 3
+    End Enum
+
+    Public Enum PaletteModeConstants
+        vbPaletteModeHalftone = 0
+        vbPaletteModeUseZOrder = 1
+        vbPaletteModeCustom = 2
+        vbPaletteModeContainer = 3
+        vbPaletteModeNone = 4
+        vbPaletteModeObject = 5
+    End Enum
+
+    Public Enum ParentControlsType
+        vbNoExtender = 0
+        vbExtender = 1
+    End Enum
+
+    Public Enum ShapeConstants
+        vbShapeRectangle = 0
+        vbShapeSquare = 1
+        vbShapeOval = 2
+        vbShapeCircle = 3
+        vbShapeRoundedRectangle = 4
+        vbShapeRoundedSquare = 5
+        vbShapeStar = 6
+        vbShapeArrowLeft = 7
+        vbShapeArrowRight = 8
+        vbShapeArrowUp = 9
+        vbShapeArrowDown = 10
+    End Enum
+
+    Public Enum PictureTypeConstants
+        vbPicTypeNone = 0
+        vbPicTypeBitmap = 1
+        vbPicTypeMetafile = 2
+        vbPicTypeIcon = 3
+        vbPicTypeEMetafile = 4
+    End Enum
+
+    Public Enum PrinterObjectConstants
+        vbPRCMMonochrome = 1
+        vbPRCMColor = 2
+        vbPRDPSimplex = 1
+        vbPRDPHorizontal = 2
+        vbPRDPVertical = 3
+        vbPRORPortrait = 1
+        vbPRORLandscape = 2
+        vbPRPQDraft = -1
+        vbPRPQLow = -2
+        vbPRPQMedium = -3
+        vbPRPQHigh = -4
+        vbPRBNUpper = 1
+        vbPRBNLower = 2
+        vbPRBNMiddle = 3
+        vbPRBNManual = 4
+        vbPRBNEnvelope = 5
+        vbPRBNEnvManual = 6
+        vbPRBNAuto = 7
+        vbPRBNTractor = 8
+        vbPRBNSmallFmt = 9
+        vbPRBNLargeFmt = 10
+        vbPRBNLargeCapacity = 11
+        vbPRBNCassette = 14
+        vbPRPSLetter = 1
+        vbPRPSLetterSmall = 2
+        vbPRPSTabloid = 3
+        vbPRPSLedger = 4
+        vbPRPSLegal = 5
+        vbPRPSStatement = 6
+        vbPRPSExecutive = 7
+        vbPRPSA3 = 8
+        vbPRPSA4 = 9
+        vbPRPSA4Small = 10
+        vbPRPSA5 = 11
+        vbPRPSB4 = 12
+        vbPRPSB5 = 13
+        vbPRPSFolio = 14
+        vbPRPSQuarto = 15
+        vbPRPS10x14 = 16
+        vbPRPS11x17 = 17
+        vbPRPSNote = 18
+        vbPRPSEnv9 = 19
+        vbPRPSEnv10 = 20
+        vbPRPSEnv11 = 21
+        vbPRPSEnv12 = 22
+        vbPRPSEnv14 = 23
+        vbPRPSCSheet = 24
+        vbPRPSDSheet = 25
+        vbPRPSESheet = 26
+        vbPRPSEnvDL = 27
+        vbPRPSEnvC3 = 29
+        vbPRPSEnvC4 = 30
+        vbPRPSEnvC5 = 28
+        vbPRPSEnvC6 = 31
+        vbPRPSEnvC65 = 32
+        vbPRPSEnvB4 = 33
+        vbPRPSEnvB5 = 34
+        vbPRPSEnvB6 = 35
+        vbPRPSEnvItaly = 36
+        vbPRPSEnvMonarch = 37
+        vbPRPSEnvPersonal = 38
+        vbPRPSFanfoldUS = 39
+        vbPRPSFanfoldStdGerman = 40
+        vbPRPSFanfoldLglGerman = 41
+        vbPRPSUser = 256
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_ColorMode
+        vbPRCMMonochrome = 1
+        vbPRCMColor = 2
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_Duplex
+        vbPRDPSimplex = 1
+        vbPRDPHorizontal = 2
+        vbPRDPVertical = 3
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_Orientation
+        vbPRORPortrait = 1
+        vbPRORLandscape = 2
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_PaperSize
+        vbPRPSLetter = 1
+        vbPRPSLetterSmall = 2
+        vbPRPSTabloid = 3
+        vbPRPSLedger = 4
+        vbPRPSLegal = 5
+        vbPRPSStatement = 6
+        vbPRPSExecutive = 7
+        vbPRPSA3 = 8
+        vbPRPSA4 = 9
+        vbPRPSA4Small = 10
+        vbPRPSA5 = 11
+        vbPRPSB4 = 12
+        vbPRPSB5 = 13
+        vbPRPSFolio = 14
+        vbPRPSQuarto = 15
+        vbPRPS10x14 = 16
+        vbPRPS11x17 = 17
+        vbPRPSNote = 18
+        vbPRPSEnv9 = 19
+        vbPRPSEnv10 = 20
+        vbPRPSEnv11 = 21
+        vbPRPSEnv12 = 22
+        vbPRPSEnv14 = 23
+        vbPRPSCSheet = 24
+        vbPRPSDSheet = 25
+        vbPRPSESheet = 26
+        vbPRPSEnvDL = 27
+        vbPRPSEnvC3 = 29
+        vbPRPSEnvC4 = 30
+        vbPRPSEnvC5 = 28
+        vbPRPSEnvC6 = 31
+        vbPRPSEnvC65 = 32
+        vbPRPSEnvB4 = 33
+        vbPRPSEnvB5 = 34
+        vbPRPSEnvB6 = 35
+        vbPRPSEnvItaly = 36
+        vbPRPSEnvMonarch = 37
+        vbPRPSEnvPersonal = 38
+        vbPRPSFanfoldUS = 39
+        vbPRPSFanfoldStdGerman = 40
+        vbPRPSFanfoldLglGerman = 41
+        vbPRPSUser = 256
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_PrintQuality
+        vbPRPQDraft = -1
+        vbPRPQLow = -2
+        vbPRPQMedium = -3
+        vbPRPQHigh = -4
+    End Enum
+    
+    ' We duplicate here, but this allows us to create proper individual enumerations rather than the one-for-all found in VBx
+    [MustBeQualified]       ' this prevents ambiguity problems
+    Public Enum PrinterObjectConstants_PaperBin
+        vbPRBNUpper = 1
+        vbPRBNLower = 2
+        vbPRBNMiddle = 3
+        vbPRBNManual = 4
+        vbPRBNEnvelope = 5
+        vbPRBNEnvManual = 6
+        vbPRBNAuto = 7
+        vbPRBNTractor = 8
+        vbPRBNSmallFmt = 9
+        vbPRBNLargeFmt = 10
+        vbPRBNLargeCapacity = 11
+        vbPRBNCassette = 14
+    End Enum
+
+    Public Enum QueryUnloadConstants
+        vbFormControlMenu = 0
+        vbFormCode = 1
+        vbAppWindows = 2
+        vbAppTaskManager = 3
+        vbFormMDIForm = 4
+        vbFormOwner = 5
+    End Enum
+
+    Public Enum ZOrderConstants
+        vbBringToFront = 0
+        vbSendToBack = 1
+    End Enum
+
+    Public Enum RecordsetTypeConstants
+        vbRSTypeTable = 0
+        vbRSTypeDynaset = 1
+        vbRSTypeSnapShot = 2
+    End Enum
+
+    Public Enum ScaleModeConstants
+        vbScaledPixels = -1	' New in tB
+        vbUser = 0
+        vbTwips = 1
+        vbPoints = 2
+        vbPixels = 3
+        vbCharacters = 4
+        vbInches = 5
+        vbMillimeters = 6
+        vbCentimeters = 7
+        vbHimetric = 8
+        vbContainerPosition = 9
+        vbContainerSize = 10
+    End Enum
+
+    Public Enum VariantTypeConstants
+        vbVEmpty = 0
+        vbVNull = 1
+        vbVInteger = 2
+        vbVLong = 3
+        vbVSingle = 4
+        vbVDouble = 5
+        vbVCurrency = 6
+        vbVDate = 7
+        vbVString = 8
+    End Enum
+
+    Public Enum AlignConstants
+        vbAlignNone = 0
+        vbAlignTop = 1
+        vbAlignBottom = 2
+        vbAlignLeft = 3
+        vbAlignRight = 4
+    End Enum
+
+    Public Enum LoadPictureSizeConstants
+        vbLPSmall = 0
+        vbLPLarge = 1
+        vbLPSmallShell = 2
+        vbLPLargeShell = 3
+        vbLPCustom = 4
+    End Enum
+
+    Public Enum LoadPictureColorConstants
+        vbLPDefault = 0
+        vbLPMonochrome = 1
+        vbLPVGAColor = 2
+        vbLPColor = 3
+    End Enum
+
+    Public Enum BackFillStyleConstants	    ' not a real VB enumeration
+        vbBFTransparent = 0
+        vbBFOpaque = 1
+    End Enum
+
+    Public Enum LinkModeConstants
+        vbLinkNone = 0
+        vbLinkAutomatic = 1
+        vbLinkSource = 1
+        vbLinkManual = 2
+        vbLinkNotify = 3
+    End Enum
+    
+    Enum LogModeConstants
+        vbLogAuto = 0
+        vbLogOff = 1
+        vbLogToFile = 2
+        vbLogToNT = 3
+        vbLogOverwrite = 16
+        vbLogThreadID = 32
+    End Enum
+
+    Enum LogEventTypeConstants
+        vbLogEventTypeError = 1
+        vbLogEventTypeWarning = 2
+        vbLogEventTypeInformation = 4
+    End Enum
+    
+    Enum ShortcutConstants
+        ' WARNING: this is also defined internally in the compiler
+        vbShortcutNone = 0
+        vbShortcutCtrlA
+        vbShortcutCtrlB
+        vbShortcutCtrlC
+        vbShortcutCtrlD
+        vbShortcutCtrlE
+        vbShortcutCtrlF
+        vbShortcutCtrlG
+        vbShortcutCtrlH
+        vbShortcutCtrlI
+        vbShortcutCtrlJ
+        vbShortcutCtrlK
+        vbShortcutCtrlL
+        vbShortcutCtrlM
+        vbShortcutCtrlN
+        vbShortcutCtrlO
+        vbShortcutCtrlP
+        vbShortcutCtrlQ
+        vbShortcutCtrlR
+        vbShortcutCtrlS
+        vbShortcutCtrlT
+        vbShortcutCtrlU
+        vbShortcutCtrlV
+        vbShortcutCtrlW
+        vbShortcutCtrlX
+        vbShortcutCtrlY
+        vbShortcutCtrlZ
+        vbShortcutF1
+        vbShortcutF2
+        vbShortcutF3
+        vbShortcutF4
+        vbShortcutF5
+        vbShortcutF6
+        vbShortcutF7
+        vbShortcutF8
+        vbShortcutF9
+        vbShortcutF11
+        vbShortcutF12
+        vbShortcutShiftF1
+        vbShortcutShiftF2
+        vbShortcutShiftF3
+        vbShortcutShiftF4
+        vbShortcutShiftF5
+        vbShortcutShiftF6
+        vbShortcutShiftF7
+        vbShortcutShiftF8
+        vbShortcutShiftF9
+        vbShortcutShiftF11
+        vbShortcutShiftF12
+        vbShortcutCtrlF1
+        vbShortcutCtrlF2
+        vbShortcutCtrlF3
+        vbShortcutCtrlF4
+        vbShortcutCtrlF5
+        vbShortcutCtrlF6
+        vbShortcutCtrlF7
+        vbShortcutCtrlF8
+        vbShortcutCtrlF9
+        vbShortcutCtrlF11
+        vbShortcutCtrlF12
+        vbShortcutShiftCtrlF1
+        vbShortcutShiftCtrlF2
+        vbShortcutShiftCtrlF3
+        vbShortcutShiftCtrlF4
+        vbShortcutShiftCtrlF5
+        vbShortcutShiftCtrlF6
+        vbShortcutShiftCtrlF7
+        vbShortcutShiftCtrlF8
+        vbShortcutShiftCtrlF9
+        vbShortcutShiftCtrlF11
+        vbShortcutShiftCtrlF12
+        vbShortcutCtrlInsert
+        vbShortcutShiftInsert
+        vbShortcutDelete
+        vbShortcutShiftDelete
+        vbShortcutAltBackspace
+    End Enum
+
+End Module

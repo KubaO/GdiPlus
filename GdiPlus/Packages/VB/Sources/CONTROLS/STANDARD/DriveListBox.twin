@@ -1,0 +1,619 @@
+#If FEATURE_DRIVELISTBOX Then
+Private Module DriveListBoxGlobals
+	Public DriveListBoxImages() As OlePicture
+End Module
+
+Private Class DriveListBoxLISTSubclasser
+    Implements IWindowElementEventsCommon
+    Protected DriveListBox As DriveListBoxBaseCtl    'CAREFUL! circular ref, has to be broken manually by owner
+    Public WindowHandleLIST As WindowElement
+
+        Sub New(ByRef DriveListBox As DriveListBoxBaseCtl, ByVal DriveListBoxContext As ControlContext, ByVal hwnd As LongPtr, ByVal Flags As Long)
+            Set Me.DriveListBox = DriveListBox
+            WindowHandleLIST.Pointer = DriveListBoxContext.RuntimeUICtxSubClassWindowElement(hwnd, Flags)
+            WindowHandleLIST.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Sub Class_Terminate()
+'            Debug.Print "~DriveListBoxLISTSubclasser"
+            'Debug.TracePrint "DriveListBox EDIT unsubclass"
+            WindowHandleLIST.RuntimeUIUnSubclass()
+            WindowHandleLIST.RuntimeUIUnSinkEvents(Me)
+        End Sub
+        
+        Protected Sub HandleWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            If Horizontal = False Then
+                UnprotectedAccess(DriveListBox).InternalCheckTopIndexChanged(DriveListBox.WheelScrollEvent)
+            End If
+        End Sub
+        
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+                
+            If WindowHandleLIST.CommonHandleVerticalScroll(ScrollType, DriveListBox.ListCount) Then
+                RaiseEventByName(DriveListBox, "Scroll")
+            End If
+        End Sub
+End Class
+
+[ClassId("670E66DA-F076-42DB-B188-DC6F32121D74")]
+[InterfaceId("D39EB2D5-C1FB-468B-82EA-DD05A1AA7E18")]  ' FIXME implement {33AD4F51-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class DriveListBoxBaseCtl
+    
+    #Region "INHERITANCE"
+
+        Inherits BaseControlFocusable
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description("VB6 doesn't trigger the Scroll event for mouse-wheel events.  Set this to True to generate Scroll events in response to mouse-wheel notifications")]
+            Public WheelScrollEvent As Boolean = True
+        [Serialize(False)]
+        [Description("")]
+            Public NewIndex As Long
+
+            Protected CachedTopIndex As Long
+            Protected IsInitializing As Boolean
+            Protected LISTSubclasser As DriveListBoxLISTSubclasser
+            
+            #If FEATURE_OLEDRAGDROP Then
+            Protected OLEDragDropHandler As OLEDragDropHandler
+            [CustomDesigner("designer_RestrictedOLEDropMode")]
+                Public OLEDropMode As VBRUN.OLEDropConstants
+            #End If
+            Protected IsRefreshing As Boolean
+            Protected CachedSelectedIndex As Long
+                                
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+               
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end If
+    #End Region
+
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+            Event Change()
+        [Description("")]
+            Event DropDown()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+            Event Scroll()
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+            Event CloseUp()
+
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+
+    #End Region
+
+    #Region "MEMBERS"
+        
+        Sub New()
+            BaseControlFocusable.New(ControlTypeConstants.vbDriveListBox)
+        End Sub
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub InitImages()
+            On Error Resume Next
+
+            ' Here we map a package resource into a constant Variant
+            ' so that we can continue to use resources in the package, yet access them just like byte arrays at runtime
+            ' This is very efficient.  The resource will not exist as an ordinary resource in the output PE file.
+            Const ImageData_DRIVE_UNKNOWN As Variant = LoadResDataInternal("DRIVE_UNKNOWN.gif", "OTHER")
+            Const ImageData_DRIVE_FIXED As Variant = LoadResDataInternal("DRIVE_FIXED.gif", "OTHER")
+            Const ImageData_DRIVE_RAMDISK As Variant = LoadResDataInternal("DRIVE_RAMDISK.gif", "OTHER")
+            Const ImageData_DRIVE_REMOVABLE As Variant = LoadResDataInternal("DRIVE_REMOVABLE.gif", "OTHER")
+            Const ImageData_DRIVE_CDROM As Variant = LoadResDataInternal("DRIVE_CDROM.gif", "OTHER")
+            Const ImageData_DRIVE_REMOTE As Variant = LoadResDataInternal("DRIVE_REMOTE.gif", "OTHER")
+
+            If IsArrayInitialized(DriveListBoxGlobals.DriveListBoxImages) = False Then
+                ReDim DriveListBoxGlobals.DriveListBoxImages(0 To 6) As OlePicture
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_UNKNOWN) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_UNKNOWN))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_NO_ROOT_DIR) = CType(Of OlePicture)(DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_UNKNOWN))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_REMOVABLE) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_REMOVABLE))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_FIXED) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_FIXED))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_REMOTE) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_REMOTE))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_CDROM) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_CDROM))
+                Set DriveListBoxGlobals.DriveListBoxImages(DriveType.DRIVE_RAMDISK) = CType(Of OlePicture)(Global.LoadPicture(ImageData_DRIVE_RAMDISK))
+            End If
+        End Sub
+        
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                
+            Me.InternalStateReset()     ' resets all the base class state
+            Me.NewIndex = -1
+            Me.CachedTopIndex = 0
+            Me.IsInitializing = True
+            Me.IsRefreshing = False
+            Me.CachedSelectedIndex = -1
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "DriveListBox"
+            End If
+            'IsDesignMode = .IsDesignMode
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            InitImages()
+                
+            Dim styles As Long = ComboBoxStyles.CBS_HASSTRINGS + _
+                            /*ComboBoxStyles.CBS_AUTOHSCROLL + _*/ _
+                            ComboBoxStyles.CBS_DROPDOWNLIST + _
+                            ComboBoxStyles.CBS_OWNERDRAWFIXED + _
+                            CLng(WindowStyles.WS_BORDER)
+            Dim extendedStyles As Long
+
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderDriveListBox)
+            InitData.Caption = ""
+            InitData.WindowStyles = styles
+            InitData.ExtendedStyles = extendedStyles
+            InitData.Flags = NeedsPrePostMessages Or _
+                                ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardDragOver Or _
+                                ForwardValidate
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+                
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            ' disconnect anything that causes a circular reference here
+            UnsubclassNow()
+            Set Me.Font = Nothing
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub UnsubclassNow()
+            ' This ensures we unsubclass before hitting WM_NCDESTROY, which can cause hard crashes if not done.
+            Set Me.LISTSubclasser = Nothing
+        End Sub
+                
+        Protected Function SendMessageListCtl(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+            Return LISTSubclasser.WindowHandleLIST.SendMessage(msg, wParam, lParam)
+        End Function
+
+        Protected Sub PostProcessMessage(ByVal hwnd As LongPtr, ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef ReturnValue As LongPtr, ByVal PostMessageCookie As Long) _
+                Implements IWindowElementEventsCommon.PostProcessMessage
+
+            If IsInitializing = True Then Exit Sub
+                
+            Select Case Message
+                Case ComboBoxMessages.CB_ADDSTRING, _
+                        ComboBoxMessages.CB_INSERTSTRING, _
+                        ComboBoxMessages.CB_DELETESTRING, _
+                        ComboBoxMessages.CB_RESETCONTENT
+                    SyncScrollBar
+                    
+                Case WM_SETFONT
+                    If Me.LISTSubclasser IsNot Nothing Then
+                        'Debug.Print "COMBO: Got WM_SETFONT"
+                        ' We have to send a matching font change to the LIST, otherwise item height does not get reported properly
+                        SendMessageListCtl(WM_SETFONT, wParam, lParam)
+                        SyncScrollBar
+                    End If
+                    
+                Case WM_DESTROY
+                    UnsubclassNow()
+            End Select
+        End Sub
+        
+        Protected Function GetCustomDrawnHeight() As Long
+            Dim TextMetrics As TEXTMETRIC = GetFontMetrics()
+            Const FontPadding As Long = 4
+            Return TextMetrics.TMHeight + TextMetrics.TMExternalLeading + FontPadding
+        End Function
+        
+        Protected Sub MeasureItem(ByRef Info As MEASUREITEMSTRUCT, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.MeasureItem
+ 
+            ' Careful! This occurs BEFORE the Create event, so the windows font has not yet been set!
+            Info.ItemHeight = GetCustomDrawnHeight()
+        End Sub
+                 
+        Protected Sub DrawItem(ByRef Info As DRAWITEMSTRUCT, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.DrawItem
+ 
+            If Info.CtlType = OwnerDrawTypes.ODT_COMBOBOX And Info.ItemID > -1 Then
+                
+                Dim itemHeight As Long = Info.RCItem.Bottom - Info.RCItem.Top
+                
+                Dim backColor As OLE_COLOR
+                Dim textColor As OLE_COLOR
+                If Info.ItemState And OwnerDrawState.ODS_DISABLED Then
+                    backColor = Me.BackColor
+                    textColor = vbGrayText
+                ElseIf Info.ItemState And OwnerDrawState.ODS_SELECTED Then
+                    backColor = vbHighlight
+                    textColor = vbHighlightText
+                Else
+                    backColor = Me.BackColor
+                    textColor = Me.ForeColor
+                End If
+                
+                Dim InfohDC As Any = Info.hDC
+                InfohDC.CommonFillRect(Info.RCItem, backColor)
+                
+                Const VPADDING_IMAGE As Long = 2
+                Const HPADDING_IMAGE As Long = 10
+                Const HPADDING_TEXT As Long = 5
+                
+                Dim driveType As Any = CType(Of DriveType)(Info.ItemData)
+                If (driveType >= driveType.DRIVE_UNKNOWN) And (driveType <= driveType.DRIVE_RAMDISK) Then
+                    Dim pic As IPicture = DriveListBoxGlobals.DriveListBoxImages(driveType)
+                    With pic
+                        ' The icon is scaled to the item height
+                        Dim horzProportional As Double = .Width / .Height       ' 1.5
+                        Dim iconWidth As Long = CLng((itemHeight - (VPADDING_IMAGE * 2)) * horzProportional)
+                        
+                        'Dim newBmp As LongPtr = RuntimeCreateResampledBitmap(InfohDC, pic.Handle, iconWidth, itemHeight - (VPADDING_IMAGE * 2), vbStretchBicubic - 2)
+                        'Dim resampledPic As IPicture = CType(Of IPicture)([_HiddenModule].CreateStdPictureFromHandle(newBmp, vbPicTypeBitmap, True))
+                        
+                        Dim Info_hDC32 As Long
+                        GetMem4(VarPtr(InfohDC), Info_hDC32)
+                        .Render(Info_hDC32, HPADDING_IMAGE, VPADDING_IMAGE + Info.RCItem.Top, iconWidth, itemHeight - (VPADDING_IMAGE * 2), 0, .Height, .Width, -.Height, vbNullPtr)
+                        'Render.PictureRender(resampledPic, InfohDC, HPADDING_IMAGE, VPADDING_IMAGE + Info.RCItem.Top, iconWidth, itemHeight - (VPADDING_IMAGE * 2), 0, resampledPic.Height, resampledPic.Width, -resampledPic.Height, True)
+                    End With
+                End If
+                
+                Info.RCItem.Left += HPADDING_IMAGE + HPADDING_TEXT + iconWidth
+                
+                InfohDC.CommonTextOut(Me.List(Info.ItemID), textColor, CLng(Info.RCItem.Left + (1 * (RootWindowElementBase.RuntimeUIGetDPI() / 96))), Info.RCItem.Top, False)
+            End If
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            Me.SyncFontProperties()
+            Me.InternalSyncHeight()
+            
+            ' Subclass the OS provided list and edit controls for this combo.
+            Dim info As COMBOBOXINFO = RootWindowElementBase.GetComboBoxInfo()
+            Const Flags As Long = ForwardGotFocus Or ForwardLostFocus 'Or ForwardKeyDown Or ForwardKeyUp Or ForwardKeyPress
+            If info.hwndList <> 0 Then Set Me.LISTSubclasser = New DriveListBoxLISTSubclasser(Me, Me.ControlContext, info.hwndList, Flags)
+            
+            If Me.LISTSubclasser IsNot Nothing Then
+                Me.LISTSubclasser.WindowHandleLIST.SetStyleFlag(WS_VSCROLL, True)
+            End If
+             
+            SyncDrives()
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #endif
+            
+            RaiseEvent Initialize()
+            IsInitializing = False
+        End Sub
+    
+        Protected Sub SyncDrives()
+        	
+            If IsRefreshing = True Then Exit Sub
+            IsRefreshing = True
+            
+            SendMessageCtl(ComboBoxMessages.CB_RESETCONTENT, 0, 0)
+            Dim countOfDrives As Long = CLng(SendMessageCtl(ComboBoxMessages.CB_DIR, ComboBoxConsts.DriveInfo.DDL_EXCLUSIVE Or ComboBoxConsts.DriveInfo.DDL_DRIVES, StrPtr("*.*")))
+            
+            ' CB_DIR fills the combo with a list of drives in the format of "[-x-]"
+            Dim driveBuffer As String = Space$(6)
+            Dim volumeNameBuffer As String = Space$(260)
+
+            Dim index As Long
+            While index <= countOfDrives
+                SendMessageCtl(ComboBoxMessages.CB_GETLBTEXT, index, StrPtr(driveBuffer))
+                
+                Dim driveLetter As String = Mid$(driveBuffer, 3, 1)
+                Dim driveDescription As String = driveLetter & ":"
+                
+                Dim driveType As DriveType = KERNEL32.GetDriveTypeW(driveDescription)
+                
+                Mid(volumeNameBuffer, 1, 1) = ""
+                Dim volumeNameLen As Long = 260
+                    
+                Select Case driveType
+                    
+                    Case driveType.DRIVE_REMOTE
+                        If MPR.WNetGetConnectionW(driveDescription, volumeNameBuffer, volumeNameLen) = 0 Then
+                            Dim networkName As String = OLEAUT32.SysAllocString(StrPtr(volumeNameBuffer))
+                            If Len(networkName) > 0 Then
+                                driveDescription += " [" & networkName & "]"
+                            End If
+                        End If
+                        
+                    Case Else
+                        KERNEL32.GetVolumeInformationW(driveDescription & "\", volumeNameBuffer, volumeNameLen, 0, 0, 0, vbNullString, 0)
+                        Dim volumeName As String = OLEAUT32.SysAllocString(StrPtr(volumeNameBuffer))
+                        If Len(volumeName) > 0 Then
+                            driveDescription += " [" & volumeName & "]"
+                        End If
+                    
+                End Select
+                
+                List(index) = driveDescription
+                ItemData(index) = driveType
+                index += 1
+            Wend
+            
+            If countOfDrives > 0 Then ListIndex = 0
+            IsRefreshing = False
+
+        End Sub
+                
+        Protected Function InternalCheckTopIndexChanged(Optional ByVal RaiseScrollEvent As Boolean = True) As Boolean
+            ' FIXE hide me
+            Dim topIndex As Long = Me.TopIndex
+            If CachedTopIndex <> topIndex Then
+                CachedTopIndex = topIndex
+                ' Sync the scrollbar
+                LISTSubclasser.WindowHandleLIST.SetScrollValue( Me.TopIndex, SB_VERT)
+                If RaiseScrollEvent Then RaiseEvent Scroll
+                Return True
+            End If
+            Return False
+        End Function
+                
+        Protected Sub CheckIfChanged()
+            If (Me.IsRefreshing = False) And (Me.CachedSelectedIndex <> Me.ListIndex) Then
+                RaiseEvent Change()
+            End If
+            Me.CachedSelectedIndex = Me.ListIndex
+        End Sub
+        Protected Sub HandleCommand(ByVal NotificationCode As ComboBoxNotifications, _
+                                    ByVal Identifier As Integer, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Command
+                
+            Select Case NotificationCode
+                Case CBN_SELCHANGE
+                    InternalCheckTopIndexChanged()
+                    CheckIfChanged()
+                    Handled = True
+                Case CBN_DROPDOWN
+                    SyncScrollBar
+                    RaiseEvent DropDown()
+                    Handled = True
+                Case CBN_CLOSEUP
+                    RaiseEvent CloseUp()
+                    Handled = True
+            End Select
+        End Sub
+                
+        [Hidden]
+        Public Sub AddItem(ByVal Value As String, Optional ByVal Index As Variant)
+            Err.Raise 438
+        End Sub
+        
+        [Hidden]
+        Public Sub RemoveItem(ByVal Index As Variant)
+            Err.Raise 438
+        End Sub
+        
+        [Hidden]
+        Public Sub Clear()
+            Err.Raise 438
+        End Sub
+        
+        Protected Sub SyncScrollBar()
+            Me.LISTSubclasser.WindowHandleLIST.CommonSyncScrollBarV(Me.ListCount - 1)
+        End Sub
+                
+        [Serialize(False)]
+        Protected Property Get ItemData(ByVal Index As Long) As LongPtr
+            ' FIXME error if out of range
+            ' Note Index is limited to 32767 due to Win95/98/ME support (see docs for CB_GETTEXT)
+            ' FIXME In the official matching _ListBox interface, we need to change Index to Integer
+            Return SendMessageCtl(ComboBoxMessages.CB_GETITEMDATA, Index, 0)
+        End Property
+        
+        [Serialize(False)]
+        Protected Property Let ItemData(ByVal Index As Long, ByVal Value As LongPtr)
+            ' FIXME error if out of range
+            SendMessageCtl(ComboBoxMessages.CB_SETITEMDATA, Index, Value)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get List(ByVal Index As Long) As String
+        	Return RootWindowElementBase.CommonGetComboBoxStringByIndex(Index)
+        End Property
+        
+        [Serialize(False)]
+        Protected Property Let List(ByVal Index As Long, ByVal Value As String)
+            ' FIXME error if out of range
+            SendMessageCtl(ComboBoxMessages.CB_DELETESTRING, Index, 0)
+            RootWindowElementBase.CommonComboboxAddOrInsert(Value, Index)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListCount() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETCOUNT, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get TopIndex() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETTOPINDEX, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let TopIndex(ByVal Value As Long)
+            SendMessageCtl(ComboBoxMessages.CB_SETTOPINDEX, Value, 0)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListIndex() As Long
+            Return CLng(SendMessageCtl(ComboBoxMessages.CB_GETCURSEL, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let ListIndex(ByVal Value As Long)
+            If Me.ListIndex <> Value Then
+                SendMessageCtl(ComboBoxMessages.CB_SETCURSEL, Value, 0)
+                CheckIfChanged()
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Drive
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(Value As String)
+            Drive = Value
+        End Property
+
+        [Serialize(False)]
+        Public Property Get Drive() As String
+        	Return GetWindowTextCtl()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Drive(ByVal Value As String)
+            Value = Left$(Value, 1)  ' we only look at the first character passed in
+            
+            Dim index As Long = CLng(SendMessageCtl(ComboBoxMessages.CB_FINDSTRING, -1, StrPtrSafe(Value)))
+            If index <> -1 Then
+                Me.ListIndex = index
+            End If
+        End Property
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+
+        Public Sub Refresh()
+            Me.SyncDrives()
+            RootWindowElementBase.CommonRedrawEraseInvalidate()
+        End Sub
+
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub SyncOLEDropMode() _
+                Handles OLEDropMode.OnPropertyLet
+                
+            BaseSyncOLEDropMode(Me, Me.OLEDropMode, Me.OLEDragDropHandler, False, False)
+        End Sub
+        #End If
+    #End Region
+    
+End Class
+
+[Description("A Win32 native DriveListBox")]
+[WindowsControl("/miscellaneous/ICONS??/DriveListBox??.png")]
+[ClassId("33AD4F50-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("6ACFB26B-CDFB-4A9B-8BF7-8D6D185790E6")]  ' FIXME implement {33AD4F51-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class DriveListBox
+    Inherits DriveListBoxBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

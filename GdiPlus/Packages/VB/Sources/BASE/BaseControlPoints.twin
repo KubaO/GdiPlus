@@ -1,0 +1,68 @@
+[ClassId("EDC4755E-A852-4CD8-9FEA-462C66582821")]
+[InterfaceId("E2C6BAC0-598E-4C7C-B975-9D31F06AF707")]
+[COMCreatable(False)]
+Private Class BaseControlPoints
+    
+    Inherits BaseControl
+
+    [Description("")]
+    [Serialize(True, "X1")]
+        Protected PixelsX1INIT As Double
+    [Description("")]
+    [Serialize(True, "Y1")]
+        Protected PixelsY1INIT As Double
+    [Description("")]
+    [Serialize(True, "X2")]
+        Protected PixelsX2INIT As Double
+    [Description("")]
+    [Serialize(True, "Y2")]
+        Protected PixelsY2INIT As Double
+
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        BaseControl.New(ControlType)
+    End Sub
+    
+    Protected Sub InternalStateReset()
+        InternalStateResetBaseControl()
+    End Sub
+    
+    Protected Sub ChangedPosition()
+        Dim ControlContext As Any = Me.ControlContext
+        ControlContext.RuntimeUICtxChangedPosition()
+    End Sub
+
+    Protected Sub InternalBaseControlBeforeCreateRootWindow(ByRef InitData As WindowCreationData)
+        With InternalBaseControlInfo
+            .PixelsX1 = Me.PixelsX1INIT
+            .PixelsY1 = Me.PixelsY1INIT
+            .PixelsX2 = Me.PixelsX2INIT
+            .PixelsY2 = Me.PixelsY2INIT
+        End With
+        InternalBaseControlBeforeCreateRootWindowBaseControl(InitData)
+    End Sub
+    
+    [Serialize(False)]
+    [DispId(-859)]
+    Protected Property Get PixelsX1() As Double
+        Return InternalBaseControlInfo.PixelsX1
+    End Property
+        
+    [Serialize(False)]
+    [DispId(-860)]
+    Protected Property Get PixelsY1() As Double
+        Return InternalBaseControlInfo.PixelsY1
+    End Property
+        
+    [Serialize(False)]
+    [DispId(-861)]
+    Protected Property Get PixelsX2() As Double
+        Return InternalBaseControlInfo.PixelsX2
+    End Property
+    
+    [Serialize(False)]
+    [DispId(-862)]
+    Protected Property Get PixelsY2() As Double
+        Return InternalBaseControlInfo.PixelsY2
+    End Property
+        
+End Class

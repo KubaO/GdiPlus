@@ -1,0 +1,354 @@
+#If FEATURE_OLE Then
+[ClassId("15F53529-6B2B-4A14-91D8-CCA28774D540")]
+[InterfaceId("8C0D774F-CC3F-436B-82C3-F53B7308B81E")]    ' FIXME implement {33AD5001-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class OLEBaseCtl
+    
+    #Region "INHERITANCE"
+    
+        Inherits BaseControlFocusableNoFont
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [Unimplemented]
+        [Description("")]
+            Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+
+        [Unimplemented]
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [Unimplemented]
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = ControlBorderStyleConstants.vbFixedSingleBorder
+        [Unimplemented]
+            Public BackStyle As BackFillStyleConstants = BackFillStyleConstants.vbBFOpaque
+
+        [Unimplemented]
+            Public AutoActivate As VBRUN.OLEContainerActivateConstants = VBRUN.OLEContainerActivateConstants.vbOLE_ActivateDoubleclick
+        [Unimplemented]
+            Public AutoVerbMenu As Boolean = True
+        [Unimplemented]
+            Public Class As String
+        [Unimplemented]
+            Public DisplayType As VBRUN.OLEContainerDisplayTypeConstants
+        [Unimplemented]
+            Public HostName As String
+        [Unimplemented]
+            Public MiscFlags As Long
+        [Unimplemented]
+            Public OLEDropAllowed As Boolean
+        [Unimplemented]
+            Public OLETypeAllowed As VBRUN.OLEContainerTypesAllowedConstants = VBRUN.OLEContainerTypesAllowedConstants.vbOLE_Either
+        [Unimplemented]
+            Public SizeMode As VBRUN.OLEContainerSizeModeConstants
+        [Unimplemented]
+            Public SourceDoc As String
+        [Unimplemented]
+            Public SourceItem As String
+        [Unimplemented]
+            Public UpdateOptions As VBRUN.OLEContainerUpdateOptionsConstants
+        [Unimplemented]
+            Public Verb As Long
+                            
+        [Unimplemented]
+            Public DataField As String
+        [Unimplemented]
+        [Serialize(True, "DataSource")]          ' Any string value is allowed, gets resolved at runtime to a Form.Controls(DataSourceName)
+            Protected DataSourceINIT As String
+            
+        #If FEATURE_HELP Then
+        [Unimplemented]
+            Public Sub ShowWhatsThis()
+            End Sub
+        [Unimplemented]
+            Public HelpContextID As Long
+            Public WhatsThisHelpID As Long
+        #End If
+            
+        [Serialize(False)]
+        [Unimplemented]
+            Public DataChanged As Boolean
+        [Serialize(False)]
+        [Unimplemented]
+            Public DataSource As DataSource         ' See DataSourceINIT
+        [Serialize(False)]
+        [Unimplemented]
+            Public _Default As Integer
+            Attribute _Default.VB_VarUserMemId = 0
+
+        [Serialize(False)]
+        [Unimplemented]
+            Public Action As Integer
+        [Serialize(False)]
+        [Unimplemented]
+            Public AppIsRunning As Boolean
+        [Serialize(False)]
+        [Unimplemented]
+            Public Data As Long
+        [Serialize(False)]
+        [Unimplemented]
+            Public DataText As String
+            
+        [Serialize(False)]
+        [Unimplemented]
+            Public FileNumber As Integer
+        [Serialize(False)]
+        [Unimplemented]
+            Public Format As String
+        [Serialize(False)]
+        [Unimplemented]
+            Public LpOleObject As LongPtr
+        [Serialize(False)]
+        [Unimplemented]
+            Public object As Object
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectAcceptFormats() As String      ' FIXME not really an array, but an indexed prop-get
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectAcceptFormatsCount As Integer
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectGetFormats() As String     ' FIXME not really an array, but an indexed prop-get
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectGetFormatsCount As Integer
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectVerbFlags() As Long     ' FIXME not really an array, but an indexed prop-get
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectVerbs() As String      ' FIXME not really an array, but an indexed prop-get
+        [Serialize(False)]
+        [Unimplemented]
+            Public ObjectVerbsCount As Long
+        [Serialize(False)]
+        [Unimplemented]
+            Public OLEType As Integer
+        [Serialize(False)]
+        [Unimplemented]
+            Public PasteOK  As Boolean
+        [Serialize(False)]
+        [Unimplemented]
+            Public Picture As IPictureDisp
+
+        [Unimplemented]
+            Public Sub Close()
+            End Sub
+        [Unimplemented]
+            Public Sub Copy()
+            End Sub
+        [Unimplemented]
+            Public Sub CreateEmbed(ByVal SourceDoc As String, Optional ByVal Class As Variant)
+            End Sub
+        [Unimplemented]
+            Public Sub CreateLink(ByVal SourceDoc As String, Optional ByVal SourceItem As Variant)
+            End Sub
+        [Unimplemented]
+            Public Sub Delete()
+            End Sub
+        [Unimplemented]
+            Public Sub DoVerb(Optional ByVal Verb As Variant)
+            End Sub
+        [Unimplemented]
+            Public Sub FetchVerbs()
+            End Sub
+        [Unimplemented]
+            Public Sub InsertObjDlg()
+            End Sub
+        [Unimplemented]
+            Public Sub Paste()
+            End Sub
+        [Unimplemented]
+            Public Sub PasteSpecialDlg()
+            End Sub
+        [Unimplemented]
+            Public Sub ReadFromFile(ByVal FileNum As Integer)
+            End Sub
+        [Unimplemented]
+            Public Sub SaveToFile(ByVal FileNum As Integer)
+            End Sub
+        [Unimplemented]
+            Public Sub SaveToOle1File(ByVal FileNum As Integer)
+            End Sub
+        [Unimplemented]
+            Public Sub Update()
+            End Sub
+
+    #End Region
+
+    #Region "EVENTS"
+    
+        [Unimplemented]
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Unimplemented]
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Unimplemented]
+        [Description("")]
+            Event Initialize()
+
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        [Unimplemented] Event ObjectMove(Left As Single, Top As Single, Width As Single, Height As Single)
+        [Unimplemented] Event Resize(HeightNew As Single, WidthNew As Single)
+        [Unimplemented] Event Updated(Code As Integer)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+
+    #End Region
+               
+    #Region "MEMBERS"
+
+        Sub New()
+            BaseControlFocusableNoFont.New(ControlTypeConstants.vbOLEControl)
+        End Sub
+    
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateResetRectDockable()     ' resets all the base class state()
+            Me.DataChanged = False
+            Set Me.DataSource = Nothing
+            Me.[_Default] = 0
+            Me.Action = 0
+            Me.AppIsRunning = False
+            Me.Data = 0
+            Me.DataText = vbNullString
+            Me.FileNumber = 0
+            Me.Format = 0
+            Me.LpOleObject = vbNullPtr
+            Set Me.object = Nothing
+            Erase Me.ObjectAcceptFormats
+            Me.ObjectAcceptFormatsCount = 0
+            Erase Me.ObjectGetFormats
+            Me.ObjectGetFormatsCount = 0
+            Erase Me.ObjectVerbFlags
+            Erase Me.ObjectVerbs
+            Me.ObjectVerbsCount = 0
+            Me.OLEType = 0
+            Me.PasteOK = False
+            Set Me.Picture = Nothing
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "OLE"
+            End If
+            'IsDesignMode = .IsDesignMode
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderGenericControl)
+            'InitData.Caption = vbNullString
+            'InitData.WindowStyles = 0
+            InitData.ExtendedStyles = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+            InitData.Flags = ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseMove Or _
+                                ForwardMouseUp Or _
+                                ForwardDragOver Or _
+                                ForwardValidate
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            RaiseEvent Initialize()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+                        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native OLE control")]
+[WindowsControl("/miscellaneous/ICONS??/OLE??.png")]
+[ClassId("33AD5000-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("984CACBD-728B-401E-807E-6986D81CA7B5")]    ' FIXME implement {33AD5001-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class OLE
+    Inherits OLEBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

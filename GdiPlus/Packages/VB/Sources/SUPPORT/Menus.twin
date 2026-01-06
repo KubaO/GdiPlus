@@ -1,0 +1,321 @@
+#If FEATURE_MENU Then
+Private Module MenuHelpers
+    Public Sub CommonRuntimeMenuAdded(ByVal control As Menu, Menus() As Menu)
+        Dim ptr As LongPtr = CommonGetInternalMenuDataPtr(control)
+        With CType(Of MenuInternalData)(ptr)
+            Dim MenuCount As Long = UBound(Menus) + 1
+            .InternalCachedMasterId = MenuCount + 1     ' assign a unique ID to each menu
+            ReDim Preserve Menus(MenuCount) As Menu
+            Set Menus(MenuCount) = CType(Of Menu)(control)
+            .InternalCachedPositionId = -1
+            .InternalCachedContainerMenuHandle.Value = vbNullPtr
+            .InternalCachedPopupMenuHandle.Value = vbNullPtr
+        End With
+    End Sub
+        
+    Public Sub CommonRuntimeMenuRemoved(ByVal control As Menu, Menus() As Menu)
+        Dim ptr As LongPtr = CommonGetInternalMenuDataPtr(control)
+        With CType(Of MenuInternalData)(ptr)
+            ' dont change the Menus collection layout as we have assigned indexes into it
+            Set Menus(CLng(.InternalCachedMasterId) - 1) = Nothing
+                
+            If .InternalCachedPositionId <> -1 Then
+                .InternalCachedContainerMenuHandle.RemoveMenu(CLng(.InternalCachedPositionId), MF_BYPOSITION)
+            End If
+                
+            .InternalCachedPositionId = -1
+            .InternalCachedContainerMenuHandle.Value = vbNullPtr
+            .InternalCachedPopupMenuHandle.Value = vbNullPtr
+        End With
+    End Sub
+        
+    Public Sub CommonPrepareMenus(ByVal Controls As Object, Menus() As Menu)
+        ' Count number of menus
+        Dim MenuCount As Long
+        Dim Control As Control
+        For Each Control In Controls
+            If TypeOf Control Is Menu Then
+                MenuCount += 1
+            End If
+        Next
+            
+        If MenuCount > 0 Then
+            ReDim Menus(MenuCount - 1) As Menu
+                
+            For Each Control In Controls
+                If TypeOf Control Is Menu Then
+                    Dim ControlMenu As Any = CType(Of Menu)(Control)
+                    With CType(Of MenuInternalData)(CommonGetInternalMenuDataPtr(ControlMenu))
+                        .InternalCachedMasterId = MenuCount      ' assign a unique ID to each menu
+                    End With
+                    'Debug.Print "Assigned ControlMenu.InternalCachedMasterId: " & ControlMenu.InternalCachedMasterId
+                    MenuCount -= 1          ' populate backwards
+                    Set Menus(MenuCount) = ControlMenu
+                End If
+            Next
+        End If
+    End Sub
+        
+    Public Sub CommonClearSubMenusCachedInfo(Container As Menu, Menus() As Menu)
+        Dim ptr As LongPtr = CommonGetInternalMenuDataPtr(Container)
+        With CType(Of MenuInternalData)(ptr)
+            .InternalCachedContainerMenuHandle.Value = vbNullPtr
+            .InternalCachedPositionId = -1
+        End With
+            
+        Dim ControlMenu As Menu
+        For Each ControlMenu In Menus
+            If (ControlMenu IsNot Nothing) AndAlso (ControlMenu.Container Is Container) Then
+            CommonClearSubMenusCachedInfo(ControlMenu, Menus)
+            End If
+        Next
+    End Sub
+    
+    Type CommonInsertMenuControlARGS
+        ControlContext As ControlContext
+        Menus() As Menu
+        Controls As Object
+        'Rebuilding As Boolean
+        'menuHandle As LongPtr
+        windowListMenu As LongPtr
+        'menuPositionId As Long
+        'ControlMenu As Menu
+        Level As Long
+        IsPopUp As Boolean
+        BoldMenuItem As Menu
+    End Type
+    
+    Protected Sub CommonInsertMenuControl(Args As CommonInsertMenuControlARGS, Rebuilding As Boolean, menuHandle As HMENU, menuPositionId As Long, ControlMenu As Menu)
+        Dim subMenuHandle As LongPtr
+        
+        Dim ptr As LongPtr = CommonGetInternalMenuDataPtr(ControlMenu)
+        With CType(Of MenuInternalData)(ptr)
+            If Rebuilding = False Then
+                If ControlMenu.Visible = False Then
+                    If .InternalCachedPositionId <> -1 Then
+                        ' Remove the control now
+                        'Stop
+                        menuHandle.RemoveMenu(.InternalCachedPositionId, MF_BYPOSITION)
+                        CommonClearSubMenusCachedInfo(ControlMenu, Args.Menus)
+                    End If
+                    If Args.IsPopUp Then
+                        .InternalCachedMenuHandlePopup.Value = vbNullPtr
+                    Else
+                        .InternalCachedMenuHandle.Value = vbNullPtr
+                    End If
+                    Exit Sub
+                End If
+                    
+                If .InternalCachedPositionId <> -1 Then
+                    ' We must be updating the parent menu, and so this menu item has already been assigned to it.
+                    ' It will already be in the correct physical order, so just update the actual index in case a previous entry got inserted/deleted
+                    ' 'Stop
+                    If ControlMenu.WindowList Then
+                        subMenuHandle = menuHandle.GetSubMenu(menuPositionId)
+                        If subMenuHandle <> vbNullPtr Then
+                            Args.windowListMenu = subMenuHandle
+                        End If
+                    End If
+                        
+                    Dim childMenus As Variant = [_HiddenModule].RuntimeGetChildControlsList(ControlMenu, ControlTypeConstants.vbMenuControl)
+                
+                    If VarType(childMenus) <> 0 Then
+                        ' we try to avoid doing any work here unless absolutely necessary, for performance reasons (i.e. there are sub controls)
+                        subMenuHandle = menuHandle.GetSubMenu(menuPositionId)
+                        
+                        Dim Rebuilding2 As Boolean
+                        If subMenuHandle = vbNullPtr Then
+                            Rebuilding2 = True
+                        End If
+                
+                        Args.Level += 1
+                        Dim subArgs As CommonInsertMenuControlARGS
+                        subArgs.ControlContext = Args.ControlContext
+                        subArgs.Menus = Args.Menus
+                        
+                        Dim ControlMenuSub As Menu
+                        For Each ControlMenuSub In childMenus
+                            'Debug.Print ControlMenu.Name
+                
+                            Dim menuPositionIdSub As Long
+                            CommonInsertMenuControl(Args, Rebuilding2, subMenuHandle, menuPositionIdSub, ControlMenuSub)
+                        Next
+                        Args.Level -= 1
+                    End If
+                    
+                    .InternalCachedPositionId = menuPositionId
+                    menuPositionId += 1
+                    Exit Sub
+                End If
+            Else
+                If ControlMenu.Visible = False Then
+                    Exit Sub
+                End If
+            End If
+            
+            If menuHandle.Value = vbNullPtr Then
+                If Args.IsPopUp Then
+                    menuHandle = USER32.CreatePopupMenu()
+                Else
+                    menuHandle = USER32.CreateMenu()
+                    'Debug.Print "Created menu " & ControlMenu.Caption & ": " & menuHandle
+                End If
+            End If
+            
+            If Args.IsPopUp Then
+                If .InternalCachedMenuHandlePopup.Value <> vbNullPtr Then
+                    .InternalCachedMenuHandlePopup.DestroyMenu()
+                End If
+                .InternalCachedMenuHandlePopup = menuHandle
+            Else
+                If .InternalCachedMenuHandle.Value <> vbNullPtr Then
+                    .InternalCachedMenuHandle.DestroyMenu()
+                End If
+                .InternalCachedMenuHandle = menuHandle
+            End If
+                
+            Dim itemInfo As MENUITEMINFO
+            itemInfo.cbSize = LenB(itemInfo)
+            itemInfo.fMask = MIIM_STRING Or MIIM_SUBMENU Or MIIM_STATE Or MIIM_FTYPE Or MIIM_ID
+            itemInfo.wID = .InternalCachedMasterId
+            Dim shortcutId As Any = ControlMenu.ShortcutId
+            If shortcutId = VBRUN.ShortcutConstants.vbShortcutNone Then
+                itemInfo.dwTypeData = ControlMenu.Caption
+            Else
+                itemInfo.dwTypeData = ControlMenu.Caption & vbTab & [_HiddenModule].GetShortcutTextByEnum(shortcutId)
+                Args.ControlContext.RuntimeUICtxRegisterShortcutMenu(ControlMenu, shortcutId)
+            End If
+                        
+            Args.Level += 1
+            CommonBuildMenus(Args, subMenuHandle, CType(Of Control)(ControlMenu))
+            Args.Level -= 1
+            If ControlMenu.WindowList Then
+                If subMenuHandle = vbNullPtr Then
+                    ' Empty window list still needs a menu being created for it
+                    subMenuHandle = USER32.CreateMenu()
+                End If
+                Args.windowListMenu = subMenuHandle
+            End If
+                
+            itemInfo.hSubMenu = subMenuHandle
+            itemInfo.fType = 0
+            itemInfo.fState = 0
+                
+            Dim controlMenuPicture As Any = ControlMenu.Picture
+            If controlMenuPicture IsNot Nothing Then
+                If controlMenuPicture.Type <> vbPicTypeIcon Then
+                    itemInfo.fMask += MIIM_BITMAP
+                    itemInfo.hbmpItem = controlMenuPicture.Handle
+                End If
+            End If
+
+            If ControlMenu.Checked = True Then itemInfo.fState += MFS_CHECKED
+            If ControlMenu.Enabled = False Then itemInfo.fState += MFS_DISABLED
+            If ControlMenu.Caption = "-" Then itemInfo.fType = MFT_SEPARATOR
+            If ControlMenu Is Args.BoldMenuItem Then itemInfo.fState += MFS_DEFAULT
+                        
+            'Debug.Print "CREATED MENU ITEM: " & itemInfo.dwTypeData & " [position: " & menuPositionId & "]"
+
+            menuHandle.InsertMenuItemW(menuPositionId, 1, itemInfo)
+            .InternalCachedPositionId = menuPositionId
+            menuPositionId += 1
+                
+            If Args.IsPopUp = False Then
+                .InternalCachedContainerMenuHandle = menuHandle
+            Else
+                .InternalCachedPopupMenuHandle = menuHandle
+            End If
+    
+        End With
+    End Sub
+    
+    Public Sub CommonBuildMenus(Args As CommonInsertMenuControlARGS, existingMenuHandle As HMENU, Container As Control)
+        Dim Rebuilding As Boolean
+        If existingMenuHandle.Value = vbNullPtr Then
+            Rebuilding = True
+        End If
+        
+        Dim ControlMenu As Menu
+        Dim childMenus As Variant = [_HiddenModule].RuntimeGetChildControlsList(Container, ControlTypeConstants.vbMenuControl)
+                
+        If VarType(childMenus) <> 0 Then
+            For Each ControlMenu In childMenus
+                'Debug.Print ControlMenu.Name
+                
+                Dim menuPositionId As Long
+                CommonInsertMenuControl(Args, Rebuilding, existingMenuHandle, menuPositionId, ControlMenu)
+            Next
+        End If
+    End Sub
+    
+    Public Sub CommonRemovePopUpMenuCachedData(Menus() As Menu)
+        Dim ControlMenu As Menu
+        For Each ControlMenu In Menus
+            If ControlMenu IsNot Nothing Then
+                With CType(Of MenuInternalData)(CommonGetInternalMenuDataPtr(ControlMenu))
+                    .InternalCachedPopupMenuHandle.Value = vbNullPtr
+                End With
+                'Debug.Print "REMOVED POPUP CACHED DATA: " & ControlMenu.Name
+            End If
+        Next
+    End Sub
+        
+    Public Sub CommonPopUpMenu(Menus() As Menu, ByVal RootWindowElement As WindowElement, ByVal controlContext As ControlContext, ByVal Menu As Object, Optional ByVal Flags As Variant, Optional ByVal X As Variant, Optional ByVal Y As Variant, Optional ByVal DefaultMenu As Variant)
+        Dim xMissing As Boolean = IsMissing(X)
+        Dim yMissing As Boolean = IsMissing(Y)
+        If xMissing Or yMissing Then
+            Dim point As POINTL
+            USER32.GetCursorPos(point)
+            If xMissing Then X = point.x
+            If yMissing Then Y = point.y
+        End If
+        Dim hwnd As Any = RootWindowElement.RuntimeUIGetHandle()
+        Dim UnitPixelScale As Any = RootWindowElement.RuntimeUIGetUnitScale()
+        If xMissing = False Then
+            point.x = CLng((X * UnitPixelScale) / controlContext.RuntimeUICtxGetScaleModePixelsMultiplierX())
+            hwnd.ClientToScreen(point)
+            X = point.x
+        End If
+            
+        If yMissing = False Then
+            point.y = CLng((Y * UnitPixelScale) / controlContext.RuntimeUICtxGetScaleModePixelsMultiplierY())
+            hwnd.ClientToScreen(point)
+            Y = point.y
+        End If
+            
+        If IsMissing(Flags) Then
+            Flags = 0
+        End If
+            
+        Dim defMenu As Menu
+        If IsMissing(DefaultMenu) = False Then
+            Set defMenu = CType(Of Menu)(DefaultMenu)
+        End If
+                        
+        ' The passed in Menu does NOT need to be a menu situated on THIS form
+        Dim parentForm As Form = CType(Of Form)(Menu.Parent)
+        Dim parentFormPrivate As ITbCommonContainerPrivate = CType(Of ITbCommonContainerPrivate)(parentForm)
+        Dim menuHandle As HMENU
+        Dim windowListMenu As LongPtr
+        parentFormPrivate.BuildMenus(menuHandle, windowListMenu, CType(Of Control)(Menu), 0, True, defMenu)
+        hwnd.SetForegroundWindow()
+        parentFormPrivate.SetPendingPopupMenu(CType(Of Menu)(Menu))
+        menuHandle.TrackPopupMenu(CLng(Flags), CLng(X), CLng(Y), 0, CLngPtr(parentForm.hWnd), 0)
+        parentFormPrivate.SetPendingPopupMenu(Nothing)
+        Const WM_NULL As Long = 0
+        hwnd.PostMessageW(WM_NULL, 0, 0)
+        DoEvents()      ' this allows the menu command CLICK event to fire before we return
+        CommonRemovePopUpMenuCachedData(Menus)
+        menuHandle.DestroyMenu()
+    End Sub
+    
+    ' Protected Function GetMenuBarHeight() As Long
+    '     Const OBJID_MENU As Long = &HFFFFFFFD
+    '     Dim barInfo As MENUBARINFO
+    '     barInfo.cbSize = LenB(barInfo)
+    '     GetMenuBarInfo(RootWindowElement.Handle, OBJID_MENU, 0, barInfo)
+    '     Return barInfo.rcBar.Bottom - barInfo.rcBar.Top
+    ' End Function
+
+End Module
+#End If

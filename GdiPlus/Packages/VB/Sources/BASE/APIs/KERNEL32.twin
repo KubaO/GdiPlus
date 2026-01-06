@@ -1,0 +1,41 @@
+Private Module KERNEL32Module
+
+    Type KERNEL32
+        Ignore As Byte
+        
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function MulDiv Lib "kernel32" (ByVal nNumber As Long, ByVal nNumerator As Long, ByVal nDenominator As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetVolumeInformationW Lib "kernel32" (ByVal lpRootPathName As String, ByVal lpVolumeNameBuffer As String, ByVal nVolumeNameSize As Long, ByVal lpVolumeSerialNumber As LongPtr, ByVal lpMaximumComponentLength As LongPtr, ByVal lpFileSystemFlags As LongPtr, ByVal lpFileSystemNameBuffer As String, ByVal nFileSystemNameSize As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetDriveTypeW Lib "kernel32" (ByVal lpRootPathName As String) As DriveType
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function lstrcmpW Lib "kernel32" (ByVal lpString1 As String, ByVal lpString2 As String) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetUserDefaultLCID Lib "kernel32" () As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public Declare PtrSafe Function WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long, lpMultiByteStr As Any, ByVal cchMultiByte As LongPtr, ByVal lpDefaultChar As LongPtr, ByVal lpUsedDefaultChar As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Sub RtlMoveMemory Lib "kernel32" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal Size As LongPtr)
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function lstrlenW Lib "kernel32" (ByVal value As String) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetProfileStringW Lib "kernel32" (ByVal lpAppName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal outStr As String, ByVal nSize As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal uFlags As Long, ByVal dwBytes As LongPtr) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As LongPtr, ByVal cchMultiByte As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTickCount Lib "kernel32" () As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function lstrcmpiW Lib "kernel32" (ByVal lpString1 As String, ByVal lpString2 As String) As Long
+    End Type
+End Module

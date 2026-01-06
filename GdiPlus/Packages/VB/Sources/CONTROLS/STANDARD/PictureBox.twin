@@ -1,0 +1,607 @@
+#If FEATURE_PICTUREBOX Then
+[ClassId("CDAC0664-CEE7-4A1E-860D-F018953DCF5A")]
+[InterfaceId("10D1DF44-A36D-49E7-8CAC-27E3D4BA10C8")]    ' FIXME implement {33AD4ED1-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class PictureBoxBaseCtl
+    
+    #Region "INHERITANCE"
+      
+        Inherits BaseControlFocusableNoFont
+        Inherits GraphicsBase
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #End If
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements ITbCommonContainerPrivate
+        Implements ITwinBasicDesignerExtensions2
+        Implements IWindowElementEventsCommon
+        Implements IUnsupportedInterface            ' MUST be last interface
+         
+    #End Region
+        
+    #Region "STATE"
+
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = ControlBorderStyleConstants.vbFixedSingleBorder
+        [Description("")]
+            Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+
+        [Serialize(True, "Picture")]
+        [CustomDesigner("designer_PictureBytes")]
+            Protected ReadOnly PictureINIT() As Byte
+            
+            Protected IsDesignMode As Boolean
+            
+            Public AutoSize As Boolean
+        
+        [Unimplemented]
+            Public LinkItem As String
+        [Unimplemented]
+            Public LinkMode As VBRUN.LinkModeConstants
+        [Unimplemented]
+            Public LinkTopic As String
+        [Unimplemented]
+            Public LinkTimeout As Long = 50
+
+        [Unimplemented]
+            Public RightToLeft As Boolean
+        [Unimplemented]
+            Public Negotiate As Boolean             ' this appears in the form designer, but not in the class interface??
+
+        [CustomDesigner("designer_MultiLineText")]
+        [Serialize(True, "ToolTipText")]
+            Protected ToolTipTextINIT As String
+            
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+
+        [Unimplemented]
+            Public Sub LinkExecute(ByVal Command As String)
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkPoke()
+            End Sub
+            
+        [Unimplemented]
+            Public Sub LinkRequest()
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkSend()
+            End Sub
+
+        #If FEATURE_OLEDRAGDROP Then
+        Public OLEDragMode As VBRUN.OLEDragConstants
+        
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+                        
+        [Unimplemented]
+            Public Function Point(ByVal X As Single, ByVal Y As Single) As Long
+            End Function
+            
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        [Unimplemented]
+            Public WhatsThisHelpID As Long
+        
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #End If
+    #End Region
+               
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+            Event Paint()
+        [Description("")]
+            Event Resize()
+        [Description("")]
+            Event Change()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Unimplemented] Event LinkClose()
+        [Unimplemented] Event LinkError(LinkErr As Integer)
+        [Unimplemented] Event LinkNotify()
+        [Unimplemented] Event LinkOpen(Cancel As Integer)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+        Event MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) ' new to tB
+            
+    #End Region
+               
+    #Region "MEMBERS"
+        
+        Sub New()
+            BaseControlFocusableNoFont.New(ControlTypeConstants.vbPictureBox)
+        End Sub
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                            
+            Me.InternalStateResetRectDockable()     ' resets all the base class state()
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            Me.InternalStateResetGraphics()
+                        
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Me.TabStopINIT = False          ' For new controls this is correct.  Though for imported controls, TabStop = True is the default
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            With InternalBaseControlInfo
+                .BaseGraphicsInfoPtr = InitBaseGraphicsInfo()
+            End With
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Dim styles As Long = If(GraphicsBase.ClipControls = True, WS_CLIPCHILDREN, 0&)
+            Dim extendedStyles As Long = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+
+            If Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                If Me.Appearance = AppearanceConstants.vbAppear3d Then
+                    extendedStyles += WS_EX_CLIENTEDGE
+                Else
+                    styles += WS_BORDER
+                End If
+            End If
+
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(If(GraphicsBase.HasDC, EnumWindowAtoms.AtomIdx_ThunderPictureBoxDC, EnumWindowAtoms.AtomIdx_ThunderPictureBox))
+            'InitData.Caption = vbNullString
+            InitData.WindowStyles = styles
+            InitData.ExtendedStyles = extendedStyles
+            InitData.Flags = IsContainer Or _
+                                ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardDragOver Or _
+                                ForwardValidate Or _
+                                ForwardDoubleClick Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardMouseMove Or _
+                                ManualMouseCapture Or _
+                                ForwardButtonClick Or _
+                                ScaleAdjustMouseEvents
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            InitGraphics(Me.RootWindowElementBase)
+                        
+            With InternalBaseControlInfo
+                .ToolTipText = Me.ToolTipTextINIT
+            End With
+            
+            #If FEATURE_OLEDRAGDROP Then
+            InitOleDragDropHelper()
+            #End If
+            'Me.[_BaseGraphics].SyncScaleMode(Me, Me.RootWindowElementBase)
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, True, False)
+        End Sub
+        #End If
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #End If
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            Me.InternalStateResetGraphics()
+            #If FEATURE_DRAWING Then
+            Set Me.Font = Nothing
+            #End If
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+            RaiseEvent MouseWheel(Delta, Horizontal)
+        End Sub
+        
+        Protected Sub AutoSizeChanged() _
+        	    Handles AutoSize.OnPropertyLet
+                
+            If Me.AutoSize Then
+                AutoSizeNow(Me.Picture)
+            End If
+        End Sub
+                
+        Public Sub AutoSizeNow(ByRef picture As StdPicture)     ' FIXME currently has to be public, as it's accessed via IDispatch in Graphics
+            If picture IsNot Nothing Then
+                Dim DrawWidth As Long
+                Dim DrawHeight As Long
+
+                Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+                
+                Const PICTYPE_METAFILE As Long = 2
+                Const PICTYPE_ENHMETAFILE As Long = 4
+                Dim pictureType As Any = CType(Of PictureTypeConstants)(picture.Type)
+                
+                If (pictureType = PICTYPE_METAFILE) Or (pictureType = PICTYPE_ENHMETAFILE) Then
+                Else
+                    ScaleOLEPictureDimensionsToPixels(pictureType, picture.Width, DrawWidth, picture.Height, DrawHeight)
+                    Dim BorderPixelSize As Long
+                    If Me.BorderStyle = vbFixedSingleBorder Then BorderPixelSize = 4
+                    DrawWidth += BorderPixelSize
+                    DrawHeight += BorderPixelSize
+                    If PictureDpiScaling = False Then
+                        DrawWidth = CLng(DrawWidth / UnitPixelScale)
+                        DrawHeight = CLng(DrawHeight / UnitPixelScale)
+                    End If
+                End If
+                
+                Dim newWidth As Double
+                Dim newHeight As Double
+                'If Me.IsDesignMode Then
+                '    newWidth = DrawWidth * Screen.TwipsPerPixelX * UnitPixelScale
+                '    newHeight = DrawHeight * Screen.TwipsPerPixelY * UnitPixelScale
+                'Else
+                	Dim ControlContext As Any = Me.ControlContext
+                    newWidth = DrawWidth * ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX_SELF()
+                    newHeight = DrawHeight * ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY_SELF()
+                'End If
+                Me.Width = newWidth
+                Me.Height = newHeight
+            End If
+        End Sub
+                
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            SyncScaleMode(Me, RootWindowElementBase)
+            
+            SyncPictureINIT()
+            
+            InternalChangeHDC(0, Me.hWnd, RootWindowElementBase, Picture, Me, False)
+                        
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #End If
+            
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #End If
+            RaiseEvent Initialize()
+            
+            InternalIsFirstResizeEventAfterLoad = True
+        End Sub
+        
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+                
+            'Debug.Print Now() & " PictureBox.HandlePaint"
+            
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API 
+                
+                OnPaint(ps.hdc)
+                
+                'If Me.ClipControls = True And IsDesignMode = False Then
+                    'CommonRedrawChildren(Me)
+                'End If
+
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+        End Sub
+                
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+            
+            ' ForwardMouseDown has already forwarded the message on to the actual control handler
+            If Me.OLEDragMode = vbOLEDragAutomatic Then
+                If Me.Picture IsNot Nothing Then
+                	If RootWindowElementBase.CommonDragDetect() Then
+                        If CommonOLEDrag(Me, Me.Picture, False, True) = vbDropEffectMove Then
+                            Set Me.Picture = Nothing
+                        End If
+                	End If
+                End If
+            End If
+        End Sub
+        #End If
+                
+        Protected Sub SetPendingPopupMenu(Menu As Menu) _
+                Implements ITbCommonContainerPrivate.SetPendingPopupMenu
+        End Sub
+                    
+        Protected Sub MenuRedrawRequired() _
+                       Implements ITbCommonContainerPrivate.MenuRedrawRequired
+        End Sub
+
+        Protected Sub InternalRaiseResize() _
+                Implements ITbCommonContainerPrivate.RaiseResize
+            
+            'Debug.Print "PictureBox InternalRaiseResize"
+            'Refresh
+            RaiseEvent Resize()
+        End Sub
+        
+        Protected Sub InternalRaiseResize2() _
+                Implements ITbCommonContainerPrivate.RaiseResize2
+            
+            'Debug.Print "PictureBox InternalRaiseResize"
+            'Refresh
+            RaiseEvent Resize()
+        End Sub
+                
+        Protected Sub InternalRaiseChange() _
+                Implements ITbCommonContainerPrivate.RaiseChange
+            
+            #If FEATURE_DATA_BINDINGS Then
+            OnDataChanged()
+            #End If
+        	RaiseEvent Change()
+        End Sub
+
+        Protected Sub InternalRaisePaint() _
+                Implements ITbCommonContainerPrivate.RaisePaint
+            
+        	RaiseEvent Paint()
+        End Sub
+
+        Public Sub Refresh()
+            If Me.AutoRedraw = True Then
+                Me.CopyBufferToDC(Me.RealHDC)
+            Else
+            	RootWindowElementBase.CommonRedrawEraseInvalidate()
+            End If
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+                        
+        Protected Sub BorderStyleChanged() _  
+        	    Handles BorderStyle.OnPropertyLet, _
+                        Appearance.OnPropertyLet
+                
+            InternalChangedBorder()
+            CommonSyncBorderStyle(Me)
+        End Sub
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Variant
+        	Dim Picture As Any = Me.Picture
+            If Picture IsNot Nothing Then
+            	Return Picture
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As Variant)
+            Set Me.Picture = CType(Of StdPicture)(Value)
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Set _Default(ByVal Value As Variant)
+            Set Me.Picture = CType(Of StdPicture)(Value)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ToolTipText() As String
+            Return InternalBaseControlInfo.ToolTipText
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let ToolTipText(ByVal Value As String)
+            InternalBaseControlInfo.ToolTipText = Value
+            RootWindowElementBase.RuntimeUIToolTipChanged()
+        End Property
+        
+        Protected Sub UnsupportedInterfaceRequested(ByRef iid As GUID2, ByRef out As stdole.IUnknown) _
+                Implements IUnsupportedInterface.UnsupportedInterfaceRequested
+            CommonHandleRedirectedPictureInterface(iid, out, Me)
+        End Sub
+        
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            Dim newPic As StdPicture
+            If IsNull(fieldValue) OrElse Len(fieldValue) = 0 Then
+            Else
+                Set newPic = CType(Of StdPicture)(Global.LoadPicture(fieldValue))
+            End If
+            Set Me.Picture = newPic
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = PictureToByteArray(Me.Picture)
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #End If
+        
+        [Serialize(False)]
+        [Hidden]
+        Public Property Get Align() As VBRUN.AlignConstants
+            Return CommonGetAlign(Me)
+        End Property
+        
+        [Serialize(False)]
+        [Hidden]
+        Public Property Let Align(ByVal Value As VBRUN.AlignConstants)
+            CommonLetAlign(Me, Value)
+        End Property
+        
+        Protected Sub RaiseViewChanged() _
+                Implements ITbCommonContainerPrivate.RaiseViewChanged
+        End Sub
+        
+        Protected Sub RebuildMenus(ByVal IsRuntimeChange As Boolean) _
+                Implements ITbCommonContainerPrivate.RebuildMenus
+        End Sub
+        
+        Protected Sub BuildMenus(existingMenuHandle As HMENU, windowListMenu As LongPtr, Container As Control, Level As Long, IsPopUp As Boolean, BoldMenuItem As Menu) _
+                Implements ITbCommonContainerPrivate.BuildMenus
+        End Sub
+                
+        Protected Sub SyncPictureINIT()
+            Dim Picture As StdPicture
+            Dim PictureINIT As Variant = Me.PictureINIT
+            If CommonLoadPictureInit(Picture, PictureINIT) Then
+                Set Me.Picture = Picture
+                If Me.AutoSize And (Picture.Handle <> 0) Then
+                    AutoSizeNow(Picture)
+                End If
+            End If
+        End Sub
+        
+        Protected Sub DesignerArrayFieldUpdated(ByVal FieldName As String) _ 
+                Implements ITwinBasicDesignerExtensions2.DesignerArrayFieldUpdated
+            Set Picture = Nothing
+            SyncPictureINIT()
+        End Sub
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+        
+        Protected Function OnGetBorderSize() As Long _
+                Overrides GraphicsBase.OnGetBorderSize
+            Dim RetVal As Long
+            If BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                RetVal += 1 ' 1 pixel either side   
+                If Appearance = VBRUN.AppearanceConstants.vbAppear3d Then
+                    RetVal += 1 ' a further 1 pixel either side     
+                End If
+            End If
+            Return RetVal
+        End Function
+        
+        Protected Function OnGetControlType() As ControlTypeConstants _
+                Overrides GraphicsBase.OnGetControlType
+            Return ControlTypeConstants.vbPictureBox
+        End Function
+        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native PictureBox")]
+[WindowsControl("/miscellaneous/ICONS??/PictureBox??.png")]
+[ClassId("33AD4ED0-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("04005DD2-51C7-4DC0-94CB-95FC240AC88E")]    ' FIXME implement {33AD4ED1-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class PictureBox
+    Inherits PictureBoxBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

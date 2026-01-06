@@ -1,0 +1,687 @@
+Private Module Miscellaneous2
+    Public Type POINT
+        x As Long
+        y As Long
+    End Type
+    
+    Public Type SIZE
+        cx As Long
+        cy As Long
+    End Type
+    
+    Public Type PropertyPageSharedState
+        HasChanged As Boolean
+        LiveSite As IPropertyPageSite
+        SelectedObjects() As IUnknown
+    End Type
+    
+    Public Enum EnumStandardSize
+        StandardSizeCustom = 0
+        StandardSizeSmall = 1
+        StandardSizeLarge = 2
+    End Enum
+End Module
+
+Private Module Miscellaneous
+    
+    ' FIXME use a GUID type now
+    Public Function GuidToString(guid As GUID2) As String
+        Dim retVal As String = String$(38, " ")
+        OLE32.StringFromGUID2(guid, StrPtr(retVal), 39)
+        Return retVal
+    End Function
+    
+    Public Type tbRECT
+        Left                As Long
+        Top                 As Long
+        Right               As Long
+        Bottom              As Long
+    End Type
+        
+    Public Type PAINTSTRUCT
+        hdc As HDC
+        fErase As Long
+        rcPaint As tbRECT
+        fRestore As Long
+        fIncUpdate As Long
+        rgbReserved(0 To 31) As Byte
+    End Type
+    
+    Public Type ACCEL
+        fVirt As Byte                ' Also called the flags field 
+        key As Integer
+        cmd As Integer
+    End Type
+    
+    Public Enum DISPID_AMBIENT
+        DISPID_AUTOSIZE = -500
+        DISPID_BACKCOLOR = -501
+        DISPID_BACKSTYLE = -502
+        DISPID_BORDERCOLOR = -503
+        DISPID_BORDERSTYLE = -504
+        DISPID_BORDERWIDTH = -505
+        DISPID_DRAWMODE = -507
+        DISPID_DRAWSTYLE = -508
+        DISPID_DRAWWIDTH = -509
+        DISPID_FILLCOLOR = -510
+        DISPID_FILLSTYLE = -511
+        DISPID_FONT = -512
+        DISPID_FORECOLOR = -513
+        DISPID_ENABLED = -514
+        DISPID_HWND = -515
+        DISPID_TABSTOP = -516
+        DISPID_TEXT = -517
+        DISPID_CAPTION = -518
+        DISPID_BORDERVISIBLE = -519
+        DISPID_APPEARANCE = -520
+        DISPID_MOUSEPOINTER = -521
+        DISPID_MOUSEICON = -522
+        DISPID_PICTURE = -523
+        DISPID_VALID = -524
+        DISPID_READYSTATE = -525
+        DISPID_LISTINDEX = -526
+        DISPID_SELECTED = -527
+        DISPID_LIST = -528
+        DISPID_COLUMN = -529
+        DISPID_LISTCOUNT = -531
+        DISPID_MULTISELECT = -532
+        DISPID_MAXLENGTH = -533
+        DISPID_PASSWORDCHAR = -534
+        DISPID_SCROLLBARS = -535
+        DISPID_WORDWRAP = -536
+        DISPID_MULTILINE = -537
+        DISPID_NUMBEROFROWS = -538
+        DISPID_NUMBEROFCOLUMNS = -539
+        DISPID_DISPLAYSTYLE = -540
+        DISPID_GROUPNAME = -541
+        DISPID_IMEMODE = -542
+        DISPID_ACCELERATOR = -543
+        DISPID_ENTERKEYBEHAVIOR = -544
+        DISPID_TABKEYBEHAVIOR = -545
+        DISPID_SELTEXT = -546
+        DISPID_SELSTART = -547
+        DISPID_SELLENGTH = -548
+
+        DISPID_REFRESH = -550
+        DISPID_DOCLICK = -551
+        DISPID_ABOUTBOX = -552
+        DISPID_ADDITEM = -553
+        DISPID_CLEAR = -554
+        DISPID_REMOVEITEM = -555
+
+        DISPID_CLICK = -600
+        DISPID_DBLCLICK = -601
+        DISPID_KEYDOWN = -602
+        DISPID_KEYPRESS = -603
+        DISPID_KEYUP = -604
+        DISPID_MOUSEDOWN = -605
+        DISPID_MOUSEMOVE = -606
+        DISPID_MOUSEUP = -607
+        DISPID_ERROREVENT = -608
+        DISPID_READYSTATECHANGE = -609
+        DISPID_CLICK_VALUE = -610
+        DISPID_RIGHTTOLEFT = -611
+        DISPID_TOPTOBOTTOM = -612
+        DISPID_THIS = -613
+
+        DISPID_AMBIENT_BACKCOLOR = -701
+        DISPID_AMBIENT_DISPLAYNAME = -702
+        DISPID_AMBIENT_FONT = -703
+        DISPID_AMBIENT_FORECOLOR = -704
+        DISPID_AMBIENT_LOCALEID = -705
+        DISPID_AMBIENT_MESSAGEREFLECT = -706
+        DISPID_AMBIENT_SCALEUNITS = -707
+        DISPID_AMBIENT_TEXTALIGN = -708
+        DISPID_AMBIENT_USERMODE = -709
+        DISPID_AMBIENT_UIDEAD = -710
+        DISPID_AMBIENT_SHOWGRABHANDLES = -711
+        DISPID_AMBIENT_SHOWHATCHING = -712
+        DISPID_AMBIENT_DISPLAYASDEFAULT = -713
+        DISPID_AMBIENT_SUPPORTSMNEMONICS = -714
+        DISPID_AMBIENT_AUTOCLIP = -715
+        DISPID_AMBIENT_APPEARANCE = -716
+        DISPID_AMBIENT_CODEPAGE = -725
+        DISPID_AMBIENT_PALETTE = -726
+        DISPID_AMBIENT_CHARSET = -727
+        DISPID_AMBIENT_TRANSFERPRIORITY = -728
+        DISPID_AMBIENT_RIGHTTOLEFT = -732
+        DISPID_AMBIENT_TOPTOBOTTOM = -733
+        
+        DISPID_NAME = -800
+        DISPID_DELETE = -801
+        DISPID_OBJECT = -802
+        DISPID_PARENT = -803
+
+        DISPID_FONT_NAME = 0
+        DISPID_FONT_SIZE = 2
+        DISPID_FONT_BOLD = 3
+        DISPID_FONT_ITALIC = 4
+        DISPID_FONT_UNDER = 5
+        DISPID_FONT_STRIKE = 6
+        DISPID_FONT_WEIGHT = 7
+        DISPID_FONT_CHARSET = 8
+        DISPID_FONT_CHANGED = 9
+
+        DISPID_PICT_HANDLE = 0
+        DISPID_PICT_HPAL = 2
+        DISPID_PICT_TYPE = 3
+        DISPID_PICT_WIDTH = 4
+        DISPID_PICT_HEIGHT = 5
+        DISPID_PICT_RENDER = 6
+    End Enum
+    
+    Public Enum OLEMISC
+        OLEMISC_RECOMPOSEONRESIZE = &H1
+        OLEMISC_ONLYICONIC = &H2
+        OLEMISC_INSERTNOTREPLACE = &H4
+        OLEMISC_STATIC = &H8
+        OLEMISC_CANTLINKINSIDE = &H10
+        OLEMISC_CANLINKBYOLE1 = &H20
+        OLEMISC_ISLINKOBJECT = &H40
+        OLEMISC_INSIDEOUT = &H80
+        OLEMISC_ACTIVATEWHENVISIBLE = &H100
+        OLEMISC_RENDERINGISDEVICEINDEPENDENT = &H200
+        OLEMISC_INVISIBLEATRUNTIME = &H400
+        OLEMISC_ALWAYSRUN = &H800
+        OLEMISC_ACTSLIKEBUTTON = &H1000
+        OLEMISC_ACTSLIKELABEL = &H2000
+        OLEMISC_NOUIACTIVATE = &H4000
+        OLEMISC_ALIGNABLE = &H8000&
+        OLEMISC_SIMPLEFRAME = &H10000
+        OLEMISC_SETCLIENTSITEFIRST = &H20000
+        OLEMISC_IMEMODE = &H40000
+        OLEMISC_IGNOREACTIVATEWHENVISIBLE = &H80000
+        OLEMISC_WANTSTOMENUMERGE = &H100000
+        OLEMISC_SUPPORTSMULTILEVELUNDO = &H200000
+    End Enum
+    
+    Public Enum BorderStyles
+        BDR_RAISEDOUTER = 1
+        BDR_SUNKENOUTER = 2
+        BDR_RAISEDINNER = 4
+        BDR_SUNKENINNER = 8
+        
+        BDR_OUTER = (BDR_RAISEDOUTER Or BDR_SUNKENOUTER)
+        BDR_INNER = (BDR_RAISEDINNER Or BDR_SUNKENINNER)
+        BDR_RAISED = (BDR_RAISEDOUTER Or BDR_RAISEDINNER)
+        BDR_SUNKEN = (BDR_SUNKENOUTER Or BDR_SUNKENINNER)
+        
+        EDGE_RAISED = (BDR_RAISEDOUTER Or BDR_RAISEDINNER)
+        EDGE_SUNKEN = (BDR_SUNKENOUTER Or BDR_SUNKENINNER)
+        EDGE_ETCHED = (BDR_SUNKENOUTER Or BDR_RAISEDINNER)
+        EDGE_BUMP = (BDR_RAISEDOUTER Or BDR_SUNKENINNER)
+    End Enum
+    
+    Public Enum BorderFlags
+        BF_LEFT = 1
+        BF_TOP = 2
+        BF_RIGHT = 4
+        BF_BOTTOM = 8
+        BF_DIAGONAL = 16
+        
+        BF_MIDDLE = &H0800&
+        BF_SOFT = &H1000&
+        BF_ADJUST = &H2000&
+        BF_FLAT = &H4000&
+        BF_MONO = &H8000&
+
+        BF_TOPLEFT = BF_TOP Or BF_LEFT
+        BF_TOPRIGHT = BF_TOP Or BF_RIGHT
+        BF_BOTTOMLEFT = BF_BOTTOM Or BF_LEFT
+        BF_BOTTOMRIGHT = BF_BOTTOM Or BF_RIGHT
+        BF_RECT = BF_LEFT Or BF_TOP Or BF_RIGHT Or BF_BOTTOM
+        
+        BF_DIAGONAL_ENDTOPRIGHT = BF_DIAGONAL Or BF_TOP Or BF_RIGHT
+        BF_DIAGONAL_ENDTOPLEFT = BF_DIAGONAL Or BF_TOP Or BF_LEFT
+        BF_DIAGONAL_ENDBOTTOMLEFT = BF_DIAGONAL Or BF_BOTTOM Or BF_LEFT
+        BF_DIAGONAL_ENDBOTTOMRIGHT = BF_DIAGONAL Or BF_BOTTOM Or BF_RIGHT
+    End Enum
+    
+    Public Const HS_HORIZONTAL As Long = 0
+    Public Const HS_VERTICAL As Long = 1
+    Public Const HS_FDIAGONAL As Long = 2
+    Public Const HS_BDIAGONAL As Long = 3
+    Public Const HS_CROSS As Long = 4
+    Public Const HS_DIAGCROSS As Long = 5
+
+    Public Const NULL_BRUSH As Long = 5
+
+    Public Const PS_SOLID As Long = 0
+    Public Const PS_DASH As Long = 1
+    Public Const PS_DOT As Long = 2
+    Public Const PS_DASHDOT As Long = 3
+    Public Const PS_DASHDOTDOT As Long = 4
+    Public Const PS_NULL As Long = 5
+    Public Const PS_INSIDEFRAME As Long = 6
+    
+    Private globalEmptyString As String ' = ""   FIXME not working in compiled builds
+    Public Function StrPtrSafe(ByRef s As String) As LongPtr
+        Dim retVal As LongPtr = StrPtr(s)
+        If retVal = 0 Then retVal = StrPtr(globalEmptyString)
+        If retVal = 0 Then
+            globalEmptyString = ""
+            retVal = StrPtr(globalEmptyString)
+        End If
+        Return retVal
+    End Function
+    
+    Public Function GetShiftState() As ShiftConstants
+        If IsKeyPressed(vbKeyShift) Then GetShiftState += vbShiftMask
+        If IsKeyPressed(vbKeyMenu) Then GetShiftState += vbAltMask
+        If IsKeyPressed(vbKeyControl) Then GetShiftState += vbCtrlMask
+    End Function
+    
+    Public Function IsKeyPressed(ByVal KeyCode As KeyCodeConstants) As Boolean
+        Return USER32.GetAsyncKeyState(KeyCode) And &H8000&
+    End Function
+
+    Public Function CLngHandle(ByVal handle As LongPtr) As Long
+        [_HiddenModule].GetMem4(VarPtr(handle), CLngHandle)
+    End Function
+    
+    ' Public Sub CommonRedrawChildren(Ctl As Control)
+    '     ' FIXME need better method.
+    '     Dim Ctrl As Control
+    '     For Each Ctrl In Ctl.Parent.Controls
+    '         On Error Resume Next
+    '             Dim isContainedByUs As Boolean = False
+    '             isContainedByUs = Ctrl.Container Is Ctl
+    '             If isContainedByUs Then
+    '                 If TypeOf Ctrl Is Image Then        ' no HWND, FIXME need a better way
+    '                 ElseIf TypeOf Ctrl Is Timer Then        ' no HWND, FIXME need a better way
+    '                 ElseIf TypeOf Ctrl Is Label Then        ' no HWND, FIXME need a better way
+    '                 ElseIf TypeOf Ctrl Is Line Then        ' no HWND, FIXME need a better way
+    '                 ElseIf TypeOf Ctrl Is Shape Then        ' no HWND, FIXME need a better way
+    '                 Else
+    '                     WindowsAPI.RedrawWindow(CLngPtr(Ctrl.Hwnd), 0, 0, RDW_ERASE Or RDW_INVALIDATE Or RDW_ERASENOW Or RDW_UPDATENOW Or RDW_FRAME)
+    '                 End If
+    '             End If
+    '     Next
+    '     On Error GoTo 0
+    ' End Sub
+    
+    Public Sub CommonHandleRedirectedPictureInterface(ByRef iid As GUID2, ByRef out As stdole.IUnknown, ByRef Ctl As Control)
+        Dim guidString As String = GuidToString(iid)
+            
+        ' We should really implement the interfaces properly, but for now this will do
+        If guidString = "{7BF80980-BF32-101A-8BBB-00AA00300CAB}" Then       ' IPicture  FIXME needs improvement
+            Dim iPicture As Any = CType(Of IPicture)(Ctl.Picture)
+            [_HiddenModule].PutMemPtr(VarPtr(out), ObjPtr(iPicture))
+            [_HiddenModule].vbaObjAddref(ObjPtr(iPicture))
+        ElseIf guidString = "{7BF80981-BF32-101A-8BBB-00AA00300CAB}" Then       ' IPictureDisp FIXME needs improvement
+            Dim iPictureDisp As Any = CType(Of IPictureDisp)(Ctl.Picture)
+            [_HiddenModule].PutMemPtr(VarPtr(out), ObjPtr(iPictureDisp))
+            [_HiddenModule].vbaObjAddref(ObjPtr(iPictureDisp))
+        End If
+    End Sub
+    
+    Public Type TEXTMETRICW
+        tmHeight As Long
+        tmAscent As Long
+        tmDescent As Long
+        tmInternalLeading As Long
+        tmExternalLeading As Long
+        tmAveCharWidth As Long
+        tmMaxCharWidth As Long
+        tmWeight As Long
+        tmOverhang As Long
+        tmDigitizedAspectX As Long
+        tmDigitizedAspectY As Long
+        tmFirstChar As Integer
+        tmLastChar As Integer
+        tmDefaultChar As Integer
+        tmBreakChar As Integer
+        tmItalic As Byte
+        tmUnderlined As Byte
+        tmStruckOut As Byte
+        tmPitchAndFamily As Byte
+        tmCharSet As Byte
+    End Type
+    
+    Public Sub CommonRaiseViewChanged(Container As Object)
+        On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RaiseViewChanged()
+        End With
+    End Sub
+    
+    Public Sub CommonRaiseChange(Container As Object)
+        On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RaiseChange()
+        End With
+    End Sub
+    
+    Public Sub CommonRaisePaint(Container As Object)
+        On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RaisePaint()
+        End With
+    End Sub
+    
+    Public Sub CommonRaiseResize(Container As Object)
+        On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RaiseResize()
+        End With
+    End Sub
+    
+    Public Sub CommonRaiseResize2(Container As Object)
+        On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RaiseResize2()
+        End With
+    End Sub
+    
+    Public Sub CommonRebuildMenus(Container As Object, ByVal IsRuntimeChange As Boolean)
+        'On Error Resume Next
+        With CType(Of ITbCommonContainerPrivate)(Container)
+            .RebuildMenus(IsRuntimeChange)
+        End With
+    End Sub
+    
+    #If FEATURE_MENU Then
+    Public Function CommonGetInternalMenuDataPtr(Menu As Menu) As LongPtr
+        Return CType(Of TbMenuPrivate)(Menu).GetMenuDataPtr()
+    End Function
+    #End If
+    
+    Public Sub CommonResizeWindowless(ByVal containerHwnd As HWND, ByVal adjustAmount As Long, ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, _
+                                    ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long)
+            
+        ' FIXME passing around so many args is inefficient            
+        Dim rect As tbRECT
+        If (oldWidth + adjustAmount) <> 0 And (adjustAmount + oldHeight) <> 0 Then
+            rect.Left = oldLeft - adjustAmount
+            rect.Top = oldTop - adjustAmount
+            rect.Right = oldLeft + oldWidth + adjustAmount
+            rect.Bottom = oldTop + oldHeight + adjustAmount
+            containerHwnd.InvalidateRect(rect, 1)
+        End If
+
+        If (newWidth + adjustAmount) <> 0 And (newHeight + adjustAmount) <> 0 Then
+            rect.Left = newLeft - adjustAmount
+            rect.Top = newTop - adjustAmount
+            rect.Right = newLeft + newWidth + adjustAmount
+            rect.Bottom = newTop + newHeight + adjustAmount
+            containerHwnd.InvalidateRect(rect, 1)
+        End If
+            
+        'Debug.Print "***LINE*** HandleResizeWindowless - newLeft: " & newLeft & ", newWidth: " & newWidth
+        'Debug.Print "***LINE*** HandleResizeWindowless - newTop: " & newTop & ", newHeight: " & newHeight
+    End Sub
+    
+    Public Function CommonHandleScrollControl(ByRef Control As Control, ByVal WindowElement As WindowElement, ByVal ScrollType As SCROLLNOTIFY) As Boolean
+        Dim RaiseAnEvent As Boolean
+        Dim NewValue As Long
+        Dim oldValue As Any = Control.Value
+        Select Case ScrollType
+            Case SCROLLNOTIFY.SB_TOP         ' same as SB_LEFT
+                NewValue = CLng(Control.Min)
+            Case SCROLLNOTIFY.SB_BOTTOM      ' same as SB_RIGHT
+                NewValue = CLng(Control.Max)
+            Case SCROLLNOTIFY.SB_LINEUP      ' same as SB_LINELEFT
+                NewValue = CLng(oldValue - Control.SmallChange)
+            Case SCROLLNOTIFY.SB_LINEDOWN    ' same as SB_LINERIGHT
+                NewValue = CLng(oldValue + Control.SmallChange)
+            Case SCROLLNOTIFY.SB_PAGEUP      ' same as SB_PAGELEFT
+                NewValue = CLng(oldValue - Control.LargeChange)
+            Case SCROLLNOTIFY.SB_PAGEDOWN    ' same as SB_PAGERIGHT
+                NewValue = CLng(oldValue + Control.LargeChange)
+            Case SCROLLNOTIFY.SB_THUMBPOSITION
+                NewValue = WindowElement.GetScrollValue()
+                RaiseAnEvent = True
+            Case SCROLLNOTIFY.SB_THUMBTRACK
+                NewValue = WindowElement.GetScrollValueHot()
+            Case SCROLLNOTIFY.SB_ENDSCROLL
+                Exit Function
+            Case Else
+                Exit Function
+        End Select
+            
+        If oldValue <> NewValue Then
+            WindowElement.SetScrollValue(NewValue)
+            Return True
+        End If
+        Return RaiseAnEvent
+    End Function
+    
+    Public Function CommonBorderStyleToPenType(ByVal BorderStyle As BorderStyleConstants) As Long
+        Dim penType As Long
+        ' FIXME could use a const array lookup here
+        Select Case BorderStyle
+            Case vbTransparent: penType = PS_NULL
+            Case vbBSSolid: penType = PS_SOLID
+            Case vbBSDot: penType = PS_DOT
+            Case vbBSDash: penType = PS_DASH
+            Case vbBSDashDot: penType = PS_DASHDOT
+            Case vbBSDashDotDot: penType = PS_DASHDOTDOT
+            Case vbBSInsideSolid: penType = PS_INSIDEFRAME
+            Case Else
+                Err.Raise 5
+        End Select
+        Return penType
+    End Function
+
+    Public Function CommonFillStyleToBrush(ByVal FillStyle As FillStyleConstants, ByVal Transparent As Boolean, ByVal backColor As Long, ByVal fillColor As Long) As LongPtr
+        Dim fillBrush As LongPtr
+        Dim hatchType As Long = -1
+        Select Case FillStyle
+            Case vbFSTransparent: 
+                If Transparent Then
+                    fillBrush = GDI32.GetStockObject(NULL_BRUSH)
+                Else
+                    fillBrush = GDI32.CreateSolidBrush(backColor)
+                End If
+            Case vbFSSolid: fillBrush = GDI32.CreateSolidBrush(fillColor)
+            Case vbCross: hatchType = HS_CROSS
+            Case vbDiagonalCross: hatchType = HS_DIAGCROSS
+            Case vbDownwardDiagonal: hatchType = HS_FDIAGONAL
+            Case vbHorizontalLine: hatchType = HS_HORIZONTAL
+            Case vbUpwardDiagonal: hatchType = HS_BDIAGONAL
+            Case vbVerticalLine: hatchType = HS_VERTICAL
+        End Select
+        
+        If hatchType <> -1 Then
+            fillBrush = GDI32.CreateHatchBrush(hatchType, fillColor)
+        End If
+        Return fillBrush
+    End Function
+        
+    ' Public Function CommonFillStyleToBrushEx(ByVal hdc As HDC, ByRef rect As tbRECT, ByVal IsReportMode As Boolean, ByVal FillStyle As FillStyleConstantsEx, ByVal Transparent As Boolean, ByVal backColor As Long, ByVal fillColor As Long, ByVal fillColorAlt As Long) As LongPtr
+    
+    '     If FillStyle >= 8 Then
+    '         If Not IsReportMode Then
+    '             Dim gradientHDC As Any = CreateCompatibleDC(hdc)
+    '             Dim tempBmp As LongPtr = CreateCompatibleBitmap(hdc, rect.Right, rect.Bottom)
+    '             Dim origBitmap As LongPtr = SelectObject(gradientHDC, tempBmp)
+                        
+    '             GradientFillRect(gradientHDC, rect, fillColor, fillColorAlt, If(FillStyle = 8, True, False))
+                        
+    '             ' Dim bmpData() As Long
+    '             ' ReDim bmpData(X + (Width - 1), Y + (Height - 1))
+    '             ' Dim __x As Long
+    '             ' While __x < Width
+    '             '     Dim __y As Long = 0
+    '             '     While __y < Height
+    '             '         bmpData(X + __x, Y + __y) = RGB(0, 0, CInt(__y/ Height * 254))
+    '             '         __y += 1
+    '             '     Wend
+    '             '     __x += 1
+    '             ' Wend
+    '             ' Dim tempBmp As LongPtr = InternalCreateBitmap(X + Width, Y + Height, 1, 32, VarPtr(bmpData(0, 0)))
+                
+    '             SelectObject(gradientHDC, origBitmap)
+    '             DeleteObject(gradientHDC)
+    '             Dim retVal As Any = CreatePatternBrush(tempBmp)
+    '             DeleteObject(tempBmp)
+    '             Return retVal
+    '         Else
+    '             Return CommonFillStyleToBrush(FillStyleConstants.vbFSSolid, Transparent, backColor, fillColor)
+    '         End If
+    '     Else
+    '         Return CommonFillStyleToBrush(CType(Of FillStyleConstants)(FillStyle), Transparent, backColor, fillColor)
+    '     End If
+        
+    ' End Function
+    
+    Function IsControlArrayElement(control As Control) As Boolean
+        On Error GoTo NotControlArray
+        control.Index
+        Return True
+    NotControlArray:
+        Return False
+    End Function
+    
+    Public Function CommonGetAlign(ctl As Control) As VBRUN.AlignConstants
+        Select Case ctl.Dock
+            Case vbDockLeft: Return VBRUN.AlignConstants.vbAlignLeft
+            Case vbDockTop: Return VBRUN.AlignConstants.vbAlignTop
+            Case vbDockRight: Return VBRUN.AlignConstants.vbAlignRight
+            Case vbDockBottom: Return VBRUN.AlignConstants.vbAlignBottom
+        End Select
+        Return VBRUN.AlignConstants.vbAlignNone
+    End Function
+        
+    Public Sub CommonLetAlign(ctl As Control, ByVal Value As VBRUN.AlignConstants)
+        Select Case Value
+            Case VBRUN.AlignConstants.vbAlignLeft: ctl.Dock = vbDockLeft
+            Case VBRUN.AlignConstants.vbAlignTop: ctl.Dock = vbDockTop
+            Case VBRUN.AlignConstants.vbAlignRight: ctl.Dock = vbDockRight
+            Case VBRUN.AlignConstants.vbAlignBottom: ctl.Dock = vbDockBottom
+            Case VBRUN.AlignConstants.vbAlignNone: ctl.Dock = vbDockNone
+            Case Else: Err.Raise 5
+        End Select
+    End Sub
+    
+    Public Function CommonCopyStdPicIfNecessary(pic As StdPicture) As StdPicture
+        Dim ValuePic As IPicture = pic
+        If (ValuePic IsNot Nothing) AndAlso (ValuePic.Type = vbPicTypeBitmap) AndAlso (ValuePic.CurDC <> 0) Then
+         '  ' The picture is already selected into a DC, so we need to make a copy of it
+            Const IMAGE_BITMAP As Long = 0
+            Dim copyHandle As LongPtr = USER32.CopyImage(ValuePic.Handle, IMAGE_BITMAP, 0, 0, 0)
+            Return CType(Of StdPicture)([_HiddenModule].CreateStdPictureFromHandle(copyHandle, vbPicTypeBitmap, 1))
+        Else
+            Return pic
+        End If
+    End Function
+    
+    Public Function GetHwnd(ByRef object As Object) As HWND
+        'Stop
+        If TypeOf object Is ITwinBasicRuntimeControlExtensions Then
+            Return CType(Of ITwinBasicRuntimeControlExtensions)(object).GetWindowHandle()
+        Else
+            On Error Resume Next
+            Return CLngPtr(object.hwnd)
+        End If
+    End Function
+    
+    Private Const WS_CHILD      As Long = &H40000000
+    Private Const WS_VISIBLE    As Long = &H10000000
+    Private Const WS_TABSTOP    As Long = &H00010000
+    Private Const WS_CLIPSIBLINGS As Long = &H4000000
+
+    Private Const GA_ROOT       As Long = 2
+    Private Const GWL_STYLE        As Long = -16
+    Private Const GWL_EXSTYLE      As Long = -20
+    Private Const WS_POPUP         As Long = &H80000000
+    Private Const WS_CAPTION       As Long = &HC00000
+    Private Const WS_THICKFRAME    As Long = &H40000
+    Private Const WS_SYSMENU       As Long = &H80000
+    Private Const WS_MINIMIZEBOX   As Long = &H20000
+    Private Const WS_MAXIMIZEBOX   As Long = &H10000
+
+    Private Const WS_EX_APPWINDOW  As Long = &H40000
+    Private Const WS_EX_TOOLWINDOW As Long = &H80
+    Private Const WS_EX_TOPMOST    As Long = &H8
+    Private Const WS_EX_NOACTIVATE As Long = &H8000000
+    Private Const WS_EX_NOPARENTNOTIFY As Long = &H4
+
+    Public Type ENHMETAHEADER
+        iType As Long
+        nSize As Long
+        rclBounds As tbRECT
+        rclFrame As tbRECT
+        dSignature As Long
+        nVersion As Long
+        nBytes As Long
+        nRecords As Long
+        nHandles As Integer
+        sReserved As Integer
+        nDescription As Long
+        offDescription As Long
+        nPalEntries As Long
+        szlDevice As SIZE
+        szlMillimeters As SIZE
+        cbPixelFormat As Long
+        offPixelFormat As Long
+        bOpenGL As Long
+        szlMicrometers As SIZE
+    End Type
+    
+    Public Const CCHDEVICENAME As Long = 32
+    Public Const CCHFORMNAME As Long = 32
+    
+    Public Type DEVMODEW
+        dmDeviceName As String * CCHDEVICENAME
+        dmSpecVersion As Integer
+        dmDriverVersion As Integer
+        dmSize As Integer
+        dmDriverExtra As Integer
+        dmFields As Long
+        
+        ' following group can be union with         
+        'POINTL dmPosition;
+        'DWORD  dmDisplayOrientation;
+        'DWORD  dmDisplayFixedOutput;
+        dmOrientation As Integer
+        dmPaperSize As Integer
+        dmPaperLength As Integer
+        dmPaperWidth As Integer
+        dmScale As Integer
+        dmCopies As Integer
+        dmDefaultSource As Integer
+        dmPrintQuality As Integer
+        
+        dmColor As Integer
+        dmDuplex As Integer
+        dmYResolution As Integer
+        dmTTOption As Integer
+        dmCollate As Integer
+        dmFormName As String * CCHFORMNAME
+        dmLogPixels As Integer
+        dmBitsPerPel As Long
+        dmPelsWidth As Long
+        dmPelsHeight As Long
+        dmDisplayFlags As Long   ' Unioned with dmNup
+        dmDisplayFrequency As Long
+        dmICMMethod As Long
+        dmICMIntent As Long
+        dmMediaType As Long
+        dmDitherType As Long
+        dmReserved1 As Long
+        dmReserved2 As Long
+        dmPanningWidth As Long
+        dmPanningHeight As Long
+    End Type
+    
+    Type DOCINFOW
+        cbSize As Long
+        DocName As String
+        Output As String
+        Datatype As String
+        Type As Long
+    End Type
+    
+    Const ETO_CLIPPED As Long = 4
+
+End Module
+    
+' FIXME not yet supported.
+[COMExtensible(True)]
+[ClassId("164CBDD2-7321-11D1-A1E8-00A0C90F2731")]
+[InterfaceId("164CBDD0-7321-11D1-A1E8-00A0C90F2731")]
+Class VBControlExtender
+    [DispId(&HEAEA0006)]
+        Event GotFocus()
+End Class

@@ -1,0 +1,289 @@
+[ClassId("8B0BA607-69F9-4F00-8A79-A28449E7182B")]
+[InterfaceId("39333942-9249-43E7-BABC-EFD97CF98074")]
+[COMCreatable(False)]
+Private Class BaseControlRect
+    
+    Inherits BaseControl
+        
+    [Description("Adjusts the left position of this control, in pixels, relative to the container")]
+    [Serialize(True, "Left")]
+        Protected PixelsLeftINIT As Double
+    [Description("Adjusts top position of this control, in pixels, relative to the container")]
+    [Serialize(True, "Top")]
+        Protected PixelsTopINIT As Double
+    [Description("Adjusts the width of this control, in pixels")]
+    [Serialize(True, "Width")]
+        Protected PixelsWidthINIT As Double
+    [Description("Adjusts the height of this control, in pixels")]
+    [Serialize(True, "Height")]
+        Protected PixelsHeightINIT As Double
+     
+        Protected CurrentBackBrush As LongPtr
+        Protected CurrentBackBrushColor As OLE_COLOR
+        Protected InternalAlwaysAllowMove As Boolean
+        
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        BaseControl.New(ControlType)
+        
+        ' These defaults apply to runtime added controls, via Controls.Add
+        Me.PixelsWidthINIT = 80
+        Me.PixelsHeightINIT = 32
+    End Sub
+    
+    Protected Sub InternalStateResetRect()
+        If CurrentBackBrush <> 0 Then GDI32.DeleteObject(Me.CurrentBackBrush)
+        CurrentBackBrush = vbNullPtr
+        Me.CurrentBackBrushColor = -1
+        IgnoreMousePointerChanged = False
+        InternalStateResetBaseControl()
+    End Sub
+    
+    Protected Sub InternalBaseControlBeforeCreateRootWindowRect(ByRef InitData As WindowCreationData)
+        With InternalBaseControlInfo
+            .PixelsLeft = Me.PixelsLeftINIT
+            .PixelsTop = Me.PixelsTopINIT
+            .PixelsWidth = Me.PixelsWidthINIT
+            .PixelsHeight = Me.PixelsHeightINIT
+        End With
+        InternalBaseControlBeforeCreateRootWindowBaseControl(InitData)
+    End Sub
+    
+    Protected Sub InternalSyncDesignerDimensions()
+        With InternalBaseControlInfo
+            Me.PixelsLeftINIT =.PixelsLeft
+            Me.PixelsTopINIT = .PixelsTop
+            Me.PixelsWidthINIT =.PixelsWidth
+            Me.PixelsHeightINIT = .PixelsHeight
+        End With
+    End Sub
+    
+    Sub Class_Terminate()
+       ' MsgBox "BaseControlRect.Class_Terminate"
+        If Me.CurrentBackBrush <> 0 Then GDI32.DeleteObject(Me.CurrentBackBrush)
+        Me.CurrentBackBrush = vbNullPtr
+    End Sub
+    
+    Protected Function IsInRect(ByVal X As Double, ByVal Y As Double) As Boolean
+        Return (X >= 0) AndAlso (Y >= 0) AndAlso (X <= InternalBaseControlInfo.PixelsWidth) AndAlso (Y <= InternalBaseControlInfo.PixelsHeight)
+    End Function
+ 
+    ' Public Sub InternalChangeSizeNoEvents(Control As Object, ByVal Width As Double, ByVal Height As Double)
+    '     PixelsWidth = Width
+    '     WidthCached = Width
+    '     PixelsHeight = Height
+    '     HeightCached = Height
+    ' End Sub
+    
+    Protected Function InternalMove(Control As Object, ByVal Left As Single, ByVal Top As Variant, ByVal Width As Variant, ByVal Height As Variant) As Boolean
+        ' FIXME this routine compiles to 3300+ bytes
+        If IsMissing(Top) Then
+            Top = Control.Top
+        End If
+
+        If IsMissing(Width) Then
+            Width = Control.Width
+        End If
+        
+        If IsMissing(Height) Then
+            Height = Control.Height
+        End If
+
+        If InternalAlwaysAllowMove Then GoTo DoMove
+'        Stop
+        Dim leftDiff As Double = CDbl(Abs(Control.Left - Left))
+        Dim topDiff As Double = CDbl(Abs(Control.Top - Top))
+        Dim widthDiff As Double = CDbl(Abs(Control.Width - Width))
+        Dim heightDiff As Double = CDbl(Abs(Control.Height - Height))
+    
+        ' FIXME should take the ScaleMode into account
+        If (leftDiff > 0.05) OrElse _   
+            (topDiff > 0.05) OrElse _
+            (widthDiff > 0.05) OrElse _
+            (heightDiff > 0.05) Then
+            
+        'If (Control.Left <> Left) OrElse _   
+            (Control.Top <> Top) OrElse _
+            (Control.Width <> Width) OrElse _
+            (Control.Height <> Height) Then
+            
+        DoMove:
+            Control.Left = Left
+            'LeftCached = Left
+            Control.Top = Top
+            'TopCached = CDbl(Top)
+            Control.Width = Width
+            'WidthCached = CDbl(Width)
+            Control.Height = Height
+            'HeightCached = CDbl(Height)
+
+            Return True
+        End If
+    End Function
+    
+    Protected Function CommonGetHWND() As LongPtr
+        Return RootWindowElementBase.RuntimeUIGetHandle()
+    End Function
+    
+    Protected Function SendMessageCtl(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+        Return RootWindowElementBase.SendMessage(msg, wParam, lParam)
+    End Function
+        
+    Protected Function GetStyleFlagCtl(ByVal flag As Long) As Boolean
+        Return RootWindowElementBase.GetStyleFlag(flag)
+    End Function
+
+    Protected Function SetStyleFlagCtl(ByVal flag As Long, ByVal Value As Boolean) As Boolean
+        RootWindowElementBase.SetStyleFlag(flag, Value)
+    End Function
+    
+    Protected Function GetWindowLongCtl(ByVal type As Long) As Long
+        Return RootWindowElementBase.GetWindowLong(type)
+    End Function
+
+    Protected Sub SetWindowLongCtl(ByVal type As Long, ByVal Value As Long)
+        RootWindowElementBase.SetWindowLong(type, Value)
+    End Sub
+        
+    Protected Sub CommonRefresh()
+        Me.RootWindowElementBase.RedrawWindow(0, 0, RDW_ERASE Or RDW_INVALIDATE Or RDW_UPDATENOW)
+    End Sub
+        
+    Protected Function GetWindowTextCtl() As String
+        Return RootWindowElementBase.GetWindowText()
+    End Function
+    
+    Protected Sub LetWindowTextCtl(ByRef Value As String)
+        RootWindowElementBase.SetWindowText(Value)
+    End Sub
+    
+    Protected Sub HandleGetColorsCommon(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal RootThis As Object)
+        Dim foreColor As Long = TranslateColor(CLng(RootThis.ForeColor))
+        hdc.SetTextColor(foreColor)
+        hdc.SetBkMode(BackgroundModes.TRANSPARENT)
+        hdc.SetBkColor(RGB(255 - RGB_R(foreColor), 255 - RGB_G(foreColor), 255 - RGB_B(foreColor)))  ' for focus rect to work
+        BackBrushOut = Me.CreateBackBrush(CLng(RootThis.BackColor))
+    End Sub
+    
+    Protected Sub HandleGetColorsCommon2(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal RootThis As Object)
+        Dim foreColor As Long = TranslateColor(CLng(RootThis.ForeColor))
+        hdc.SetTextColor(foreColor)
+        hdc.SetBkMode(BackgroundModes.TRANSPARENT)
+        hdc.SetBkColor(TranslateColor(CLng(RootThis.BackColor)))
+        BackBrushOut = Me.CreateBackBrush(CLng(RootThis.BackColor))
+    End Sub
+                
+    Protected Function CreateBackBrush(ByVal Color As OLE_COLOR) As LongPtr
+        If Color <> Me.CurrentBackBrushColor Then
+            If Me.CurrentBackBrush <> 0 Then GDI32.DeleteObject(Me.CurrentBackBrush)
+                Me.CurrentBackBrush = GDI32.CreateSolidBrush(TranslateColor(Color))
+                Me.CurrentBackBrushColor = Color
+        End If
+        Return Me.CurrentBackBrush
+    End Function
+        
+    Protected Function CommonGetTabStop() As Boolean
+        Return GetStyleFlagCtl(WS_TABSTOP)
+    End Function
+        
+    Protected Sub CommonLetTabStop(Value As Boolean)
+        SetStyleFlagCtl(WS_TABSTOP, Value)
+    End Sub
+        
+    Protected Function CommonGetEnabled() As Boolean
+        Return Not GetStyleFlagCtl(WS_DISABLED)
+    End Function
+    
+    Protected Sub CommonLetEnabled(Value As Boolean)
+        RootWindowElementBase.EnableWindow(Value)
+        If Value = False Then
+            RootWindowElementBase.RuntimeUIControlHasBeenDisabled()
+        End If
+    End Sub
+        
+    Protected Sub CommonSetFocus()
+        RootWindowElementBase.SetFocus()
+    End Sub
+        
+    [Serialize(False)]
+    Protected IgnoreMousePointerChanged As Boolean
+    Protected Sub CommonMousePointerChanged()
+        If IgnoreMousePointerChanged Then Exit Sub
+        Dim ControlContext As Any = Me.ControlContext
+        ControlContext.RuntimeUICtxMousePointerChanged()
+    End Sub
+        
+    Protected Sub WindowlessRefresh()
+        ControlContext.RuntimeUICtxWindowlessRefresh()
+    End Sub
+        
+    [Serialize(False)]
+    [BindOnlyIfNoArguments]
+    Public Property Get Left() As Double
+        Return ControlContext.RuntimeUICtxGetScaledLeft()
+    End Property
+    
+    [Serialize(False)]
+    [BindOnlyIfNoArguments]
+    Public Property Let Left(ByVal Value As Double)
+        ControlContext.RuntimeUICtxSetScaledLeft(Value)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get Top() As Double
+        Return ControlContext.RuntimeUICtxGetScaledTop()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let Top(ByVal Value As Double)
+        ControlContext.RuntimeUICtxSetScaledTop(Value)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get Width() As Double
+        Return ControlContext.RuntimeUICtxGetScaledWidth()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let Width(ByVal Value As Double)
+        ControlContext.RuntimeUICtxSetScaledWidth(Value)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get Height() As Double
+        Return ControlContext.RuntimeUICtxGetScaledHeight()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let Height(ByVal Value As Double)
+        ControlContext.RuntimeUICtxSetScaledHeight(Value)
+    End Property
+    
+    [Serialize(False)]
+    [DispId(-850)]
+    [Hidden]
+    Protected Property Get PixelsLeft() As Double
+        Return InternalBaseControlInfo.PixelsLeft
+    End Property
+        
+    [Serialize(False)]
+    [DispId(-851)]
+    [Hidden]
+    Protected Property Get PixelsTop() As Double
+        Return InternalBaseControlInfo.PixelsTop
+    End Property
+        
+    [Serialize(False)]
+    [DispId(-852)]
+    [Hidden]
+    Protected Property Get PixelsWidth() As Double                 ' FIXME exposed
+        Return InternalBaseControlInfo.PixelsWidth
+    End Property
+    
+    [Serialize(False)]
+    [DispId(-853)]
+    [Hidden]
+    Protected Property Get PixelsHeight() As Double
+        Return InternalBaseControlInfo.PixelsHeight
+    End Property
+    
+End Class

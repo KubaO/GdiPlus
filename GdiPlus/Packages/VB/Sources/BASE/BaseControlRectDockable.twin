@@ -1,0 +1,114 @@
+[ClassId("379C4CB5-7EC7-4A86-90F4-724E0062E0A3")]
+[InterfaceId("FFC28332-1C2B-42D6-81BE-D3A3A1863B20")]
+[COMCreatable(False)]
+Private Class BaseControlRectDockable
+    
+    Inherits BaseControlRect
+    
+    [Serialize(True, ":Index")]
+    Protected IndexINIT As Long = -1
+
+    [Serialize(False)]
+    Public Property Get Index() As Long
+        Dim IndexINIT As Any = InternalBaseControlInfo.ControlArrayIndex
+        If IndexINIT = -1 Then
+            'Err.Raise 343, , "Object not an array"
+            Err.ReturnHResult = &H800A0157
+            Return 0
+        End If
+        Return IndexINIT
+    End Property
+    
+    [Description("Determines how the sides of this control are anchored to its container")]
+    [Serialize(True, "Anchors")]
+        Protected AnchorsData As AnchorsData
+        
+    [Description("Adjusts how the control is docked inside of its container")]
+    [Serialize(True, "Dock")]
+        Protected DockINIT As VBRUN.DockModeConstants = VBRUN.DockModeConstants.vbDockNone
+    
+        Sub New(ByVal ControlType As ControlTypeConstants)
+            BaseControlRect.New(ControlType)
+        End Sub
+        
+        Protected Sub InternalStateResetRectDockable()
+            AnchorsData.Left = True
+            AnchorsData.Top = True
+            AnchorsData.Right = False
+            AnchorsData.Bottom = False
+            InternalStateResetRect()
+        End Sub
+        
+        Protected Sub InternalBaseControlBeforeCreateRootWindow(ByRef InitData As WindowCreationData)
+            With InternalBaseControlInfo
+                .Dock = Me.DockINIT
+                .AnchorsDataPtr = VarPtr(AnchorsData)
+                .ControlArrayIndex = Me.IndexINIT
+            End With
+            InternalBaseControlBeforeCreateRootWindowRect(InitData)
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Anchors() As Anchors
+            Return New Anchors(Me, Me.AnchorsData)
+        End Property
+                
+        Protected Sub RecalculateDockableLayout()
+            If Me.Dock <> DockModeConstants.vbDockNone Then
+                ' FIXME bodge, this forces layout to be recalculated
+                RootWindowElementBase.GetParent().SendMessageW(WM_SIZE, -1, 0)
+            End If
+        End Sub
+        
+        [DispId(-856)]
+        Public Property Get Container() As Object
+            On Error Resume Next
+            Return RootWindowElementBase.RuntimeUIGetContainer()
+        End Property
+        
+        [DispId(-856)]
+        Public Property Set Container(ByVal Value As Object)
+            On Error Resume Next
+            RootWindowElementBase.RuntimeUISetContainer(Value)
+        End Property
+        
+        Public Sub Move(ByVal Left As Single, Optional ByVal Top As Variant, Optional ByVal Width As Variant, Optional ByVal Height As Variant)
+            If InternalMove(Me, Left, Top, Width, Height) Then
+                ControlContext.RuntimeUICtxChangedPosition()
+            End If
+        End Sub
+        
+        Protected Sub CommonDrag(ByRef Action As Variant)
+            If IsMissing(Action) Then Action = DragConstants.vbBeginDrag
+            Select Case Action
+                Case DragConstants.vbBeginDrag
+                    RootWindowElementBase.RuntimeUIStartDrag()
+                Case DragConstants.vbCancel
+                    RootWindowElementBase.RuntimeUICancelDrag()
+                Case DragConstants.vbEndDrag
+                    RootWindowElementBase.RuntimeUIEndDrag()
+                Case Else
+                    Err.Raise 5
+            End Select
+        End Sub
+        
+        Protected Function CommonGetVisible() As Boolean
+            Return RootWindowElementBase.GetStyleFlag(WS_VISIBLE)
+        End Function
+    
+        Protected Sub CommonLetVisible(Value As Boolean)
+            RootWindowElementBase.ShowWindow(CLng(If(Value, SW_NORMAL, SW_HIDE)))
+            RecalculateDockableLayout()
+        End Sub
+        
+        [Serialize(False)]
+        Property Get Dock() As VBRUN.DockModeConstants
+            Return InternalBaseControlInfo.Dock
+        End Property
+        
+        [Serialize(False)]
+        Property Let Dock(ByVal Value As VBRUN.DockModeConstants)
+            InternalBaseControlInfo.Dock = Value
+            RecalculateDockableLayout()
+        End Property
+End Class

@@ -1,0 +1,574 @@
+Private Module GeneralConsts
+    
+    Private Const LF_FACESIZE As Long = 32
+ 
+    ' Type RECT
+    '     Left As Long
+    '     Top As Long
+    '     Right As Long
+    '     Bottom As Long
+    ' End Type
+    
+    ' Type SIZE
+    '     cx As Long
+    '     cy As Long
+    ' End Type
+    
+    ' Type BITMAP
+    '     bmType As Long
+    '     bmWidth As Long
+    '     bmHeight As Long
+    '     bmWidthBytes As Long
+    '     bmPlanes As Integer
+    '     bmBitsPixel As Integer
+    '     bmBits As LongPtr
+    ' End Type
+    
+    Type COMBOBOXINFO
+        cbSize As Long
+        rcItem As tbRECT
+        rcButton As tbRECT
+        stateButton As Long
+        hwndCombo As LongPtr
+        hwndItem As LongPtr
+        hwndList As LongPtr
+    End Type
+    
+    ' Type PAINTSTRUCT
+    '     hdc As LongPtr
+    '     fErase As Long
+    '     rcPaint As tbRECT
+    '     fRestore As Long
+    '     fIncUpdate As Long
+    '     rgbReserved(31) As Byte
+    ' End Type
+
+    Type LOGFONT
+        LFHeight As Long
+        LFWidth As Long
+        LFEscapement As Long
+        LFOrientation As Long
+        LFWeight As Long
+        LFItalic As Byte
+        LFUnderline As Byte
+        LFStrikeOut As Byte
+        LFCharset As Byte
+        LFOutPrecision As Byte
+        LFClipPrecision As Byte
+        LFQuality As Byte
+        LFPitchAndFamily As Byte
+        LFFaceName(0 To ((LF_FACESIZE * 2) - 1)) As Byte
+    End Type
+    
+    Public Type TEXTMETRIC
+        TMHeight As Long
+        TMAscent As Long
+        TMDescent As Long
+        TMInternalLeading As Long
+        TMExternalLeading As Long
+        TMAveCharWidth As Long
+        TMMaxCharWidth As Long
+        TMWeight As Long
+        TMOverhang As Long
+        TMDigitizedAspectX As Long
+        TMDigitizedAspectY As Long
+        TMFirstChar As Integer
+        TMLastChar As Integer
+        TMDefaultChar As Integer
+        TMBreakChar As Integer
+        TMItalic As Byte
+        TMUnderlined As Byte
+        TMStruckOut As Byte
+        TMPitchAndFamily As Byte
+        TMCharset As Byte
+    End Type
+    
+    Public Type MEASUREITEMSTRUCT
+        CtlType As OwnerDrawTypes
+        CtlID As Long
+        ItemID As Long
+        ItemWidth As Long
+        ItemHeight As Long
+        ItemData As LongPtr
+    End Type
+    
+    Public Type DRAWITEMSTRUCT
+        CtlType As OwnerDrawTypes
+        CtlID As Long
+        ItemID As Long
+        ItemAction As Long
+        ItemState As Long
+        hWndItem As LongPtr
+        hDC As HDC
+        RCItem As tbRECT
+        ItemData As LongPtr
+    End Type
+    
+    ' Public Type POINT
+    '     X As Long
+    '     Y As Long
+    ' End Type
+    
+    Public Type WINDOWPLACEMENT
+        length As Long
+        flags As Long
+        showCmd As Long
+        ptMinPosition As POINT
+        ptMaxPosition As POINT
+        rcNormalPosition As tbRECT
+    End Type
+    
+    Public Enum UxThemeButtonParts
+        BP_PUSHBUTTON = 1
+        BP_RADIOBUTTON = 2
+        BP_CHECKBOX = 3
+        BP_GROUPBOX = 4
+        BP_USERBUTTON = 5
+    End Enum
+        
+    Public Enum UxThemeCheckBoxStates
+        CBS_UNCHECKEDNORMAL = 1
+        CBS_UNCHECKEDHOT = 2
+        CBS_UNCHECKEDPRESSED = 3
+        CBS_UNCHECKEDDISABLED = 4
+        CBS_CHECKEDNORMAL = 5
+        CBS_CHECKEDHOT = 6
+        CBS_CHECKEDPRESSED = 7
+        CBS_CHECKEDDISABLED = 8
+        CBS_MIXEDNORMAL = 9
+        CBS_MIXEDHOT = 10
+        CBS_MIXEDPRESSED = 11
+        CBS_MIXEDDISABLED = 12
+    End Enum
+        
+    Public Enum UxThemeRadioButtonStates
+        RBS_UNCHECKEDNORMAL = 1
+        RBS_UNCHECKEDHOT = 2
+        RBS_UNCHECKEDPRESSED = 3
+        RBS_UNCHECKEDDISABLED = 4
+        RBS_CHECKEDNORMAL = 5
+        RBS_CHECKEDHOT = 6
+        RBS_CHECKEDPRESSED = 7
+        RBS_CHECKEDDISABLED = 8
+    End Enum
+    
+    Public Enum DrawFrameTypes
+        DFC_CAPTION = 1
+        DFC_MENU = 2
+        DFC_SCROLL = 3
+        DFC_BUTTON = 4
+        DFC_POPUPMENU = 5
+        DFCS_CAPTIONCLOSE = &H0000
+        DFCS_CAPTIONMIN = &H0001
+        DFCS_CAPTIONMAX = &H0002
+        DFCS_CAPTIONRESTORE = &H0003
+        DFCS_CAPTIONHELP = &H0004
+        DFCS_MENUARROW = &H0000
+        DFCS_MENUCHECK = &H0001
+        DFCS_MENUBULLET = &H0002
+        DFCS_MENUARROWRIGHT = &H0004
+        DFCS_SCROLLUP = &H0000
+        DFCS_SCROLLDOWN = &H0001
+        DFCS_SCROLLLEFT = &H0002
+        DFCS_SCROLLRIGHT = &H0003
+        DFCS_SCROLLCOMBOBOX = &H0005
+        DFCS_SCROLLSIZEGRIP = &H0008
+        DFCS_SCROLLSIZEGRIPRIGHT = &H0010
+        DFCS_BUTTONCHECK = &H0000
+        DFCS_BUTTONRADIOIMAGE = &H0001
+        DFCS_BUTTONRADIOMASK = &H0002
+        DFCS_BUTTONRADIO = &H0004
+        DFCS_BUTTON3STATE = &H0008
+        DFCS_BUTTONPUSH = &H0010
+        DFCS_INACTIVE = &H0100
+        DFCS_PUSHED = &H0200
+        DFCS_CHECKED = &H0400
+        DFCS_TRANSPARENT = &H0800
+        DFCS_HOT = &H1000
+        DFCS_ADJUSTRECT = &H2000
+        DFCS_FLAT = &H4000
+        DFCS_MONO = &H8000&
+    End Enum
+    
+    Public Enum OwnerDrawTypes
+        ODT_MENU = 1
+        ODT_LISTBOX = 2
+        ODT_COMBOBOX = 3
+        ODT_BUTTON = 4
+        ODT_STATIC = 5
+    End Enum
+
+    Public Enum OwnerDrawActions
+        ODA_DRAWENTIRE = &H0001
+        ODA_SELECT = &H0002
+        ODA_FOCUS = &H0004
+    End Enum
+
+    ' Public Enum OwnerDrawState
+    '     ODS_SELECTED = &H0001
+    '     ODS_GRAYED = &H0002
+    '     ODS_DISABLED = &H0004
+    '     ODS_CHECKED = &H0008
+    '     ODS_FOCUS = &H0010
+    '     ODS_DEFAULT = &H0020
+    '     ODS_COMBOBOXEDIT = &H1000
+    '     ODS_HOTLIGHT = &H0040
+    '     ODS_INACTIVE = &H0080
+    '     ODS_NOACCEL = &H0100
+    '     ODS_NOFOCUSRECT = &H0200
+    ' End Enum
+    
+    Public Enum BackgroundModes
+        TRANSPARENT = 1
+        OPAQUE = 2
+    End Enum
+    
+    Public Enum WindowMessages
+        WM_NULL = &H0000
+        WM_CREATE = &H0001
+        WM_DESTROY = &H0002
+        WM_MOVE = &H0003
+        WM_SIZE = &H0005
+        WM_ACTIVATE = &H0006
+        WM_SETFOCUS = &H0007
+        WM_KILLFOCUS = &H0008
+        WM_ENABLE = &H000A
+        WM_SETREDRAW = &H000B
+        WM_SETTEXT = &H000C
+        WM_GETTEXT = &H000D
+        WM_GETTEXTLENGTH = &H000E
+        WM_PAINT = &H000F
+        WM_CLOSE = &H0010
+        WM_QUERYENDSESSION = &H0011
+        WM_QUERYOPEN = &H0013
+        WM_ENDSESSION = &H0016
+        WM_QUIT = &H0012
+        WM_ERASEBKGND = &H0014
+        WM_SYSCOLORCHANGE = &H0015
+        WM_SHOWWINDOW = &H0018
+        WM_WININICHANGE = &H001A
+        WM_SETTINGCHANGE = WM_WININICHANGE
+        WM_DEVMODECHANGE = &H001B
+        WM_ACTIVATEAPP = &H001C
+        WM_FONTCHANGE = &H001D
+        WM_TIMECHANGE = &H001E
+        WM_CANCELMODE = &H001F
+        WM_SETCURSOR = &H0020
+        WM_MOUSEACTIVATE = &H0021
+        WM_CHILDACTIVATE = &H0022
+        WM_QUEUESYNC = &H0023
+        WM_GETMINMAXINFO = &H0024
+        WM_PAINTICON = &H0026
+        WM_ICONERASEBKGND = &H0027
+        WM_NEXTDLGCTL = &H0028
+        WM_SPOOLERSTATUS = &H002A
+        WM_DRAWITEM = &H002B
+        WM_MEASUREITEM = &H002C
+        WM_DELETEITEM = &H002D
+        WM_VKEYTOITEM = &H002E
+        WM_CHARTOITEM = &H002F
+        WM_SETFONT = &H0030
+        WM_GETFONT = &H0031
+        WM_SETHOTKEY = &H0032
+        WM_GETHOTKEY = &H0033
+        WM_QUERYDRAGICON = &H0037
+        WM_COMPAREITEM = &H0039
+        WM_GETOBJECT = &H003D
+        WM_COMPACTING = &H0041
+        WM_COMMNOTIFY = &H0044
+        WM_WINDOWPOSCHANGING = &H0046
+        WM_WINDOWPOSCHANGED = &H0047
+        WM_POWER = &H0048
+        WM_COPYDATA = &H004A
+        WM_CANCELJOURNAL = &H004B
+        WM_NOTIFY = &H004E
+        WM_INPUTLANGCHANGEREQUEST = &H0050
+        WM_INPUTLANGCHANGE = &H0051
+        WM_TCARD = &H0052
+        WM_HELP = &H0053
+        WM_USERCHANGED = &H0054
+        WM_NOTIFYFORMAT = &H0055
+        WM_CONTEXTMENU = &H007B
+        WM_STYLECHANGING = &H007C
+        WM_STYLECHANGED = &H007D
+        WM_DISPLAYCHANGE = &H007E
+        WM_GETICON = &H007F
+        WM_SETICON = &H0080
+        WM_NCCREATE = &H0081
+        WM_NCDESTROY = &H0082
+        WM_NCCALCSIZE = &H0083
+        WM_NCHITTEST = &H0084
+        WM_NCPAINT = &H0085
+        WM_NCACTIVATE = &H0086
+        WM_GETDLGCODE = &H0087
+        WM_NCMOUSEMOVE = &H00A0
+        WM_NCLBUTTONDOWN = &H00A1
+        WM_NCLBUTTONUP = &H00A2
+        WM_NCLBUTTONDBLCLK = &H00A3
+        WM_NCRBUTTONDOWN = &H00A4
+        WM_NCRBUTTONUP = &H00A5
+        WM_NCRBUTTONDBLCLK = &H00A6
+        WM_NCMBUTTONDOWN = &H00A7
+        WM_NCMBUTTONUP = &H00A8
+        WM_NCMBUTTONDBLCLK = &H00A9
+        WM_NCXBUTTONDOWN = &H00AB
+        WM_NCXBUTTONUP = &H00AC
+        WM_NCXBUTTONDBLCLK = &H00AD
+        WM_INPUT_DEVICE_CHANGE = &H00FE
+        WM_INPUT = &H00FF
+        WM_KEYFIRST = &H0100
+        WM_KEYDOWN = &H0100
+        WM_KEYUP = &H0101
+        WM_CHAR = &H0102
+        WM_DEADCHAR = &H0103
+        WM_SYSKEYDOWN = &H0104
+        WM_SYSKEYUP = &H0105
+        WM_SYSCHAR = &H0106
+        WM_SYSDEADCHAR = &H0107
+        WM_UNICHAR = &H0109
+        UNICODE_NOCHAR = &HFFFF&
+        WM_IME_STARTCOMPOSITION = &H010D
+        WM_IME_ENDCOMPOSITION = &H010E
+        WM_IME_COMPOSITION = &H010F
+        WM_IME_KEYLAST = &H010F
+        WM_INITDIALOG = &H0110
+        WM_COMMAND = &H0111
+        WM_SYSCOMMAND = &H0112
+        WM_TIMER = &H0113
+        WM_HSCROLL = &H0114
+        WM_VSCROLL = &H0115
+        WM_INITMENU = &H0116
+        WM_INITMENUPOPUP = &H0117
+        WM_GESTURE = &H0119
+        WM_GESTURENOTIFY = &H011A
+        WM_MENUSELECT = &H011F
+        WM_MENUCHAR = &H0120
+        WM_ENTERIDLE = &H0121
+        WM_MENURBUTTONUP = &H0122
+        WM_MENUDRAG = &H0123
+        WM_MENUGETOBJECT = &H0124
+        WM_UNINITMENUPOPUP = &H0125
+        WM_MENUCOMMAND = &H0126
+        WM_CHANGEUISTATE = &H0127
+        WM_UPDATEUISTATE = &H0128
+        WM_QUERYUISTATE = &H0129
+        WM_CTLCOLORMSGBOX = &H0132
+        WM_CTLCOLOREDIT = &H0133
+        WM_CTLCOLORLISTBOX = &H0134
+        WM_CTLCOLORBTN = &H0135
+        WM_CTLCOLORDLG = &H0136
+        WM_CTLCOLORSCROLLBAR = &H0137
+        WM_CTLCOLORSTATIC = &H0138
+        WM_MOUSEFIRST = &H0200
+        WM_MOUSEMOVE = &H0200
+        WM_LBUTTONDOWN = &H0201
+        WM_LBUTTONUP = &H0202
+        WM_LBUTTONDBLCLK = &H0203
+        WM_RBUTTONDOWN = &H0204
+        WM_RBUTTONUP = &H0205
+        WM_RBUTTONDBLCLK = &H0206
+        WM_MBUTTONDOWN = &H0207
+        WM_MBUTTONUP = &H0208
+        WM_MBUTTONDBLCLK = &H0209
+        WM_MOUSEWHEEL = &H020A
+        WM_XBUTTONDOWN = &H020B
+        WM_XBUTTONUP = &H020C
+        WM_XBUTTONDBLCLK = &H020D
+        WM_MOUSEHWHEEL = &H020E
+        WM_PARENTNOTIFY = &H0210
+        WM_ENTERMENULOOP = &H0211
+        WM_EXITMENULOOP = &H0212
+        WM_NEXTMENU = &H0213
+        WM_SIZING = &H0214
+        WM_CAPTURECHANGED = &H0215
+        WM_MOVING = &H0216
+        WM_POWERBROADCAST = &H0218
+        WM_DEVICECHANGE = &H0219
+        WM_MDICREATE = &H0220
+        WM_MDIDESTROY = &H0221
+        WM_MDIACTIVATE = &H0222
+        WM_MDIRESTORE = &H0223
+        WM_MDINEXT = &H0224
+        WM_MDIMAXIMIZE = &H0225
+        WM_MDITILE = &H0226
+        WM_MDICASCADE = &H0227
+        WM_MDIICONARRANGE = &H0228
+        WM_MDIGETACTIVE = &H0229
+        WM_MDISETMENU = &H0230
+        WM_ENTERSIZEMOVE = &H0231
+        WM_EXITSIZEMOVE = &H0232
+        WM_DROPFILES = &H0233
+        WM_MDIREFRESHMENU = &H0234
+        WM_POINTERDEVICECHANGE = &H238
+        WM_POINTERDEVICEINRANGE = &H239
+        WM_POINTERDEVICEOUTOFRANGE = &H23A
+        WM_TOUCH = &H0240
+        WM_NCPOINTERUPDATE = &H0241
+        WM_NCPOINTERDOWN = &H0242
+        WM_NCPOINTERUP = &H0243
+        WM_POINTERUPDATE = &H0245
+        WM_POINTERDOWN = &H0246
+        WM_POINTERUP = &H0247
+        WM_POINTERENTER = &H0249
+        WM_POINTERLEAVE = &H024A
+        WM_POINTERACTIVATE = &H024B
+        WM_POINTERCAPTURECHANGED = &H024C
+        WM_TOUCHHITTESTING = &H024D
+        WM_POINTERWHEEL = &H024E
+        WM_POINTERHWHEEL = &H024F
+        DM_POINTERHITTEST = &H0250
+        WM_POINTERROUTEDTO = &H0251
+        WM_POINTERROUTEDAWAY = &H0252
+        WM_POINTERROUTEDRELEASED = &H0253
+        WM_IME_SETCONTEXT = &H0281
+        WM_IME_NOTIFY = &H0282
+        WM_IME_CONTROL = &H0283
+        WM_IME_COMPOSITIONFULL = &H0284
+        WM_IME_SELECT = &H0285
+        WM_IME_CHAR = &H0286
+        WM_IME_REQUEST = &H0288
+        WM_IME_KEYDOWN = &H0290
+        WM_IME_KEYUP = &H0291
+        WM_MOUSEHOVER = &H02A1
+        WM_MOUSELEAVE = &H02A3
+        WM_NCMOUSEHOVER = &H02A0
+        WM_NCMOUSELEAVE = &H02A2
+        WM_WTSSESSION_CHANGE = &H02B1
+        WM_TABLET_FIRST = &H02c0
+        WM_TABLET_LAST = &H02df
+        WM_DPICHANGED = &H02E0
+        WM_DPICHANGED_BEFOREPARENT = &H02E2
+        WM_DPICHANGED_AFTERPARENT = &H02E3
+        WM_GETDPISCALEDSIZE = &H02E4
+        WM_CUT = &H0300
+        WM_COPY = &H0301
+        WM_PASTE = &H0302
+        WM_CLEAR = &H0303
+        WM_UNDO = &H0304
+        WM_RENDERFORMAT = &H0305
+        WM_RENDERALLFORMATS = &H0306
+        WM_DESTROYCLIPBOARD = &H0307
+        WM_DRAWCLIPBOARD = &H0308
+        WM_PAINTCLIPBOARD = &H0309
+        WM_VSCROLLCLIPBOARD = &H030A
+        WM_SIZECLIPBOARD = &H030B
+        WM_ASKCBFORMATNAME = &H030C
+        WM_CHANGECBCHAIN = &H030D
+        WM_HSCROLLCLIPBOARD = &H030E
+        WM_QUERYNEWPALETTE = &H030F
+        WM_PALETTEISCHANGING = &H0310
+        WM_PALETTECHANGED = &H0311
+        WM_HOTKEY = &H0312
+        WM_PRINT = &H0317
+        WM_PRINTCLIENT = &H0318
+        WM_APPCOMMAND = &H0319
+        WM_THEMECHANGED = &H031A
+        WM_CLIPBOARDUPDATE = &H031D
+        WM_DWMCOMPOSITIONCHANGED = &H031E
+        WM_DWMNCRENDERINGCHANGED = &H031F
+        WM_DWMCOLORIZATIONCOLORCHANGED = &H0320
+        WM_DWMWINDOWMAXIMIZEDCHANGE = &H0321
+        WM_DWMSENDICONICTHUMBNAIL = &H0323
+        WM_DWMSENDICONICLIVEPREVIEWBITMAP = &H0326
+        WM_GETTITLEBARINFOEX = &H033F
+        WM_HANDHELDFIRST = &H0358
+        WM_HANDHELDLAST = &H035F
+        WM_AFXFIRST = &H0360
+        WM_AFXLAST = &H037F
+        WM_PENWINFIRST = &H0380
+        WM_PENWINLAST = &H038F
+        WM_APP = &H8000&
+        WM_USER = &H0400
+    End Enum
+        
+    Public Enum WindowEnumerationMode
+        GW_HWNDFIRST = 0
+        GW_HWNDLAST = 1
+        GW_HWNDNEXT = 2
+        GW_HWNDPREV = 3
+        GW_OWNER = 4
+        GW_CHILD = 5
+    End Enum
+    
+    Public Enum FontQuality
+        DEFAULT_QUALITY = 0
+        DRAFT_QUALITY = 1
+        PROOF_QUALITY = 2
+        NONANTIALIASED_QUALITY = 3
+        ANTIALIASED_QUALITY = 4
+        CLEARTYPE_QUALITY = 5
+        CLEARTYPE_NATURAL_QUALITY = 6
+    End Enum
+    
+    Public Enum RedrawFlags
+        RDW_INVALIDATE = &H0001
+        RDW_INTERNALPAINT = &H0002
+        RDW_ERASE = &H0004
+        RDW_VALIDATE = &H0008
+        RDW_NOINTERNALPAINT = &H0010
+        RDW_NOERASE = &H0020
+        RDW_NOCHILDREN = &H0040
+        RDW_ALLCHILDREN = &H0080
+        RDW_UPDATENOW = &H0100
+        RDW_ERASENOW = &H0200
+        RDW_FRAME = &H0400
+        RDW_NOFRAME = &H0800
+    End Enum
+    
+    Public Enum WindowGDIObjectTypes
+        OBJ_PEN = 1
+        OBJ_BRUSH = 2
+        OBJ_DC = 3
+        OBJ_METADC = 4
+        OBJ_PAL = 5
+        OBJ_FONT = 6
+        OBJ_BITMAP = 7
+        OBJ_REGION = 8
+        OBJ_METAFILE = 9
+        OBJ_MEMDC = 10
+        OBJ_EXTPEN = 11
+        OBJ_ENHMETADC = 12
+        OBJ_ENHMETAFILE = 13
+        OBJ_COLORSPACE = 14
+    End Enum
+
+    Type SCROLLINFO
+        cbSize As Long
+        fMask As Long
+        nMin As Long
+        nMax As Long
+        nPage As Long   ' unsigned
+        nPos As Long
+        nTrackPos As Long
+    End Type
+    
+    Public Enum SCROLLTYPE
+        SB_HORZ = 0
+        SB_VERT = 1
+        SB_CTL = 2
+        SB_BOTH = 3
+    End Enum
+    
+    Public Enum SCROLLINFOMASK
+        SIF_RANGE = &H0001
+        SIF_PAGE = &H0002
+        SIF_POS = &H0004
+        SIF_DISABLENOSCROLL = &H0008
+        SIF_TRACKPOS = &H0010
+        SIF_ALL = (SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS)
+    End Enum
+    
+    Public Enum DriveType
+        DRIVE_UNKNOWN = 0
+        DRIVE_NO_ROOT_DIR = 1
+        DRIVE_REMOVABLE = 2
+        DRIVE_FIXED = 3
+        DRIVE_REMOTE = 4
+        DRIVE_CDROM = 5
+        DRIVE_RAMDISK = 6
+    End Enum
+            
+    Public Const HWND_TOP As Long = 0
+    Public Const HWND_BOTTOM As Long = 1
+
+End Module

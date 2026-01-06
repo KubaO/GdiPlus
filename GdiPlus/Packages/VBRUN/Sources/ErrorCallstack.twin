@@ -1,0 +1,5 @@
+[InterfaceId("B268048A-E6F4-4C74-9C7C-A85646F3D919")]
+Interface ErrorCallstack Extends stdole.IUnknown
+    Property Get Count() As Long
+    Property Get Items(ByVal Index As Long) As ErrorStackFrame
+End Interface 

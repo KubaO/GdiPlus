@@ -1,0 +1,660 @@
+Private Class IgnoreMe
+
+End Class
+
+[InterfaceId("3E204D18-7744-4178-B869-0A8501133BD8")]
+Private Class DataObjectWriteOnlyEnumerator
+    Implements VBRUN.tbInternal_IEnumFORMATETC
+    
+    Protected dataObject As DataObjectSource
+    Protected currentIndex As Long = 0
+    
+    Public Sub New(dataObject As DataObjectSource)
+        Set Me.dataObject = dataObject
+    End Sub
+    
+    Protected Sub Next(ByVal celt As Long, rgelt As VBRUN.tbInternal_FORMATETC, pceltFetched As Long) _
+            Implements tbInternal_IEnumFORMATETC.Next
+        If VarPtr(pceltFetched) <> 0 Then
+            pceltFetched = 0
+        End If
+        If celt <> 1 Then
+            Err.Raise 5
+        End If
+        
+        If dataObject.InternalEnumGet(currentIndex, rgelt) Then
+            currentIndex += 1
+            
+            If VarPtr(pceltFetched) <> 0 Then
+                pceltFetched = 1
+            End If
+        Else
+            Err.ReturnHResult = S_FALSE
+        End If
+    End Sub
+    
+    Protected Sub Skip(ByVal celt As Long) _
+               Implements tbInternal_IEnumFORMATETC.Skip
+        currentIndex += celt
+    End Sub
+    
+    Protected Sub Reset() _
+               Implements tbInternal_IEnumFORMATETC.Reset
+        currentIndex = 0
+    End Sub
+    
+    Protected Sub Clone(ByRef ppenum As VBRUN.tbInternal_IEnumFORMATETC) _
+               Implements tbInternal_IEnumFORMATETC.Clone
+        Set ppenum = New DataObjectWriteOnlyEnumerator(dataObject)
+    End Sub
+End Class
+
+[InterfaceId("BF0C5299-E8B2-4DF0-A199-78D56C0ED2B6")]
+[COMCreatable(False)]
+Private Class DataObjectFilesWrite
+    Implements DataObjectFiles
+    
+    Protected InternalCollection As Collection
+    
+    Protected Function DataObjectFilesItem(ByVal Index As Long) As String _
+            Implements DataObjectFiles.Item
+        
+        Return CStr(InternalCollection.Item(Index))
+    End Function
+    
+    Protected Property Get DataObjectFilesCount() As Long _
+            Implements DataObjectFiles.Count
+        
+        Return InternalCollection.Count
+    End Property
+    
+    Protected Sub DataObjectFilesAdd(ByVal Filename As String, Optional index As Variant) _
+            Implements DataObjectFiles.Add
+            
+        InternalCollection.Add Filename, , index
+    End Sub
+    
+    Protected Sub DataObjectFilesClear() _
+            Implements DataObjectFiles.Clear
+           
+        InternalCollection.Clear()
+        ' While InternalCollection.Count
+        '     InternalCollection.Remove(0)
+        ' Wend
+    End Sub
+    
+    Protected Sub DataObjectFilesRemove(ByVal index As Variant) _
+            Implements DataObjectFiles.Remove
+            
+        InternalCollection.Remove(index)
+    End Sub
+    
+    [Enumerator]
+    Protected Function DataObjectFilesNewEnum() As stdole.IUnknown _
+            Implements DataObjectFiles.[_NewEnum]
+            
+        Return InternalCollection.[_NewEnum]
+    End Function
+    
+    Public Sub New()
+        Set InternalCollection = New Collection
+    End Sub
+End Class
+
+[InterfaceId("5E0DA24E-71EA-4D93-B2CA-2CD984729841")]
+[COMCreatable(False)]
+Private Class DataObjectSource
+    Implements DataObject
+    Implements VBRUN.tbInternal_IDataObject
+    
+    ' Type BITMAPINFOHEADER
+    '     biSize As Long
+    '     biWidth As Long
+    '     biHeight As Long
+    '     biPlanes As Integer
+    '     biBitCount As Integer
+    '     biCompression As Long
+    '     biSizeImage As Long
+    '     biXPelsPerMeter As Long
+    '     biYPelsPerMeter As Long
+    '     biClrUsed As Long
+    '     biClrImportant As Long
+    ' End Type
+        
+    ' Type BITMAPINFO_RGBA
+    '     bmiHeader As BITMAPINFOHEADER
+    '     bmiColors(4) As Long
+    ' End Type
+    ' Type BITMAPINFO_RGBA_LARGE
+    '     bmiHeader As BITMAPINFOHEADER
+    '     bmiColors(256) As Long
+    ' End Type
+        
+    Private Type DataObjectData
+        Format As ClipboardConstants
+        Value As Variant
+    End Type
+    
+    Protected Control As Object
+    Protected InternalAvailableData() As DataObjectData
+    Protected InternalFiles As DataObjectFiles
+    
+    Public Sub New(Control As Object)
+        Set Me.Control = Control
+    End Sub
+    
+    Protected Sub DataObjectClear() _
+            Implements DataObject.Clear
+        Erase InternalAvailableData
+    End Sub
+    
+    Protected Function DataObjectFiles() As DataObjectFiles _
+               Implements DataObject.Files
+        If InternalFiles Is Nothing Then
+            Set InternalFiles = New DataObjectFilesWrite
+        End If
+        Return InternalFiles
+    End Function
+    
+    Protected Function DataObjectGetData(ByVal sFormat As Integer) As Variant _
+               Implements DataObject.GetData
+        Err.Raise 425, , "Invalid object use"
+    End Function
+    
+    Protected Function DataObjectGetDataByName(ByVal Format As String) As Variant _
+               Implements DataObject.GetDataByName
+        Err.Raise 425, , "Invalid object use"
+    End Function
+    
+    Protected Function DataObjectGetFormat([TypeHint(ClipboardConstants)] ByVal sFormat As Integer) As Boolean _
+               Implements DataObject.GetFormat
+        Dim supportedFormat As DataObjectFormat
+        For Each supportedFormat In DataObjectAvailableFormats
+            If supportedFormat.FormatType = sFormat Then Return True
+        Next
+        Return False
+    End Function
+    
+    Protected Function DataObjectGetFormatByName(ByVal Format As String) As Boolean _
+               Implements DataObject.GetFormatByName
+       Dim supportedFormat As DataObjectFormat
+        For Each supportedFormat In DataObjectAvailableFormats
+            If supportedFormat.Name = Format Then Return True
+        Next
+        Return False
+    End Function
+    
+    Protected Sub DataObjectSetData(ByVal Value As Variant, ByVal Format As Variant) _
+               Implements DataObject.SetData
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & " (Format: " & Format & ")"
+        
+        Dim picture As stdole.StdPicture
+        
+        ' If Format is supplied without Value, this is allowed and indicates that we support the format
+        '   but don't want to populate the value just yet (until the client specifically requests it)
+        
+        If IsMissing(Format) Then
+            ' When Format is missing, choose it by looking at the Value content
+            If IsMissing(Value) Then
+                Err.Raise 673, , "Expected at least one argument"
+            ElseIf IsNull(Value) Then
+                GoTo BadDataFormat
+            ElseIf TypeOf Value Is stdole.StdPicture Then
+                Set picture = CType(Of stdole.StdPicture)(Value)
+                Select Case CLng(picture.Type)
+                    Case vbPicTypeBitmap
+                        Format = ClipboardConstants.vbCFDIB
+                    Case vbPicTypeEMetafile
+                        Format = ClipboardConstants.vbCFEMetafile
+                    Case vbPicTypeMetafile
+                        Format = ClipboardConstants.vbCFMetafile
+                    Case Else
+                        GoTo BadDataFormat
+                End Select
+            Else
+                Format = ClipboardConstants.vbCFText
+                Value = CStr(Value)
+            End If
+        Else
+            If IsMissing(Value) = False Then
+                Select Case Format
+                    Case ClipboardConstants.vbCFText, _
+                            ClipboardConstants.vbCFUnicodeText, _
+                            ClipboardConstants.vbCFRTF
+                        Value = CStr(Value)
+                    
+                    Case ClipboardConstants.vbCFFiles
+                        Err.Raise 5     ' must use the Files collection instead
+                                                
+                    Case ClipboardConstants.vbCFBitmap, _
+                            ClipboardConstants.vbCFDIB, _
+                            ClipboardConstants.vbCFPalette
+                            
+                        If TypeOf Value IsNot stdole.StdPicture Then
+                            GoTo BadDataFormat
+                        End If
+                        Set picture = CType(Of stdole.StdPicture)(Value)
+                        If picture.Type <> vbPicTypeBitmap Then
+                            GoTo BadDataFormat
+                        End If
+                        Set Value = picture
+                    
+                    Case ClipboardConstants.vbCFEMetafile
+                        If TypeOf Value IsNot stdole.StdPicture Then
+                            GoTo BadDataFormat
+                        End If
+                        Set picture = CType(Of stdole.StdPicture)(Value)
+                        If picture.Type <> vbPicTypeEMetafile Then
+                            GoTo BadDataFormat
+                        End If
+                        Set Value = picture
+                        
+                    Case ClipboardConstants.vbCFMetafile
+                        If TypeOf Value IsNot stdole.StdPicture Then
+                            GoTo BadDataFormat
+                        End If
+                        Set picture = CType(Of stdole.StdPicture)(Value)
+                        If picture.Type <> vbPicTypeMetafile Then
+                            GoTo BadDataFormat
+                        End If
+                        Set Value = picture
+            
+                    Case Else
+                        ' all other types only support byte arrays
+                        If VarType(Value) <> (vbArray Or vbByte) Then
+                            Err.Raise 675, , "Non-intrinsic OLE drag and drop formats used with SetData require Byte array data.  GetData may return more bytes than were given to SetData."
+                        End If
+                        
+                End Select
+            End If
+        End If
+        
+        Dim arrBoundTop As Long = -1
+        If IsArrayInitialized(InternalAvailableData) = True Then
+            arrBoundTop = UBound(InternalAvailableData)
+
+            'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "...1"
+            Dim index As Long
+            While index <= arrBoundTop
+                'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "...2  (format: " & InternalAvailableData(index).Format & ")"
+                If InternalAvailableData(index).Format = Format Then
+                    If IsObject(Value) Then
+                        Set InternalAvailableData(index).Value = Value
+                    Else
+                        InternalAvailableData(index).Value = Value
+                    End If
+                    Exit Sub
+                End If
+                'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "...4"
+                index += 1
+            Wend
+        End If
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "...5"
+        ReDim Preserve InternalAvailableData(arrBoundTop + 1)
+        InternalAvailableData(arrBoundTop + 1).Format = CType(Of ClipboardConstants)(Format)
+        If IsObject(Value) Then
+            Set InternalAvailableData(arrBoundTop + 1).Value = Value
+        Else
+            InternalAvailableData(arrBoundTop + 1).Value = Value
+        End If
+        Exit Sub
+
+    BadDataFormat:
+        Err.Raise 461, , "Specified format doesn't match format of data"
+    End Sub
+    
+    Public Function DataObjectAvailableFormats() As DataObjectFormats _
+                   Implements DataObject.AvailableFormats
+        Return New DataObjectFormatsReadOnly(Me)
+    End Function
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Protected Sub GetData(pformatetcIn As VBRUN.tbInternal_FORMATETC, pmedium As VBRUN.tbInternal_STGMEDIUM) _
+            Implements tbInternal_IDataObject.GetData
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName
+
+        Dim verifyOnly As Boolean = (VarPtr(pmedium) = 0)
+        
+        Dim arrBoundTop As Long = -1
+        If IsArrayInitialized(InternalAvailableData) = True Then
+            arrBoundTop = UBound(InternalAvailableData)
+        End If
+        
+        If verifyOnly = False Then
+            Set pmedium.pUnkForRelease = New IgnoreMe
+        End If
+        
+        Dim index As Long = 0
+        While index <= arrBoundTop
+            With InternalAvailableData(index)
+                If .Format = pformatetcIn.cfFormat Then
+                    If .Format = vbCFFiles Then
+                        If (Me.InternalFiles Is Nothing) OrElse (Me.InternalFiles.Count = 0) Then
+                            RaiseEventByName2(Control, "OLESetData", Me, pformatetcIn.cfFormat)
+                            
+                            If (Me.InternalFiles Is Nothing) OrElse (Me.InternalFiles.Count = 0) Then
+                                GoTo BadStorageType
+                            End If
+                        End If
+                        
+                        Dim fileDataString As String
+                        Dim filesCount As Long = Me.InternalFiles.Count
+                        Dim fileIdx As Long = 0
+                        While fileIdx < filesCount
+                            fileDataString += Me.InternalFiles.Item(fileIdx + 1) & vbNullChar
+                            fileIdx += 1
+                        Wend
+                        
+                        fileDataString += vbNullChar
+                        
+                        Dim filesData As DROPFILES
+                        filesData.pFiles = LenB(filesData)
+                        filesData.fWide = 1 ' TRUE
+                        
+                        If verifyOnly = False Then
+                            pmedium.unionData = KERNEL32.GlobalAlloc(GMEM_MOVEABLE, LenB(filesData) + LenB(fileDataString))
+                            ptrData = KERNEL32.GlobalLock(pmedium.unionData)
+                            KERNEL32.RtlMoveMemory(ptrData, VarPtr(filesData), LenB(filesData))
+                            KERNEL32.RtlMoveMemory(ptrData + LenB(filesData), StrPtr(fileDataString), LenB(fileDataString))
+                            KERNEL32.GlobalUnlock(pmedium.unionData)
+                            pmedium.tymed = VBRUN.tbInternal_TYMED_HGLOBAL
+                        End If
+                    Else
+                        If IsMissing(.Value) Then
+                            'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "... 1.1"
+                            RaiseEventByName2(Control, "OLESetData", Me, pformatetcIn.cfFormat)
+                            'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "... 1.2"
+                        End If
+
+                        If TypeOf .Value Is stdole.StdPicture Then
+                            Dim picture As Any = CType(Of stdole.StdPicture)(.Value)
+                            Select Case CLng(picture.Type)
+                                Case PictureTypeConstants.vbPicTypeBitmap
+                                    If .Format = ClipboardConstants.vbCFDIB Then
+                                        If pformatetcIn.tymed <> VBRUN.tbInternal_TYMED_HGLOBAL Then
+                                            GoTo BadStorageType
+                                        End If
+                                        
+                                        If verifyOnly = False Then
+                                            ' OLE stores the raw DIB data here (without BITMAPFILEHEADER), inside a HGLOBAL
+                                            Dim bitmapHandle As LongPtr = picture.Handle
+                                            
+                                            Dim bmi As BITMAPINFO_RGBA_LARGE
+                                            Dim bmi_small As BITMAPINFOHEADER
+                                            bmi_small.biSize = LenB(bmi_small)
+                                            
+                                            Dim nullHwnd As HWND
+                                            Dim hDC As Any = nullHwnd.GetDC()
+                                            Const DIB_RGB_COLORS As Long = 0
+                                            GDI32.GetDIBits(hDC, bitmapHandle, 0, 0, 0, ByVal VarPtr(bmi_small), DIB_RGB_COLORS)
+
+                                            If bmi_small.biBitCount <= 8 Then
+                                                ' this is a palettized bitmap, so read the palette table...
+                                                LSet bmi = bmi_small
+                                                GDI32.GetDIBits(hDC, bitmapHandle, 0, 0, 0, bmi, DIB_RGB_COLORS)
+                                            End If
+                                            LSet bmi = bmi_small    ' restore header as 2nd GetDIBits can clear the clrUsed field
+                                            
+                                            bmi.bmiHeader.biCompression = 0 ' uncompressed RGB.  by setting this, Windows does the necessary converting in the next call to GetDIBits?
+                                            
+                                            pmedium.unionData = KERNEL32.GlobalAlloc(GMEM_MOVEABLE, bmi.bmiHeader.biSize + (bmi.bmiHeader.biClrUsed * 4) + bmi.bmiHeader.biSizeImage)
+                                            ptrData = KERNEL32.GlobalLock(pmedium.unionData)
+                                            KERNEL32.RtlMoveMemory(ptrData, VarPtr(bmi), bmi.bmiHeader.biSize + (bmi.bmiHeader.biClrUsed * 4))
+                                            GDI32.GetDIBits(hDC, bitmapHandle, 0, bmi.bmiHeader.biHeight, ptrData + bmi.bmiHeader.biSize + (bmi.bmiHeader.biClrUsed * 4), bmi, DIB_RGB_COLORS)
+                                            KERNEL32.GlobalUnlock(pmedium.unionData)
+                                            pmedium.tymed = VBRUN.tbInternal_TYMED_HGLOBAL
+                                            
+                                            nullHwnd.ReleaseDC(hDC)
+                                        End If
+                                    Else
+                                        If pformatetcIn.tymed <> VBRUN.tbInternal_TYMED_GDI Then
+                                            GoTo BadStorageType
+                                        End If
+                                        
+                                        If verifyOnly = False Then
+                                            pmedium.tymed = VBRUN.tbInternal_TYMED_GDI
+                                            'pmedium.unionData = OleDuplicateData(picture.Handle, vbCFBitmap, 0)  ' doesn't work?
+                                            Const IMAGE_BITMAP As Long = 0
+                                            Const LR_DEFAULTSIZE As Long = &H40
+                                            pmedium.unionData = USER32.CopyImage(picture.Handle, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE)
+                                        End If
+                                    End If
+                                        
+                                Case PictureTypeConstants.vbPicTypeEMetafile
+                                    If pformatetcIn.tymed <> VBRUN.tbInternal_TYMED_ENHMF Then
+                                        GoTo BadStorageType
+                                    End If
+                                    
+                                    If verifyOnly = False Then
+                                        pmedium.tymed = VBRUN.tbInternal_TYMED_ENHMF
+                                        pmedium.unionData = OLE32.OleDuplicateData(picture.Handle, vbCFEMetafile, 0)
+                                    End If
+                                                    
+                                Case PictureTypeConstants.vbPicTypeMetafile
+                                    If pformatetcIn.tymed <> VBRUN.tbInternal_TYMED_MFPICT Then
+                                        GoTo BadStorageType
+                                    End If
+                                    
+                                    If verifyOnly = False Then
+                                        pmedium.tymed = VBRUN.tbInternal_TYMED_MFPICT
+                                        
+                                        ' OLE uses METAFILEPICT type here, inside a HGLOBAL
+                                        Dim temp As METAFILEPICT
+                                        temp.hMF = picture.Handle
+                                        Const MM_HIMETRIC As Long = 3
+                                        temp.mm = MM_HIMETRIC
+                                        temp.xExt = picture.Width
+                                        temp.yExt = picture.Height
+                                        
+                                        pmedium.unionData = KERNEL32.GlobalAlloc(GMEM_MOVEABLE, LenB(temp))
+                                        ptrData = KERNEL32.GlobalLock(pmedium.unionData)
+                                        KERNEL32.RtlMoveMemory(ptrData, VarPtr(temp), LenB(temp))
+                                        KERNEL32.GlobalUnlock(pmedium.unionData)
+                                        
+                                        pmedium.unionData = OLE32.OleDuplicateData(pmedium.unionData, vbCFMetafile, 0)
+                                    End If
+                                        
+                                Case Else
+                                    GoTo BadStorageType
+                            End Select
+                        Else
+                            Dim strValue As String = CStr(.Value)
+                            If .Format = vbCFText Then strValue = CStr(StrConv(strValue, vbFromUnicode))
+
+                            Select Case pformatetcIn.tymed
+                                Case VBRUN.tbInternal_TYMED_HGLOBAL
+                                    Const GMEM_MOVEABLE As Long = 2
+                                    If verifyOnly = False Then
+                                        pmedium.tymed = VBRUN.tbInternal_TYMED_HGLOBAL
+                                        pmedium.unionData = KERNEL32.GlobalAlloc(GMEM_MOVEABLE, LenB(strValue))
+                                        Dim ptrData As LongPtr = KERNEL32.GlobalLock(pmedium.unionData)
+                                        KERNEL32.RtlMoveMemory(ptrData, StrPtr(strValue), LenB(strValue))
+                                        KERNEL32.GlobalUnlock(pmedium.unionData)
+                                    End If
+                                    
+                                Case VBRUN.tbInternal_TYMED_ISTORAGE
+                                    ' We don't support IStorage requests
+                                    Err.ReturnHResult = &H8000FFFF
+                                    
+                                Case VBRUN.tbInternal_TYMED_ISTREAM
+                                    If verifyOnly = False Then
+                                        pmedium.tymed = VBRUN.tbInternal_TYMED_ISTREAM
+                                        pmedium.unionData = SHLWAPI.SHCreateMemStreamPtr(StrPtr(strValue), LenB(strValue))
+                                    End If
+                                    
+                                Case Else
+                                    GoTo BadStorageType
+                            End Select
+                        End If
+                    End If
+
+                    Exit Sub
+                    
+                End If
+            End With
+            index += 1
+        Wend
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & "... 999"
+        Err.ReturnHResult = &H8000FFFF
+        Exit Sub
+
+    BadStorageType:
+        Const DV_E_TYMED As Long = &H80040069
+        Err.ReturnHResult = DV_E_TYMED
+    End Sub
+    
+    Protected Sub DAdvise(pformatetc As VBRUN.tbInternal_FORMATETC, ByVal advf As Long, ByVal pAdvSink As VBRUN.tbInternal_IAdviseSink, pdwConnection As Long) _
+            Implements tbInternal_IDataObject.DAdvise
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName
+        Err.ReturnHResult = E_NOTIMPL
+    End Sub
+    
+    Protected Sub DUnadvise(ByVal dwConnection As Long) _ 
+            Implements tbInternal_IDataObject.DUnadvise
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName
+        Err.ReturnHResult = E_NOTIMPL
+    End Sub
+    
+    Protected Sub EnumDAdvise(ppenumAdvise As VBRUN.tbInternal_IEnumSTATDATA) _ 
+               Implements tbInternal_IDataObject.EnumDAdvise
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName
+        Err.ReturnHResult = E_NOTIMPL
+    End Sub
+    
+    Protected Sub EnumFormatEtc(ByVal dwDirection As Long, ppenumFormatEtc As VBRUN.tbInternal_IEnumFORMATETC) _ 
+               Implements tbInternal_IDataObject.EnumFormatEtc
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & ", dwDirection:" & dwDirection
+        
+        Const DATADIR_GET As Long = 1
+        Const DATADIR_SET As Long = 2
+        
+        If dwDirection = DATADIR_GET Then
+            Set ppenumFormatEtc = New DataObjectWriteOnlyEnumerator(Me)
+        Else
+            Err.ReturnHResult = E_NOTIMPL
+        End If
+    End Sub
+    
+    Protected Sub GetCanonicalFormatEtc(pformatectIn As VBRUN.tbInternal_FORMATETC, pformatetcOut As VBRUN.tbInternal_FORMATETC) _ 
+               Implements tbInternal_IDataObject.GetCanonicalFormatEtc
+        Const DATA_S_SAMEFORMATETC As Long = &H00040130
+        Err.ReturnHResult = DATA_S_SAMEFORMATETC
+    End Sub
+    
+    Protected Sub GetDataHere(pformatetcIn As VBRUN.tbInternal_FORMATETC, pmedium As VBRUN.tbInternal_STGMEDIUM) _ 
+               Implements tbInternal_IDataObject.GetDataHere
+        Err.ReturnHResult = E_NOTIMPL
+    End Sub
+    
+    Protected Sub QueryGetData(pformatetc As VBRUN.tbInternal_FORMATETC) _ 
+               Implements tbInternal_IDataObject.QueryGetData
+        On Error Resume Next
+        GetData(pformatetc, ByVal vbNullPtr)        ' we use nullptr output to verify-only
+        Err.ReturnHResult = Err.LastHresult
+    End Sub
+    
+    Protected Sub SetData(pformatetc As VBRUN.tbInternal_FORMATETC, pmedium As VBRUN.tbInternal_STGMEDIUM, ByVal fRelease As Long) _ 
+               Implements tbInternal_IDataObject.SetData
+        ' This wont be called from OLE, as we are just a source
+        Err.ReturnHResult = E_NOTIMPL
+    End Sub
+    
+    Protected Function GetIDataObject() As VBRUN.tbInternal_IDataObject _ 
+               Implements DataObject.GetIDataObject
+        Return Me
+    End Function
+    
+    Public Function InternalGetCount() As Long
+        Dim arrBoundTop As Long = -1
+        If IsArrayInitialized(InternalAvailableData) = True Then
+            arrBoundTop = UBound(InternalAvailableData)
+        End If
+        Return arrBoundTop
+    End Function
+    
+    Public Function InternalEnumGet(ByVal index As Long, rgelt As VBRUN.tbInternal_FORMATETC) As Boolean
+        Dim arrTopIndex As Long = -1
+        If IsArrayInitialized(InternalAvailableData) Then
+            arrTopIndex = UBound(InternalAvailableData)
+        End If
+        
+        If index <= arrTopIndex Then
+            With InternalAvailableData(index)
+                
+                rgelt.cfFormat = CInt(.Format)      ' FIXME why isn't this working??
+                'Debug.Print "FORMAT: " & rgelt.cfFormat
+                rgelt.dwAspect = 1
+                rgelt.lindex = -1
+                rgelt.ptd = 0
+                
+                Select Case .Format
+                    Case ClipboardConstants.vbCFFiles
+                        rgelt.tymed = VBRUN.tbInternal_TYMED_HGLOBAL
+                        
+                    Case ClipboardConstants.vbCFBitmap, _
+                            ClipboardConstants.vbCFPalette
+                            
+                        rgelt.tymed = VBRUN.tbInternal_TYMED_GDI
+                        
+                    Case ClipboardConstants.vbCFEMetafile
+                        rgelt.tymed = VBRUN.tbInternal_TYMED_ENHMF
+                        
+                    Case ClipboardConstants.vbCFMetafile
+                        rgelt.tymed = VBRUN.tbInternal_TYMED_MFPICT
+                        
+                    Case Else
+                        rgelt.tymed = VBRUN.tbInternal_TYMED_HGLOBAL Or VBRUN.tbInternal_TYMED_ISTREAM
+                End Select
+            End With
+            
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+End Class
+
+[COMCreatable(False)]
+[InterfaceId("317CEDEE-AECC-448F-96C3-AAB4D8035274")]
+Private Class OLEDropSource
+    Implements IDropSource
+    
+    Protected control As Object
+    Protected mouseWasDown As Boolean = False
+
+    Public Sub New(control As Object)
+        Set Me.control = control
+        
+        mouseWasDown = USER32.GetKeyState(vbKeyLButton) And &H8000    ' FIXME doesn't account for swapped mouse
+    End Sub
+    
+    Protected Sub QueryContinueDrag(ByVal fEscapePressd As Long, ByVal grfKeyState As Long) _
+            Implements IDropSource.QueryContinueDrag
+       ' Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName
+        Const MK_LBUTTON As Long = 1
+        Const DRAGDROP_S_DROP As Long = &h00040100
+        Const DRAGDROP_S_CANCEL As Long = &h00040101
+        If fEscapePressd Then
+            Err.ReturnHResult = DRAGDROP_S_CANCEL
+        Else
+            If mouseWasDown And (grfKeyState And MK_LBUTTON) = 0 Then
+                Err.ReturnHResult = DRAGDROP_S_DROP
+            ElseIf (grfKeyState And MK_LBUTTON) <> 0 Then
+                ' The mouse has now been pressed.  Wait for mouse up...
+                mouseWasDown = True
+            End If
+        End If
+    End Sub
+    
+    Protected Sub GiveFeedback(ByVal dwEffect As Long) _
+               Implements IDropSource.GiveFeedback
+        'Debug.Print Now() & " " & CurrentComponentName & "." & CurrentProcedureName & " (" & dwEffect & ")"
+        
+        Dim DefaultCursors As Boolean = True
+        RaiseEventByName2(control, "OLEGiveFeedback", dwEffect, DefaultCursors)
+        
+        Const DRAGDROP_S_USEDEFAULTCURSORS As Long = &h00040102
+        If DefaultCursors Then Err.ReturnHResult = DRAGDROP_S_USEDEFAULTCURSORS
+    End Sub
+End Class

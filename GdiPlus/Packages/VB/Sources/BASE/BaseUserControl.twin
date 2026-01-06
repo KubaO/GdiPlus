@@ -1,0 +1,137 @@
+[ClassId("89F231B0-C83C-4C78-A0AF-37F594F36B78")]
+[InterfaceId("5A23FF7E-5673-417E-BE4B-61471359FA70")]
+[COMCreatable(False)]
+Private Class BaseUserControl
+ 
+    Inherits BaseControlRect
+    
+    [Serialize(True, ":Index")]
+    Protected IndexINIT As Long = -1
+
+    [Serialize(False)]
+    Public Property Get Index() As Long
+        Dim IndexINIT As Any = InternalBaseControlInfo.ControlArrayIndex
+        If IndexINIT = -1 Then
+            'Err.Raise 343, , "Object not an array"
+            Err.ReturnHResult = &H800A0157
+            Return 0
+        End If
+        Return IndexINIT
+    End Property
+
+    [Description("A unique GUID that is used for associating a class with a form")]
+        Public FormDesignerId As String             ' FIXME should support GUID datatype
+    [Description("")]
+    [Serialize(True, "MousePointer")]
+        Protected MousePointerINIT As VBRUN.MousePointerConstants '= VBRUN.MousePointerConstants.vbDefault
+    [Serialize(True, "MouseIcon")]
+    [CustomDesigner("designer_IconBytes")]
+        Protected ReadOnly MouseIconINIT() As Byte
+
+    [Description("")]
+    [Serialize(True, "KeyPreview")]
+        Protected KeyPreviewINIT As Boolean
+        
+    [Description("")]
+        ' Exists in VB6, but doesn't seem to have an effect on forms.
+        Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+
+    [Description("")]
+    [Serialize(True, "Enabled")]
+        Protected EnabledINIT As Boolean = True
+
+    Sub New()
+        BaseControlRect.New(ControlTypeConstants.vbForm)
+        Me.EnabledINIT = True
+    End Sub
+        
+    Protected Sub CreateRootWindowElement(ByVal _ControlContext As ControlContext, _
+                                                ByRef InitData As WindowCreationData)
+        
+        With InternalBaseControlInfo
+            .MousePointer = MousePointerINIT
+            .KeyPreview = KeyPreviewINIT
+            .ControlArrayIndex = IndexINIT
+        End With
+        
+        InternalBaseControlBeforeCreateRootWindowRect(InitData)
+        Me.ControlContext = _ControlContext
+        InitData.WindowStyles += If(Me.EnabledINIT, 0&, WS_DISABLED)
+        Me.RootWindowElementBase.Pointer = ControlContext.RuntimeUICtxCreateWindowElement(InitData)
+
+        IgnoreMousePointerChanged = True
+        CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        IgnoreMousePointerChanged = False
+    End Sub
+        
+    [Serialize(False)]
+    [Description("")]
+    Property Get Enabled() As Boolean
+        Return CommonGetEnabled()
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Let Enabled(Value As Boolean)
+        CommonLetEnabled(Value)
+    End Property
+
+    Sub Refresh()
+        CommonRefresh()
+    End Sub
+    
+    #If FEATURE_OLEDRAGDROP Then
+    Protected Sub BaseSyncOLEDropMode(ByVal RootThis As Object, ByVal OLEDropMode As OLEDropConstants, ByRef DragDropHandler As OLEDragDropHandler, ByVal IsContainer As Boolean, ByVal AllowedAutomatic As Boolean)
+        CommonSyncOLEDropMode(RootThis, OLEDropMode, DragDropHandler, ControlContext, RootWindowElementBase, IsContainer, AllowedAutomatic)
+    End Sub
+    #End If
+        
+    [Serialize(False)]
+    Public Property Get MouseIcon() As StdPicture
+        Return InternalBaseControlInfo.MouseIcon
+    End Property
+
+    [Serialize(False)]
+    Public Property Set MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+
+    [Serialize(False)]
+    Public Property Let MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get hWnd() As LongPtr
+        Return CommonGetHWND()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get MousePointer() As MousePointerConstants
+        Return InternalBaseControlInfo.MousePointer
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+        InternalBaseControlInfo.MousePointer = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get KeyPreview() As Boolean
+        Return InternalBaseControlInfo.KeyPreview
+    End Property
+
+    [Serialize(False)]
+    Public Property Let KeyPreview(ByVal Value As Boolean)
+        InternalBaseControlInfo.KeyPreview = Value
+    End Property
+    
+    [Serialize(False), Description("A collection of all controls attached to this form")]
+    [TypeHint(WindowsControlsCollection)]
+    Public Property Get Controls() As Object        ' WindowsControls.WindowsControlsCollection  changed to Object to avoid unnecessary COM exposure of WindowsControls.WindowsControlsCollection
+        Return InternalBaseControlInfo.ChildControlsWEAK
+    End Property
+End Class

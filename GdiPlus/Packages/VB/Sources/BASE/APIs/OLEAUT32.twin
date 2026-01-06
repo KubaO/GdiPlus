@@ -1,0 +1,24 @@
+Private Module OLEAUT32Module
+
+    Type OLEAUT32
+        Ignore As Byte
+        
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SysAllocStringLen Lib "oleaut32" (ByVal CopyFrom As String, ByVal Length As Long) As String
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SysAllocString Lib "oleaut32" (ByVal CopyFrom As LongPtr) As String
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DispCallFunc Lib "oleaut32" (ByVal pvInstance As LongPtr, ByVal oVft As LongPtr, ByVal lCc As Long, ByVal vtReturn As VbVarType, ByVal cActuals As Long, prgVt As Any, prgpVarg As Any, pvargResult As Variant) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function OleCreatePictureIndirect Lib "oleaut32" (ByRef lpPictDesc As Any, ByVal riid As LongPtr, ByVal fOwn As Long, ByRef outObject As Any) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function LoadTypeLib Lib "oleaut32" (ByVal szFile As String, ByRef pptlib As ITypeLib) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function OleCreatePropertyFrame Lib "oleaut32" (ByVal hwndOwner As LongPtr, ByVal x As Long, ByVal y As Long, ByVal lpszCaption As String, ByVal cObjects As Long, ByRef ppUnk As LongPtr, ByVal cPages As Long, ByVal pPageClsID As LongPtr, ByVal lcid As Long, ByVal dwReserved As Long, ByVal pvReserved As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function OleTranslateColor Lib "oleaut32" (ByVal clr As Long, ByVal hPal As LongPtr, ByRef pColorRef As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Private DeclareWide PtrSafe Function SysAllocStringByteLen Lib "oleaut32" (ByVal CopyFrom As LongPtr, ByVal Length As Long) As String
+    End Type
+    
+End Module

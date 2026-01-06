@@ -1,0 +1,31 @@
+Private Module COMCTL32Module
+    
+    Type COMCTL32
+        Ignore As Byte
+
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_Create Lib "comctl32" (ByVal cx As Long, ByVal cy As Long, ByVal flags As Long, ByVal cInitial As Long, ByVal cGrow As Long) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_AddMasked Lib "comctl32" (ByVal himl As LongPtr, ByVal hbmImage As LongPtr, ByVal crMask As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_Add Lib "comctl32" (ByVal himl As LongPtr, ByVal hbmImage As LongPtr, ByVal hbmMask As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_Copy Lib "comctl32" (ByVal himlDst As LongPtr, ByVal idst As Long, ByVal himlSrc As LongPtr, ByVal isrc As Long, ByVal uFlags As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_Remove Lib "comctl32" (ByVal himl As LongPtr, ByVal i As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_AddIcon Lib "comctl32" (ByVal himl As LongPtr, ByVal hIcon As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_GetIcon Lib "comctl32" (ByVal himl As LongPtr, ByVal i As Long, ByVal flags As Long) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_GetImageCount Lib "comctl32" (ByVal himl As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_Destroy Lib "comctl32" (ByVal himl As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_DrawEx Lib "comctl32" (ByVal himl As LongPtr, ByVal i As Long, ByVal hdc As LongPtr, ByVal x As Long, ByVal y As Long, ByVal xs As Long, ByVal ys As Long, ByVal rgbBk As Long, ByVal rgbFg As Long, ByVal fStyle As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_SetBkColor Lib "comctl32" (ByVal himl As LongPtr, ByVal clrBk As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ImageList_SetOverlayImage Lib "comctl32" (ByVal himl As LongPtr, ByVal i As Long, ByVal iOverlay As Long) As Boolean
+    End Type
+End Module

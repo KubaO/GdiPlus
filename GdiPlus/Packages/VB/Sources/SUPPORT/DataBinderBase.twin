@@ -1,0 +1,167 @@
+#If FEATURE_DATA_BINDINGS Then
+[InterfaceId("B29413AA-9A69-4E31-9F76-451CD6A8291C")]
+Private Class DataFieldBinderBase
+    Implements DataSourceListener
+ 
+    Protected IgnoreUpdates As Boolean
+    Protected BoundField As Object    ' e.g. DAO.Field
+    Protected InternalDataControl As Data                 ' FIXME not always a control, can be bound to a recordset
+    Protected IsDataBinderInitialized As Boolean
+    Protected InternalDataField As String
+    Protected InternalDataSource As DataSource
+
+    [Unimplemented]
+        Public DataFormat As StdDataFormat
+    [Unimplemented]
+        Public DataMember As String
+        
+    [Serialize(True, ":DataField")]
+        Protected DataFieldINIT As String
+    [Serialize(True, ":DataSource")]          ' Any string value is allowed, gets resolved at runtime to a Form.Controls(DataSourceName)
+    
+        Protected DataSourceINIT As String
+    '[ Serialize (False) ]
+    '[ Unimplemented ]
+    '    Protected DataSource As DataSource         ' See DataSourceINIT
+        
+    [Serialize(False)]
+        Public DataChanged As Boolean
+    
+    Overridable Sub GetParent(out As Control)
+    End Sub
+    Overridable Sub SetLiveValue(fieldValue As Variant)
+    End Sub
+    Overridable Sub GetLiveValue(out As Variant)
+    End Sub
+
+    Protected Sub DataSourceListenerDataMemberChanged(ByVal bstrDM As String) _
+            Implements DataSourceListener.dataMemberChanged
+        Stop
+    End Sub
+    
+    Protected Sub DataSourceListenerDataMemberAdded(ByVal bstrDM As String) _
+            Implements DataSourceListener.dataMemberAdded
+        Stop
+    End Sub
+    
+    Protected Sub DataSourceListenerDataMemberRemoved(ByVal bstrDM As String) _
+            Implements DataSourceListener.dataMemberRemoved
+        Stop
+    End Sub
+    
+    Protected Sub HandlesDataChanged() _
+    	    Handles DataChanged.OnPropertyLet
+
+        If DataChanged = True Then
+        	Dim InternalDataControl As Data = Me.InternalDataControl
+            If InternalDataControl IsNot Nothing Then
+            	UnprotectedAccess(InternalDataControl).RecordsetIsDirty = True
+            End If
+        End If
+    End Sub
+    
+    [Serialize(False)]
+    Public Property Get DataField() As String
+    	Return InternalDataField
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let DataField(Value As String)
+    	Dim InternalDataControl As Any = Me.InternalDataControl
+        If InternalDataControl IsNot Nothing Then
+            CType(Of TbDataControlPrivate)(InternalDataControl).RebindControl(Me, Value)
+        End If
+    	InternalDataField = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get DataSource() As DataSource
+    	Return InternalDataSource
+    End Property
+        
+    [Serialize(False)]
+    Public Property Set DataSource(Value As DataSource)
+    	Dim InternalDataSource As Any = Me.InternalDataSource
+        If InternalDataSource IsNot Nothing Then
+            InternalDataSource.removeDataSourceListener(Me)
+        End If
+        Set Me.InternalDataSource = Value
+        Set Me.InternalDataControl = CType(Of Data)(Value)
+        Set Me.BoundField = Nothing
+        If Value IsNot Nothing Then
+            Value.addDataSourceListener(Me)
+            If Len(Me.DataField) > 0 Then
+                If InternalDataControl IsNot Nothing Then
+                    CType(Of TbDataControlPrivate)(InternalDataControl).RebindControl(Me, Me.DataField)
+                End If
+            End If
+        End If
+    End Property
+
+    Protected Sub SetupBindings()
+        InternalDataField = DataFieldINIT
+        If Len(Me.DataSourceINIT) > 0 Then
+            Dim Parent As Control
+            GetParent(Parent)
+
+            Dim InternalDataControl As Any = Parent.Controls(Me.DataSourceINIT)
+            Set Me.InternalDataControl = CType(Of Data)(InternalDataControl)
+            Set Me.InternalDataSource = CType(Of DataSource)(InternalDataControl)
+            Me.InternalDataSource.addDataSourceListener(Me)
+        End If
+        
+        IsDataBinderInitialized = True
+    End Sub
+    
+    Protected Sub OnBindComplete(BoundField As Object)
+        Set Me.BoundField = BoundField
+    End Sub
+    
+    Protected Sub ClearSource()
+    	IgnoreUpdates = True
+            SetLiveValue(Null)
+        IgnoreUpdates = False
+        DataChanged = False
+    End Sub
+    
+    Protected Sub SyncToSource()
+        If BoundField Is Nothing Then Exit Sub
+    	IgnoreUpdates = True
+            SetLiveValue(BoundField.Value)
+        IgnoreUpdates = False
+        DataChanged = False
+    End Sub
+    
+    Protected Sub SaveChanges()
+    	If DataChanged = True Then
+            Dim currentValue As Variant
+        	GetLiveValue(currentValue)
+            BoundField.Value = currentValue
+            DataChanged = False
+    	End If
+    End Sub
+    
+    Protected Sub OnDataChanged()
+        If (IgnoreUpdates = False) And (IsDataBinderInitialized = True) Then
+            If DataChanged = False Then
+                ' Stop
+                DataChanged = True
+                Dim InternalDataControl As Data = Me.InternalDataControl
+                If InternalDataControl IsNot Nothing Then
+                    UnprotectedAccess(InternalDataControl).RecordsetIsDirty = True
+                End If
+            End If
+        End If
+    End Sub
+    
+    Protected Sub InternalStateResetDataBinderBase()
+        Me.IgnoreUpdates = False
+        Set Me.BoundField = Nothing
+        Set Me.InternalDataControl = Nothing
+        Me.IsDataBinderInitialized = False
+        Me.InternalDataField = vbNullString
+        Set Me.InternalDataSource = Nothing
+        Me.DataChanged = False
+    End Sub
+End Class
+#endif

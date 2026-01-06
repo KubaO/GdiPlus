@@ -1,0 +1,31 @@
+[InterfaceId("6AAB4CC5-CDF3-4017-B3D0-D0A7465885C2")]
+Interface ErrorContext Extends stdole.IUnknown
+    Enum OnErrorStatus
+        OnErrorGoto0 = &H1
+        OnErrorResumeNext = &H2
+        OnErrorGotoLabel = &H3
+        OnErrorEnd = &H4
+        OnErrorDebug = &H5
+        CalledByLocalHandler = &H6
+        OnErrorRetry = &H7
+        OnErrorPropagate = &H8
+        OnErrorExitProcedure = &H9
+        OnErrorCatch = &Ha
+        OnErrorCatchAll = &Hb
+        OnErrorInsideCatch = &Hc
+        OnErrorInsideCatchAll = &Hd
+        OnErrorInsideFinally = &He
+        OnErrorPropagateCatch = &Hf
+        OnErrorPropagateCatchAll = &H10
+    End Enum
+     
+    Property Get State() As OnErrorStatus
+    Property Let State(ByVal Value As OnErrorStatus)
+    Property Get Number() As Long
+    Property Get Description() As String
+    Property Get Source() As String
+    Property Get HelpFile() As String
+    Property Get HelpContext() As Long
+    Property Get LastDLLError() As Long
+    Property Get Callstack() As ErrorCallstack
+End Interface

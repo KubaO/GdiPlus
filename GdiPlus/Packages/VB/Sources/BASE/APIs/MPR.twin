@@ -1,0 +1,10 @@
+Private Module MPRModule
+
+    Type MPR
+        Ignore As Byte
+    
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function WNetGetConnectionW Lib "mpr" (ByVal lpLocalName As String, ByVal lpRemoteName As String, ByRef lpnLength As Long) As Long
+    End Type
+
+End Module

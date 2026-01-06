@@ -1,0 +1,340 @@
+[ClassId("F2992D03-E09A-4FA4-94FD-D11127532B6B")]
+[InterfaceId("95CCDB68-DC0B-46D4-A30E-0962C8929C09")]
+[COMCreatable(False)]
+Private Class BaseControlFocusable
+
+    Inherits BaseControlRectDockable
+    Inherits BaseFont
+    Implements IWindowElementEventsBaseControl
+    
+    [Description("Adjusts the runtime TAB key order of this control")]
+    [Serialize(True, "TabIndex")]
+        Protected TabIndexINIT As Long
+    [Description("Determines how the border is drawn by the OS")]
+        Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+    
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Set to vbCustom to use a custom icon set via the MouseIcon property.")]
+    [Serialize(True, "MousePointer")]
+        Protected MousePointerINIT As VBRUN.MousePointerConstants = VBRUN.MousePointerConstants.vbDefault
+    [Serialize(True, "MouseIcon")]
+    [CustomDesigner("designer_IconBytes")]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Ignored unless MousePointer property is set to vbCustom.")]
+        Protected ReadOnly MouseIconINIT() As Byte
+
+    [Serialize(True, "VisualStyles")]
+    [Description("Determines if the OS should use visual styles for rendering this control")]
+        Protected VisualStylesINIT As Boolean = True
+    
+    [CustomDesigner("designer_MultiLineText")]
+    [Serialize(True, "ToolTipText")]
+    [Description("A string value that will be displayed as a tooltip when hovering over this control for long periods.  Accepts multi-line text.")]
+        Protected ToolTipTextINIT As String
+        
+    [Serialize(True, "CausesValidation")]
+    [Description("Determines if the previously focused control should run its Validate event before allowing this control to receive the focus.")]
+        Protected CausesValidationINIT As Boolean = True
+        
+    [Serialize(True, "DragIcon")]
+    [CustomDesigner("designer_IconBytes")]
+    [Description("Determines the mouse pointer icon to use when this control is being dragged.  See DragMode property and Drag method")]
+        Protected ReadOnly DragIconINIT() As Byte
+    [Serialize(True, "DragMode")]
+    [Description("Determines if this control should move when dragged by the user.  If set to vbManual, you should call the Drag() method to start the drag operation on receiving the MouseDown event.")]
+        Protected DragModeINIT As VBRUN.DragModeConstants
+            
+    [Description("Adjusts the visibility of this control at runtime")]
+    [Serialize(True, ":Visible")]
+        Protected VisibleINIT As Boolean = True
+    [Description("Determines the enabled/disabled state of the control at runtime.  A disabled control cannot receive the input focus, and will usually appear differently to an enabled control.")]
+    [Serialize(True, "Enabled")]
+        Protected EnabledINIT As Boolean = True
+    [Description("Indicates if the user can use the TAB key to focus on this control at runtime")]
+    [Serialize(True, "TabStop")]
+        Protected TabStopINIT As Boolean = True
+        
+        Protected InternalWindowAtomCached As Integer
+
+    Sub New(ByVal ControlType As ControlTypeConstants)
+       BaseControlRectDockable.New(ControlType)
+       BaseFont.New()
+    End Sub
+    
+    Protected Sub InternalStateReset()
+        InternalStateResetFont()
+        InternalStateResetRectDockable()
+    End Sub
+    
+    [Serialize(False)]
+    [Description("Determines the enabled/disabled state of the control at runtime.  A disabled control cannot receive the input focus, and will usually appear differently to an enabled control.")]
+    Property Get Enabled() As Boolean
+        Return CommonGetEnabled()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines the enabled/disabled state of the control at runtime.  A disabled control cannot receive the input focus, and will usually appear differently to an enabled control.")]
+    Property Let Enabled(Value As Boolean)
+        CommonLetEnabled(Value)
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Get Visible() As Boolean
+        Return CommonGetVisible()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Let Visible(Value As Boolean)
+        CommonLetVisible(Value)
+    End Property
+    
+    Protected Sub CreateRootWindowElement(ByVal _ControlContext As ControlContext, _
+                                                ByRef InitData As WindowCreationData)
+        InternalBaseControlBeforeCreateRootWindow(InitData)
+        With CType(Of BaseControlInfo)(InitData.BaseControlInfoPtr)
+            .ToolTipText = Me.ToolTipTextINIT
+            .VisualStyles = Me.VisualStylesINIT
+            .MousePointer = MousePointerINIT
+            .DragMode = Me.DragModeINIT
+            .CausesValidation = Me.CausesValidationINIT
+            .TabStop = Me.TabStopINIT
+            .HasTabIndex = True
+            .TabIndex = Me.TabIndexINIT
+        End With
+        
+        Me.InternalWindowAtomCached = InitData.WindowAtomIdx
+        
+        Me.ControlContext.Pointer = _ControlContext.Pointer
+        InitData.WindowStyles += If(Me.EnabledINIT, 0&, WS_DISABLED) + _
+                                    If(Me.VisibleINIT, WS_VISIBLE, 0&) + _
+                                    If(Me.TabStopINIT, WS_TABSTOP, 0&)
+        RootWindowElementBase.Pointer = ControlContext.RuntimeUICtxCreateWindowElement(InitData)
+        RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        
+        IgnoreMousePointerChanged = True
+        CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        IgnoreMousePointerChanged = False
+        CommonLoadPictureInit(InternalBaseControlInfo.DragIcon, Me.DragIconINIT)
+    End Sub
+    
+    Protected Sub RecreateWindow(ByVal StyleFlags As Long)
+        If Me.CurrentFontHandle <> 0 Then
+            ' This happens due to calling RootWindowElement.RecreateWindow
+            Me.CurrentFontHandle = 0        ' the handle was destroyed as it was selected into the old HWND
+        End If
+        InternalBaseControlInfo.VisualStyles = Me.VisualStylesINIT
+        RootWindowElementBase.RuntimeUIRecreateWindow(StyleFlags)
+    End Sub
+    
+    Protected Sub HandleCreateOrDPIChange() _
+            Implements IWindowElementEventsBaseControl.Create, _
+                        IWindowElementEventsBaseControl.DPIChange
+        SyncFontProperties()
+        Me.Refresh
+    End Sub
+        
+    [Description("Sets this control as the active input-focused control")]
+    Public Sub SetFocus()
+        CommonSetFocus()
+    End Sub
+    
+    [Description("Redraws the control")]
+    Public Sub Refresh()
+        CommonRefresh()
+    End Sub
+
+    ' Protected Sub OnPropertyChanged() _
+    '         Handles Appearance.OnPropertyLet
+                    
+    '     Err.Raise 5, , "Sorry, tB does not support setting this property at runtime YET"
+    ' End Sub
+            
+    [Serialize(False)]
+    [Description("A string value that will be displayed as a tooltip when hovering over this control for long periods.  Accepts multi-line text.")]
+    Public Property Get ToolTipText() As String
+        Return InternalBaseControlInfo.ToolTipText
+    End Property
+    
+    [Serialize(False)]
+    [Description("A string value that will be displayed as a tooltip when hovering over this control for long periods.  Accepts multi-line text.")]
+    Public Property Let ToolTipText(ByVal Value As String)
+        InternalBaseControlInfo.ToolTipText = Value
+        RootWindowElementBase.RuntimeUIToolTipChanged()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if the OS should use visual styles for rendering this control")]
+    Public Property Get VisualStyles() As Boolean
+        Return InternalBaseControlInfo.VisualStyles
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if the OS should use visual styles for rendering this control")]
+    Public Property Let VisualStyles(ByVal Value As Boolean)
+        Me.VisualStylesINIT = Value
+        RootWindowElementBase.RuntimeUIRemoveVisualStyles(RootWindowElementBase.RuntimeUIGetHandle(), Not Value)
+    End Property
+    
+    [Description("Starts the drag operation, typically called from the MouseDown event when DragMode is set to vbManual")]
+    Public Sub Drag([TypeHint(DragConstants)] Optional ByVal Action As Variant)
+        CommonDrag(Action)
+    End Sub
+    
+    #If FEATURE_OLEDRAGDROP Then
+    Protected Sub BaseSyncOLEDropMode(ByVal RootThis As Object, ByVal OLEDropMode As OLEDropConstants, ByRef DragDropHandler As OLEDragDropHandler, ByVal IsContainer As Boolean, ByVal AllowedAutomatic As Boolean)
+        CommonSyncOLEDropMode(RootThis, OLEDropMode, DragDropHandler, ControlContext, RootWindowElementBase, IsContainer, AllowedAutomatic)
+    End Sub
+    #End If
+    
+    [Description("Changes the z-order of the window at runtime, according to the given Position value")]
+    Public Sub ZOrder([TypeHint(ZOrderConstants)] Optional ByVal Position As Variant)
+        CommonZOrder(Position, RootWindowElementBase.RuntimeUIGetHandle())
+    End Sub
+    
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Ignored unless MousePointer property is set to vbCustom.")]
+    Public Property Get MouseIcon() As StdPicture
+        Return InternalBaseControlInfo.MouseIcon
+    End Property
+
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Ignored unless MousePointer property is set to vbCustom.")]
+    Public Property Set MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Ignored unless MousePointer property is set to vbCustom.")]
+    Public Property Let MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    [Description("A HWND (LongPtr) value that uniquely identifies the window to the OS, typically used in Win32 API calls")]
+    Public Property Get hWnd() As LongPtr                           ' FIXME change to HWND once ALIAS is aligned
+        Return CommonGetHWND()
+    End Property
+    
+    Protected Property Get InternalhWnd() As HWND
+        Return CommonGetHWND()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Set to vbCustom to use a custom icon set via the MouseIcon property.")]
+    Public Property Get MousePointer() As MousePointerConstants
+        Return InternalBaseControlInfo.MousePointer
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when the mouse is hovering over this control.  Set to vbCustom to use a custom icon set via the MouseIcon property.")]
+    Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+        InternalBaseControlInfo.MousePointer = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if this control should move when dragged by the user.  If set to vbManual, you should call the Drag() method to start the drag operation on receiving the MouseDown event.")]
+    Public Property Get DragMode() As DragModeConstants
+        Return InternalBaseControlInfo.DragMode
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if this control should move when dragged by the user.  If set to vbManual, you should call the Drag() method to start the drag operation on receiving the MouseDown event.")]
+    Public Property Let DragMode(ByVal Value As DragModeConstants)
+        InternalBaseControlInfo.DragMode = Value
+        RootWindowElementBase.RuntimeUIDragModeChanged()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if the previously focused control should run its Validate event before allowing this control to receive the focus.")]
+    Public Property Get CausesValidation() As Boolean
+        Return InternalBaseControlInfo.CausesValidation
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines if the previously focused control should run its Validate event before allowing this control to receive the focus.")]
+    Public Property Let CausesValidation(ByVal Value As Boolean)
+        InternalBaseControlInfo.CausesValidation = Value
+    End Property
+    
+    [Serialize(False)]
+    [Description("Indicates if the user can use the TAB key to focus on this control at runtime")]
+    [DispId(-854)]
+    Property Get TabStop() As Boolean
+        Return CommonGetTabStop()
+    End Property
+    
+    [Serialize(False)]
+    [Description("Indicates if the user can use the TAB key to focus on this control at runtime")]
+    [DispId(-854)]
+    Property Let TabStop(Value As Boolean)
+        CommonLetTabStop(Value)
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the runtime TAB key order of this control")]
+    Public Property Get TabIndex() As Long
+        Return InternalBaseControlInfo.TabIndex
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the runtime TAB key order of this control")]
+    Public Property Let TabIndex(ByVal Value As Long)
+        InternalBaseControlInfo.TabIndex = Value
+    End Property
+    
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when this control is being dragged.  See DragMode property and Drag method")]
+    Public Property Get DragIcon() As StdPicture
+        Return InternalBaseControlInfo.DragIcon
+    End Property
+
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when this control is being dragged.  See DragMode property and Drag method")]
+    Public Property Set DragIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.DragIcon = Value
+    End Property
+
+    [Serialize(False)]
+    [Description("Determines the mouse pointer icon to use when this control is being dragged.  See DragMode property and Drag method")]
+    Public Property Let DragIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.DragIcon = Value
+    End Property
+    
+    Protected Sub InternalSyncHeight()
+        Dim rect As tbRECT
+        Me.InternalhWnd.GetWindowRect(rect)
+        With InternalBaseControlInfo
+            .PixelsHeight = RootWindowElementBase.RuntimeUIScaleY(rect.Bottom - rect.Top, vbPixels, vbScaledPixels)
+            'Debug.Print Me.Name & ", integral height: " & .PixelsHeight
+            If .PixelsHeight > Int(.PixelsHeight) Then
+                .PixelsHeight = CLng(Int(.PixelsHeight)) + 1
+            End If
+        End With
+        Me.InternalSyncDesignerDimensions()
+    End Sub
+    
+    Protected Function SendMessageLngPtr(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+        Return RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(msg, wParam, lParam)
+    End Function
+        
+    Protected Function SendMessageLng(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Long
+        Dim retValLngPtr As Any = RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(msg, wParam, lParam)
+        #If Win64 Then
+            Dim retValLng As Long
+            GetMem4(VarPtr(retValLngPtr), retValLng)
+            Return retValLng
+        #Else
+            Return retValLngPtr
+        #End If
+    End Function
+    
+    Protected Sub AppearanceChanged() _  
+            Handles Appearance.OnPropertyLet
+                
+        CommonSyncBorderStyle(ControlContext.RuntimeUICtxGetRootClassDispatch(), InternalWindowAtomCached)
+    End Sub
+    
+End Class

@@ -1,0 +1,657 @@
+[InterfaceId("A40D839D-B1EF-475E-96C7-333CB5E2B977")]
+[COMCreatable(False)]
+Private Class DataObjectReadOnly
+    Implements DataObject
+
+    Type GUID2
+        Guid1 As LongLong
+        Guid2 As LongLong
+    End Type
+    
+    Type DROPFILES
+        pFiles As Long          ' Offset to start of list data
+        pt As POINT
+        fNC As Long ' BOOL
+        fWide As Long ' BOOL
+    End Type
+       
+    Type METAFILEPICT
+        mm As Long
+        xExt As Long
+        yExt As Long
+        hMF As LongPtr      ' HMETAFILE
+    End Type
+    
+    [PackingAlignment(1)]
+    Type BMP_HEADER
+        bfType As Integer
+        bfSize As Long
+        bfReserved1 As Integer
+        bfReserved2 As Integer
+        bfOffBits As Long
+        
+        biSize As Long
+        biWidth As Long
+        biHeight As Long
+        biPlanes As Integer
+        biBitCount As Integer
+        biCompression As Long
+        biSizeImage As Long
+        biXPelsPerMeter As Long
+        biYPelsPerMeter As Long
+        biClrUsed As Long
+        biClrImportant As Long
+    End Type
+    
+    Type tbPICTDESC               ' FIXME we really need Unions support
+        cbSizeofstruct As Long
+        picType As Long
+        Union1 As LongPtr
+        Union2 As Long
+        Union3 As Long
+    End Type
+    Type PICTDESC_BITMAP
+        cbSizeofstruct As Long
+        picType As Long
+        hbitmap As LongPtr      ' HBITMAP
+        hpal As LongPtr         ' HPALETTE
+    End Type
+    Type PICTDESC_ICON
+        cbSizeofstruct As Long
+        picType As Long
+        hicon As LongPtr      ' HICON
+    End Type
+    Type PICTDESC_METAFILE
+        cbSizeofstruct As Long
+        picType As Long
+        hmeta As LongPtr        ' HMETAFILE
+        xExt As Long
+        yExt As Long
+    End Type
+    Type PICTDESC_ENHMETAFILE
+        cbSizeofstruct As Long
+        picType As Long
+        hemf As LongPtr        ' HENHMETAFILE
+    End Type
+
+    Protected InternalObject As tbInternal_IDataObject
+    Protected AllowFilesArray As Boolean
+    
+    Protected Sub DataObjectClear() _
+            Implements DataObject.Clear
+            
+        Err.Raise 425, , "Invalid object use"
+    End Sub
+    
+    Protected Sub DataObjectSetData(Optional ByVal Value As Variant, [TypeHint(ClipboardConstants)] Optional ByVal Format As Variant) _
+            Implements DataObject.SetData
+            
+        Err.Raise 425, , "Invalid object use"
+    End Sub
+    
+    Protected Function DataObjectGetData([TypeHint(ClipboardConstants)] ByVal sFormat As Integer) As Variant _
+            Implements DataObject.GetData
+
+        If sFormat = ClipboardConstants.vbCFText Then
+            ' Always try to get unicode text where possible...
+            sFormat = CInt(ClipboardConstants.vbCFUnicodeText)
+        End If
+        
+        Dim _format As tbInternal_FORMATETC
+        Dim _medium As tbInternal_STGMEDIUM
+        Const DVASPECT_CONTENT                  As Long = 1
+        _format.ptd = 0
+        _format.dwAspect = DVASPECT_CONTENT
+        _format.lindex = -1
+        
+        Select Case CLng(sFormat)
+            Case ClipboardConstants.vbCFBitmap
+                _format.tymed = tbInternal_TYMED_GDI
+            Case ClipboardConstants.vbCFEMetafile
+                _format.tymed = tbInternal_TYMED_ENHMF
+            Case ClipboardConstants.vbCFMetafile
+                _format.tymed = tbInternal_TYMED_MFPICT
+            Case ClipboardConstants.vbCFFiles
+                If AllowFilesArray = False Then
+                    Err.Raise 5     ' must use the Files collection instead
+                End If
+                _format.tymed = tbInternal_TYMED.tbInternal_TYMED_HGLOBAL
+            Case ClipboardConstants.vbCFLink
+                Err.Raise 5     ' DDE
+            Case Else
+                ' For all other types, we return the data as a byte array
+                _format.tymed = tbInternal_TYMED.tbInternal_TYMED_HGLOBAL
+        End Select
+        
+    TryAgain:
+        _format.cfFormat = sFormat
+        
+        If TryGetData(_format, _medium) = False Then
+            If sFormat = ClipboardConstants.vbCFUnicodeText Then
+                sFormat = CInt(ClipboardConstants.vbCFText)
+                GoTo TryAgain
+            ElseIf _format.tymed = tbInternal_TYMED.tbInternal_TYMED_HGLOBAL Then
+                _format.tymed = tbInternal_TYMED.tbInternal_TYMED_ISTREAM ' Allow IStream as an alternative for any HGLOBAL expected type
+                GoTo TryAgain
+            ElseIf _format.lindex = -1 Then
+                ' sometimes, the provider doesn't allow -1, only 0 
+                '   e.g. Windows Explorer file streams (despite the formats enumeration specifying -1!)
+                _format.lindex = 0
+                GoTo TryAgain
+            Else
+                Err.Raise 5
+            End If
+        End If
+                
+        Dim retVal As Variant
+        Dim _mediumData As LongPtr
+        Dim _mediumType As tbInternal_TYMED
+        
+        _mediumType = _medium.tymed
+        _mediumData = _medium.unionData
+        
+        If _medium.tymed = tbInternal_TYMED.tbInternal_TYMED_ISTREAM Then
+            _mediumData = IStreamToHGLOBAL(_mediumData)
+            _mediumType = tbInternal_TYMED.tbInternal_TYMED_HGLOBAL
+        End If
+        
+        Select Case _mediumType
+            Case tbInternal_TYMED.tbInternal_TYMED_MFPICT
+                ' stored type is a HGLOBAL containing METAFILEPICT structure
+                Dim unionDataMetaFile As LongPtr = KERNEL32.GlobalLock(_mediumData)
+                Set retVal = WMFToPicture(ByVal unionDataMetaFile)
+                KERNEL32.GlobalUnlock(_mediumData)
+                _medium.unionData = 0           ' we took ownership
+            Case tbInternal_TYMED.tbInternal_TYMED_ENHMF
+                Set retVal = EMFToPicture(_mediumData)
+                _medium.unionData = 0           ' we took ownership
+            Case tbInternal_TYMED.tbInternal_TYMED_GDI
+                ' try to get the palette...
+                _format.cfFormat = CInt(vbCFPalette)
+                Dim _medium2 As tbInternal_STGMEDIUM
+                On Error Resume Next
+                InternalObject.GetData _format, _medium2
+                On Error GoTo 0
+                Set retVal = HBitmapToPicture(_mediumData, _medium2.unionData)
+                _medium.unionData = 0           ' we took ownership
+                _medium2.unionData = 0           ' we took ownership
+                If _medium2.pUnkForRelease Is Nothing Then
+                    OLE32.ReleaseStgMedium(_medium2)
+                End If
+            Case tbInternal_TYMED.tbInternal_TYMED_HGLOBAL
+                ' using unionDataLen is safer than assuming the data is properly null terminated
+                Dim unionDataLen As LongPtr = KERNEL32.GlobalSize(_mediumData)
+                Dim unionData As LongPtr = KERNEL32.GlobalLock(_mediumData)
+                Select Case CLng(sFormat)
+                    Case ClipboardConstants.vbCFDIB
+                        ' FIXME this needs improvement
+                        Dim unionDataStr As String = OLEAUT32.SysAllocStringByteLen(unionData, CLng(unionDataLen))
+                        Dim unionDataBytes() As Byte
+                        ' Convert to bye array, including space for a BITMAPFILEHEADER (14 bytes)
+                        unionDataBytes = vbNullChar & vbNullChar & vbNullChar & vbNullChar & vbNullChar & vbNullChar & vbNullChar & unionDataStr
+                        RecreateBMPHeader(ByVal VarPtr(unionDataBytes(0)))
+                        Set retVal = [_HiddenModule].LoadPictureInternal(unionDataBytes)
+                    Case ClipboardConstants.vbCFText, ClipboardConstants.vbCFRTF
+                        retVal = OLEAUT32.SysAllocStringByteLen(unionData, CLng(unionDataLen))
+                        retVal = StrConv(retVal, vbUnicode)
+                        retVal = OLEAUT32.SysAllocString(StrPtr(CStr(retVal)))     ' if null char inside data, then that is the terminator
+                    Case ClipboardConstants.vbCFUnicodeText
+                        retVal = OLEAUT32.SysAllocStringByteLen(unionData, CLng(unionDataLen))
+                        retVal = OLEAUT32.SysAllocString(StrPtr(CStr(retVal)))     ' if null char inside data, then that is the terminator
+                    Case ClipboardConstants.vbCFFiles
+                        retVal = FilesListToArray(ByVal unionData)
+                    Case Else
+                        ' return a byte array (VBx doesn't do this)
+                        Dim retVal2() As Byte
+                        ReDim retVal2(CLng(unionDataLen) - 1) As Byte
+                        KERNEL32.RtlMoveMemory(VarPtr(retVal2(0)), unionData, unionDataLen)
+                        retVal = retVal2
+                End Select
+                KERNEL32.GlobalUnlock(_mediumData)
+            Case Else
+                Err.Raise 5
+        End Select
+        
+        If _medium.pUnkForRelease Is Nothing Then
+            ' this indicates that WE are responsible for releasing...
+            OLE32.ReleaseStgMedium(_medium)
+        End If
+        
+        Return retVal
+    End Function
+    
+    Protected Function DataObjectGetFormat([TypeHint(ClipboardConstants)] ByVal sFormat As Integer) As Boolean _
+            Implements DataObject.GetFormat
+            
+        Dim supportedFormat As DataObjectFormat
+        For Each supportedFormat In DataObjectAvailableFormats
+            If supportedFormat.FormatType = sFormat Then Return True
+        Next
+        Return False
+    End Function
+    
+    Protected Function DataObjectFiles() As DataObjectFiles _
+            Implements DataObject.Files
+            
+        On Error GoTo Unsupported
+        AllowFilesArray = True
+            Dim ArrayOfFiles As Variant = DataObjectGetData(CInt(ClipboardConstants.vbCFFiles))
+        AllowFilesArray = False
+        Return New DataObjectFilesReadOnly(ArrayOfFiles)
+        Exit Function
+        
+    Unsupported:
+        Err.Raise 5
+    End Function
+    
+    Protected Function DataObjectAvailableFormats() As DataObjectFormats _
+            Implements DataObject.AvailableFormats
+            
+        Return New DataObjectFormatsReadOnly(InternalObject)
+    End Function
+    
+    Protected Function DataObjectGetFormatByName(ByVal Format As String) As Boolean _
+            Implements DataObject.GetFormatByName
+            
+        Dim supportedFormat As DataObjectFormat
+        For Each supportedFormat In DataObjectAvailableFormats
+            If supportedFormat.Name = Format Then Return True
+        Next
+        Return False
+    End Function
+    
+    Protected Function DataObjectGetDataByName(ByVal Format As String) As Variant _
+            Implements DataObject.GetDataByName
+            
+        Dim supportedFormat As DataObjectFormat
+        For Each supportedFormat In DataObjectAvailableFormats
+            If supportedFormat.Name = Format Then
+                Return DataObjectGetData(CInt(supportedFormat.FormatType))
+            End If
+        Next
+        Err.Raise 5
+    End Function
+
+    Protected Function IStreamToHGLOBAL(ByRef istreamPtr As LongPtr) As LongPtr
+        Dim outDataHGLOBAL As LongPtr
+        Dim readAmount As Long
+        
+        Dim s As IStream
+        Set s = CType(Of IStream)(ObjPtrToObject(istreamPtr))
+        
+        Const GMEM_MOVEABLE As Long = 2
+        With s
+            .Seek(0, STREAM_SEEK_SET, 0)
+            ' Stat doesn't seem to work on these IStreams?
+            ' Dim stats As WinNativeFormsBASE.STATSTG
+            ' Dim statFlag As Long
+            '.Stat(stats, statFlag)
+            Dim size As LongLong
+            .Seek(0, STREAM_SEEK_END, size)
+            .Seek(0, STREAM_SEEK_SET, 0)
+            
+            outDataHGLOBAL = KERNEL32.GlobalAlloc(GMEM_MOVEABLE, CLng(size))
+            Dim outData As LongPtr = KERNEL32.GlobalLock(outDataHGLOBAL)
+            If size <> 0 Then
+                .Read(outData, CLng(size), readAmount)
+            End If
+            KERNEL32.GlobalUnlock(outDataHGLOBAL)
+            If readAmount <> size Then Err.Raise 5
+        End With
+        
+        Return outDataHGLOBAL
+    End Function
+    
+    Protected Sub RecreateBMPHeader(ByRef bmpHeader As BMP_HEADER)
+        bmpHeader.bfType = &H4D42   ' "BM" header, bfSize doesn't matter here
+        bmpHeader.bfOffBits = 14 + bmpHeader.biSize + (bmpHeader.biClrUsed * 4)
+    End Sub
+    
+    Protected Function TryGetData(ByRef format As tbInternal_FORMATETC, ByRef medium As tbInternal_STGMEDIUM) As Boolean
+        On Error Resume Next
+        InternalObject.GetData(format, medium)
+        Return Err.LastHresult >= 0
+    End Function
+    
+    Protected Function FilesListToArray(header As DROPFILES) As Variant
+        Dim ListDataPos As LongPtr = VarPtr(header) + header.pFiles
+        Dim FilePath As String
+        Dim FileLen As Long
+        Dim ProcessFilesList_BufCount As Long = 64
+        Dim ProcessFilesList_Count As Long = 0
+        Dim retVal() As String
+        ReDim retVal(ProcessFilesList_BufCount - 1) As String
+        
+        Do
+            If header.fWide Then
+                FilePath = OLEAUT32.SysAllocString(ListDataPos)
+                FileLen = LenB(FilePath)
+                ListDataPos += FileLen + 2
+            Else
+                FileLen = KERNEL32.MultiByteToWideChar(0, 0, ListDataPos, -1, 0, 0)
+                If FileLen = 0 Then Exit Do
+                FileLen -= 1    ' don't include null terminator
+                FilePath = OLEAUT32.SysAllocStringLen(0, FileLen)
+                KERNEL32.MultiByteToWideChar(0, 0, ListDataPos, -1, StrPtr(FilePath), FileLen)
+                ListDataPos += FileLen + 1
+            End If
+            If FileLen = 0 Then Exit Do
+                
+            ProcessFilesList_Count += 1
+            If ProcessFilesList_Count > ProcessFilesList_BufCount Then
+                ProcessFilesList_BufCount *= 2
+                ReDim Preserve retVal(ProcessFilesList_BufCount - 1)
+            End If
+            retVal(ProcessFilesList_Count - 1) = FilePath
+        Loop
+        
+        ' Truncate to actual size...
+        ReDim Preserve retVal(ProcessFilesList_Count - 1)
+        Return retVal
+    End Function
+    
+    Protected Sub HBitmapToPictureFillPICTDESC(ByRef info_union As PICTDESC_BITMAP, bmp As LongPtr, pal As LongPtr)
+        info_union.picType = PictureTypeConstants.vbPicTypeBitmap
+        info_union.hbitmap = bmp
+        info_union.hpal = pal
+    End Sub
+    
+    Protected Function HBitmapToPicture(bmp As LongPtr, pal As LongPtr) As IPictureDisp
+        Dim info As tbPICTDESC
+        HBitmapToPictureFillPICTDESC(ByVal VarPtr(info), bmp, pal)
+        Return CreatePictureFromPICTDESC(info)
+    End Function
+    
+    Protected Sub EMFToPictureFillPICTDESC(ByRef info_union As PICTDESC_ENHMETAFILE, emf As LongPtr)
+        info_union.picType = PictureTypeConstants.vbPicTypeEMetafile
+        info_union.hemf = emf
+    End Sub
+    
+    Protected Function EMFToPicture(emfHandle As LongPtr) As IPictureDisp
+        Dim info As tbPICTDESC
+        EMFToPictureFillPICTDESC(ByVal VarPtr(info), emfHandle)
+        Return CreatePictureFromPICTDESC(info)
+    End Function
+    
+    Protected Sub WMFToPictureFillPICTDESC(ByRef info_union As PICTDESC_METAFILE, wmf As LongPtr, xExt As Long, yExt As Long)
+        info_union.picType = PictureTypeConstants.vbPicTypeMetafile
+        info_union.hmeta = wmf
+        info_union.xExt = xExt
+        info_union.yExt = yExt
+    End Sub
+    
+    Protected Function WMFToPicture(emfHandle As METAFILEPICT) As IPictureDisp
+        Dim info As tbPICTDESC
+        WMFToPictureFillPICTDESC(info, emfHandle.hMF, emfHandle.xExt, emfHandle.yExt)
+        Return CreatePictureFromPICTDESC(info)
+    End Function
+    
+    Protected Function CreatePictureFromPICTDESC(ByRef pictInfo As tbPICTDESC) As IPictureDisp
+        Dim stdPicture As IPictureDisp
+        Dim riid As GUID2
+        riid.Guid1 = &H101abf327bf80981
+        riid.Guid2 = &Hab0c3000aa00bb8b
+        pictInfo.cbSizeofstruct = LenB(pictInfo)
+        OLEAUT32.OleCreatePictureIndirect(pictInfo, VarPtr(riid), 1, stdPicture)     ' we took ownership of the handle
+        Return stdPicture
+    End Function
+    
+    Protected Function DataObjectGetIDataObject() As stdole.IUnknown _
+            Implements DataObject.GetIDataObject
+        Return InternalObject
+    End Function
+    
+    Sub New(InternalObject As tbInternal_IDataObject)
+        Set Me.InternalObject = InternalObject
+    End Sub
+End Class
+
+[InterfaceId("00020404-0000-0000-C000-000000000046")]        ' IEnumVARIANT
+NotDispatchable Private Class SimpleArrayEnumerator
+    Protected ArrayData As Variant
+    Protected Index As Long
+    
+    Sub Next(ByVal celt As Long, rgvar As Variant, pceltFetched As Long)
+        If celt <> 1 Then Err.Raise 5
+        
+        If Index > UBound(ArrayData) Then
+            Err.ReturnHResult = S_FALSE
+            If VarPtr(pceltFetched) <> 0 Then pceltFetched = 0
+            Exit Sub
+        End If
+        
+        If IsObject(ArrayData(Index)) Then
+            Set rgvar = ArrayData(Index)
+        Else
+            rgvar = ArrayData(Index)
+        End If
+        Index += 1
+        If VarPtr(pceltFetched) <> 0 Then pceltFetched = 1
+    End Sub
+    
+    Sub Skip(ByVal celt As Long)
+        Index += celt
+        
+        If Index > UBound(ArrayData) Then
+            Err.ReturnHResult = S_FALSE
+            Exit Sub
+        End If
+    End Sub
+    
+    Sub Reset()
+        Index = 0
+    End Sub
+    
+    Sub Clone(ByRef ppenum As stdole.IEnumVARIANT)
+        Set ppenum = New SimpleArrayEnumerator(Me.ArrayData)
+    End Sub
+    
+    Sub New(ArrayData As Variant)
+        Me.ArrayData = ArrayData
+    End Sub
+End Class
+
+[InterfaceId("E9184B83-C2FF-418A-B724-7F7DEAB14D8B")]
+[COMCreatable(False)]
+Private Class DataObjectFilesReadOnly
+    Implements DataObjectFiles
+    
+    Protected ArrayOfFiles As Variant
+    
+    Protected Function DataObjectFilesItem(ByVal Index As Long) As String _
+            Implements DataObjectFiles.Item
+            
+        Index -= 1      ' 1-based to 0-based
+        If (Index < 0) Or (Index > UBound(Me.ArrayOfFiles)) Then
+            Err.Raise 5
+        End If
+        Return CStr(Me.ArrayOfFiles(Index))
+    End Function
+    
+    Protected Property Get DataObjectFilesCount() As Long _
+            Implements DataObjectFiles.Count
+            
+        Return UBound(Me.ArrayOfFiles) + 1
+    End Property
+    
+    Protected Sub DataObjectFilesAdd(ByVal Filename As String, Optional index As Variant) _
+            Implements DataObjectFiles.Add
+            
+        Err.Raise 5
+    End Sub
+    
+    Protected Sub DataObjectFilesClear() _
+            Implements DataObjectFiles.Clear
+            
+        Err.Raise 5
+    End Sub
+    
+    Protected Sub DataObjectFilesRemove(ByVal index As Variant) _
+            Implements DataObjectFiles.Remove
+            
+        Err.Raise 5
+    End Sub
+    
+    [Enumerator]
+    Protected Function DataObjectFilesNewEnum() As stdole.IUnknown _
+            Implements DataObjectFiles.[_NewEnum]
+            
+        Return New SimpleArrayEnumerator(Me.ArrayOfFiles)
+    End Function
+        
+    Public Sub New(ArrayOfFiles As Variant)
+        Me.ArrayOfFiles = ArrayOfFiles
+    End Sub
+End Class
+
+[COMCreatable(False)]
+[InterfaceId("D36E54B7-7161-406A-80A2-90A3ED9DB5B3")]
+Private Class DataObjectFormatReadOnly
+    Implements DataObjectFormat
+
+    Protected FormatType As ClipboardConstants
+    Protected AspectType As AspectTypeConstants
+    Protected AspectIndex As Long
+    Protected StorageType As StorageTypeContants
+
+    Protected Property Get DataObjectFormatFormatType() As ClipboardConstants _
+            Implements DataObjectFormat.FormatType
+            
+        Return Me.FormatType
+    End Property
+    Protected Property Let DataObjectFormatFormatType(ByVal Value As ClipboardConstants) _
+            Implements DataObjectFormat.FormatType
+            
+        Err.Raise 5
+    End Property
+    Protected Property Get DataObjectFormatAspectType() As AspectTypeConstants _
+            Implements DataObjectFormat.AspectType
+            
+        Return Me.AspectType
+    End Property
+    Protected Property Let DataObjectFormatAspectType(ByVal Value As AspectTypeConstants) _
+            Implements DataObjectFormat.AspectType
+            
+        Err.Raise 5
+    End Property
+    Protected Property Get DataObjectFormatAspectIndex() As Long _
+            Implements DataObjectFormat.AspectIndex
+            
+        Return Me.AspectIndex
+    End Property
+    Protected Property Let DataObjectFormatAspectIndex(ByVal Value As Long) _
+            Implements DataObjectFormat.AspectIndex
+            
+        Err.Raise 5
+    End Property
+    Protected Property Get DataObjectFormatStorageType() As StorageTypeContants _
+            Implements DataObjectFormat.StorageType
+            
+        Return Me.StorageType
+    End Property
+    Protected Property Let DataObjectFormatStorageType(ByVal Value As StorageTypeContants) _
+            Implements DataObjectFormat.StorageType
+            
+        Err.Raise 5
+    End Property
+    
+    Protected Property Get DataObjectFormatName() As String _
+            Implements DataObjectFormat.Name
+            
+        If FormatType > 0 And FormatType < 18 Then
+            ' FIXME use lookup table
+            Select Case FormatType
+                Case 1: Return "[1_TEXT]"
+                Case 2: Return "[2_BITMAP]"
+                Case 3: Return "[3_METAFILEPICT]"
+                Case 4: Return "[4_SYLK]"
+                Case 5: Return "[5_DIF]"
+                Case 6: Return "[6_TIFF]"
+                Case 7: Return "[7_OEMTEXT]"
+                Case 8: Return "[8_DIB]"
+                Case 9: Return "[9_PALETTE]"
+                Case 10: Return "[10_PENDATA]"
+                Case 11: Return "[11_RIFF]"
+                Case 12: Return "[12_WAVE]"
+                Case 13: Return "[13_UNICODETEXT]"
+                Case 14: Return "[14_ENHMETAFILE]"
+                Case 15: Return "[15_FILESLIST]"
+                Case 16: Return "[16_LOCALE]"
+                Case 17: Return "[17_DIBV5]"
+            End Select
+        Else
+            Dim Temp As String = OLEAUT32.SysAllocStringLen(vbNullString, 256)
+            Dim TempLen As Long = USER32.GetClipboardFormatNameW(FormatType, Temp, Len(Temp))
+            Return OLEAUT32.SysAllocStringLen(Temp, TempLen)
+        End If
+    End Property
+    
+    Public Sub New(ByVal FormatType As ClipboardConstants, ByVal AspectType As AspectTypeConstants, ByVal AspectIndex As Long, ByVal StorageType As StorageTypeContants)
+        Me.FormatType = FormatType
+        Me.AspectType = AspectType
+        Me.AspectIndex = AspectIndex
+        Me.StorageType = StorageType
+    End Sub
+End Class
+
+[COMCreatable(False)]
+[InterfaceId("4D7D556C-E736-49B3-BDBC-FCC5AB388E1B")]
+Private Class DataObjectFormatsReadOnly
+    Implements DataObjectFormats
+    
+    Protected InternalArray() As DataObjectFormatReadOnly
+        
+    Protected Function DataObjectFormatsItem(ByVal Index As Long) As DataObjectFormat _
+            Implements DataObjectFormats.Item
+            
+        If (Index < 0) Or (Index > UBound(Me.InternalArray)) Then
+            Err.Raise 5
+        End If
+        Return Me.InternalArray(Index)
+    End Function
+    
+    Protected Property Get DataObjectFormatsCount() As Long _
+            Implements DataObjectFormats.Count
+            
+        Return UBound(Me.InternalArray) + 1
+    End Property
+    
+    [Enumerator]
+    Protected Function DataObjectFormatsNewEnum() As Variant _
+            Implements DataObjectFormats.[_NewEnum]
+            
+        Return CVar(New SimpleArrayEnumerator(Me.InternalArray))
+    End Function
+    
+    Public Sub New(InternalObject As tbInternal_IDataObject)
+    
+        Dim BufCount As Long = 64
+        Dim Count As Long = 0
+        ReDim Me.InternalArray(BufCount - 1) As DataObjectFormatReadOnly
+        
+        Const DATADIR_GET As Long = 1
+        Dim enumerator As tbInternal_IEnumFORMATETC
+        InternalObject.EnumFormatEtc(DATADIR_GET, enumerator)
+        
+        While True
+            Dim supportedFormat As tbInternal_FORMATETC
+            Dim fetched As Long
+            enumerator.Next(1, supportedFormat, fetched)
+            If Err.LastHresult = S_FALSE Then Exit While
+            If fetched <> 1 Then Exit While
+            
+            Count += 1
+            If Count > BufCount Then
+                BufCount *= 2
+                ReDim Preserve Me.InternalArray(BufCount - 1)
+            End If
+            Set Me.InternalArray(Count - 1) = New DataObjectFormatReadOnly(CType(Of ClipboardConstants)(supportedFormat.cfFormat), CType(Of AspectTypeConstants)(supportedFormat.dwAspect), supportedFormat.lindex, CType(Of StorageTypeContants)(supportedFormat.tymed))
+        Wend
+        
+        ' Truncate to actual size...
+        ReDim Preserve Me.InternalArray(Count - 1)
+    End Sub
+End Class
+
+
+        

@@ -1,0 +1,889 @@
+#If FEATURE_LABEL Then
+[ClassId("A0F4F632-14DF-4E64-B8D0-AA274F68EA6F")]
+[InterfaceId("49C6C3EE-36D2-469E-A084-17B29B98F50E")]    ' FIXME implement {33AD4ED9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class LabelBaseCtl
+    
+    Enum AggregateConstants
+        vbAggregateNone = 0
+        vbAggregateSum = 1
+    End Enum
+        
+    #Region "INHERITANCE"
+
+        Inherits BaseControlWindowlessNoFocus
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #End If
+        #If FEATURE_OLEDRAGDROP Then
+        Inherits OLEDragDropHelper
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+    #End Region
+    
+    #Region "STATE"
+     
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstantsCustom = ControlBorderStyleConstantsCustom.vbNoBorder    ' FIXME
+        [Description("")]
+        [Serialize(True, "BorderCustomOptions")]
+            Protected ReadOnly InternalBorderCustomOptions As BorderOptions
+        
+        [Serialize(False)]
+        Public Property Get BorderCustomOptions() As BorderOptionsClass
+            Return New BorderOptionsClass(Me, Me.InternalBorderCustomOptions)
+        End Property
+            
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vb3DFace   ' FIXME this is linked to Appearance
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbButtonText   ' FIXME this is linked to Appearance
+        [Description("")]
+            Public UseMnemonic As Boolean = True
+        [Description("")]
+        [Serialize(True, "Caption")]
+        [CustomDesigner("designer_MultiLineText")]
+            Protected CaptionINIT As String
+        [Description("")]
+            Public Alignment As VBRUN.AlignmentConstants '= VBRUN.AlignmentConstants.vbLeftJustify
+        [Description("")]
+            Public VerticalAlignment As VBRUN.VerticalAlignmentConstants '= VBRUN.VerticalAlignmentConstants.vbVerticalAlignTop
+        [Description("Angle at which the control is rendered.  0 is the natural angle, 90 is a quarter anti-clockwise turn.  Control is turned relative to the top-left position.")]
+            Public Angle As Double
+        
+            
+        [Serialize(False)]
+            Public WithEvents Font As StdFont
+            
+            Public DataFieldAggregate As AggregateConstants '= AggregateConstants.vbAggregateNone
+        [Serialize(False)]
+            Public DataFieldAggregateValue As Decimal
+            
+            
+            [Serialize(True, "FontBold")]
+            Protected FontBoldINIT As Boolean
+            [Serialize(True, "FontItalic")]
+            Protected FontItalicINIT As Boolean
+            [Serialize(True, "FontName")]
+            Protected FontNameINIT As String = "Segoe UI"
+            [Serialize(True, "FontSize")]
+            Protected FontSizeINIT As Single = 8
+            [Serialize(True, "FontStrikethru")]
+            Protected FontStrikethruINIT As Boolean
+            [Serialize(True, "FontUnderline")]
+            Protected FontUnderlineINIT As Boolean
+
+            Protected IsReportMode As Boolean
+            
+            [NonBrowsable]
+            [Serialize(True)]
+            Protected InternalSectionId As Integer = -1
+            
+            Protected Function GetFont() As StdFont
+                Return Me.Font
+            End Function
+            
+            [Serialize(False)]
+            Public Property Get FontBold() As Boolean
+                Return GetFont().Bold
+            End Property
+            [Serialize(False)]
+            Public Property Let FontBold(ByVal Value As Boolean)
+                GetFont().Bold = Value
+            End Property
+            
+            [Serialize(False)]
+            Public Property Get FontItalic() As Boolean
+                Return GetFont().Italic
+            End Property
+            [Serialize(False)]
+            Public Property Let FontItalic(ByVal Value As Boolean)
+                GetFont().Italic = Value
+            End Property
+            
+            [Serialize(False)]
+            Public Property Get FontName() As String
+                Return GetFont().Name
+            End Property
+            [Serialize(False)]
+            Public Property Let FontName(ByVal Value As String)
+                GetFont().Name = Value
+            End Property
+            
+            [Serialize(False)]
+            Public Property Get FontSize() As Single
+                Return CSng(GetFont().Size)
+            End Property
+            [Serialize(False)]
+            Public Property Let FontSize(ByVal Value As Single)
+                GetFont().Size = Value
+            End Property
+            
+            [Serialize(False)]
+            Public Property Get FontStrikethru() As Boolean
+                Return GetFont().Strikethrough
+            End Property
+            [Serialize(False)]
+            Public Property Let FontStrikethru(ByVal Value As Boolean)
+                GetFont().Strikethrough = Value
+            End Property
+            
+            [Serialize(False)]
+            Public Property Get FontUnderline() As Boolean
+                Return GetFont().Underline
+            End Property
+            [Serialize(False)]
+            Public Property Let FontUnderline(ByVal Value As Boolean)
+                GetFont().Underline = Value
+            End Property
+            
+            [Description("Adjusts the TAB key order of this control at runtime")]
+            [Unimplemented]
+            Public TabIndex As Long     ' despite not being focusable, useful for use with mnemonic access keys, so tabbing is still in order
+
+        [CustomDesigner("designer_MultiLineText")]
+        [Serialize(True, "ToolTipText")]
+            Protected ToolTipTextINIT As String
+            
+        [Serialize(True, "Enabled")]
+            Protected EnabledINIT As Boolean = True
+
+        [Description("")]
+            Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d   ' FIXME
+
+            Protected IsDesignMode As Boolean
+            Protected FontHandle As LongPtr
+            Protected InternalCaption As String
+            Protected InternalLastPaintWasAngled As Boolean
+
+        Public AutoSize As Boolean = False  ' this is correct for import purposes.
+
+            Public BackStyle As BackFillStyleConstants = BackFillStyleConstants.vbBFOpaque
+            
+        [Unimplemented]
+            Public LinkItem As String
+        [Unimplemented]
+            Public LinkMode As VBRUN.LinkModeConstants
+        [Unimplemented]
+            Public LinkTopic As String
+        [Unimplemented]
+            Public LinkTimeout As Long = 50
+        
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+            Public WordWrap As Boolean
+            
+            Public LineSpacing As Long          ' in twips
+
+        [Description("")]
+        [Serialize(True, "MousePointer")]
+            Protected MousePointerINIT As VBRUN.MousePointerConstants = VBRUN.MousePointerConstants.vbDefault
+        [Serialize(True, "MouseIcon")]
+        [CustomDesigner("designer_IconBytes")]
+            Protected ReadOnly MouseIconINIT() As Byte
+            
+        [Unimplemented]
+            Public Sub LinkExecute(ByVal Command As String)
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkPoke()
+            End Sub
+            
+        [Unimplemented]
+            Public Sub LinkRequest()
+            End Sub
+
+        [Unimplemented]
+            Public Sub LinkSend()
+            End Sub
+
+        #If FEATURE_OLEDRAGDROP Then
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #end if
+            
+        #If FEATURE_HELP Then
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end if
+        
+    #End Region
+
+    #Region "EVENTS"
+
+        [Description("")]
+            Event Change()
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        [Unimplemented] Event LinkClose()
+        [Unimplemented] Event LinkError(LinkErr As Integer)
+        [Unimplemented] Event LinkNotify()
+        [Unimplemented] Event LinkOpen(Cancel As Integer)
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+
+    #End Region
+               
+    #Region "MEMBERS"
+            
+        Sub New()
+            BaseControlWindowlessNoFocus.New(ControlTypeConstants.vbLabel)
+        End Sub
+    
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            InternalStateResetRectDockable()     ' resets all the base class state()
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #end if
+            Me.FontHandle = 0
+            Me.InternalCaption = vbNullString
+            Me.InternalLastPaintWasAngled = False
+            Me.DataFieldAggregateValue = 0
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Debug.Print "new LABEL control!"
+                CaptionINIT = "Label"
+                If SerializeInfo.RuntimeUISrzIsReportMode() = True Then
+                    'Debug.Print "new control in REPORT MODE!"
+                    IsReportMode = True
+                    BackStyle = vbBFTransparent
+                End If
+                'AutoSize = True     ' for new controls, this should be True, as per VB   NOT VALID
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+        
+            Dim InitData As WindowCreationData
+            InitData.InternalSectionId = InternalSectionId + 1
+            InitData.Flags = RequiresWindowlessPaintingWithEvents Or _
+                                ForwardEnsureEnabled Or _
+                                ManualMouseCapture Or _
+                                ForwardButtonClick Or _
+                                ForwardDoubleClick Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardMouseMove Or _
+                                ForwardDragOver Or _
+                                If(Angle <> 0, IsAngledControl, 0&)
+            
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+            With InternalBaseControlInfo
+                InternalBaseControlBeforeCreateRootWindow(InitData)     ' This fills in NamePtr correctly
+                .ToolTipText = Me.ToolTipTextINIT
+                .MousePointer = Me.MousePointerINIT
+                .WindowlessEnabled = Me.EnabledINIT
+            End With
+            
+            #If FEATURE_OLEDRAGDROP Then
+            InitOleDragDropHelper()
+            #endif
+            
+            Me.InternalCaption = CaptionINIT
+            
+            CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub InitOleDragDropHelper()
+            OLEDragDropInit(True, False, True)
+        End Sub
+        #end If
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+            
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #End If
+                
+            InitializeOLEFont()
+            'If Me.AutoSize Then AutoSizeNow()      VBx doesn't do this here
+            
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #End If
+            RaiseEvent Initialize()
+        End Sub
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            'Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            Dim oldFontHandle As Any = Me.FontHandle
+            If oldFontHandle <> 0 Then
+                GDI32.DeleteObject(oldFontHandle)
+                Me.FontHandle = 0
+            End If
+            Set Me.Font = Nothing
+            ' disconnect anything that causes a circular reference here            
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #End If
+            #If FEATURE_OLEDRAGDROP Then
+            Me.InternalStateResetOLEDragDrop()
+            #end if
+            
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+                                
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Me.Caption
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As String)
+            Me.Caption = Value
+        End Property
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet, _
+                        BackStyle.OnPropertyLet, _
+                        UseMnemonic.OnPropertyLet, _
+                        Alignment.OnPropertyLet, _
+                        Appearance.OnPropertyLet, _
+                        BackStyle.OnPropertyLet, _
+                        Angle.OnPropertyLet
+            
+            Me.WindowlessRefresh()
+        End Sub
+        
+        Protected Sub ChangeAffectingAutoSize() _
+            Handles BorderStyle.OnPropertyLet, _
+                    WordWrap.OnPropertyLet
+            
+            ' IMO UseMnemonic should be on this auto-size aware notification, however VBx doesn't do that
+            
+            If Me.AutoSize = True Then
+                AutoSizeNow()
+            End If
+            
+            Me.WindowlessRefresh()
+        End Sub
+        
+        Protected Sub AngleChanged() _
+                Handles Angle.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIAngleChanged(Angle <> 0)
+            Me.WindowlessRefresh()
+        End Sub
+                
+        Protected Sub AutoSizeNow()
+            'Debug.Print "Label.AutoSizeNow"
+            ' We need to calculate the correct size for this content
+            If Me.FontHandle = 0 Then
+                InitializeOLEFont()
+            End If
+
+            Dim tempHDC As HDC
+            Dim ownedDC As Boolean = False
+            On Error Resume Next
+            If Me.Parent IsNot Nothing Then tempHDC = CLngPtr(Me.Parent.HDC)        ' FIXME, need something that doesn't rely on EH
+            On Error GoTo 0
+            If tempHDC.Value = 0 Then
+            	tempHDC = tempHDC.CreateCompatibleDC()
+                ownedDC = True
+            End If
+            Dim oldFont As LongPtr = tempHDC.SelectObject(Me.FontHandle)
+
+            Dim currentWidth As Long = RootWindowElementBase.RuntimeUIGetCurrentWidth()
+            Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+            
+            Dim LineSpacing As Any = CLng(RootWindowElementBase.RuntimeUIScaleY(Me.LineSpacing, vbTwips, vbPixels))
+            Dim Caption As String = Me.InternalCaption
+            If Len(Caption) = 0 Then Caption = " "
+            Dim render As TextRenderPath = New TextRenderPath(tempHDC, Caption, Me.UseMnemonic, Me.Alignment, currentWidth, Me.AutoSize, Me.WordWrap, LineSpacing)
+            tempHDC.SelectObject(oldFont)
+            
+            Dim BorderHSize As Long
+            Dim BorderVSize As Long
+            If Me.BorderStyle = vbFixedSingleBorder Then
+                BorderHSize = 4
+                BorderVSize = 4
+            ElseIf Me.BorderStyle = ControlBorderStyleConstantsCustom.vbCustomBorder Then
+                CalcBorderTotalSizes(Me.InternalBorderCustomOptions, UnitPixelScale, BorderHSize, BorderVSize)
+            End If
+            Me.Width = (render.TotalWidth + BorderHSize) * ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX_SELF() / UnitPixelScale
+            Me.Height = (render.TotalHeight + BorderVSize) * ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY_SELF() / UnitPixelScale
+            If ownedDC Then tempHDC.DeleteDC()
+        End Sub
+
+        [Serialize(False)]
+        Public Property Get Caption() As String
+            Return Me.InternalCaption
+        End Property
+                
+        [Serialize(False)]
+        Public Property Let Caption(ByVal NewValue As String)
+            If Me.InternalCaption <> NewValue Then
+                Me.InternalCaption = NewValue
+                
+                If Me.AutoSize = True Then
+                    AutoSizeNow()
+                End If
+                
+                Me.WindowlessRefresh()
+                #If FEATURE_DATA_BINDINGS Then
+                OnDataChanged
+                #End If
+                RaiseEvent Change
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+                
+        Protected Sub InitializeOLEFont()
+            Dim NewFont As Any = New StdFont
+            With NewFont
+                .Bold = Me.FontBoldINIT
+                .Italic = Me.FontItalicINIT
+                .Name = Me.FontNameINIT
+                .Size = Me.FontSizeINIT
+                .Strikethrough = Me.FontStrikethruINIT
+                .Underline = Me.FontUnderlineINIT
+            End With
+            RootWindowElementBase.CommonInitFontRatio(NewFont)
+            Set Me.Font = NewFont
+            SyncFontHandle()
+        End Sub
+        
+        Protected Function GetFontMetrics() As TEXTMETRIC
+            If Me.Font Is Nothing Then
+                InitializeOLEFont
+            End If
+            
+            RootWindowElementBase.CommonGetFontMetrics(CType(Of IFont)(Me.Font), GetFontMetrics)
+        End Function
+        
+        Protected Sub SyncFontProperties()
+            If Me.Font Is Nothing Then
+                InitializeOLEFont
+            End If
+            SyncFontHandle()
+            Me.WindowlessRefresh()
+        End Sub
+        
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+
+            'Debug.Print "Label.HandlePaint " & Me.Name
+            
+            Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+            
+            If Visible = False And Me.IsDesignMode = False Then Exit Sub
+            
+            Dim rgbBackColor As Long = TranslateColor(BackColor)
+            Dim brush As LongPtr = 0
+            
+            If Me.BackStyle = vbBFOpaque Then
+                brush = GDI32.CreateSolidBrush(rgbBackColor)
+            End If
+            
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API directly
+                
+            
+                Dim ps_hdc As Any = ps.hdc
+                Dim rect As tbRECT
+                
+                
+                
+                
+                ' Dim TestX As Double = rect.Left
+                ' Dim TestY As Double = rect.Top
+                ' TranslateXYByAngle(TestX, TestY, Me.Angle)
+                ' Debug.Print "Xoff: " TestX - rect.Left
+                ' Debug.Print "Yoff: " TestY - rect.Top
+                                
+                                          
+                'xf.eDx = CSng(TestX - rect.Left)
+                'xf.eDy = -CSng(TestY - rect.Top)
+                                
+                
+               ' Dim savedDC1 As Any = SaveDC(ps_hdc)    ' preserve clip region
+                
+                If Me.Angle <> 0 Then
+                    rect.Left = 0
+                    rect.Top = 0
+                    rect.Right = CLng((Me.PixelsWidth * UnitPixelScale))
+                    rect.Bottom = CLng((Me.PixelsHeight * UnitPixelScale))
+                
+                    Dim angleData As WorldTransformAngleData
+                    DoWorldTransformAngle(angleData, ps_hdc, Me.Angle, Me.PixelsLeft * UnitPixelScale, Me.PixelsTop * UnitPixelScale)
+                    InternalLastPaintWasAngled = True
+                Else
+                    rect.Left = CLng(Me.PixelsLeft * UnitPixelScale)
+                    rect.Top = CLng(Me.PixelsTop * UnitPixelScale)
+                    rect.Right = CLng(rect.Left + (Me.PixelsWidth * UnitPixelScale))
+                    rect.Bottom = CLng(rect.Top + (Me.PixelsHeight * UnitPixelScale))
+                    InternalLastPaintWasAngled = False
+                End If
+                
+                
+                If (rect.Right > rect.Left) And (rect.Bottom > rect.Top) Then
+                    'If BorderStyle = vbNoBorder Then
+                        If brush <> 0 Then
+                            ps_hdc.FillRect(rect, brush)
+                        End If
+                    'End If
+                    
+                    Dim actualForeColor As Long = TranslateColor(If(Me.Enabled, ForeColor, vbGrayText))
+                    Dim rbgBackColor As Long = TranslateColor(BackColor)
+                    Dim oldTextColor As Long = ps_hdc.SetTextColor(actualForeColor)
+                    Dim oldBackColor As Long = ps_hdc.SetBkColor(rbgBackColor)
+                    Dim oldBkMode As Long = ps_hdc.SetBkMode(1)
+                    
+                    If BorderStyle = vbFixedSingleBorder Then
+                        Dim bfStyle As Long
+                        Dim bfFlags As Long = BorderFlags.BF_RECT Or BorderFlags.BF_ADJUST
+                        
+                        If Appearance = vbAppearFlat Then
+                            bfFlags += BorderFlags.BF_MONO
+                            bfStyle = BorderStyles.BDR_SUNKENOUTER
+                        Else
+                            bfStyle = BorderStyles.BDR_SUNKENOUTER Or BorderStyles.BDR_SUNKENINNER
+                        End If
+                        ps_hdc.DrawEdge(rect, bfStyle, bfFlags)
+                    ElseIf BorderStyle = ControlBorderStyleConstantsCustom.vbCustomBorder Then
+                        DrawBorderOptionsAndReduceRect(Me.InternalBorderCustomOptions, ps_hdc, rect, UnitPixelScale)
+                    End If
+                                    
+                    If Me.FontHandle = 0 Then
+                        InitializeOLEFont()
+                    End If
+                    
+                    Dim oldFont As LongPtr = ps_hdc.SelectObject(Me.FontHandle)
+                    
+                    Dim LineSpacing As Any = CLng(RootWindowElementBase.RuntimeUIScaleY(Me.LineSpacing, vbTwips, vbPixels))
+                    
+                    ' FIXME we should cache the render path     
+                    Dim Caption As Any = Me.Caption
+                    Dim UseMnemonics As Boolean = Me.UseMnemonic
+                    #If FEATURE_DATA_BINDINGS Then
+                    If IsDesignMode Then
+                        If Left(Me.DataFieldINIT, 1) = "=" Then
+                            Caption = Me.DataFieldINIT
+                            UseMnemonics = False
+                        End If
+                    End If
+                    #End If
+                    Dim render As TextRenderPath = New TextRenderPath(ps_hdc, Caption, UseMnemonics, Me.Alignment, rect.Right - rect.Left, Me.AutoSize, Me.WordWrap, LineSpacing)
+                    
+                    Dim savedDC As Long
+                    If Me.VerticalAlignment <> vbVerticalAlignTop Then
+                        savedDC = ps_hdc.SaveDC()    ' preserve clip region
+                        ps_hdc.IntersectClipRect(rect.Left, rect.Top, rect.Right, rect.Bottom)
+                    
+                        If Me.VerticalAlignment = vbVerticalAlignMiddle Then
+                            rect.Top += ((rect.Bottom - rect.Top) - render.TotalHeight) \ 2
+                        Else
+                            rect.Top += ((rect.Bottom - rect.Top) - render.TotalHeight)
+                        End If
+                    End If
+                    
+                    If render.HasMnemomnics Then
+                        render.RenderWithMnemonics(ps_hdc, rect, 0, 0, GetFontMetrics().TMAscent, UnitPixelScale, Angle <> 0)
+                    Else
+                        render.Render(ps_hdc, rect, 0, 0, Angle <> 0)
+                    End If
+                    
+                    If Me.VerticalAlignment <> vbVerticalAlignTop Then
+                        ps_hdc.RestoreDC(savedDC)
+                    End If
+                    
+                ' Debug.Print "---------------------------------"
+                    
+                    ps_hdc.SetBkMode(oldBkMode)
+                    ps_hdc.SetBkColor(oldBackColor)
+                    ps_hdc.SetTextColor(oldTextColor)
+                    ps_hdc.SelectObject(oldFont)
+                                    
+                End If
+                
+                If angleData.isActive Then
+                    UndoWorldTransformAngle(angleData, ps_hdc)
+                End If
+                
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+
+            If brush <> 0 Then GDI32.DeleteObject(brush)
+
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get ToolTipText() As String
+            Return InternalBaseControlInfo.ToolTipText
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let ToolTipText(ByVal Value As String)
+            InternalBaseControlInfo.ToolTipText = Value
+            RootWindowElementBase.RuntimeUIToolTipChanged()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get MouseIcon() As StdPicture
+            Return InternalBaseControlInfo.MouseIcon
+        End Property
+
+        [Serialize(False)]
+        Public Property Set MouseIcon(Value As StdPicture)
+            Set InternalBaseControlInfo.MouseIcon = Value
+            CommonMousePointerChanged()
+        End Property
+
+        [Serialize(False)]
+        Public Property Let MouseIcon(Value As StdPicture)
+            Set InternalBaseControlInfo.MouseIcon = Value
+            CommonMousePointerChanged()
+        End Property
+                
+        Protected Sub HandleResizeWindowless(ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, _
+                                               ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long) _
+                    Implements IWindowElementEventsCommon.ResizeWindowless
+                 
+                On Error Resume Next
+                Dim containerHwnd As HWND = GetHwnd(BaseControlWindowlessNoFocus.Container)
+                On Error GoTo 0
+                
+                If containerHwnd.Value = 0 Then
+                	' Windowless UC container...  FIXME need to pass on the RECTs to refine the InvalidateRect passed to the UC site
+                    CommonRaiseViewChanged(BaseControlWindowlessNoFocus.Container)
+                    Exit Sub
+                End If
+                    
+                Dim rect As tbRECT
+                If (Me.Angle <> 0) Or InternalLastPaintWasAngled Then
+                    ' For now we just update the whole container, but we could at least refine the rectangle to contain all 4 corner points
+                    ' (using translateXY), but we'd need to also get oldAngle and newAngle in order to work out the real bounds
+                    containerHwnd.InvalidateRect(ByVal vbNullPtr, 1)
+                    Exit Sub
+                End If
+                
+                Dim needsRepaint As Boolean
+                If oldWidth <> 0 And oldHeight <> 0 Then
+                    rect.Left = oldLeft
+                    rect.Top = oldTop
+                    rect.Right = oldLeft + oldWidth
+                    rect.Bottom = oldTop + oldHeight
+                    containerHwnd.InvalidateRect(rect, 1)
+                    needsRepaint = True
+                End If
+
+                If newWidth <> 0 And newHeight <> 0 Then
+                    rect.Left = newLeft
+                    rect.Top = newTop
+                    rect.Right = newLeft + newWidth
+                    rect.Bottom = newTop + newHeight
+                    containerHwnd.InvalidateRect(rect, 1)
+                    needsRepaint = True
+                End If
+                
+                If needsRepaint Then containerHwnd.UpdateWindow()       ' paint right now
+                
+                With InternalBaseControlInfo
+                    Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+                    .PixelsLeft = newLeft / UnitPixelScale
+                    .PixelsTop = newTop / UnitPixelScale
+                    .PixelsWidth = newWidth / UnitPixelScale
+                    .PixelsHeight = newHeight / UnitPixelScale
+                End With
+        End Sub
+                        
+        Protected Sub SyncFontHandle()
+        	Dim ifont As Any = CType(Of IFont)(Me.Font)
+            Dim LF As LOGFONT
+            GDI32.GetObjectW(ifont.hFont, LenB(LF), LF)
+            'LF.LFQuality = CByte(CLEARTYPE_QUALITY)
+            
+            If Me.FontHandle <> 0 Then GDI32.DeleteObject(Me.FontHandle)
+            
+            'LF.LFEscapement = CLng(Angle * 10)
+            'LF.LFOrientation = CLng(Angle * 10)
+            
+            Me.FontHandle = GDI32.CreateFontIndirectW(LF)
+        End Sub
+        
+        Protected Sub SyncFont(ByVal PropertyName As String) _
+                Handles Font.FontChanged
+            SyncFontHandle()
+            
+            If Me.AutoSize Then
+                AutoSizeNow()
+            End If
+            Me.WindowlessRefresh()
+        End Sub
+        
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            Me.Caption = If(IsNull(fieldValue), "", CStr(fieldValue))
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = Me.Caption
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #endif
+        
+        [Serialize(False)]
+        Public Property Get MousePointer() As MousePointerConstants
+            Return InternalBaseControlInfo.MousePointer
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+            InternalBaseControlInfo.MousePointer = Value
+            CommonMousePointerChanged()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Enabled() As Boolean
+            Return InternalBaseControlInfo.WindowlessEnabled
+        End Property
+    
+        [Serialize(False)]
+        Public Property Let Enabled(ByVal Value As Boolean)
+            InternalBaseControlInfo.WindowlessEnabled = Value
+            Me.Refresh()
+        End Property
+                
+        Protected Sub HandleGetCaption(out As String) _
+                Implements IWindowElementEventsCommon.GetCaption
+            
+            On Error Resume Next
+            Dim containerHwnd As Any = GetHwnd(BaseControlWindowlessNoFocus.Container)
+            On Error GoTo 0
+            
+            If Me.Enabled And (containerHwnd.Value <> vbNullPtr) And containerHwnd.IsWindowVisible() Then       ' for mnemonics, just pretend no caption if we're not available
+                out = Me.Caption
+            End If
+        End Sub
+        
+        Protected Sub HandleInvokeMnemonic(ByVal IsUnique As Boolean, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.InvokeMnemonic
+            
+            Handled = True
+            'Debug.Print "Menmonic (label): " & Me.Name & ", IsUnique: " & IsUnique
+            
+            Dim nextCtl As Object
+            RootWindowElementBase.RuntimeUIGetNextControlByTabIndex(Me.TabIndex, nextCtl, False, True)
+            If nextCtl IsNot Nothing Then
+               'Debug.Print " -> nextCtl: " & nextCtl.Name
+               RootWindowElementBase.RuntimeUIInvokeMnemonicOfControl(nextCtl, IsUnique)
+            End If
+        End Sub
+        
+        Protected Sub HandleGetOpaqueRegion(out As LongPtr) _
+                Implements IWindowElementEventsCommon.GetOpaqueRegion
+            
+            If (Me.BackStyle = vbBFOpaque) And Me.Visible Then
+                out = GDI32.CreateRectRgn(RootWindowElementBase.RuntimeUIGetCurrentLeft(), RootWindowElementBase.RuntimeUIGetCurrentTop(), RootWindowElementBase.RuntimeUIGetCurrentLeft() + RootWindowElementBase.RuntimeUIGetCurrentWidth(), RootWindowElementBase.RuntimeUIGetCurrentTop() + RootWindowElementBase.RuntimeUIGetCurrentHeight())
+            End If
+        End Sub
+        
+        Implements IScheduledCallback
+        Protected Sub HandleDPIChange(ByVal newDPI As Long) _
+                Implements IWindowElementEventsCommon.DPIChange
+
+            Dim font As Any = CType(Of IFont)(Me.Font)
+            If font Is Nothing Then Exit Sub
+            Dim RootWindowElementBASE As Any = Me.RootWindowElementBase
+            font.SetRatio(RootWindowElementBASE.RuntimeUIGetDPI(), 2540)
+             
+            SyncFontHandle()
+            
+            ' ' ' ' Dont call refresh immediately, as that causes issues with the rect positioning.
+            ControlContext.RuntimeUICtxScheduleCallback(Me)
+        End Sub
+        
+        Private Sub IScheduledCallback_Execute() Implements IScheduledCallback.Execute
+            Me.Refresh
+        End Sub
+    #End Region
+
+End Class
+
+[Description("A Win32 native Label")]
+[WindowsControl("/miscellaneous/ICONS??/Label??.png")]
+[ClassId("33AD4ED8-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("A44614D4-CFFF-4E35-AFE1-CC2AF376B234")]    ' FIXME implement {33AD4ED9-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Label
+    Inherits LabelBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

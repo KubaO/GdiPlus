@@ -1,0 +1,13 @@
+#If FEATURE_PROPERTYPAGE Then
+[Description("")]
+[FormDesignerId("04DEE50A-0A3E-4E38-A79A-0D9E438CC19A")]
+[ClassId("^008627CD-D494-416A-8D7B-B580555D59EF")]				' will be XOR'd with the root project GUID to provide a stable but unique CLSID
+[InterfaceId("C8230C2C-53C4-4E10-9DAC-0E8C5F8ECE1E")]
+[EventInterfaceId("2846BF56-2894-4AE8-8AAA-DCD2C80ED150")]
+Private Class StandardDataFormat
+
+	Sub New()
+	End Sub
+
+End Class
+#endif

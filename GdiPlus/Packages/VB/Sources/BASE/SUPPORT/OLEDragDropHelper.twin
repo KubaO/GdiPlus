@@ -1,0 +1,248 @@
+#If FEATURE_OLEDRAGDROP Then
+[InterfaceId("B16B3430-F4D3-48B4-9904-657F933EA5E6")]
+[COMCreatable(False)]
+Private Class OLEDragDropHandler
+    Implements IDropTarget
+
+    Protected OwnerControl As Object
+    Protected OwnerControlContext As ControlContext
+    Protected OwnerRootWindowElement As WindowElement
+    Protected CurrentDataObject As DataObject
+    Protected IsContainer As Boolean
+    
+    Protected CachedLast_grfKeyState As Long
+    Protected CachedLast_xy As LongLong
+    Protected CachedLast_pdwEffect As DROPEFFECT
+        
+    Public Sub New(ByRef OwnerControl As Object, _
+                    ByVal OwnerControlContext As ControlContext, _
+                    ByVal OwnerRootWindowElement As WindowElement, _
+                    ByVal IsContainer As Boolean)
+        
+        Set Me.OwnerControl = OwnerControl
+        Me.OwnerControlContext = OwnerControlContext
+        Me.OwnerRootWindowElement = OwnerRootWindowElement
+        Me.IsContainer = IsContainer
+        
+        'Debug.Print "RegisterDragDrop (" & IsContainer & "): " & OwnerRootWindowElement.Handle
+        Dim mdiHandle As Any = OwnerRootWindowElement.RuntimeUIMDIClientHandle()
+        If mdiHandle.Value <> 0 Then
+            OLE32.RegisterDragDrop(mdiHandle, Me)
+        Else
+            OLE32.RegisterDragDrop(OwnerRootWindowElement.RuntimeUIGetHandle(), Me)
+        End If
+    End Sub
+        
+    Protected Sub RaiseEventByNameParamArray(ByVal Object As Object, ByVal Name As String, ParamArray Args() As Variant)
+        RaiseEventByName(Object, Name, Args)
+    End Sub
+    
+    Protected Function LongLongToPointHelper(ByRef xy As POINT) As POINT
+        Return xy
+    End Function
+    
+    Protected Sub RaiseEventInternal(ByVal eventType As DragOverConstants, ByVal grfKeyState As Long, ByVal xy As LongLong, pdwEffect As DROPEFFECT)
+        Me.CachedLast_grfKeyState = grfKeyState
+        Me.CachedLast_xy = xy
+        Me.CachedLast_pdwEffect = pdwEffect
+
+        Dim point As POINT = LongLongToPointHelper(ByVal VarPtr(xy))
+        
+        Dim mdiHandle As Any = OwnerRootWindowElement.RuntimeUIMDIClientHandle()
+        Dim handle As Any = OwnerRootWindowElement.RuntimeUIGetHandle()
+        If mdiHandle.Value <> 0 Then handle = mdiHandle
+        
+        handle.ScreenToClient(point)
+        'Debug.Print "   -> RaiseEventInternal " & eventType & ", X:" & point.X & ", Y:" & point.Y
+                
+        Dim TargetControl As Object = OwnerControl
+        If Me.IsContainer Then
+        
+            'Debug.Print "   -> WindowFromPoint() ==  " & WindowFromPoint(xy)
+            Dim hoverWindow As LongPtr = USER32.WindowFromPoint(xy)
+            If (hoverWindow <> handle) AndAlso (USER32.IsChild(handle, hoverWindow) = 0) Then
+                'Debug.Print "Drag wrong window"
+                pdwEffect = DROPEFFECT_NONE
+                Exit Sub
+            End If
+            'If eventType = -1 Then Stop
+            
+            ' Check if the cursor position is actually over a (windowless) Label or Image control
+            ' ... in which case this event needs to be handled by them instead.
+            Dim lightweightControl As Object = Me.OwnerControlContext.RuntimeUICtxGetLightweightControlAtPosition(point.x, point.y)
+            If lightweightControl IsNot Nothing Then
+                ' point.X / point.Y now reflects the lightweight control
+                
+                If lightweightControl.Controltype = ControlTypeConstants.vbLabel Then
+                    If lightweightControl.OLEDropMode = OLEDropConstants.vbOLEDropManual Then
+                        Set TargetControl = lightweightControl
+                    Else
+                        pdwEffect = DROPEFFECT_NONE
+                        Exit Sub
+                    End If
+                ElseIf lightweightControl.Controltype = ControlTypeConstants.vbImage Then
+                    If lightweightControl.OLEDropMode = OLEDropConstants.vbOLEDropManual Then
+                        Set TargetControl = lightweightControl
+                    ElseIf lightweightControl.OLEDropMode = OLEDropConstants.vbOLEDropAutomatic Then
+                        Dim picFormat As ClipboardConstants = ContainsAPictureFormat(CurrentDataObject.AvailableFormats)
+                        If picFormat <> 0 Then
+                            If (pdwEffect And DROPEFFECT_MOVE) Then
+                                pdwEffect = DROPEFFECT_MOVE
+                            ElseIf (pdwEffect And DROPEFFECT_COPY) Then
+                                pdwEffect = DROPEFFECT_COPY
+                            End If
+                            
+                            If eventType = -1 Then
+                                ' dropped
+                                 If picFormat = ClipboardConstants.vbCFDIB Then
+                                    If CurrentDataObject.GetFormat(CInt(ClipboardConstants.vbCFBitmap)) Then
+                                        picFormat = ClipboardConstants.vbCFBitmap
+                                    End If
+                                End If
+                                Set lightweightControl.Picture = CurrentDataObject.GetData(CInt(picFormat))
+                            End If
+                        Else
+                            pdwEffect = DROPEFFECT_NONE
+                        End If
+                        Exit Sub
+                    Else
+                        pdwEffect = DROPEFFECT_NONE
+                        Exit Sub
+                    End If
+                End If
+            Else
+                ' The container might have OLEDropMode of None, but with some lightweight controls inside it that have OLEDragMode Manual/Automatic
+                If TargetControl.OLEDropMode = OLEDropConstants.vbOLEDropNone Then
+                    pdwEffect = DROPEFFECT_NONE
+                    Exit Sub
+                ElseIf TargetControl.OLEDropMode = OLEDropConstants.vbOLEDropAutomatic Then
+                    ' PICTURE BOX allows automatic mode, AND lightweight children support
+                    picFormat = ContainsAPictureFormat(CurrentDataObject.AvailableFormats)
+                    If picFormat <> 0 Then
+                        If (pdwEffect And DROPEFFECT_MOVE) Then
+                            pdwEffect = DROPEFFECT_MOVE
+                        ElseIf (pdwEffect And DROPEFFECT_COPY) Then
+                            pdwEffect = DROPEFFECT_COPY
+                        End If
+                        
+                        If eventType = -1 Then
+                            ' dropped
+                            If picFormat = ClipboardConstants.vbCFDIB Then
+                                If CurrentDataObject.GetFormat(CInt(ClipboardConstants.vbCFBitmap)) Then
+                                    picFormat = ClipboardConstants.vbCFBitmap
+                                End If
+                            End If
+                            Set TargetControl.Picture = CurrentDataObject.GetData(CInt(picFormat))
+                        End If
+                    Else
+                        pdwEffect = DROPEFFECT_NONE
+                    End If
+                    Exit Sub
+                End If
+            End If
+        Else
+            If TargetControl.OLEDropMode = OLEDropConstants.vbOLEDropAutomatic AndAlso _ 
+                TargetControl.ControlType = vbTextBox Then
+                
+                Dim textFormat As ClipboardConstants = ContainsATextFormat(CurrentDataObject.AvailableFormats)
+                If textFormat <> 0 Then
+                    If (pdwEffect And DROPEFFECT_MOVE) Then
+                        pdwEffect = DROPEFFECT_MOVE
+                    ElseIf (pdwEffect And DROPEFFECT_COPY) Then
+                        pdwEffect = DROPEFFECT_COPY
+                    End If
+                    
+                    If eventType = -1 Then
+                        ' dropped
+                        TargetControl.Text = CStr(CurrentDataObject.GetData(CInt(textFormat)))
+                    End If
+                Else
+                    pdwEffect = DROPEFFECT_NONE
+                End If
+                Exit Sub
+            End If
+        End If
+        
+        Dim x As Single = CSng((point.x / OwnerRootWindowElement.RuntimeUIGetUnitScale()) * Me.OwnerControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX())
+        Dim y As Single = CSng((point.y / OwnerRootWindowElement.RuntimeUIGetUnitScale()) * Me.OwnerControlContext.RuntimeUICtxGetScaleModePixelsMultiplierY())
+
+        Const MK_LBUTTON As Long = 1
+        Const MK_RBUTTON As Long = 2
+        Const MK_MBUTTON As Long = 16
+        Const MK_SHIFT As Long = 4
+        Const MK_CONTROL As Long = 8
+        Const MK_ALT As Long = 32
+
+        Dim Button As Integer = 0
+        If grfKeyState And MK_LBUTTON Then Button += CInt(vbLeftButton)
+        If grfKeyState And MK_RBUTTON Then Button += CInt(vbRightButton)
+        If grfKeyState And MK_MBUTTON Then Button += CInt(vbMiddleButton)
+        Dim Shift As Integer = 0
+        If grfKeyState And MK_CONTROL Then Shift += CInt(ShiftConstants.vbCtrlMask)
+        If grfKeyState And MK_SHIFT Then Shift += CInt(ShiftConstants.vbShiftMask)
+        If grfKeyState And MK_ALT Then Shift += CInt(ShiftConstants.vbAltMask)
+        
+        If eventType = -1 Then
+            RaiseEventByNameParamArray(TargetControl, "OLEDragDrop", CurrentDataObject, pdwEffect, Button, Shift, x, y)
+        Else
+            RaiseEventByNameParamArray(TargetControl, "OLEDragOver", CurrentDataObject, pdwEffect, Button, Shift, x, y, CInt(eventType))
+        End If
+    End Sub
+    
+    Protected Sub DragEnter(ByVal pDataObj As tbInternal_IDataObject, ByVal grfKeyState As Long, ByVal xy As LongLong, pdwEffect As DROPEFFECT) _
+            Implements IDropTarget.DragEnter
+        Set CurrentDataObject = New DataObjectReadOnly(pDataObj)
+        'Debug.Print "IDropTarget_DragEnter", grfKeyState
+        RaiseEventInternal(DragOverConstants.vbEnter, grfKeyState, xy, pdwEffect)
+        'Debug.Print "IDropTarget_DragEnter [DONE]"
+    End Sub
+    
+    Protected Sub DragLeave() _
+            Implements IDropTarget.DragLeave
+        RaiseEventInternal(DragOverConstants.vbLeave, CachedLast_grfKeyState, CachedLast_xy, CachedLast_pdwEffect)
+        Set CurrentDataObject = Nothing
+        'Debug.Print "IDropTarget_DragLeave"
+    End Sub
+    
+    Protected Sub DragOver(ByVal grfKeyState As Long, ByVal xy As LongLong, pdwEffect As DROPEFFECT) _
+            Implements IDropTarget.DragOver
+        'Debug.Print "IDropTarget_DragOver", grfKeyState
+        Const MK_CONTROL As Long = 8&
+        If (pdwEffect And DROPEFFECT_MOVE) AndAlso (pdwEffect And DROPEFFECT_COPY) Then
+            If (grfKeyState And MK_CONTROL) <> 0 Then
+                pdwEffect = DROPEFFECT_COPY
+            Else
+                pdwEffect = DROPEFFECT_MOVE
+            End If
+        End If
+
+        RaiseEventInternal(DragOverConstants.vbOver, grfKeyState, xy, pdwEffect)
+        'Debug.Print "IDropTarget_DragOver --> " & pdwEffect
+    End Sub
+    
+    Protected Sub Drop(ByVal pDataObj As tbInternal_IDataObject, ByVal grfKeyState As Long, ByVal xy As LongLong, pdwEffect As DROPEFFECT) _
+            Implements IDropTarget.Drop
+        Const MK_CONTROL As Long = 8&
+        If (pdwEffect And DROPEFFECT_MOVE) AndAlso (pdwEffect And DROPEFFECT_COPY) Then
+            If (grfKeyState And MK_CONTROL) <> 0 Then
+                pdwEffect = DROPEFFECT_COPY
+            Else
+                pdwEffect = DROPEFFECT_MOVE
+            End If
+        End If
+
+        Set CurrentDataObject = New DataObjectReadOnly(pDataObj)
+        RaiseEventInternal(CType(Of DragOverConstants)(-1), grfKeyState, xy, pdwEffect)
+    End Sub
+    
+    Public Sub Disconnect()
+        'Debug.Print "RevokeDragDrop (" & IsContainer & "): " & OwnerRootWindowElement.Handle
+        Dim mdiHandle As Any = OwnerRootWindowElement.RuntimeUIMDIClientHandle()
+        If mdiHandle.Value <> 0 Then
+            OLE32.RevokeDragDrop(mdiHandle)
+        Else
+            OLE32.RevokeDragDrop(OwnerRootWindowElement.RuntimeUIGetHandle())
+        End If
+    End Sub
+End Class
+#End If

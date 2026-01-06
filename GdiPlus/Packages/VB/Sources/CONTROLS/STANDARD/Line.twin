@@ -1,0 +1,231 @@
+#If FEATURE_LINE Then
+[ClassId("506C9285-6BD6-460D-A0C4-27A1FC602ADF")]
+[InterfaceId("36FCD230-1E13-4236-B647-0036FEBB2566")]    ' FIXME implement {33AD4F89-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class LineBaseCtl
+    
+    #Region "INHERITANCE"
+    
+        Inherits BaseControlWindowlessPoints
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BorderColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description("")]
+            Public BorderStyle As BorderStyleConstants = BorderStyleConstants.vbBSSolid
+        [Description("")]
+            Public BorderWidth As Long = 1
+        [Description("")]
+            Public DrawMode As DrawModeConstants = DrawModeConstants.vbCopyPen
+
+            Protected IsDesignMode As Boolean
+            
+        [NonBrowsable]
+        [Serialize(True)]
+            Protected InternalSectionId As Integer = -1
+        
+    #End Region
+
+    #Region "EVENTS"
+                            
+    [DefaultDesignerEvent]
+    [Description("")]
+            Event Initialize()
+
+    #End Region
+               
+    #Region "MEMBERS"
+        Sub New()
+            BaseControlWindowlessPoints.New(ControlTypeConstants.vbShape)
+        End Sub
+    
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                           
+            Me.InternalStateReset()     ' resets all the base class state
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "Line"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim InitData As WindowCreationData
+            InternalBaseControlBeforeCreateRootWindow(InitData)
+            InitData.InternalSectionId = InternalSectionId + 1
+            InitData.Flags = RequiresWindowlessPaintingWithEvents Or _
+                                NotRectangular
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            RaiseEvent Initialize()
+        End Sub
+
+        Protected Sub HandleEraseBackground(ByVal hdc As HDC, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.EraseBackground
+                
+            Handled = True
+        End Sub
+
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+
+            If Visible = False And Me.IsDesignMode = False Then Exit Sub
+
+            Dim borderColor As Long = TranslateColor(Me.BorderColor)
+            Dim pen As LongPtr
+            Dim penType As Long = CommonBorderStyleToPenType(Me.BorderStyle)
+
+            pen = GDI32.CreatePen(penType, Me.BorderWidth, borderColor)
+            
+            Dim backBrush As LongPtr = GDI32.GetStockObject(NULL_BRUSH)
+
+            'Debug.Print "***LINE*** Paint - X1: " & (PixelsX1 * RootWindowElementBase.UnitPixelScale) & ", width: " & ((PixelsX2 * RootWindowElementBase.UnitPixelScale) - (PixelsX1 * RootWindowElementBase.UnitPixelScale))
+            'Debug.Print "***LINE*** Paint - Y1: " & (PixelsY1 * RootWindowElementBase.UnitPixelScale) & ", height: " & ((PixelsY2 * RootWindowElementBase.UnitPixelScale) - (PixelsY1 * RootWindowElementBase.UnitPixelScale))
+
+            Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+            
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API directly
+    
+                Dim ps_hdc As Any = ps.hdc
+                ' Dim rect As RECT
+                ' Static PaintCount As Long = 0
+                ' rect.Left = PixelsX1 * RootWindowElementBase.UnitPixelScale
+                ' rect.Top = PixelsY1 * RootWindowElementBase.UnitPixelScale
+                ' rect.Right = (PixelsX2 * RootWindowElementBase.UnitPixelScale)
+                ' rect.Bottom = (PixelsY2 * RootWindowElementBase.UnitPixelScale)
+                ' Dim brush As LongPtr = WindowsAPI.CreateSolidBrush(If(PaintCount = 0, vbRed, vbGreen))
+                ' PaintCount += 1
+                ' WindowsAPI.FillRect(ps.hdc, rect, brush)
+                ' WindowsAPI.DeleteObject(brush)
+                
+                Dim oldBkMode As Long = ps_hdc.SetBkMode(BackgroundModes.OPAQUE)
+
+                Dim oldBrush As LongPtr
+                Dim oldPen As LongPtr
+            
+                If backBrush <> 0 Then
+                    oldBrush = ps_hdc.SelectObject(backBrush)
+                End If
+
+                If pen <> 0 Then
+                    oldPen = ps_hdc.SelectObject(pen)
+                End If
+
+                ps_hdc.SetROP2(Me.DrawMode)
+                ps_hdc.MoveToEx(CLng(PixelsX1 * UnitPixelScale), CLng(PixelsY1 * UnitPixelScale), 0)
+                Dim LineToY As Long = CLng(PixelsY2 * UnitPixelScale)
+                'Debug.Print "***LINE*** Paint - LineToY: " & LineToY
+
+                ps_hdc.LineTo(CLng(PixelsX2 * UnitPixelScale), LineToY)
+            
+                If pen <> 0 Then
+                    ps_hdc.SelectObject(oldPen)
+                End If
+
+                If backBrush <> 0 Then
+                    ps_hdc.SelectObject(oldBrush)
+                End If
+
+                ps_hdc.SetBkMode(oldBkMode)
+
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+
+            If pen <> 0 Then GDI32.DeleteObject(pen)
+
+        End Sub
+        
+        Protected Sub OnChangeProp() _
+                Handles BorderColor.OnPropertyLet, _
+                        BorderStyle.OnPropertyLet, _
+                        BorderWidth.OnPropertyLet, _
+                        DrawMode.OnPropertyLet
+                        
+        	Me.WindowlessRefresh()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Boolean
+            Return Me.Visible
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(Value As Boolean)
+            Me.Visible = Value
+        End Property
+        
+        Protected Sub HandleResizeWindowless(ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, _
+                                               ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long) _
+                Implements IWindowElementEventsCommon.ResizeWindowless
+                
+            On Error Resume Next
+            Dim containerHwnd As HWND = GetHwnd(BaseControlWindowlessPoints.Container)
+            On Error GoTo 0
+            
+            If containerHwnd.Value = 0 Then
+                ' Windowless UC container...  FIXME need to pass on the RECTs to refine the InvalidateRect passed to the UC site
+                CommonRaiseViewChanged(BaseControlWindowlessPoints.Container)
+                Exit Sub
+            End If
+            
+            CommonResizeWindowless(containerHwnd, CLng(Round(BorderWidth / 2)) + 1, oldLeft, oldTop, oldWidth, oldHeight, newLeft, newTop, newWidth, newHeight)
+        End Sub
+        
+    #End Region
+    
+End Class
+
+[Description("A Win32 native Line")]
+[WindowsControl("/miscellaneous/ICONS??/Line??.png")]
+[ClassId("33AD4F88-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("769C0185-5C1E-4D3B-B37B-DB794FCAD227")]    ' FIXME implement {33AD4F89-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Line
+    Inherits LineBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

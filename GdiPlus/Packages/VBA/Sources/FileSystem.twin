@@ -1,0 +1,344 @@
+Module FileSystem
+ 
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    [Hidden, Restricted]
+    Public DeclareWide PtrSafe Sub _FileRename Lib "<filesystem>" Alias "#1" (ByVal OriginalName As String, ByVal NewName As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves file attribute information.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = FileAttr(FileNumber, [ReturnType])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`FileNumber` (Integer): The file number used in the Open statement.  " & vbCrLf & _
+                    "`ReturnType` (Integer): Optional. The type of information to return. Default is 1.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the file's attribute information if `ReturnType` is 1; otherwise, the return type is defined by the value of `ReturnType`.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim Attr As Long" & vbCrLf & _
+                    "Attr = FileAttr(1) ' Assumes that file number 1 is open.  " & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function FileAttr Lib "<filesystem>" Alias "#2" (ByVal FileNumber As Integer, Optional ByVal ReturnType As Integer = 1) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Determines if the end of a file opened for Input has been reached.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = EOF(FileNumber)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`FileNumber` (Integer): The file number used in the Open statement.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Boolean that is True if the end of the file has been reached; otherwise, False.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "If EOF(1) Then ' Assumes that file number 1 is open for reading.  " & vbCrLf & _
+                    "    MsgBox ""End of file reached.""" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+                    
+    Public DeclareWide PtrSafe Function EOF Lib "<filesystem>" Alias "#3" (ByVal FileNumber As Integer) As Boolean
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Provides a new file number to use when opening a file.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = FreeFile([RangeNumber])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`RangeNumber` (Variant): Optional. Specifies the range from which the new file number is returned.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "An Integer representing the next available file number.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim FileNum As Integer" & vbCrLf & _
+                    "FileNum = FreeFile() ' Get a free file number.  " & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function FreeFile Lib "<filesystem>" Alias "#4" (Optional ByRef RangeNumber As Variant) As Integer
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the size of a file opened with the Open statement.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = LOF(FileNumber)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`FileNumber` (Integer): The file number used in the Open statement.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the size of the file in bytes.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim FileSize As Long" & vbCrLf & _
+                    "FileSize = LOF(1) ' Assumes that file number 1 is open.  " & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function LOF Lib "<filesystem>" Alias "#5" (ByVal FileNumber As Integer) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Closes all files opened with the Open statement.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Reset`" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "`Reset` is used without arguments and closes all active files opened by the `Open` statement. It's good practice to close individual files with the `Close` statement when done, but `Reset` ensures all files are closed, especially before ending the program.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Close all open files" & vbCrLf & _
+                    "Reset" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub Reset Lib "<filesystem>" Alias "#6" ()
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the current read/write position within an open file.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Loc(FileNumber)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`FileNumber` (Integer): The file number used in the Open statement.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the current position within the file in records or bytes.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the current position in the file" & vbCrLf & _
+                    "Dim position As Long" & vbCrLf & _
+                    "position = Loc(1)  ' Assuming file number 1 is open" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function Loc Lib "<filesystem>" Alias "#7" (ByVal FileNumber As Integer) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the position at which the next operation will occur in a file opened with the Open statement.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Seek(FileNumber)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`FileNumber` (Integer): The file number used in the Open statement.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the position at which the next operation will occur in the file.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the position for the next operation" & vbCrLf & _
+                    "Dim nextPosition As Long" & vbCrLf & _
+                    "nextPosition = Seek(1)  ' Assuming file number 1 is open" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function Seek Lib "<filesystem>" Alias "#8" (ByVal FileNumber As Integer) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the date and time when a file was last modified.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = FileDateTime(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path and name of the file you are interested in.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Variant (Date) representing the date and time of the file's last modification.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get last modification date and time of a file" & vbCrLf & _
+                    "Dim lastModified As Variant" & vbCrLf & _
+                    "lastModified = FileDateTime(""C:\\example.txt"")" & vbCrLf & _
+                    "MsgBox ""File was last modified on: "" & lastModified" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function FileDateTime Lib "<filesystem>" Alias "#9" (ByVal PathName As String) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the length of a file in bytes.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = FileLen(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path and name of the file.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the length of the file in bytes.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the length of the file" & vbCrLf & _
+                    "Dim fileLength As Long" & vbCrLf & _
+                    "fileLength = FileLen(""C:\\example.txt"")" & vbCrLf & _
+                    "MsgBox ""The file size is: "" & fileLength & "" bytes""" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function FileLen Lib "<filesystem>" Alias "#10" (ByVal PathName As String) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Sets the attributes of a file or directory.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = SetAttr(PathName, Attributes)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path and name of the file or directory.  " & vbCrLf & _
+                    "`Attributes` (VbFileAttribute): The file attribute(s) to set.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Long representing the status of the operation.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Set file as read-only" & vbCrLf & _
+                    "SetAttr(""C:\\example.txt"", vbReadOnly)" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function SetAttr Lib "<filesystem>" Alias "#11" (ByVal PathName As String, ByVal Attributes As VbFileAttribute) As Long
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the attributes of a file or directory.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = GetAttr(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path and name of the file or directory.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A VbFileAttribute representing the attributes of the file.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the attributes of the file" & vbCrLf & _
+                    "Dim fileAttributes As VbFileAttribute" & vbCrLf & _
+                    "fileAttributes = GetAttr(""C:\\example.txt"")" & vbCrLf & _
+                    "If (fileAttributes And vbReadOnly) <> 0 Then" & vbCrLf & _
+                    "    MsgBox ""The file is read-only.""" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function GetAttr Lib "<filesystem>" Alias "#12" (ByVal PathName As String) As VbFileAttribute
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Creates a new directory.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`MkDir(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path and name of the new directory to create.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "If the directory already exists, an error will occur.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new directory" & vbCrLf & _
+                    "MkDir(""C:\\NewFolder"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub MkDir Lib "<filesystem>" Alias "#13" (ByVal PathName As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Removes an existing directory.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`RmDir(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (String): The path of the directory to remove.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The directory must be empty, and the program must have delete permissions.  " & vbCrLf & _
+                    "An error occurs if the directory does not exist or is not empty.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Remove a directory" & vbCrLf & _
+                    "RmDir(""C:\\OldFolder"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub RmDir Lib "<filesystem>" Alias "#14" (ByVal PathName As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Changes the current directory.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`ChDir(Path)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Path` (String): The path to the new current directory.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "An error occurs if the specified path does not exist.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Change the current directory" & vbCrLf & _
+                    "ChDir(""C:\\NewCurrentDirectory"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub ChDir Lib "<filesystem>" Alias "#15" (ByVal Path As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Changes the current drive.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`ChDrive(Drive)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Drive` (String): The letter of the drive to make current.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "An error occurs if the specified drive does not exist.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Change the current drive to E:" & vbCrLf & _
+                    "ChDrive(""E:"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub ChDrive Lib "<filesystem>" Alias "#16" (ByVal Path As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the current directory string for the specified drive.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = CurDir$(Drive)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Drive` (Variant): Optional. The letter of the drive to get the current directory for.  " & vbCrLf & _
+                    "If omitted, the function returns the current directory of the current drive.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A String representing the current directory.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the current directory of drive C:" & vbCrLf & _
+                    "Dim currentDir As String" & vbCrLf & _
+                    "currentDir = CurDir$(""C"")" & vbCrLf & _
+                    "MsgBox ""The current directory is: "" & currentDir" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function [CurDir$] Lib "<filesystem>" Alias "#17" (Optional ByRef Drive As Variant) As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the current directory for the specified drive.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = CurDir(Drive)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Drive` (Variant): Optional. The letter of the drive to get the current directory for.  " & vbCrLf & _
+                    "If omitted, the function returns the current directory of the current drive as a Variant.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A Variant representing the current directory.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "This function is similar to `CurDir$`, but returns a Variant instead of a String.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Get the current directory of the current drive" & vbCrLf & _
+                    "Dim currentDirectory As Variant" & vbCrLf & _
+                    "currentDirectory = CurDir()" & vbCrLf & _
+                    "MsgBox ""The current directory is: "" & currentDirectory" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function CurDir Lib "<filesystem>" Alias "#18" (Optional ByRef Drive As Variant) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Copies a file from one location to another.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`FileCopy(Source, Destination)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`Source` (String): The path and filename of the source file.  " & vbCrLf & _
+                    "`Destination` (String): The path and filename for the new file.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "An error occurs if the source file does not exist, the destination cannot be written, or if a file with the same name exists at the destination unless it is overwritten explicitly.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Copy a file from one location to another" & vbCrLf & _
+                    "FileCopy(""C:\\Folder1\\file.txt"", ""C:\\Folder2\\file.txt"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub FileCopy Lib "<filesystem>" Alias "#19" (ByVal Source As String, ByVal Destination As String)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Deletes a file specified by the user.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Kill(PathName)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (Variant): The path and filename of the file to delete.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `Kill` function can also delete multiple files using wildcard characters (* and ?).  " & vbCrLf & _
+                    "An error occurs if the file does not exist or if the path is a directory.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Delete a single file" & vbCrLf & _
+                    "Kill(""C:\\Folder\\file.txt"")" & vbCrLf & _
+                    "' Delete all .txt files in a folder" & vbCrLf & _
+                    "Kill(""C:\\Folder\\*.txt"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Sub Kill Lib "<filesystem>" Alias "#20" (ByRef PathName As Variant)
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns a string representing the name of a file, directory, or folder that matches a specified pattern.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Dir([PathName], [Attributes])`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "`PathName` (Variant): Optional. The path and filename, which can include wildcard characters, to search for.  " & vbCrLf & _
+                    "`Attributes` (VbFileAttribute): Optional. The file attributes to include in the search.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "A String representing the name of the matching file, directory, or folder.  " & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "If no matching file is found, the Dir function returns an empty string.  " & vbCrLf & _
+                    "After the first call to Dir, you can omit the arguments to return subsequent matches.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Find the first .txt file in a directory" & vbCrLf & _
+                    "Dim fileName As String" & vbCrLf & _
+                    "fileName = Dir(""C:\\Folder\\*.txt"")" & vbCrLf & _
+                    "Do While fileName <> """"" & vbCrLf & _
+                    "    ' Print the name of the file" & vbCrLf & _
+                    "    Debug.Print fileName" & vbCrLf & _
+                    "    ' Find the next file" & vbCrLf & _
+                    "    fileName = Dir()" & vbCrLf & _
+                    "Loop" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function Dir Lib "<filesystem>" Alias "#21" (Optional ByRef PathName As Variant, Optional ByVal Attributes As VbFileAttribute = 0&) As String
+         
+End Module

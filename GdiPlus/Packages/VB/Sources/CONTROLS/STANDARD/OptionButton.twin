@@ -1,0 +1,387 @@
+#If FEATURE_OPTIONBUTTON Then
+[ClassId("706C6486-9E02-4C1A-8D47-D8B3C7222729")]
+[InterfaceId("81184CEC-1831-4641-A6F7-0945616132BA")]    ' FIXME implement {33AD4F01-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class OptionButtonBaseCtl
+    
+    #Region "INHERITANCE"
+
+        Inherits ButtonBase
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [Description("")]
+        [Serialize(True, "Alignment")]
+            Protected AlignmentINIT As VBRUN.AlignmentConstantsNoCenter '= VBRUN.AlignmentConstantsNoCenter.tbLeftJustify
+        [Serialize(True, "Caption")]
+        [CustomDesigner("designer_MultiLineText")]
+            Protected Caption_INIT As String
+        [Serialize(True, "Value")]
+            Protected Value_INIT As Boolean
+            Protected IsInitialized As Boolean
+        
+            Protected InternalValue As Boolean                                        ' Only used for owner-drawn state
+            #If FEATURE_OLEDRAGDROP Then
+            Protected OLEDragDropHandler As OLEDragDropHandler
+            #End If
+        
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+        #If FEATURE_OLEDRAGDROP Then
+        [CustomDesigner("designer_RestrictedOLEDropMode")]
+            Public OLEDropMode As VBRUN.OLEDropConstants
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+        
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end if
+        
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+    #End Region
+
+    #Region "EVENTS"
+
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        '[DispId(&HEAEA000D)]
+            ' Event Validate(Cancel As Boolean)
+        [Description("")]
+            Event Initialize()
+
+    #End Region
+               
+    #Region "MEMBERS"
+        
+        Sub New()
+            ButtonBase.New(ControlTypeConstants.vbOptionButton)
+        End Sub
+    
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateReset()     ' resets all the base class state
+            Me.InternalStateResetButton()
+                        
+            Me.InternalValue = False
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize( Me) Then
+                Caption_INIT = "OptionButton"
+            End If
+            'IsDesignMode = .IsDesignMode
+            
+            HandleInitializeButton()
+            
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderOptionButton)
+            InitData.Caption = Caption_INIT
+            InitData.WindowStyles = GetStyles()
+            InitData.ExtendedStyles = 0
+            InitData.Flags = HasExclusiveValueWithinContainer Or _
+                                EnforceTabStopAfterCreation Or _
+                                ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardMouseMove Or _
+                                ForwardMouseDown Or _
+                                ForwardMouseUp Or _
+                                ForwardDragOver Or _
+                                ForwardValidate Or _
+                                ForwardDoubleClick
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+            
+        End Sub
+        
+        Protected Function GetStyles() As Long
+            Dim styles As Long
+            #If FEATURE_GRAPHICAL_BUTTONS Then
+        	If ButtonBase.Style = ButtonConstants.vbButtonGraphical Then
+                styles += ButtonStyles.BS_OWNERDRAW
+            Else
+            #End If
+                styles += ButtonStyles.BS_MULTILINE + _
+                             ButtonStyles.BS_RADIOBUTTON + _
+                             If(Me.AlignmentINIT = tbRightJustify, ButtonStyles.BS_LEFTTEXT, 0&) + _
+                             If(ButtonBase.Appearance = AppearanceConstants.vbAppearFlat, ButtonStyles.BS_FLAT, 0&)
+            #If FEATURE_GRAPHICAL_BUTTONS Then
+            End If
+            #End If
+            Return styles
+        End Function
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+        
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            If OLEDragDropHandler IsNot Nothing Then OLEDragDropHandler.Disconnect()
+            #End If
+            Set Me.Font = Nothing
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            Me.InitializeButtonBase()
+
+            IsInitialized = False
+            Me.Value = Me.Value_INIT
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #end if
+            Me.IsInitialized = True
+            RaiseEvent Initialize()
+        End Sub
+        
+        Public Sub SyncRecreate() _
+                Overrides ButtonBase.SelfRecreate
+            
+            Dim Value As Boolean = Me.Value
+            Dim Caption As String = Me.Caption
+            Dim Picture As Picture = Me.Picture
+            Dim DownPicture As Picture = Me.DownPicture
+            Dim DisabledPicture As Picture = Me.DisabledPicture
+            
+            RecreateWindow(GetStyles())
+                
+            Me.Caption = Caption
+            Me.Value = Value
+            Set Me.Picture = Picture
+            Set Me.DownPicture = DownPicture
+            Set Me.DisabledPicture = DisabledPicture
+            
+        End Sub
+        
+        Protected Sub HandleCommand(ByVal NotificationCode As ButtonNotifications, _
+                                    ByVal Identifier As Integer, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Command
+                
+            Select Case NotificationCode
+                Case BN_CLICKED
+                    Me.Value = True
+                    Handled = True
+            End Select
+        End Sub
+        
+        Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+                
+            HandleGetColorsCommon(hdc, BackBrushOut, Me)
+        End Sub
+                
+        [Serialize(False)]
+        Public Property Get Caption() As String
+            Return GetWindowTextCtl()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Caption(ByVal Value As String)
+            SendMessageCtl(WM_SETTEXT, 0, StrPtrSafe(Value))
+        End Property
+
+        [Serialize(False)]
+        Public Property Get Value() As Boolean
+            #If FEATURE_GRAPHICAL_BUTTONS Then
+            If Me.Style <> ButtonConstants.vbButtonGraphical Then
+            #End If
+                Return SendMessageCtl(ButtonMessages.BM_GETCHECK, 0, 0) <> BST_UNCHECKED
+            #If FEATURE_GRAPHICAL_BUTTONS Then
+            Else
+            	Return InternalValue
+            End If
+            #End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Value(ByVal Value As Boolean)
+            If Value <> Me.Value Then
+                #If FEATURE_GRAPHICAL_BUTTONS Then
+                If Me.Style <> ButtonConstants.vbButtonGraphical Then
+                #End If
+                    ' WS_TABSTOP style gets lost when updating via BM_SETCHECK, so we need to preserve it manually
+                    Dim preserveStyles As Long = GetWindowLongCtl(GWL_STYLE)
+                    SendMessageCtl(ButtonMessages.BM_SETCHECK, If(Value, BST_CHECKED, BST_UNCHECKED), 0)
+                    If (preserveStyles And WS_TABSTOP) Then
+                        SetWindowLongCtl(GWL_STYLE, preserveStyles)
+                    End If
+                #If FEATURE_GRAPHICAL_BUTTONS Then
+                Else
+                    InternalValue = Value
+                    Me.Refresh
+                End If
+                #End If
+                If Value Then
+                    RootWindowElementBase.RuntimeUIResetExclusiveValuesInContainer()
+                    If IsInitialized = True Then RaiseEvent Click()
+                End If
+            End If
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Boolean
+            Return Me.Value
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As Boolean)
+            Me.Value = Value
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Get Alignment() As VBRUN.AlignmentConstantsNoCenter
+            Dim flag As Boolean = GetStyleFlagCtl(ButtonStyles.BS_LEFTTEXT)
+            Return If(flag, VBRUN.AlignmentConstantsNoCenter.tbRightJustify, VBRUN.AlignmentConstantsNoCenter.tbLeftJustify)
+        End Property
+        
+        [Serialize(False)]
+        [Description("")]
+        Property Let Alignment(Value As VBRUN.AlignmentConstantsNoCenter)
+            SetStyleFlagCtl(ButtonStyles.BS_LEFTTEXT, Value = VBRUN.AlignmentConstantsNoCenter.tbRightJustify)
+            Me.Refresh
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        #If FEATURE_GRAPHICAL_BUTTONS Then
+        Protected Sub HandleDrawItem(ByRef Info As DRAWITEMSTRUCT, Handled As Boolean) _
+                Implements IWindowElementEventsCommon.DrawItem
+            
+            HandleDrawItemBASE(Info, Handled, Value, False)
+        End Sub
+        #End If
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub SyncOLEDropMode() _
+                Handles OLEDropMode.OnPropertyLet
+                
+            BaseSyncOLEDropMode(Me, Me.OLEDropMode, Me.OLEDragDropHandler, False, False)
+        End Sub
+        #endif
+        
+        Protected Sub HandleLoad() _ 
+                Implements IWindowElementEventsCommon.Load
+            
+            HandleLoadButton()
+        End Sub
+                
+        Protected Sub HandleGetCaption(out As String) _
+                Implements IWindowElementEventsCommon.GetCaption
+            
+            If Me.Enabled And Me.InternalhWnd.IsWindowVisible() Then       ' for mnemonics, just pretend no caption if we're not available
+                out = Me.Caption
+            End If
+        End Sub
+        
+        Protected Sub HandleInvokeMnemonic(ByVal IsUnique As Boolean, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.InvokeMnemonic
+            
+            Handled = True
+            Me.SetFocus
+            If IsUnique Then
+                HandleCommand(BN_CLICKED, 0, 0)
+            End If
+        End Sub
+        
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+    #End Region
+
+End Class
+
+[Description("A Win32 native OptionButton")]
+[WindowsControl("/miscellaneous/ICONS??/OptionButton??.png")]
+[ClassId("33AD4F00-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("F019D2AF-7BF0-4B86-BB85-BB75886EA40F")]    ' FIXME implement {33AD4F01-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class OptionButton
+    Inherits OptionButtonBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

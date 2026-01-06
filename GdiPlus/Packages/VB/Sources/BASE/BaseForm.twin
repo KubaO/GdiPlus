@@ -1,0 +1,431 @@
+[ClassId("2C4F67FE-4D35-46D6-BAEA-E69A81EDB1B6")]
+[InterfaceId("8FECAC17-CC3D-4401-B270-D2F957DF456E")]
+[COMCreatable(False)]
+Private Class BaseForm
+
+    Inherits BaseControlRect
+    Implements IWindowElementEventsBaseForm
+        
+    [Serialize(False)]
+        Protected FormControlContext As ControlContext
+
+    [Description("A unique GUID that is used for associating a class with a form")]
+        Public FormDesignerId As String             ' FIXME should support GUID datatype
+    
+    [Description("")]
+    [Serialize(True, "MousePointer")]
+        Protected MousePointerINIT As VBRUN.MousePointerConstants '= VBRUN.MousePointerConstants.vbDefault
+    [Serialize(True, "MouseIcon")]
+    [CustomDesigner("designer_IconBytes")]
+        Protected ReadOnly MouseIconINIT() As Byte
+        Protected InternalIgnoreShowWindow As Boolean
+        
+    [Description("")]
+    [Serialize(True, "BorderStyle")]
+        Protected BorderStyleINIT As FormBorderStyleConstants = FormBorderStyleConstants.vbSizable
+        Protected BorderStyleINIT_Override As FormBorderStyleConstants
+        
+    [Description("")]
+    [Serialize(True, ":StartUpPosition")]
+        Protected ReadOnly StartUpPositionINIT As StartUpPositionConstants = StartUpPositionConstants.vbStartUpWindowsDefault
+    [Description("")]
+    [Serialize(True, "!ControlBox")]
+        Protected ReadOnly ControlBoxINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "!MaxButton")]
+        Protected ReadOnly MaxButtonINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "!MinButton")]
+        Protected ReadOnly MinButtonINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "!ShowInTaskbar")]
+        Protected ReadOnly ShowInTaskbarINIT As Boolean = True
+    [Description("")]
+        Public Moveable As Boolean = True
+    [Description("")]
+    [Serialize(True, "KeyPreview")]
+        Protected KeyPreviewINIT As Boolean
+    [Description("")]
+        ' Exists in VB6, but doesn't seem to have an effect on forms.
+        Public Appearance As VBRUN.AppearanceConstants = VBRUN.AppearanceConstants.vbAppear3d
+
+    [Description("Adjusts the visibility of this control at runtime")]
+    [Serialize(True, ":Visible")]
+        Protected VisibleINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "Enabled")]
+        Protected EnabledINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "Caption")]
+        Protected CaptionINIT As String
+    [Description("")]
+    [Serialize(True, "!WindowState")]
+        Protected WindowStateINIT As FormWindowStateConstants '= FormWindowStateConstants.vbNormal
+        Protected InternalWindowState As FormWindowStateConstants '= FormWindowStateConstants.vbNormal
+            
+    #If FEATURE_MDI Then
+    [Serialize(True, "!MDIChild")]
+        Public ReadOnly MDIChild As Boolean
+    #End If
+    
+    Sub New()
+        BaseControlRect.New(ControlTypeConstants.vbForm)
+        'Debug.Print "BaseForm.New"
+        Me.VisibleINIT = True
+        Me.EnabledINIT = True
+    End Sub
+    
+    Sub New(ByVal DefaultStartupPosition As StartUpPositionConstants)
+        BaseControlRect.New(ControlTypeConstants.vbForm)
+        StartUpPositionINIT = DefaultStartupPosition
+        Me.VisibleINIT = True
+        Me.EnabledINIT = True
+    End Sub
+    
+    Protected Sub InternalStateReset()
+        InternalIgnoreShowWindow = False
+        InternalStateResetRect()
+    End Sub
+    
+    Protected Function InternalGetBaseWindowStyles() As Long
+        Return CommonGetBaseWindowStyles(If(BorderStyleINIT_Override, BorderStyleINIT_Override, BorderStyleINIT), Me.ControlBoxINIT, Me.MaxButtonINIT, Me.MinButtonINIT, Len(Me.CaptionINIT))
+    End Function
+
+    Protected Function InternalGetBaseWindowStylesEx() As Long
+        Return CommonGetBaseWindowStylesEx(If(BorderStyleINIT_Override, BorderStyleINIT_Override, BorderStyleINIT))
+    End Function
+    
+    Protected Sub CreateRootWindowElement(ByVal _ControlContext As ControlContext, _
+                                                ByRef InitData As WindowCreationData)
+        With InternalBaseControlInfo
+            .StartUpPosition = StartUpPositionINIT
+            .FormBorderStyle = If(BorderStyleINIT_Override, BorderStyleINIT_Override, BorderStyleINIT)
+            .InitialFormWindowState = WindowStateINIT
+            .ControlBox = ControlBoxINIT
+            .MaxButton = MaxButtonINIT
+            .MinButton = MinButtonINIT
+            .ShowInTaskbar = ShowInTaskbarINIT
+            .MousePointer = MousePointerINIT
+            .KeyPreview = KeyPreviewINIT
+            .ControlArrayIndex = -1
+        End With
+        InitData.Caption = Me.CaptionINIT
+        InternalBaseControlBeforeCreateRootWindowRect(InitData)
+        Me.ControlContext = _ControlContext
+        Me.FormControlContext = _ControlContext
+        InitData.WindowStyles += If(Me.EnabledINIT, 0&, WS_DISABLED) + _
+                                    If(Me.VisibleINIT, WS_VISIBLE, 0&)
+        InitData.ExtendedStyles += If(ShowInTaskbarINIT, WS_EX_APPWINDOW, 0&)
+        
+        RootWindowElementBase.Pointer = ControlContext.RuntimeUICtxCreateWindowElement(InitData)
+        RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+                
+        IgnoreMousePointerChanged = True
+        CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        IgnoreMousePointerChanged = False
+    End Sub
+
+    [Serialize(False)]
+    Public Property Get WindowState() As FormWindowStateConstants
+        Return InternalWindowState
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let WindowState(ByVal Value As FormWindowStateConstants)
+        InternalWindowState = Value
+        If Me.Visible = True Then
+            'Dim info As String = "WindowStateChanged: " & WindowState
+            'Debug.Print info
+            InternalSyncWindowState
+            'Debug.Print info & " [DONE]"
+        End If
+    End Property
+
+    Protected Sub InternalSyncWindowStateToHwnd() _
+            Implements IWindowElementEventsBaseForm.PreResize
+            
+        'MsgBox "InternalSyncWindowStateToHwnd(1)"
+ 
+        If InternalIgnoreShowWindow = True Then Exit Sub
+        'Debug.Print "InternalSyncWindowStateToHwnd(ResizeEvent)... STARTED"
+        
+        'MsgBox "InternalSyncWindowStateToHwnd(2)"
+        
+        If Me.Visible = True Then
+            'MsgBox "InternalSyncWindowStateToHwnd(2)"
+            
+            Dim placement As WINDOWPLACEMENT = RootWindowElementBase.GetWindowPlacement()
+            Dim newWindowState As FormWindowStateConstants
+            Select Case placement.showCmd
+                Case SW_SHOWMAXIMIZED
+                    newWindowState = FormWindowStateConstants.vbMaximized
+                Case SW_SHOWMINIMIZED
+                    newWindowState = FormWindowStateConstants.vbMinimized
+                Case Else
+                    newWindowState = FormWindowStateConstants.vbNormal
+            End Select
+            InternalWindowState = newWindowState
+        End If
+    
+        'Debug.Print "InternalSyncWindowStateToHwnd(ResizeEvent): " & WindowState & " [DONE]"
+    End Sub
+    
+    Protected Sub InternalSyncWindowState() _
+            Implements IWindowElementEventsBaseForm.ShowWindow
+        
+        'Debug.Print "InternalSyncWindowState(ShowWindowEvent)... STARTED"
+        
+        If Me.InternalIgnoreShowWindow = True Then Exit Sub
+
+        Dim placement As WINDOWPLACEMENT = RootWindowElementBase.GetWindowPlacement()
+        Select Case InternalWindowState
+            Case FormWindowStateConstants.vbMaximized
+                placement.showCmd = SW_SHOWMAXIMIZED
+            Case FormWindowStateConstants.vbMinimized
+                placement.showCmd = SW_SHOWMINIMIZED
+            Case FormWindowStateConstants.vbNormal
+                placement.showCmd = SW_SHOWNORMAL
+            Case Else
+                Err.Raise 5
+        End Select
+        Me.InternalIgnoreShowWindow = True
+        RootWindowElementBase.SetWindowPlacement(placement)
+        Me.InternalIgnoreShowWindow = False
+        
+        'Debug.Print "InternalSyncWindowState(ShowWindowEvent): " & WindowState & " [DONE]"
+    End Sub
+    
+    Protected Function InternalHWND() As HWND
+        Return CommonGetHWND()
+    End Function
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Get Caption() As String
+        If RootWindowElementBase.RuntimeUIIsDesignMode() Then
+            Return Me.CaptionINIT
+        Else
+            Return GetWindowTextCtl()
+        End If
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Let Caption(Value As String)
+        If RootWindowElementBase.RuntimeUIIsDesignMode() Then
+            Me.CaptionINIT = Value
+        Else
+            LetWindowTextCtl(Value)
+            SyncTitlebarFlag()
+        End If
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Get ControlBox() As Boolean
+        Return InternalBaseControlInfo.ControlBox
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Let ControlBox(ByVal Value As Boolean)
+        InternalBaseControlInfo.ControlBox = Value
+        SyncTitlebarFlag()
+    End Property
+    
+    Protected Sub SyncTitlebarFlag()
+        'Dim BorderStyle As Long = Me.BorderStyle
+        'Dim wsCaption As Any = ((Len(Me.Caption) > 0) Or Me.ControlBox) And (BorderStyle > vbBSNone) And (BorderStyle < vbSizableNoTitleBar)
+        'SetStyleFlagCtl(WS_CAPTION, wsCaption)
+        Dim styles As Long = CommonGetBaseWindowStyles(Me.BorderStyle, Me.ControlBox, Me.MaxButton, Me.MinButton, Len(Me.Caption))
+        styles = styles Or If(Me.Visible, WS_VISIBLE, 0&)
+        
+        Dim hwnd As Any = RootWindowElementBase.RuntimeUIGetHandle()
+        Dim origStyles As Long = hwnd.GetWindowLongW(GWL_STYLE)
+
+         styles = styles Or (origStyles And WS_CLIPSIBLINGS) Or (origStyles And WS_CLIPCHILDREN)
+         ' Only set if necessary to avoid issue setting Caption in Form_Load causing repaint problem (https://github.com/twinbasic/twinbasic/issues/1980)
+         If (origStyles And Not WS_CHILD) <> (styles And Not WS_CHILD) Then
+            'Debug.Print "Old: " & Hex(origStyles) & ", new: " & Hex(styles)
+             hwnd.SetWindowLongW(GWL_STYLE, styles)
+             hwnd.SetWindowPos(vbNullPtr, 0, 0, 0, 0, SWP_NOACTIVATE Or SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)  ' this is needed to ensure windows cached stuff is updated after changing GWL_STYLE
+         End If
+    End Sub
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Get Enabled() As Boolean
+        Return CommonGetEnabled()
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Let Enabled(Value As Boolean)
+        CommonLetEnabled(Value)
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Get Visible() As Boolean
+        Return GetStyleFlagCtl(WS_VISIBLE)
+    End Property
+    
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Let Visible(Value As Boolean)
+        With InternalBaseControlInfo
+            .ExplicitlyInvisible = Not Value
+        End With
+        
+        If Me.Visible <> Value Then
+            If Value = True Then
+                Me.Show vbModeless
+                Refresh()
+            Else
+                Me.InternalHWND.ShowWindow(SW_HIDE)
+            End If
+        End If
+    End Property
+    
+    Sub Hide()
+        Visible = False
+    End Sub
+
+    Sub Refresh()
+        CommonRefresh()
+    End Sub
+
+    Public Sub Show([TypeHint(FormShowConstants)] Optional ByVal Modal As Variant, Optional ByVal OwnerForm As Variant)
+        If IsMissing(Modal) Then Modal = vbModeless
+        #If FEATURE_MDI Then
+        If MDIChild AndAlso (Modal = vbModal) Then
+            Err.Raise 404, , "MDI child forms cannot be shown modally"
+        End If
+        #End If
+        If IsMissing(OwnerForm) Then Set OwnerForm = Nothing
+        
+        FormControlContext.RuntimeUICtxFormShow(Modal = vbModal, OwnerForm, False)
+        
+        #If FEATURE_MDI Then
+        If MDIChild Then
+            ' FIXME bodge fix, this shouldn't be necessary
+            Me.InternalHWND.SetFocus()
+        End If
+        #End If
+    End Sub
+    
+    Public Sub StartupShow()
+        FormControlContext.RuntimeUICtxFormShow(False, Nothing, True)
+        
+        #If FEATURE_MDI Then
+        If MDIChild Then
+            ' FIXME bodge fix, this shouldn't be necessary
+            Me.InternalHWND.SetFocus()
+        End If
+        #End If
+    End Sub
+            
+    Public Sub Close()
+        FormControlContext.RuntimeUICtxFormClose()
+    End Sub
+            
+    [Serialize(False)]
+    Public Property Get StartUpPosition() As StartUpPositionConstants
+        Return InternalBaseControlInfo.StartUpPosition
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get MaxButton() As Boolean
+        Return InternalBaseControlInfo.MaxButton
+    End Property
+        
+    [Serialize(False)]
+    Public Property Get MinButton() As Boolean
+        Return InternalBaseControlInfo.MinButton
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get ShowInTaskbar() As Boolean
+        Return InternalBaseControlInfo.ShowInTaskbar
+    End Property
+
+    #If FEATURE_OLEDRAGDROP Then
+    Protected Sub BaseSyncOLEDropMode(ByVal RootThis As Object, ByVal OLEDropMode As OLEDropConstants, ByRef DragDropHandler As OLEDragDropHandler, ByVal IsContainer As Boolean, ByVal AllowedAutomatic As Boolean)
+        CommonSyncOLEDropMode(RootThis, OLEDropMode, DragDropHandler, ControlContext, RootWindowElementBase, IsContainer, AllowedAutomatic)
+    End Sub
+    #End If
+    
+    Public Sub ZOrder([TypeHint(ZOrderConstants)] Optional ByVal Position As Variant)
+        CommonZOrder(Position, InternalHWND)
+    End Sub
+        
+    [Serialize(False)]
+    Public Property Get MouseIcon() As StdPicture
+        Return InternalBaseControlInfo.MouseIcon
+    End Property
+
+    [Serialize(False)]
+    Public Property Set MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+
+    [Serialize(False)]
+    Public Property Let MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+                        
+    [Serialize(False)]
+    Public Property Get hWnd() As LongPtr                           ' FIXME change to HWND once ALIAS is aligned
+        Return CommonGetHWND()
+    End Property
+
+    Protected Sub SyncMoveable() _
+            Handles Moveable.OnPropertyLet
+        RootWindowElementBase.RuntimeUIMoveableChanged(Me.Moveable)
+    End Sub
+        
+    [Serialize(False)]
+    Property Get BorderStyle() As FormBorderStyleConstants
+        Return InternalBaseControlInfo.FormBorderStyle
+    End Property
+    
+    [Serialize(False)]
+    Property Let BorderStyle(ByVal Value As FormBorderStyleConstants)
+        ' VB6 allows changing the BorderStyle value at RUNTIME, but it isn't effective unless other change such as changing Caption      
+        InternalBaseControlInfo.FormBorderStyle = Value
+    End Property
+        
+    [Serialize(False)]
+    Public Property Get MousePointer() As MousePointerConstants
+        Return InternalBaseControlInfo.MousePointer
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+        InternalBaseControlInfo.MousePointer = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get KeyPreview() As Boolean
+        Return InternalBaseControlInfo.KeyPreview
+    End Property
+
+    [Serialize(False)]
+    Public Property Let KeyPreview(ByVal Value As Boolean)
+        InternalBaseControlInfo.KeyPreview = Value
+    End Property
+    
+    [Serialize(False), Description("A collection of all controls attached to this form")]
+    [TypeHint(WindowsControlsCollection)]
+    Public Property Get Controls() As Object        ' WindowsControls.WindowsControlsCollection  changed to Object to avoid unnecessary COM exposure of WindowsControls.WindowsControlsCollection
+        Return InternalBaseControlInfo.ChildControlsWEAK
+    End Property
+    
+    ' Protected Sub IWindowsFormBase_SetBorderStyleINIT(ByVal Value As FormBorderStyleConstants)
+    '     ' used by the IDE project
+    '     Me.BorderStyleINIT_Override = Value
+    ' End Sub
+End Class

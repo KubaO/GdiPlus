@@ -1,0 +1,261 @@
+Private Module Misc
+
+    Public Enum EnumWindowAtoms
+        AtomIdx_ThunderMain
+        AtomIdx_ThunderFormDC
+        AtomIdx_ThunderForm
+        AtomIdx_ThunderPropertyPageDC
+        AtomIdx_ThunderPropertyPage
+        AtomIdx_ThunderMDIForm
+        AtomIdx_ThunderUserControlDC
+        AtomIdx_ThunderUserControl
+        AtomIdx_ThunderPictureBox
+        AtomIdx_ThunderPictureBoxDC
+        AtomIdx_ThunderFrame
+        AtomIdx_ThunderCommandButton
+        AtomIdx_ThunderCheckBox
+        AtomIdx_ThunderOptionButton
+        AtomIdx_ThunderHSrollBar
+        AtomIdx_ThunderVSrollBar
+        AtomIdx_ThunderListBox
+        AtomIdx_ThunderDirListBox
+        AtomIdx_ThunderFileListBox
+        AtomIdx_ThunderDriveListBox
+        AtomIdx_ThunderComboBox
+        AtomIdx_ThunderTextBox
+        AtomIdx_ThunderData
+        AtomIdx_ThunderGenericControl
+        AtomIdx_ThunderWebViewControl
+        AtomIdx_ThunderTreeView
+        AtomIdx_ThunderListView
+        AtomIdx_ThunderProgressBar
+        AtomIdx_ThunderDTPicker
+        AtomIdx_ThunderMonthView
+        AtomIdx_ThunderSlider
+        AtomIdx_ThunderUpDown
+        AtomIdx_VBBubbleRT6
+    End Enum
+    
+    Public Type WindowCreationData
+        BaseControlInfoPtr As LongPtr
+        ClassName As String
+        Caption As String
+        WindowStyles As Long
+        ExtendedStyles As Long
+        InternalSectionId As Integer
+        WindowAtomIdx As Integer            ' EnumWindowAtoms
+        Flags As EnumWindowElementFlags
+        Flags2 As EnumWindowElementFlags2
+        SubClass As Boolean
+    End Type
+     
+    Public Type BaseControlInfo
+        NamePtr As LongPtr
+        InitialCaption As String
+        ToolTipText As String
+        MouseIcon As StdPicture
+        DragIcon As StdPicture
+        ChildControlsWEAK As Object
+        AnchorsDataPtr As LongPtr
+        BaseGraphicsInfoPtr As LongPtr
+        StartUpPosition As StartUpPositionConstants
+        FormBorderStyle As FormBorderStyleConstants
+        InitialFormWindowState As FormWindowStateConstants
+        Dock As DockModeConstants
+        MousePointer As MousePointerConstants
+        DragMode As DragModeConstants
+        ControlArrayIndex As Long
+        ControlType As ControlTypeConstants
+        TabIndex As Long
+        PixelsLeft As Double
+        PixelsTop As Double
+        PixelsWidth As Double
+        PixelsHeight As Double
+        PixelsX1 As Double
+        PixelsY1 As Double
+        PixelsX2 As Double
+        PixelsY2 As Double
+        MinWidth As Double
+        MinHeight As Double
+        MaxWidth As Double
+        MaxHeight As Double
+        HasTabIndex As Boolean
+        TabStop As Boolean
+        ControlBox As Boolean
+        MaxButton As Boolean
+        MinButton As Boolean
+        ShowInTaskbar As Boolean
+        MdiScrollBars As Boolean
+        TabFocusAutoSelect As Boolean
+        VisualStyles As Boolean
+        WhatsThisButton As Boolean
+        CanGetFocus As Boolean
+        KeyPreview As Boolean
+        WindowlessEnabled As Boolean
+        WindowlessVisible As Boolean
+        CausesValidation As Boolean
+        EventsAreFrozen As Boolean
+        AlwaysShowKeyboardCues As Boolean
+        AutoShowChildren As Boolean
+        MouseCaptured As Boolean
+        ExplicitlyInvisible As Boolean
+    End Type
+    
+    Public Function ArrayHasData(ByRef array As Variant) As Boolean
+        Return IsArrayInitialized(array) AndAlso (UBound(array) > -1)
+    End Function
+            
+    Public Function CommonLoadPictureInit(ByRef outPicture As StdPicture, ByRef pictureDataINIT As Variant /*() As Byte*/, Optional ByVal Small As Boolean) As Boolean
+        If ArrayHasData(pictureDataINIT) Then
+            ' LoadPicture can now be passed a byte-array containing an in-memory stream
+            On Error Resume Next
+            If Small Then
+                Set outPicture = CType(Of StdPicture)([_HiddenModule].LoadPictureInternal(pictureDataINIT, vbLPSmall))
+            Else
+                Set outPicture = CType(Of StdPicture)([_HiddenModule].LoadPictureInternal(pictureDataINIT))
+            End If
+        Else
+            Set outPicture = New StdPicture
+        End If
+        Return True
+    End Function
+
+    Public Function CommonGetBaseWindowStyles(ByVal BorderStyle As Long, ByVal ControlBox As Boolean, ByVal MaxButton As Boolean, ByVal MinButton As Boolean, ByVal CaptionLen As Long) As Long
+        Dim baseStyles As Long
+        Dim useMinMax As Boolean = True
+        Dim useCaption As Boolean = True
+        ' FIXME this could be moved into a base class
+        
+        Select Case BorderStyle
+            Case vbBSNone
+                useCaption = False
+                useMinMax = False
+                ControlBox = False
+            Case vbFixedSingle
+                useMinMax = True
+            Case vbSizable
+                baseStyles = WS_THICKFRAME
+            Case vbSizableNoTitleBar
+                baseStyles = WS_THICKFRAME
+                useCaption = False
+            Case vbFixedDialog
+                If (ControlBox = False) And (CaptionLen = 0) Then
+                    baseStyles = &H80
+                Else
+                    baseStyles = WS_DLGFRAME Or &H80        ' no idea what the &H80 flag is here, but this matches VBx
+                End If
+                useMinMax = False
+            Case vbFixedToolWindow
+                useMinMax = False
+            Case vbSizableToolWindow
+                baseStyles = WS_THICKFRAME
+                useMinMax = False
+            Case vbSizableToolWindowNoTitleBar
+                baseStyles = WS_THICKFRAME
+                useCaption = False
+        End Select
+        
+        If ControlBox Then
+            baseStyles = baseStyles Or WS_SYSMENU
+        End If
+    
+        If useCaption Then
+            If (ControlBox = True) Or (CaptionLen > 0) Then
+                baseStyles = baseStyles Or WS_CAPTION
+            Else
+                baseStyles = baseStyles Or WS_BORDER
+            End If
+        End If
+        
+        If useMinMax Then
+            If MaxButton Then baseStyles = baseStyles Or WS_MAXIMIZEBOX
+            If MinButton Then baseStyles = baseStyles Or WS_MINIMIZEBOX
+        End If
+
+        Return baseStyles
+    End Function
+    
+    Public Function CommonGetBaseWindowStylesEx(ByVal BorderStyle As Long) As Long
+        Dim baseStylesEx As Long
+    
+        ' FIXME this could be moved into a base class
+        
+        Select Case BorderStyle
+            Case vbFixedDialog
+                baseStylesEx = WS_EX_DLGMODALFRAME
+            Case vbFixedToolWindow, vbSizableToolWindow, vbSizableToolWindowNoTitleBar
+                baseStylesEx = WS_EX_TOOLWINDOW
+        End Select
+        
+        Return baseStylesEx
+    End Function
+    
+    Public Sub CommonSyncBorderStyle(objControl As Object, ByVal windowAtomIdx As EnumWindowAtoms = 0)
+        
+        ' FIXME this could be moved into a base class, and not use IDispatch
+        Select Case windowAtomIdx
+            Case EnumWindowAtoms.AtomIdx_ThunderCheckBox, _
+                    EnumWindowAtoms.AtomIdx_ThunderCommandButton, _
+                    EnumWindowAtoms.AtomIdx_ThunderFrame, _
+                    EnumWindowAtoms.AtomIdx_ThunderOptionButton
+                CommonSyncBorderStyleButton(objControl)
+                Exit Sub
+        End Select
+        
+        Dim hwnd As HWND = CLngPtr(objControl.hwnd)
+        'Debug.Print "CommonSyncBorderStyle"
+        
+        Dim styles As Long = hwnd.GetWindowLongW(WindowProperties.GWL_STYLE)
+        Dim exStyles As Long = hwnd.GetWindowLongW(WindowProperties.GWL_EXSTYLE)
+        
+        styles = styles And Not WS_BORDER
+        exStyles = exStyles And Not WS_EX_CLIENTEDGE
+        
+        If objControl.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+            If objControl.Appearance = AppearanceConstants.vbAppear3d Then
+                exStyles += WS_EX_CLIENTEDGE
+            Else
+                styles += WS_BORDER
+            End If
+        End If
+        
+        hwnd.SetWindowLongW(WindowProperties.GWL_STYLE, styles)
+        hwnd.SetWindowLongW(WindowProperties.GWL_EXSTYLE, exStyles)
+        
+        'this is needed to ensure windows cached stuff is updated after changing GWL_STYLE
+        hwnd.SetWindowPos(0&, 0, 0, 0, 0, SetWindowPosFlags.SWP_NOSIZE Or SetWindowPosFlags.SWP_NOMOVE Or SetWindowPosFlags.SWP_NOZORDER Or SetWindowPosFlags.SWP_FRAMECHANGED Or SetWindowPosFlags.SWP_NOACTIVATE)
+    End Sub
+    
+    Public Sub CommonSyncBorderStyleButton(objControl As Object)
+       ' Debug.Print "CommonSyncBorderStyleButton"
+       ' FIXME this could be moved into a base class, and not use IDispatch
+       
+       Dim hwnd As HWND = CLngPtr(objControl.hwnd)
+       
+        Dim styles As Long = hwnd.GetWindowLongW(WindowProperties.GWL_STYLE)
+
+        Const BS_FLAT As Long = &H00008000&
+        
+        styles = styles And Not BS_FLAT
+        
+            If objControl.Appearance <> AppearanceConstants.vbAppear3d Then
+                styles += BS_FLAT
+            End If
+
+        hwnd.SetWindowLongW(WindowProperties.GWL_STYLE, styles)
+
+        'this is needed to ensure windows cached stuff is updated after changing GWL_STYLE
+        hwnd.SetWindowPos(0&, 0, 0, 0, 0, SetWindowPosFlags.SWP_NOSIZE Or SetWindowPosFlags.SWP_NOMOVE Or SetWindowPosFlags.SWP_NOZORDER Or SetWindowPosFlags.SWP_FRAMECHANGED Or SetWindowPosFlags.SWP_NOACTIVATE)
+    End Sub
+    
+    Type ObjectUDT
+        Value As Object
+    End Type
+    Public Function ObjPtrToObject(ByVal ObjectPointer As LongPtr) As Object
+        Return CType(Of ObjectUDT)(VarPtr(ObjectPointer)).Value
+    End Function
+    Public Sub ObjPtrRelease(ByVal ObjectPointer As LongPtr)
+        Set CType(Of ObjectUDT)(VarPtr(ObjectPointer)).Value = Nothing
+    End Sub
+    
+End Module

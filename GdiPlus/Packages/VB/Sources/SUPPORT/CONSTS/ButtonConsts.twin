@@ -1,0 +1,80 @@
+Private Module ButtonConsts
+    Enum ButtonStyles
+        BS_PUSHBUTTON = &H00000000&
+        BS_DEFPUSHBUTTON = &H00000001&
+        BS_CHECKBOX = &H00000002&
+        BS_AUTOCHECKBOX = &H00000003&
+        BS_RADIOBUTTON = &H00000004&
+        BS_3STATE = &H00000005&
+        BS_AUTO3STATE = &H00000006&
+        BS_GROUPBOX = &H00000007&
+        BS_USERBUTTON = &H00000008&
+        BS_AUTORADIOBUTTON = &H00000009&
+        BS_PUSHBOX = &H0000000A&
+        BS_OWNERDRAW = &H0000000B&
+        BS_TYPEMASK = &H0000000F&
+        BS_LEFTTEXT = &H00000020&
+        BS_TEXT = &H00000000&
+        BS_ICON = &H00000040&
+        BS_BITMAP = &H00000080&
+        BS_LEFT = &H00000100&
+        BS_RIGHT = &H00000200&
+        BS_CENTER = &H00000300&
+        BS_TOP = &H00000400&
+        BS_BOTTOM = &H00000800&
+        BS_VCENTER = &H00000C00&
+        BS_PUSHLIKE = &H00001000&
+        BS_MULTILINE = &H00002000&
+        BS_NOTIFY = &H00004000&
+        BS_FLAT = &H00008000&
+        BS_RIGHTBUTTON = BS_LEFTTEXT
+    End Enum
+    
+    Public Enum ButtonMessages
+        BM_GETCHECK = &H00F0
+        BM_SETCHECK = &H00F1
+        BM_GETSTATE = &H00F2
+        BM_SETSTATE = &H00F3
+        BM_SETSTYLE = &H00F4
+        BM_CLICK = &H00F5
+        BM_GETIMAGE = &H00F6
+        BM_SETIMAGE = &H00F7
+        BM_SETDONTCLICK = &H00F8
+    End Enum
+    
+    Public Enum ButtonStateFlags
+        BST_UNCHECKED = &H0000
+        BST_CHECKED = &H0001
+        BST_INDETERMINATE = &H0002
+        BST_PUSHED = &H0004
+        BST_FOCUS = &H0008
+    End Enum
+    
+    Public Enum ButtonNotifications
+        BN_CLICKED = 0
+        BN_PAINT = 1
+        BN_HILITE = 2
+        BN_UNHILITE = 3
+        BN_DISABLE = 4
+        BN_DOUBLECLICKED = 5
+        BN_PUSHED = BN_HILITE
+        BN_UNPUSHED = BN_UNHILITE
+        BN_DBLCLK = BN_DOUBLECLICKED
+        BN_SETFOCUS = 6
+        BN_KILLFOCUS = 7
+    End Enum
+    
+    Public Enum OwnerDrawState
+    	ODS_SELECTED = 1
+        ODS_GRAYED = 2
+        ODS_DISABLED = 4
+        ODS_CHECKED = 8
+        ODS_FOCUS = 16
+        ODS_DEFAULT = 32
+        ODS_HOTLIGHT = 64
+        ODS_INACTIVE = 128
+        ODS_NOACCEL = 256
+        ODS_NOFOCUSRECT = 512
+    End Enum
+    
+End Module

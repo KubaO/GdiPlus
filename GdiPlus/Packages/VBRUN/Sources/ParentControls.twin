@@ -1,0 +1,15 @@
+[InterfaceId("BE8F9800-2AAA-11CF-AD67-00AA00614F3E")]
+'    [ DualInterface, DispInterface]
+[Description("A collection that allows access to the other controls in the control's container.")]
+Public Interface ParentControls Extends stdole.IDispatch
+    [DispId(1)]
+    /* voffset &H001C*/ Property Get Count() As Long
+    [DispId(0)]
+    /* voffset &H0020*/ Property Get Item(ByVal index As Long) As Object
+    [DispId(-4)]
+    /* voffset &H0024*/ Function _NewEnum() As IUnknown
+    [DispId(2)]
+    /* voffset &H0028*/ Property Get ParentControlsType() As ParentControlsType
+    [DispId(2)]
+    /* voffset &H002C*/ Property Let ParentControlsType(ByVal Value As ParentControlsType)
+End Interface 

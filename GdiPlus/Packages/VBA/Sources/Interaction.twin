@@ -1,0 +1,713 @@
+Module Interaction
+ 
+#If TWINBASIC_ANSI Then
+    [PreserveSig(False),UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Displays a dialog box with a message, set of buttons, and optional title, help file, " & _
+                    "and context information, and returns the user's selection as a `VbMsgBoxResult` enumeration.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = MsgBox(prompt[, buttons][, title][, helpfile][, context])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `prompt`: The message text displayed in the dialog box.  " & vbCrLf & _
+                    "- `buttons`: (Optional) A `VbMsgBoxStyle` enumeration that specifies the buttons, icon style, " & _
+                    "default button, and modality of the message box.  " & vbCrLf & _
+                    "- `title`: (Optional) The title bar text. If omitted, the application name is used.  " & vbCrLf & _
+                    "- `helpfile`: (Optional) The path to a help file for context-sensitive help.  " & vbCrLf & _
+                    "- `context`: (Optional) The help context number associated with the help file.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `VbMsgBoxResult` enumeration indicating which button the user clicked.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim response As VbMsgBoxResult" & vbCrLf & _
+                    "response = MsgBox(""Are you sure you want to exit?"", vbYesNo + vbQuestion, ""Exit Application"")" & vbCrLf & _
+                    "If response = vbYes Then" & vbCrLf & _
+                    "' Code to save changes" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "' Code to discard changes" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function MsgBox Lib "<interaction>" Alias "#1" (ByRef Prompt As Variant, Optional ByVal Buttons As VbMsgBoxStyle = 0&, Optional ByRef Title As Variant, Optional ByRef HelpFile As Variant, Optional ByRef Context As Variant) As VbMsgBoxResult
+    
+    [PreserveSig(False),UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Presents the user with a prompt in a dialog box, waits for input, and returns the string entered.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`userInput = InputBox(prompt[, title][, default][, xpos][, ypos][, helpfile][, context])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `prompt`: The message to be displayed in the dialog box.  " & vbCrLf & _
+                    "- `title`: (Optional) The title for the input box window. If omitted, the application name is used.  " & vbCrLf & _
+                    "- `default`: (Optional) The default input text.  " & vbCrLf & _
+                    "- `xpos`: (Optional) The horizontal position of the dialog box on the screen.  " & vbCrLf & _
+                    "- `ypos`: (Optional) The vertical position of the dialog box on the screen.  " & vbCrLf & _
+                    "- `helpfile`: (Optional) The path to a help file for context-sensitive help.  " & vbCrLf & _
+                    "- `context`: (Optional) The help context number associated with the help file.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns the input string entered by the user. If the user cancels the operation, it returns an empty string. " & _
+                    "Use `StrPtr(userResponse) = 0` to check if the dialog box was closed without input.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim userResponse As Variant" & vbCrLf & _
+                    "userResponse = InputBox(""Enter your name:"", ""Greetings"", ""John Doe"")" & vbCrLf & _
+                    "If StrPtr(userResponse) = 0 Then" & vbCrLf & _
+                    "' Code to handle the situation where the dialog was closed" & vbCrLf & _
+                    "ElseIf userResponse <> """" Then" & vbCrLf & _
+                    "' Code to process the input" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "' Code to handle the situation where an empty string was entered" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function InputBox Lib "<interaction>" Alias "#26" (ByRef Prompt As Variant, Optional ByRef Title As Variant, Optional ByRef Default As Variant, Optional ByRef XPos As Variant, Optional ByRef YPos As Variant, Optional ByRef HelpFile As Variant, Optional ByRef Context As Variant) As Variant
+#Else
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Displays a dialog box with a message, set of buttons, and optional title, help file, " & _
+                    "and context information, and returns the user's selection as a `VbMsgBoxResult` enumeration.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = MsgBox(prompt[, buttons][, title][, helpfile][, context])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `prompt`: The message text displayed in the dialog box.  " & vbCrLf & _
+                    "- `buttons`: (Optional) A `VbMsgBoxStyle` enumeration that specifies the buttons, icon style, " & _
+                    "default button, and modality of the message box.  " & vbCrLf & _
+                    "- `title`: (Optional) The title bar text. If omitted, the application name is used.  " & vbCrLf & _
+                    "- `helpfile`: (Optional) The path to a help file for context-sensitive help.  " & vbCrLf & _
+                    "- `context`: (Optional) The help context number associated with the help file.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `VbMsgBoxResult` enumeration indicating which button the user clicked.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim response As VbMsgBoxResult" & vbCrLf & _
+                    "response = MsgBox(""Are you sure you want to exit?"", vbYesNo + vbQuestion, ""Exit Application"")" & vbCrLf & _
+                    "If response = vbYes Then" & vbCrLf & _
+                    "' Code to save changes" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "' Code to discard changes" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function MsgBox Lib "<interaction>" Alias "#2" (ByRef Prompt As Variant, Optional ByVal Buttons As VbMsgBoxStyle = vbOKOnly, Optional ByRef Title As Variant, Optional ByRef HelpFile As Variant, Optional ByRef Context As Variant) As VbMsgBoxResult
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Presents the user with a prompt in a dialog box, waits for input, and returns the string entered.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`userInput = InputBox(prompt[, title][, default][, xpos][, ypos][, helpfile][, context])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `prompt`: The message to be displayed in the dialog box.  " & vbCrLf & _
+                    "- `title`: (Optional) The title for the input box window. If omitted, the application name is used.  " & vbCrLf & _
+                    "- `default`: (Optional) The default input text.  " & vbCrLf & _
+                    "- `xpos`: (Optional) The horizontal position of the dialog box on the screen.  " & vbCrLf & _
+                    "- `ypos`: (Optional) The vertical position of the dialog box on the screen.  " & vbCrLf & _
+                    "- `helpfile`: (Optional) The path to a help file for context-sensitive help.  " & vbCrLf & _
+                    "- `context`: (Optional) The help context number associated with the help file.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns the input string entered by the user. If the user cancels the operation, it returns an empty string. " & _
+                    "Use `StrPtr(userResponse) = 0` to check if the dialog box was closed without input.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim userResponse As Variant" & vbCrLf & _
+                    "userResponse = InputBox(""Enter your name:"", ""Greetings"", ""John Doe"")" & vbCrLf & _
+                    "If StrPtr(userResponse) = 0 Then" & vbCrLf & _
+                    "' Code to handle the situation where the dialog was closed" & vbCrLf & _
+                    "ElseIf userResponse <> """" Then" & vbCrLf & _
+                    "' Code to process the input" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "' Code to handle the situation where an empty string was entered" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function InputBox Lib "<interaction>" Alias "#27" (ByRef Prompt As Variant, Optional ByRef Title As Variant, Optional ByRef Default As Variant, Optional ByRef XPos As Variant, Optional ByRef YPos As Variant, Optional ByRef HelpFile As Variant, Optional ByRef Context As Variant) As Variant
+#End If
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Evaluates an expression and returns one of two objects, depending on whether the expression is True or False.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = IIf(expression, truePart, falsePart)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `expression`: The expression you want to evaluate.  " & vbCrLf & _
+                    "- `truePart`: The value to return if `expression` evaluates to True.  " & vbCrLf & _
+                    "- `falsePart`: The value to return if `expression` evaluates to False.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns `truePart` if the expression is True; returns `falsePart` if the expression is False.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "Dim result As Variant" & vbCrLf & _
+                    "result = IIf(2 > 1, ""Greater"", ""Lesser"")" & vbCrLf & _
+                    "' The variable 'result' will contain ""Greater"" because 2 is greater than 1." & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function IIf Lib "<interaction>" Alias "#3" (ByRef Expression As Variant, ByRef TruePart As Variant, ByRef FalsePart As Variant) As Variant
+    
+    [PreserveSig(True), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Yields execution within the current thread, allowing the system to process other events such as user interactions, and updating the user interface.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`formsCount = DoEvents()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns an integer indicating the number of open forms in the application.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Inside a lengthy operation" & vbCrLf & _
+                    "Do While SomeCondition" & vbCrLf & _
+                    "' Perform an iteration of the loop" & vbCrLf & _
+                    "..." & vbCrLf & _
+                    "' Call DoEvents to allow the system to process other events" & vbCrLf & _
+                    "Dim formsCount As Integer = DoEvents()" & vbCrLf & _
+                    "' Optionally use formsCount to determine if any forms are open" & vbCrLf & _
+                    "Loop" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function DoEvents Lib "<interaction>" Alias "#4" () As Integer
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the command line arguments passed to the program when it was executed, specifically optimized for returning a string.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`arguments = Command$()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a string containing the command line arguments. This `$` suffix indicates a string-optimized version of the `Command` function.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Retrieve the command line arguments as a string" & vbCrLf & _
+                    "Dim cmdArgs As String" & vbCrLf & _
+                    "cmdArgs = Command$()" & vbCrLf & _
+                    "' Now cmdArgs contains the arguments passed to the program in string form" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function [Command$] Lib "<interaction>" Alias "#5" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the command line arguments passed to the program when it was executed. The return type is a Variant.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`arguments = Command()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a Variant containing the command line arguments. Use the `Command$` function for a string-optimized version.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Retrieve the command line arguments" & vbCrLf & _
+                    "Dim cmdArgs As Variant" & vbCrLf & _
+                    "cmdArgs = Command()" & vbCrLf & _
+                    "' Now cmdArgs holds the arguments passed to the program, which can be any data type" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function Command Lib "<interaction>" Alias "#6" () As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Selects and returns a value from a list of arguments based on a given index.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = Choose(index, choice1, choice2, ..., choiceN)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `index`: A Single representing the position in the list of choices (1-based).  " & vbCrLf & _
+                    "- `choice()`: An array of `Variant` elements from which to choose.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `Variant` from the list of choices corresponding to the `index` provided. If `index` is out of range, it returns `Null`.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Select a value from the list based on index" & vbCrLf & _
+                    "Dim userChoice As Variant" & vbCrLf & _
+                    "userChoice = Choose(2, ""First Choice"", ""Second Choice"", ""Third Choice"")" & vbCrLf & _
+                    "' userChoice will contain ""Second Choice"" since the index is 2" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function Choose Lib "<interaction>" Alias "#7" (ByVal Index As Single, ParamArray Choice() As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Obtains reference to an Automation object from a file or returns a running instance of an ActiveX object. Can also create a new instance of the object if desired.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Set obj = GetObject([PathName], [Class])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `PathName`: (Optional) The full path and name of the file containing the object to retrieve.  " & vbCrLf & _
+                    "- `Class`: (Optional) The class of the object to access, typically in ProgID or CLSID format. Can also use `new:` prefix to create a new instance of the object.  " & vbCrLf & _
+                    "If `PathName` is omitted, `GetObject` attempts to retrieve the current instance of the object specified by `Class`. If both `PathName` and `Class` are omitted, an error occurs.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns an `Object` representing the ActiveX object if found. If the object is not found or cannot be created, an error is raised.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Attempt to retrieve a running instance of Microsoft Excel" & vbCrLf & _
+                    "Dim excelApp As Object" & vbCrLf & _
+                    "On Error Resume Next ' Error handling in case Excel is not running" & vbCrLf & _
+                    "Set excelApp = GetObject(, ""Excel.Application"")" & vbCrLf & _
+                    "If excelApp Is Nothing Then" & vbCrLf & _
+                    "MsgBox ""Excel is not currently running."" " & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "MsgBox ""Excel is running."" " & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Create a new instance of an Excel application using CLSID" & vbCrLf & _
+                    "Dim newExcelApp As Object" & vbCrLf & _
+                    "On Error Resume Next ' Error handling in case of failure to create the object" & vbCrLf & _
+                    "Set newExcelApp = GetObject(""new:{00024500-0000-0000-C000-000000000046}"")" & vbCrLf & _
+                    "If newExcelApp Is Nothing Then" & vbCrLf & _
+                    "MsgBox ""Failed to create a new Excel instance."" " & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "MsgBox ""A new Excel instance was created."" " & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function GetObject Lib "<interaction>" Alias "#8" (Optional ByRef PathName As Variant, Optional ByRef Class As Variant) As Object
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Invokes a method or accesses a property of an object dynamically, using the specified name and arguments.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = CallByName(Object, ProcName, CallType, Args())`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Object`: The target object.  " & vbCrLf & _
+                    "- `ProcName`: The name of the property or method as a string.  " & vbCrLf & _
+                    "- `CallType`: A `VbCallType` value (e.g., `VbMethod`, `VbGet`, `VbSet`, `VbLet`).  " & vbCrLf & _
+                    "- `Args()`: An array of arguments to pass to the method or property.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns the result of the property or method call as a `Variant`. If the call is to a method that does not return a value, it returns `Empty`.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 1: Calling a method" & vbCrLf & _
+                    "Dim obj As SomeObject" & vbCrLf & _
+                    "Set obj = New SomeObject" & vbCrLf & _
+                    "CallByName obj, ""ShowDialog"", VbMethod" & vbCrLf & _
+                    "```  " & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 2: Getting a property value" & vbCrLf & _
+                    "Dim propValue As Variant" & vbCrLf & _
+                    "propValue = CallByName(obj, ""Text"", VbGet)" & vbCrLf & _
+                    "MsgBox propValue" & vbCrLf & _
+                    "```  " & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 3: Setting a property value" & vbCrLf & _
+                    "Call CallByName(obj, ""Text"", VbLet, ""New Value"")" & vbCrLf & _
+                    "```")]
+                    
+    Public DeclareWide PtrSafe Function CallByName Lib "<interaction>" Alias "#9" (ByVal Object As Object, ByVal ProcName As String, ByVal CallType As VbCallType, ParamArray Args() As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Invokes a method or accesses a property of an object dynamically, using the specified Dispatch ID and arguments.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = CallByDispId(Object, DispId, CallType, Args())`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Object`: The target object.  " & vbCrLf & _
+                    "- `DispId`: The Dispatch ID (DISPID) of the property or method.  " & vbCrLf & _
+                    "- `CallType`: A `VbCallType` value (e.g., `VbMethod`, `VbGet`, `VbSet`, `VbLet`).  " & vbCrLf & _
+                    "- `Args()`: An array of arguments to pass to the method or property.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns the result of the property or method call as a `Variant`. If the call is to a method that does not return a value, it returns `Empty`.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 1: Calling a method using its Dispatch ID" & vbCrLf & _
+                    "Dim obj As SomeObject" & vbCrLf & _
+                    "Set obj = New SomeObject" & vbCrLf & _
+                    "Dim dispIdShowDialog As Long" & vbCrLf & _
+                    "dispIdShowDialog = 123 ' Assume 123 is the DISPID for ShowDialog" & vbCrLf & _
+                    "CallByDispId obj, dispIdShowDialog, VbMethod" & vbCrLf & _
+                    "```  " & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 2: Getting a property value using its Dispatch ID" & vbCrLf & _
+                    "Dim dispIdText As Long" & vbCrLf & _
+                    "dispIdText = 456 ' Assume 456 is the DISPID for the Text property" & vbCrLf & _
+                    "Dim propValue As Variant" & vbCrLf & _
+                    "propValue = CallByDispId(obj, dispIdText, VbGet)" & vbCrLf & _
+                    "MsgBox propValue" & vbCrLf & _
+                    "```  " & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example 3: Setting a property value using its Dispatch ID" & vbCrLf & _
+                    "Dim dispIdText As Long" & vbCrLf & _
+                    "dispIdText = 456 ' Again, assuming 456 is the DISPID for the Text property" & vbCrLf & _
+                    "Call CallByDispId(obj, dispIdText, VbLet, ""New Value"")" & vbCrLf & _
+                    "```")]
+    Public DeclareWide PtrSafe Function CallByDispId Lib "<interaction>" Alias "#10" (ByVal Object As Object, ByVal DispId As Long, ByVal CallType As VbCallType, ParamArray Args() As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Triggers an event by name on the specified object with the provided arguments.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = RaiseEventByName(Object, ProcName, [ArgsArray])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Object`: The object on which to raise the event.  " & vbCrLf & _
+                    "- `ProcName`: The name of the event to raise as a string.  " & vbCrLf & _
+                    "- `ArgsArray` (Optional): An array of arguments that are passed to the event handlers.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `Variant` that is typically ignored, unless the event procedure is designed to return a value.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Raising a custom event on an object" & vbCrLf & _
+                    "Dim obj As SomeObject" & vbCrLf & _
+                    "Set obj = New SomeObject" & vbCrLf & _
+                    "Dim args(0) As Variant" & vbCrLf & _
+                    "args(0) = ""Some argument value""" & vbCrLf & _
+                    "RaiseEventByName obj, ""SomeEvent"", args" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "It's particularly useful when event names are not known at compile time and need to be raised dynamically during runtime. " & vbCrLf & _
+                    "Note that error handling should be implemented to manage cases where the event name does not exist on the object.")]
+    Public DeclareWide PtrSafe Function RaiseEventByName Lib "<interaction>" Alias "#11" (ByVal Object As Object, ByVal ProcName As String, Optional ByRef ArgsArray As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Triggers an event by name on a specified object, accepting a variable number of arguments.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = RaiseEventByName2(Object, ProcName, Arg1, Arg2, ..., ArgN)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Object`: The object on which to raise the event.  " & vbCrLf & _
+                    "- `ProcName`: The name of the event to be raised.  " & vbCrLf & _
+                    "- `Arg1, Arg2, ..., ArgN`: A series of arguments passed to the event handlers.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `Variant`. Often this is `Empty`, unless the event handlers return a value.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Raising an event with multiple arguments" & vbCrLf & _
+                    "Dim obj As SomeObject" & vbCrLf & _
+                    "Set obj = New SomeObject" & vbCrLf & _
+                    "RaiseEventByName2 obj, ""SomeEvent"", ""First argument"", 123, True" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "This function is useful for raising events dynamically with varying arguments. It allows the passing of arguments directly, " & _
+                    "eliminating the need for an argument array.  " & vbCrLf & _
+                    "Ensure appropriate error handling is implemented to address scenarios where the event name does not exist on the object " & _
+                    "or if arguments are passed incorrectly.")]
+                    
+    Public DeclareWide PtrSafe Function RaiseEventByName2 Lib "<interaction>" Alias "#12" (ByVal Object As Object, ByVal ProcName As String, ParamArray Args() As Variant) As Variant
+    
+    Public DeclareWide PtrSafe Function RaiseEventByNameAndIID Lib "<interaction>" Alias "#30" (ByVal IIDString As String, ByVal Object As Object, ByVal ProcName As String, Optional ArgsArray As Variant) As Variant
+    Public DeclareWide PtrSafe Function RaiseEventByNameAndIID2 Lib "<interaction>" Alias "#31" (ByVal IIDString As String, ByVal Object As Object, ByVal ProcName As String, ParamArray Args() As Variant) As Variant
+        
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the value of a key from an application's entry in the Windows Registry.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = GetSetting(AppName, Section, Key, [Default])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `AppName`: The name of the application or project to use as a registry subkey.  " & vbCrLf & _
+                    "- `Section`: The name of the section within the `AppName` entry where the `Key` is stored.  " & vbCrLf & _
+                    "- `Key`: The name of the key whose value is to be retrieved.  " & vbCrLf & _
+                    "- `Default` (Optional): The value to return if the `Key` is not found. If omitted, an empty string is returned.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a `String` containing the value of the registry key, if found; otherwise, it returns the `Default` value or an empty string if `Default` is not provided.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Retrieve a registry setting" & vbCrLf & _
+                    "Dim userPref As String" & vbCrLf & _
+                    "userPref = GetSetting(""MyApp"", ""Preferences"", ""StartFullScreen"", ""No"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "This function is commonly used to retrieve user preferences or other application settings stored in the Windows Registry. " & _
+                    "It is essential to handle cases where the specified key may not exist, which can be done by providing a sensible default value.")]
+    Public DeclareWide PtrSafe Function GetSetting Lib "<interaction>" Alias "#13" (ByVal AppName As String, ByVal Section As String, ByVal Key As String, Optional ByVal Default As Variant) As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Deletes a section or key setting from an application's entry in the Windows Registry.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Call DeleteSetting(AppName, [Section], [Key])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `AppName`: The name of the application or project whose registry settings are to be deleted.  " & vbCrLf & _
+                    "- `Section` (Optional): The name of the section within the `AppName` entry. If omitted, the entire `AppName` section, including all keys within, is deleted.  " & vbCrLf & _
+                    "- `Key` (Optional): The name of the key to delete within the specified `Section`. If omitted, the entire `Section` and all keys within are deleted.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Delete a specific key" & vbCrLf & _
+                    "DeleteSetting(""MyApp"", ""Preferences"", ""StartFullScreen"")" & vbCrLf & _
+                    "" & vbCrLf & _
+                    "' Example: Delete an entire section" & vbCrLf & _
+                    "DeleteSetting(""MyApp"", ""Preferences"")" & vbCrLf & _
+                    "" & vbCrLf & _
+                    "' Example: Delete all settings for an application" & vbCrLf & _
+                    "DeleteSetting(""MyApp"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Use this Sub procedure with caution, as it permanently removes settings from the Windows Registry. " & _
+                    "Ensure that the `AppName` and, if provided, the `Section` and `Key` accurately target the intended registry entries to avoid unintended data loss.")]
+                    
+    Public DeclareWide PtrSafe Sub DeleteSetting Lib "<interaction>" Alias "#14" (ByVal AppName As String, Optional ByVal Section As Variant, Optional ByVal Key As Variant)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Saves or creates a key setting in an application's entry within the Windows Registry.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`SaveSetting(AppName, Section, Key, Setting)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `AppName`: The name of the application or project. This is used to create a registry subkey under the HKEY_CURRENT_USER\\Software\\VB and VBA Program Settings.  " & vbCrLf & _
+                    "- `Section`: The subsection within the `AppName` in which the `Key` should be stored.  " & vbCrLf & _
+                    "- `Key`: The name of the setting to be stored.  " & vbCrLf & _
+                    "- `Setting`: The value to be saved for the `Key`.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Save a user preference setting" & vbCrLf & _
+                    "SaveSetting(""MyApp"", ""Preferences"", ""StartFullScreen"", ""Yes"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "This Sub procedure is used to store user preferences or other application settings. Always ensure that the key names and values provided " & _
+                    "are correct to prevent saving incorrect data. It's also recommended to inform users when their settings are being saved to the registry.")]
+                    
+    Public DeclareWide PtrSafe Sub SaveSetting Lib "<interaction>" Alias "#15" (ByVal AppName As String, ByVal Section As String, ByVal Key As String, ByVal Setting As String)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves a list of key settings and their respective values from an application's entry in the Windows Registry.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim settings As Variant`  " & vbCrLf & _
+                    "`settings = GetAllSettings(AppName, Section)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `AppName`: The name of the application or project whose registry settings are to be retrieved.  " & vbCrLf & _
+                    "- `Section`: The name of the section within the `AppName` entry from which to retrieve the key settings.  " & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "Returns a Variant containing an array of key-value pairs of settings if any keys are found; otherwise, returns `Null`.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Retrieve all settings for a section" & vbCrLf & _
+                    "Dim settings As Variant" & vbCrLf & _
+                    "settings = GetAllSettings(""MyApp"", ""Preferences"")" & vbCrLf & _
+                    "If settings <> Empty Then" & vbCrLf & _
+                    "' Process settings array" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "This function is helpful for enumerating all user preferences or settings for a particular section of an application. " & _
+                    "Ensure that the `AppName` and `Section` are correctly specified to retrieve the desired data.")]
+                    
+    Public DeclareWide PtrSafe Function GetAllSettings Lib "<interaction>" Alias "#16" (ByVal AppName As String, ByVal Section As String) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Generates a simple tone through the computer's speaker.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Call Beep`  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Emit a beep sound" & vbCrLf & _
+                    "Call Beep" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Use this Sub procedure to signal an event, such as the completion of a process or an error. The pitch and duration of the beep sound are determined by the system and cannot be controlled by the application.")]
+    Public DeclareWide PtrSafe Sub Beep Lib "<interaction>" Alias "#17" ()
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Sends one or more keystrokes to the active window as if typed at the keyboard.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Call SendKeys(String[, Wait])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `String`: The sequence of keys to send. Special keys are enclosed in braces `{}`.  " & vbCrLf & _
+                    "- `Wait` (optional): A Boolean value indicating whether to wait for the keystrokes to be processed before moving on. `True` to wait, `False` not to wait.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Send the 'Hello' keystrokes" & vbCrLf & _
+                    "Call SendKeys(""Hello{ENTER}"")" & vbCrLf & _
+                    "' Example: Send ALT+F4 to close the active window" & vbCrLf & _
+                    "Call SendKeys(""%(F4)"", True)" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Caution should be exercised when using `SendKeys` since it can potentially lead to unintended system behavior if the wrong keys are sent. It is also subject to the current state of the keyboard layout and can be affected by other applications that may intercept or modify keystrokes.")]
+    Public DeclareWide PtrSafe Sub SendKeys Lib "<interaction>" Alias "#18" (ByVal String As String, Optional ByVal Wait As Variant)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the string value of an environment variable from the current process.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim result As String`  " & vbCrLf & _
+                    "`result = Environ$(Expression)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Expression`: The name of the environment variable.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Get the PATH environment variable" & vbCrLf & _
+                    "Dim path As String" & vbCrLf & _
+                    "path = Environ$(""PATH"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "The `Environ$` function is useful for retrieving system-related information that is set as environment variables. This string-optimized version should be used when a string return value is expected.")]
+    Public DeclareWide PtrSafe Function [Environ$] Lib "<interaction>" Alias "#19" (ByRef Expression As Variant) As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the value of an environment variable from the current process.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim result As Variant`  " & vbCrLf & _
+                    "`result = Environ(Expression)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Expression`: The name of the environment variable.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Get the COMSPEC environment variable" & vbCrLf & _
+                    "Dim comspec As Variant" & vbCrLf & _
+                    "comspec = Environ(""COMSPEC"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "' Example: Check if an environment variable exists" & vbCrLf & _
+                    "Dim tempVar As Variant" & vbCrLf & _
+                    "tempVar = Environ(""TEMPVAR"")" & vbCrLf & _
+                    "If IsEmpty(tempVar) Then" & vbCrLf & _
+                    "MsgBox ""TEMPVAR does not exist.""" & vbCrLf & _
+                    "Else" & vbCrLf & _
+                    "MsgBox ""TEMPVAR exists: "" & tempVar" & vbCrLf & _
+                    "End If" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "The `Environ` function is a versatile way to access environment variables. It can return different data types based on the environment variable's value, and should be used when the return value's type is not predetermined.")]
+    Public DeclareWide PtrSafe Function Environ Lib "<interaction>" Alias "#20" (ByRef Expression As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False), ConstantFoldable]
+    [Description("Evaluates pairs of expressions (condition and value pairs) and returns the value corresponding to the first condition part that evaluates to, or converts to True.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim result As Variant`  " & vbCrLf & _
+                    "`result = Switch(expr1, value1, expr2, value2, ..., exprN, valueN)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `exprN`: Condition wxpression you want to evaluate.  " & vbCrLf & _
+                    "- `valueN`: Value that is returned if the corresponding condition expression is True.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Using Switch to return a value" & vbCrLf & _
+                    "Dim status As Variant" & vbCrLf & _
+                    "status = Switch(" & vbCrLf & _
+                    "age < 13, ""Child"", " & vbCrLf & _
+                    "age < 20, ""Teenager"", " & vbCrLf & _
+                    "age < 65, ""Adult"", " & vbCrLf & _
+                    "True, ""Senior"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "The `Switch` function is a succinct alternative to multiple If...ElseIf statements when you need to select one of many possible values based on the truth of an expression.")]
+    Public DeclareWide PtrSafe Function Switch Lib "<interaction>" Alias "#21" (ParamArray VarExpr() As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns a string indicating where a number falls within a range of partitions.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim result As Variant`  " & vbCrLf & _
+                    "`result = Partition(Number, Start, Stop, Interval)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Number`: The numeric value to partition.  " & vbCrLf & _
+                    "- `Start`: The starting value of the range.  " & vbCrLf & _
+                    "- `Stop`: The ending value of the range.  " & vbCrLf & _
+                    "- `Interval`: The interval between partitions.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Determine the partition for a score" & vbCrLf & _
+                    "Dim scoreRange As Variant" & vbCrLf & _
+                    "scoreRange = Partition(score, 0, 100, 10)" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "The `Partition` function is particularly useful for categorizing numbers into groups or ranges, such as grading scales or income brackets.")]
+    Public DeclareWide PtrSafe Function Partition Lib "<interaction>" Alias "#22" (ByRef Number As Variant, ByRef Start As Variant, ByRef Stop As Variant, ByRef Interval As Variant) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("This function is not implemented in twinBASIC and will always throw an error.")]
+    Public DeclareWide PtrSafe Function MacScript Lib "<interaction>" Alias "#23" (ByVal Script As String) As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Runs an executable program and returns a Double representing the program's task ID.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim taskID As Double`  " & vbCrLf & _
+                    "`taskID = Shell(PathName, [WindowStyle])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `PathName`: The name of the program to execute, along with any required arguments or command-line switches.  " & vbCrLf & _
+                    "- `WindowStyle`: Optional. The style of the window in which the program is to run.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Running Notepad minimized with focus" & vbCrLf & _
+                    "Dim taskID As Double" & vbCrLf & _
+                    "taskID = Shell(""notepad.exe"", vbMinimizedFocus)" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Use the `Shell` function to start another program asynchronously and proceed with the next lines of code without waiting for the program to finish.")]
+    Public DeclareWide PtrSafe Function Shell Lib "<interaction>" Alias "#24" (ByRef PathName As Variant, Optional ByVal WindowStyle As VbAppWinStyle = VbAppWinStyle.vbMinimizedFocus) As Double
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Activates the specified window or program. If multiple instances match the title, the instance that was most recently active is activated.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`AppActivate(Title, [Wait])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Title`: The title of the window (or part of the title) of the program to activate.  " & vbCrLf & _
+                    "- `Wait`: Optional. Specifies whether to wait for the application to become active before moving to the next statement.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Activating a window with a specific title" & vbCrLf & _
+                    "AppActivate(""Calculator"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "The `AppActivate` subroutine is useful when you need to bring a particular program to the foreground to interact with it from a script or another program.")]
+    Public DeclareWide PtrSafe Sub AppActivate Lib "<interaction>" Alias "#25" (ByRef Title As Variant, Optional ByRef Wait As Variant)
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Creates and returns a reference to an Automation object.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim objectVariable As Object`  " & vbCrLf & _
+                    "`Set objectVariable = CreateObject(Class, [ServerName])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Class`: The ProgID or CLSID of the object to create.  " & vbCrLf & _
+                    "- `ServerName`: Optional. The name of the network server where the object is to be created.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Create a new instance of Excel" & vbCrLf & _
+                    "Dim excelApp As Object" & vbCrLf & _
+                    "Set excelApp = CreateObject(""Excel.Application"")" & vbCrLf & _
+                    "excelApp.Visible = True  ' Make Excel visible" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Create a new object using a CLSID" & vbCrLf & _
+                    "Dim wordApp As Object" & vbCrLf & _
+                    "Set wordApp = CreateObject(""new:{000209FF-0000-0000-C000-000000000046}"")" & vbCrLf & _
+                    "wordApp.Visible = True  ' Make Word visible" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Use `CreateObject` when you need to create a new instance of an object that provides automation services (e.g., an Office application), or when referencing an object by its CLSID.")]
+                    
+    Public DeclareWide PtrSafe Function CreateObject Lib "<interaction>" Alias "#28" (ByVal Class As String) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Creates and returns a reference to an Automation object.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Dim objectVariable As Object`  " & vbCrLf & _
+                    "`Set objectVariable = CreateObject(Class, [ServerName])`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Class`: The ProgID or CLSID of the object to create.  " & vbCrLf & _
+                    "- `ServerName`: Optional. The name of the network server where the object is to be created.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Create a new instance of Excel" & vbCrLf & _
+                    "Dim excelApp As Object" & vbCrLf & _
+                    "Set excelApp = CreateObject(""Excel.Application"")" & vbCrLf & _
+                    "excelApp.Visible = True  ' Make Excel visible" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Create a new object using a CLSID" & vbCrLf & _
+                    "Dim wordApp As Object" & vbCrLf & _
+                    "Set wordApp = CreateObject(""new:{000209FF-0000-0000-C000-000000000046}"")" & vbCrLf & _
+                    "wordApp.Visible = True  ' Make Word visible" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Use `CreateObject` when you need to create a new instance of an object that provides automation services (e.g., an Office application), or when referencing an object by its CLSID.")]
+                    
+    Public DeclareWide PtrSafe Function CreateObject Lib "<interaction>" Alias "#29" (ByVal Class As String, ByVal ServerName As String) As Variant
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Evaluates an expression and returns one of two objects, depending on whether the expression is True or False, with short-circuiting support.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = If(Expression, TruePart, FalsePart)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Expression`: The expression you want to evaluate, which returns either True or False.  " & vbCrLf & _
+                    "- `TruePart`: The value that is returned if the expression is True.  " & vbCrLf & _
+                    "- `FalsePart`: The value that is returned if the expression is False.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "The `If` function returns `TruePart` if the expression is True, and `FalsePart` if the expression is False.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Using If with short-circuiting to avoid errors" & vbCrLf & _
+                    "Dim result As Variant" & vbCrLf & _
+                    "Dim divisor As Integer" & vbCrLf & _
+                    "divisor = 0" & vbCrLf & _
+                    "result = If(divisor <> 0, 100 / divisor, ""Error: Division by zero"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Unlike the `IIf` function, `If` does not evaluate both `TruePart` and `FalsePart` when determining the return value. " & _
+                    "Only the part corresponding to the outcome of the expression is evaluated, which avoids potential errors from unnecessary evaluations.")]
+                    
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function If Lib "<interaction>" Alias "#-2" (ByRef ExpressionTruePart As Variant, ByRef FalsePart As Variant) As Variant
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Evaluates an expression and returns one of two objects, depending on whether the expression is True or False, with short-circuiting support.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`result = If(Expression, TruePart, FalsePart)`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Expression`: The expression you want to evaluate, which returns either True or False.  " & vbCrLf & _
+                    "- `TruePart`: The value that is returned if the expression is True.  " & vbCrLf & _
+                    "- `FalsePart`: The value that is returned if the expression is False.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "The `If` function returns `TruePart` if the expression is True, and `FalsePart` if the expression is False.  " & vbCrLf & _
+                    "### Examples" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Example: Using If with short-circuiting to avoid errors" & vbCrLf & _
+                    "Dim result As Variant" & vbCrLf & _
+                    "Dim divisor As Integer" & vbCrLf & _
+                    "divisor = 0" & vbCrLf & _
+                    "result = If(divisor <> 0, 100 / divisor, ""Error: Division by zero"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "#  " & vbCrLf & _
+                    "Unlike the `IIf` function, `If` does not evaluate both `TruePart` and `FalsePart` when determining the return value. " & _
+                    "Only the part corresponding to the outcome of the expression is evaluated, which avoids potential errors from unnecessary evaluations.")]
+                    
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function If Lib "<interaction>" Alias "#-2" (ByRef Expression As Variant, ByRef TruePart As Variant, ByRef FalsePart As Variant) As Variant
+
+End Module

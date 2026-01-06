@@ -1,0 +1,125 @@
+#If FEATURE_REPORT Then
+[InterfaceId("3487F16B-EC8B-4C91-8CE7-763D4B11CDD7")]
+[ClassId("4A5D20CA-AC85-4CF8-B656-3D1ECCF22CAC")]
+Private Class ControlsSection
+
+    Enum ControlsSectionType
+        Detail = 0
+        ReportHeader = 1
+        ReportFooter = 2
+        PageHeader = 3
+        PageFooter = 4
+    End Enum
+    
+    Enum PageBreakConstants
+        rptPageBreakNone = 0
+        rptPageBreakBefore = 1
+        rptPageBreakAfter = 2
+        rptPageBreakBeforeAndAfter = 3
+    End Enum
+    
+    Type SectionRenderState
+        RenderComplete As Boolean
+        MetaFile As LongPtr
+        MetaFileHeader As ENHMETAHEADER
+        Height As Long
+        OffsetY As Long
+        UseAlternateColor As Boolean
+        PendingPageBreak As Boolean
+    End Type
+    
+    [Serialize(True, "Height")]
+    Public PixelsHeight As Double
+    Public IdeCaption As String
+    Public SectionType As ControlsSectionType
+    Public BackStyle As BackFillStyleConstants = BackFillStyleConstants.vbBFTransparent
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public BackColor As OLE_COLOR = vbWhite
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public BackColorAlternate As OLE_COLOR = &HE8E8E8
+    [Serialize(True, "BorderBottomHeight")]
+    Public PixelsBorderBottomHeight As Double
+    [CustomDesigner("designer_SpectrumWindows")]
+    Public BorderBottomColor As OLE_COLOR
+    ' Public BorderTopHeight As Double
+    ' [CustomDesigner("designer_SpectrumWindows")]
+    ' Public BorderTopColor As OLE_COLOR
+    Public ForcePageBreak As PageBreakConstants
+    
+    Public KeepTogether As Boolean
+    
+    [Serialize(False)]
+    Protected RenderState As SectionRenderState
+    Protected Function GetRenderStatePtr() As LongPtr
+        Return VarPtr(RenderState)
+    End Function
+    
+    Protected Function IsRenderComplete() As Boolean
+        Return RenderState.RenderComplete
+    End Function
+    
+    Protected Function ShouldForceBreakAfter() As Boolean
+        ' ForcePageBreak is not applicable to PageHeader and PageFooter sections
+        Return ((ForcePageBreak = rptPageBreakAfter) Or (ForcePageBreak = rptPageBreakBeforeAndAfter)) And _
+                    (SectionType <> PageHeader) And (SectionType <> PageFooter)
+    End Function
+    
+    Protected Function ShouldForceBreakBefore() As Boolean
+        ' ForcePageBreak is not applicable to PageHeader and PageFooter sections
+        Return ((ForcePageBreak = rptPageBreakBefore) Or (ForcePageBreak = rptPageBreakBeforeAndAfter)) And _
+                    (SectionType <> PageHeader) And (SectionType <> PageFooter)
+    End Function
+
+    Protected Sub InternalCleanup()
+        If RenderState.MetaFile <> vbNullPtr Then
+            GDI32.DeleteEnhMetaFile(RenderState.MetaFile)
+            RenderState.MetaFile = vbNullPtr
+        End If
+    End Sub
+    
+    [Serialize(False)]
+    Public CachedOrdinal As Long
+    [Serialize(False)]
+    Public CachedBackBrush As LongPtr
+    [Serialize(False)]
+    Public CachedAlternateBackBrush As LongPtr
+    [Serialize(False)]
+    Public CachedBorderBottomBrush As LongPtr
+'    [Serialize(False)]
+'    Public CachedBorderTopBrush As LongPtr
+        
+    Public Function CalcTotalHeight(ByVal dpiScaleY As Double) As Long
+        Return CLng(PixelsHeight * dpiScaleY) + _
+                CLng(PixelsBorderBottomHeight * dpiScaleY) + _
+                    0 'CLng(TopBorderHeight * dpiScaleY) +
+    End Function
+    
+    Protected Sub ChangedValues() _
+            Handles CachedBackBrush.OnPropertyLet
+        If CachedBackBrush <> 0 Then
+            ReleaseGdiStuff ()
+            CacheGdiStuff ()
+        End If
+    End Sub
+    
+    Public Sub CacheGdiStuff()
+        If CachedBackBrush = 0 Then
+            CachedBackBrush = GDI32.CreateSolidBrush(TranslateColor(BackColor))
+            CachedAlternateBackBrush = GDI32.CreateSolidBrush(TranslateColor(BackColorAlternate))
+            'CachedBorderTopBrush = WindowsAPI.GDI32.CreateSolidBrush(TranslateColor(TopBorderColor))
+            CachedBorderBottomBrush = GDI32.CreateSolidBrush(TranslateColor(BorderBottomColor))
+        End If
+    End Sub
+    
+    Public Sub ReleaseGdiStuff()
+        If CachedBackBrush <> 0 Then
+            GDI32.DeleteObject(CachedBackBrush)
+            GDI32.DeleteObject(CachedAlternateBackBrush)
+            'WindowsAPI.DeleteObject(CachedBorderTopBrush)
+            GDI32.DeleteObject(CachedBorderBottomBrush)
+            CachedBackBrush = 0
+        End If
+    End Sub
+    
+End Class
+#End If

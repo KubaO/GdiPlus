@@ -1,0 +1,1276 @@
+#If FEATURE_PRINTER Then
+Private Module PrintersHelper
+    
+    Public Const DM_ORIENTATION          As Long = &H00000001
+    Public Const DM_PAPERSIZE            As Long = &H00000002
+    Public Const DM_PAPERLENGTH          As Long = &H00000004
+    Public Const DM_PAPERWIDTH           As Long = &H00000008
+    Public Const DM_SCALE                As Long = &H00000010
+    Public Const DM_POSITION             As Long = &H00000020
+    Public Const DM_NUP                  As Long = &H00000040
+    Public Const DM_DISPLAYORIENTATION   As Long = &H00000080
+    Public Const DM_COPIES               As Long = &H00000100
+    Public Const DM_DEFAULTSOURCE        As Long = &H00000200
+    Public Const DM_PRINTQUALITY         As Long = &H00000400
+    Public Const DM_COLOR                As Long = &H00000800
+    Public Const DM_DUPLEX               As Long = &H00001000
+    Public Const DM_YRESOLUTION          As Long = &H00002000
+    Public Const DM_TTOPTION             As Long = &H00004000
+    Public Const DM_COLLATE              As Long = &H00008000&
+    Public Const DM_FORMNAME             As Long = &H00010000
+    Public Const DM_LOGPIXELS            As Long = &H00020000
+    Public Const DM_BITSPERPEL           As Long = &H00040000
+    Public Const DM_PELSWIDTH            As Long = &H00080000
+    Public Const DM_PELSHEIGHT           As Long = &H00100000
+    Public Const DM_DISPLAYFLAGS         As Long = &H00200000
+    Public Const DM_DISPLAYFREQUENCY     As Long = &H00400000
+    Public Const DM_ICMMETHOD            As Long = &H00800000
+    Public Const DM_ICMINTENT            As Long = &H01000000
+    Public Const DM_MEDIATYPE            As Long = &H02000000
+    Public Const DM_DITHERTYPE           As Long = &H04000000
+    Public Const DM_PANNINGWIDTH         As Long = &H08000000
+    Public Const DM_PANNINGHEIGHT        As Long = &H10000000
+    Public Const DM_DISPLAYFIXEDOUTPUT   As Long = &H20000000
+    
+    Public Const DM_IN_BUFFER As Long = 8
+    Public Const DM_OUT_BUFFER As Long = 2
+    Public Const DM_SIZEOF As Long = 0
+    
+    Public Const DC_FIELDS As Long = 1
+    Public Const DC_PAPERS As Long = 2
+    Public Const DC_PAPERSIZE As Long = 3
+    Public Const DC_MINEXTENT As Long = 4
+    Public Const DC_MAXEXTENT As Long = 5
+    Public Const DC_BINS As Long = 6
+    Public Const DC_DUPLEX As Long = 7
+    Public Const DC_SIZE As Long = 8
+    Public Const DC_EXTRA As Long = 9
+    Public Const DC_VERSION As Long = 10
+    Public Const DC_DRIVER As Long = 11
+    Public Const DC_BINNAMES As Long = 12
+    Public Const DC_ENUMRESOLUTIONS As Long = 13
+    Public Const DC_FILEDEPENDENCIES As Long = 14
+    Public Const DC_TRUETYPE As Long = 15
+    Public Const DC_PAPERNAMES As Long = 16
+    Public Const DC_ORIENTATION As Long = 17
+    Public Const DC_COPIES As Long = 18
+    
+    Public Const GETPRINTINGOFFSET As Long = &HD
+    Public Const GETPHYSPAGESIZE As Long = &HC
+    Public Const LOGPIXELSX As Long = &H58
+    Public Const LOGPIXELSY As Long = &H5A
+End Module
+
+Private Interface ITwinBasicPrinter
+    Function PreparePrintForm() As GraphicsBase
+    Sub ChangePrinter(ByVal NewPrinter As Printer)
+End Interface
+
+[COMCreatable(False)]
+Class Printer
+    
+    Implements VB.IVBPrint
+    Implements ITwinBasicPrinter
+    
+    Protected InternalDeviceName As String
+    Protected InternalDriver As String
+    Protected InternalPort As String
+    Protected InternalMutable As Boolean
+    Protected InternalTrackDefault As Boolean
+    Protected InternalFont As StdFont
+    Protected InternalCachedExplicitDrawMode As DrawModeConstants = DrawModeConstants.vbCopyPen
+    Protected InternalDevModeIsCustomized As Boolean
+    
+    Protected Internal_hDC_DriverName As String
+    Protected Internal_hDC_DeviceName As String
+    Protected Internal_hDC_Port As String
+    Protected Internal_CachedDevModePtr As LongPtr
+    Protected InternalCachedDC As HDC
+    Protected InternalTempHDC As HDC
+    Protected InternalPrintId As Long = -1
+    Protected InternalCachedFontInfo() As String
+    Protected InternalPageCount As Long = 1
+    Protected InternalIsBlankPage As Boolean = True
+    Protected InternalGraphicsBase As VB.GraphicsBase = New VB.GraphicsBase
+    
+    Public OutputFile As String             ' new in tB
+    
+    Sub New()
+        ' The default 'Printer' static object
+        Me.InternalMutable = True
+        Me.InternalTrackDefault = True
+    End Sub
+    
+    Sub New(DeviceName As String, driverPart As String, port As String)
+        ' aone of the printers obtained from the Printers collection
+        Me.InternalDeviceName = DeviceName
+        Me.InternalDriver = driverPart
+        Me.InternalPort = port
+    End Sub
+    
+    Protected Sub Class_Terminate()
+        If InternalPrintId <> -1 Then EndDoc()
+        UncacheDC()
+        If InternalTempHDC.Value <> vbNullPtr Then
+            InternalTempHDC.DeleteDC()
+            InternalTempHDC = vbNullPtr
+        End If
+        
+        'Debug.Print "Printer released!"
+    End Sub
+    
+    Protected Function ResyncDevMode() As Boolean
+        Dim printerHandle As LongPtr
+        WINSPOOL.OpenPrinterW(InternalDeviceName, printerHandle, vbNullPtr)
+        Dim result As Long = WINSPOOL.DocumentPropertiesW(vbNullPtr, printerHandle, InternalDeviceName, Internal_CachedDevModePtr, Internal_CachedDevModePtr, DM_IN_BUFFER Or DM_OUT_BUFFER)
+        WINSPOOL.ClosePrinter(printerHandle)
+        Return result >= 0
+    End Function
+    
+    ' caller is respnsible for calling FreeMem on the returned value when InternalMutable = False 
+    Protected Property Get DevModePtr() As LongPtr
+        If Internal_CachedDevModePtr <> vbNullPtr Then
+            Return Internal_CachedDevModePtr
+        End If
+        Dim printerHandle As LongPtr
+        Dim deviceName As String
+        
+        If TrackDefault Then
+            deviceName = CStr(GetLiveDefaultDeviceInfo(0))
+        Else
+            deviceName = InternalDeviceName
+        End If
+        WINSPOOL.OpenPrinterW(deviceName, printerHandle, vbNullPtr)
+        If printerHandle = 0 Then Return vbNullPtr
+        Dim devModeLen As Any = WINSPOOL.DocumentPropertiesW(vbNullPtr, printerHandle, deviceName, vbNullPtr, vbNullPtr, DM_SIZEOF)
+        If devModeLen = 0 Then Return vbNullPtr
+        Dim buffer As LongPtr = [_HiddenModule].AllocMem(devModeLen)
+        WINSPOOL.DocumentPropertiesW(vbNullPtr, printerHandle, deviceName, buffer, vbNullPtr, DM_OUT_BUFFER)
+        WINSPOOL.ClosePrinter(printerHandle)
+        If Me.InternalMutable Then
+            Internal_CachedDevModePtr = buffer
+        End If
+        Return buffer
+    End Property
+    
+    Protected Function HasDCPrinterChanged() As Boolean
+        Dim printerInfo As Variant = GetLiveDefaultDeviceInfo()
+        Return (printerInfo(1) <> Internal_hDC_DriverName) Or (printerInfo(0) <> Internal_hDC_DeviceName) Or (printerInfo(2) <> Internal_hDC_Port)
+    End Function
+    
+    Protected Sub UncacheDC()
+        If InternalCachedDC.Value <> vbNullPtr Then
+            InternalCachedDC.DeleteDC()
+            InternalCachedDC = vbNullPtr
+        End If
+        If Internal_CachedDevModePtr <> vbNullPtr Then
+            [_HiddenModule].FreeMem(Internal_CachedDevModePtr)
+            Internal_CachedDevModePtr = vbNullPtr
+        End If
+        InternalDevModeIsCustomized = False
+    End Sub
+    
+    Protected Property Get InternalHDC() As HDC
+        Return hDC
+    End Property
+    
+    Public Property Get hDC() As LongPtr                            ' FIXME use HDC return value once ALIAS is fully aligned
+        If InternalCachedDC.Value <> vbNullPtr Then
+            If InternalTrackDefault Then
+                ' we're tracking the default printer, so if the default printer has changed, we need to recreate the DC
+                If HasDCPrinterChanged() Then
+                    'Debug.Print "** DETECTED CHANGED DEFAULT PRINTER... RECREATING HDC"
+                    UncacheDC()
+                    GoTo CreateNewHDC
+                End If
+            End If
+            Return InternalCachedDC.Value
+        End If
+        If InternalTempHDC.Value <> vbNullPtr Then
+            InternalTempHDC.DeleteDC()
+            InternalTempHDC = vbNullPtr
+        End If
+        
+    CreateNewHDC:
+        Dim DevModePtr As Any = Me.DevModePtr
+        Internal_hDC_DriverName = Me.DriverName
+        Internal_hDC_DeviceName = Me.DeviceName
+        Internal_hDC_Port = Me.Port
+        Dim _hdc As HDC = GDI32.CreateDCW(Internal_hDC_DriverName, Internal_hDC_DeviceName, Internal_hDC_Port, ByVal DevModePtr)
+        hDC = _hdc
+        
+        _hdc.SetBkMode(1)       ' transparent
+        
+        If Me.InternalMutable Then
+            InternalCachedDC = _hdc.Value
+            Dim noElement As WindowElement
+            UnprotectedAccess(InternalGraphicsBase).InternalChangeHDC(_hdc, vbNullPtr, noElement, Nothing, Nothing, False)
+            InternalGraphicsBase.PictureDpiScaling = False
+            InternalPageCount = 1
+        Else
+            [_HiddenModule].FreeMem(DevModePtr)
+            InternalTempHDC = _hdc.Value
+        End If
+        ' SetAbortProc here to allow cancellation of print via dialog
+    End Property
+        
+    Protected Function GetLiveDefaultDeviceInfo() As Variant
+        Dim bufferLen As Long = 1024
+        
+    TryAgain:
+        Dim defaultDeviceInfo As String = Space$(bufferLen)
+        Dim charsOut As Long = KERNEL32.GetProfileStringW("windows", "device", "", defaultDeviceInfo, bufferLen)
+        If charsOut = (bufferLen - 1) Then
+            bufferLen *= 2
+            GoTo TryAgain
+        End If
+        defaultDeviceInfo = Left$(defaultDeviceInfo, charsOut)
+        If InStr(defaultDeviceInfo, ",") = 0 Then
+            ' just use the first printer instead if no default is known
+            
+            If Printers.Count = 0 Then
+                ' FIXME what error to raise if there are no printers on the system
+                Err.Raise 484, , "Problem getting printer information from the system.  Make sure the printer is set up correctly."
+            End If
+            
+            With Printers(0)
+                Return Array(.DeviceName, .DriverName, .Port)
+            End With
+        End If
+        Return Split(defaultDeviceInfo, ",")
+    End Function
+    
+    Public Property Get DeviceName() As String
+        If InternalTrackDefault Then
+            Return CStr(GetLiveDefaultDeviceInfo(0))
+        End If
+        Return InternalDeviceName
+    End Property
+    
+    Public Property Get DriverName() As String
+        If InternalTrackDefault Then
+            Return CStr(GetLiveDefaultDeviceInfo(1))
+        End If
+        Return InternalDriver
+    End Property
+    
+    Public Property Get Port() As String
+        If InternalTrackDefault Then
+            Return CStr(GetLiveDefaultDeviceInfo(2))
+        End If
+        Return InternalPort
+    End Property
+    
+    Protected Function GetDevModePropInteger(ByVal DevModeOffset As LongPtr, ByVal DevModeFlag As Long) As Integer
+        Dim DevModePtr As Any = Me.DevModePtr
+        If DevModePtr = 0 Then Return 0
+        If CType(Of DEVMODEW)(DevModePtr).dmFields And DevModeFlag Then
+            GetMem2(DevModePtr + DevModeOffset, GetDevModePropInteger)
+        End If
+        If Me.InternalMutable = False Then
+            [_HiddenModule].FreeMem(DevModePtr)
+        End If
+    End Function
+    
+    Protected Sub SetDevModePropInteger(ByVal DevModeOffset As LongPtr, ByVal DevModeFlag As Long, ByVal Value As Integer, ByRef PropName As String)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(PropName)
+        If InternalTrackDefault Then
+            TrackDefault = False
+        End If
+        If Me.InternalCachedDC.Value = vbNullPtr Then
+            #If FEATURE_DRAWING Then
+            InternalGraphicsBase.DrawMode = vbCopyPen       ' For some reason, this seems to get reset here.
+            #End If
+        End If
+        hDC      ' just to ensure we have setup the HDC ready for when we need it
+        Dim DevModePtr As Any = Me.DevModePtr
+        If DevModePtr = 0 Then Exit Sub
+        With CType(Of DEVMODEW)(DevModePtr)
+            .dmFields = .dmFields Or DevModeFlag
+        End With
+        PutMem2(DevModePtr + DevModeOffset, Value)
+        If ResyncDevMode() = True Then
+            InternalCachedDC.ResetDCW(ByVal DevModePtr)
+        End If
+        InternalDevModeIsCustomized = True
+    End Sub
+
+    Protected Sub ThrowObjectDoesntSupportError()
+        Err.Raise 438, , "Object doesn't support this property or method"
+    End Sub
+    
+    Protected Sub ThrowBadPropertyError()
+        Err.Raise 380, , "Invalid property value"
+    End Sub
+    
+    Protected Sub ThrowPrinterDriverPropertyError()
+        Err.Raise 483, , "Printer driver does not support specified property"
+    End Sub
+    
+    Protected Sub ThrowPrinterError()
+        Err.Raise 482, , "Printer error"
+    End Sub
+    
+    Protected Sub ThrowCannotBeSetWithinPageError(ByVal propName As String)
+        Err.Raise 396, , "'" & propName & "' cannot be set within a page"
+    End Sub
+    
+    Protected Sub ThrowPropertyIsReadOnlyError(ByVal propName As String)
+        Err.Raise 383, , "'" & propName & "' property is read-only"
+    End Sub
+    
+    Protected Function MutableDeviceCapabilityFlagCheck(ByVal Flag As Integer) As Long
+        MutableDeviceCapabilityFlagCheck = WINSPOOL.DeviceCapabilitiesW(Me.InternalDeviceName, Me.InternalPort, Flag, vbNullPtr, DevModePtr)
+'        Debug.Print "DeviceCapabilitiesW: " & Flag & ", result: " & DeviceCapabilityFlagCheck
+    End Function
+    
+    Protected Function MutableDeviceCapabilityReadData(ByVal Flag As Integer, ByVal OutDataPtr As LongPtr) As Long
+        MutableDeviceCapabilityReadData = WINSPOOL.DeviceCapabilitiesW(Me.InternalDeviceName, Me.InternalPort, Flag, OutDataPtr, DevModePtr)
+    End Function
+    
+    [TypeHint(PrinterObjectConstants_ColorMode)]
+    Public Property Get ColorMode() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmColor), PrintersHelper.DM_COLOR)
+    End Property
+
+    Public Property Let ColorMode([TypeHint(PrinterObjectConstants_ColorMode)] ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If (Value = 1) Or (Value = 2) Then
+                ' always allowed through
+            Else
+                ThrowBadPropertyError
+            End If
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmColor), DM_COLOR, Value, CurrentProcedureName)
+    End Property
+    
+    [TypeHint(PrinterObjectConstants_Duplex)]
+    Public Property Get Duplex() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmDuplex), DM_DUPLEX)
+    End Property
+    
+    Public Property Let Duplex([TypeHint(PrinterObjectConstants_Duplex)] ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If Value = 1 Then
+                ' always allowed
+            ElseIf (Value <= 0) OrElse (Value >= 4) OrElse (MutableDeviceCapabilityFlagCheck(DC_DUPLEX) = 0) Then
+                ThrowBadPropertyError
+            End If
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmDuplex), DM_DUPLEX, Value, CurrentProcedureName)
+    End Property
+    
+    Public Property Get Copies() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmCopies), DM_COPIES)
+    End Property
+    
+    Public Property Let Copies(ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If Value > 0 Then
+                Dim maxAllowed As Long = MutableDeviceCapabilityFlagCheck(DC_COPIES)
+                If maxAllowed = 0 Then
+                    ThrowPrinterDriverPropertyError
+                ElseIf Value > maxAllowed Then
+                    ThrowBadPropertyError
+                End If
+            Else
+                ThrowBadPropertyError
+            End If
+        End If
+        
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmCopies), DM_COPIES, Value, CurrentProcedureName)
+    End Property
+    
+    [TypeHint(PrinterObjectConstants_PaperBin)]
+    Public Property Get PaperBin() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmDefaultSource), DM_DEFAULTSOURCE)
+    End Property
+    
+    Public Property Let PaperBin([TypeHint(PrinterObjectConstants_PaperBin)] ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            Dim FoundMatchingBin As Boolean
+            Dim availableBinsCount As Long = MutableDeviceCapabilityFlagCheck(DC_BINS)
+            If availableBinsCount > 0 Then
+                Dim availableBins() As Integer
+                ReDim availableBins(availableBinsCount - 1) As Integer
+                MutableDeviceCapabilityReadData(DC_BINS, VarPtr(availableBins(0)))
+                Dim bin As Integer
+                For Each bin In availableBins
+                    If bin = Value Then
+                        FoundMatchingBin = True
+                        Exit For
+                    End If
+                Next
+            End If
+            
+            If FoundMatchingBin = False Then
+                ThrowBadPropertyError()
+            End If
+        End If
+        
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmDefaultSource), DM_DEFAULTSOURCE, Value, CurrentProcedureName)
+    End Property
+    
+    [TypeHint(PrinterObjectConstants_PrintQuality)]
+    Public Property Get PrintQuality() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPrintQuality), DM_PRINTQUALITY)
+    End Property
+    
+    Public Property Let PrintQuality([TypeHint(PrinterObjectConstants_PrintQuality)] ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If (Value = 0) Or (Value < -4) Then
+                ThrowBadPropertyError
+            End If
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPrintQuality), DM_PRINTQUALITY, Value, CurrentProcedureName)
+    End Property
+    
+    [TypeHint(PrinterObjectConstants_Orientation)]
+    Public Property Get Orientation() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmOrientation), DM_ORIENTATION)
+    End Property
+    
+    Public Property Let Orientation([TypeHint(PrinterObjectConstants_Orientation)] ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If Value = 1 Then
+                ' always allowed
+            ElseIf (Value <> 2) OrElse (MutableDeviceCapabilityFlagCheck(DC_ORIENTATION) = 0) Then
+                ThrowBadPropertyError
+            End If
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmOrientation), DM_ORIENTATION, Value, CurrentProcedureName)
+    End Property
+    
+    [TypeHint(PrinterObjectConstants_PaperSize)]
+    Property Get PaperSize() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPaperSize), DM_PAPERSIZE)
+    End Property
+    
+    Public Property Let PaperSize([TypeHint(PrinterObjectConstants_PaperSize)] ByVal Value As Integer)
+        If InternalMutable Then
+            ' FIXME check DC_PAPERSIZE
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPaperSize), DM_PAPERSIZE, Value, CurrentProcedureName)
+    End Property
+    
+    Property Get Zoom() As Integer
+        Return GetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmScale), DM_SCALE)
+    End Property
+    
+    Public Property Let Zoom(ByVal Value As Integer)
+        If InternalMutable Then
+            If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+            If Value <= 0 Then
+                ThrowBadPropertyError()
+            End If
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmScale), DM_SCALE, Value, CurrentProcedureName)
+    End Property
+        
+    Property Get Width() As Long        ' truncates the result to a Long
+        Dim hdc As HDC = Me.hDC
+       
+        ' Despite reading the print offset, VB6 doesn't actually seem to use it here, so we don't bother.
+        ' Dim printOffset As VB.POINT
+        ' If Escape(hdc, GETPRINTINGOFFSET, 0, 0, printOffset) = 0 Then
+        '     GoTo PrinterError
+        ' End If
+
+        Dim pixelsPerLogicalInchX As Long = hdc.GetDeviceCaps(LOGPIXELSX)
+        'Debug.Print "pixelsPerLogicalInchX: " & pixelsPerLogicalInchX
+        If pixelsPerLogicalInchX = 0 Then GoTo PrinterError
+        Dim physicalSize As VB.POINT
+        If hdc.Escape(GETPHYSPAGESIZE, 0, 0, physicalSize) = 0 Then
+            GoTo PrinterError
+        End If
+        Return CLng(physicalSize.x * 1440.0 / CDbl(pixelsPerLogicalInchX))
+        
+    PrinterError:
+        Err.Raise 482, , "Printer error"
+    End Property
+    
+    Property Let Width(ByVal Value As Long)
+        If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+        If InternalMutable = True Then
+            With CType(Of DEVMODEW)(DevModePtr)
+                .dmPaperSize = 0
+            End With
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPaperWidth), DM_PAPERSIZE Or DM_PAPERWIDTH, CInt(Value / ((10 * 1440) / 2540)), CurrentProcedureName)
+    End Property
+    
+    Property Get Height() As Long        ' truncates the result to a Long
+        Dim hdc As HDC = Me.hDC
+        
+        ' Despite reading the print offset, VB6 doesn't actually seem to use it here, so we don't bother.
+        Dim printOffset As VB.POINT
+        If hdc.Escape(GETPRINTINGOFFSET, 0, 0, printOffset) = 0 Then
+            GoTo PrinterError
+        End If
+
+        Dim pixelsPerLogicalInchY As Long = hdc.GetDeviceCaps(LOGPIXELSY)
+        'Debug.Print "pixelsPerLogicalInchY: " & pixelsPerLogicalInchY
+        If pixelsPerLogicalInchY = 0 Then GoTo PrinterError
+        Dim physicalSize As VB.POINT
+        If hdc.Escape(GETPHYSPAGESIZE, 0, 0, physicalSize) = 0 Then
+            GoTo PrinterError
+        End If
+        Return CLng(physicalSize.y * 1440.0 / CDbl(pixelsPerLogicalInchY))
+        
+    PrinterError:
+        Err.Raise 482, , "Printer error"
+    End Property
+    
+    Property Let Height(ByVal Value As Long)
+        If InternalIsBlankPage = False Then ThrowCannotBeSetWithinPageError(CurrentProcedureName)
+        If InternalMutable = True Then
+            With CType(Of DEVMODEW)(DevModePtr)
+                .dmPaperSize = 0
+            End With
+        End If
+        SetDevModePropInteger(VarPtr(CType(Of DEVMODEW)(vbNullPtr).dmPaperLength), DM_PAPERSIZE Or DM_PAPERLENGTH, CInt(Value / ((10 * 1440) / 2540)), CurrentProcedureName)
+    End Property
+    
+    Protected Sub InternalReset()
+        InternalPrintId = -1
+        InternalIsBlankPage = True
+        If Internal_CachedDevModePtr <> vbNullPtr Then
+            [_HiddenModule].FreeMem(Internal_CachedDevModePtr)
+            Internal_CachedDevModePtr = vbNullPtr
+        End If
+        InternalPageCount = 1
+        'CurrentX = 0
+        'CurrentY = 0
+    End Sub
+    
+    Sub EndDoc()
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        If Me.InternalPrintId <> -1 Then
+            Dim hdc As Any = Me.InternalHDC
+            InternalHDC()
+            hdc.EndDoc()
+        End If
+        InternalReset()
+    End Sub
+    
+    Sub KillDoc()
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        Dim hdc As Any = Me.InternalHDC
+        If Me.InternalPrintId <> -1 Then
+            hdc.EndPage()
+            hdc.AbortDoc()
+        End If
+        If InternalCachedDC.Value <> vbNullPtr Then
+            hdc.DeleteDC()
+            InternalCachedDC = vbNullPtr
+        End If
+        InternalReset()
+    End Sub
+    
+    Sub NewPage()
+        If InternalPrintId = -1 Then StartPrint()
+        
+        InternalPageCount += 1
+        Dim hdc As Any = Me.InternalHDC
+        hdc.EndPage()
+        If hdc.StartPage() <= 0 Then
+            'ThrowPrinterError()            ' return value ignored by VB6
+        End If
+        InternalIsBlankPage = True
+        
+        #If FEATURE_DRAWING Then
+        CurrentX = 0
+        CurrentY = 0
+        #End If
+    End Sub
+    
+    Public Property Get Page() As Long
+        Return InternalPageCount
+    End Property
+    
+    Protected Sub StartPrint()
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        
+        TrackDefault = False
+        
+        Dim hdc As Any = Me.InternalHDC
+        Dim DocInfo As DOCINFOW
+        DocInfo.cbSize = LenB(Of DOCINFOW)
+        DocInfo.DocName = App.Title
+        If Len(OutputFile) > 0 Then DocInfo.Output = OutputFile
+        InternalPrintId = hdc.StartDocW(DocInfo)
+        If InternalPrintId < 0 Then
+            InternalPrintId = -1
+            ThrowPrinterError
+        End If
+        If hdc.StartPage() <= 0 Then
+            'ThrowPrinterError()        ' return value ignored by VB6
+        End If
+        InternalIsBlankPage = True
+    End Sub
+    
+    #If FEATURE_DRAWING Then
+    Public Sub Circle(ByVal Flags As Long, _
+                        ByVal X As Single, ByVal Y As Single, _
+                        ByVal Radius As Single, _    
+                        ByVal Color As Long, _
+                        ByVal Start As Single, _
+                        ByVal _End As Single, _
+                        ByVal Aspect As Single)
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        InternalGraphicsBase.[Circle](Flags, X, Y, Radius, Color, Start, _End, Aspect)
+    End Sub
+    
+    Public Sub Line(ByVal Flags As Long, _
+                        ByVal X1 As Single, _
+                        ByVal Y1 As Single, _
+                        ByVal X2 As Single, _
+                        ByVal Y2 As Single, _
+                        ByVal Color As Long)
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        InternalGraphicsBase.[Line](Flags, X1, Y1, X2, Y2, Color)
+    End Sub
+    
+    Public Sub PSet(ByVal Flags As Long, _
+                        ByVal X As Single, _
+                        ByVal Y As Single, _
+                        ByVal Color As Long)
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        InternalGraphicsBase.[PSet](Flags, X, Y, Color)
+    End Sub
+    #End If
+    
+    Protected Sub OutputFileChanged() _
+        Handles OutputFile.OnPropertyLet
+    
+        If InternalMutable = False Then
+            OutputFile = vbNullString
+            ThrowPropertyIsReadOnlyError("OutputFile")
+        End If
+    End Sub
+        
+    Protected Sub PrepDC()
+        hDC        ' ensures the hDC is prepped.  VB6 doesn't do this, but we need to as we currently store InternalCurrentX as a scaled pixel
+    End Sub
+    
+    #If FEATURE_DRAWING Then
+    Public Property Get CurrentX() As Double
+        PrepDC
+        Return InternalGraphicsBase.CurrentX
+    End Property
+    
+    Public Property Let CurrentX(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        PrepDC
+        InternalGraphicsBase.CurrentX = Value
+    End Property
+    
+    Public Property Get CurrentY() As Double
+        PrepDC
+        Return InternalGraphicsBase.CurrentY
+    End Property
+    
+    Public Property Let CurrentY(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        PrepDC
+        InternalGraphicsBase.CurrentY = Value
+    End Property
+    
+    Public Property Get DrawMode() As DrawModeConstants
+        Return InternalGraphicsBase.DrawMode
+    End Property
+    
+    Public Property Let DrawMode(ByVal Value As DrawModeConstants)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.DrawMode = Value
+        InternalCachedExplicitDrawMode = Value          ' DrawMode has a weird memory effect when switching between TrackDefault modes
+    End Property
+    
+    Public Property Get DrawStyle() As DrawStyleConstants
+        Return InternalGraphicsBase.DrawStyle
+    End Property
+    
+    Public Property Let DrawStyle(ByVal Value As DrawStyleConstants)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.DrawStyle = Value
+    End Property
+    
+    Public Property Get DrawWidth() As Long
+        Return InternalGraphicsBase.DrawWidth
+    End Property
+    
+    Public Property Let DrawWidth(ByVal Value As Long)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.DrawWidth = Value
+    End Property
+    
+    Public Property Get FillColor() As OLE_COLOR
+        Return InternalGraphicsBase.FillColor
+    End Property
+    
+    Public Property Let FillColor(ByVal Value As OLE_COLOR)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FillColor = Value
+    End Property
+    
+    Public Property Get FillStyle() As FillStyleConstants
+        Return InternalGraphicsBase.FillStyle
+    End Property
+    
+    Public Property Let FillStyle(ByVal Value As FillStyleConstants)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FillStyle = Value
+    End Property
+    
+    Public Property Get Font() As StdFont
+        If InternalMutable = False Then
+            ' VB6 allows Font to be accessed, and is mutable, from the printers read-only collection of printers
+            If InternalFont Is Nothing Then
+                Set InternalFont = New StdFont
+            End If
+            Return InternalFont
+        End If
+        PrepDC
+        Return InternalGraphicsBase.Font
+    End Property
+        
+    Public Property Let Font(ByVal Value As Variant)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        If VarType(Value) = vbString Then
+            Font.Name = Value
+        Else
+            Set InternalGraphicsBase.Font = CType(Of StdFont)(Value)
+        End If
+    End Property
+    
+    Public Property Set Font(ByVal Value As StdFont)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        Set InternalGraphicsBase.Font = Value
+    End Property
+    
+    Public Property Get FontBold() As Boolean
+        Return InternalGraphicsBase.FontBold
+    End Property
+    
+    Public Property Let FontBold(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontBold = Value
+    End Property
+    
+    Public Property Get FontItalic() As Boolean
+        Return InternalGraphicsBase.FontItalic
+    End Property
+    
+    Public Property Let FontItalic(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontItalic = Value
+    End Property
+    
+    Public Property Get FontStrikethru() As Boolean
+        Return InternalGraphicsBase.FontStrikethru
+    End Property
+    
+    Public Property Let FontStrikethru(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontStrikethru = Value
+    End Property
+    
+    Public Property Get FontTransparent() As Boolean
+        Return InternalGraphicsBase.FontTransparent
+    End Property
+    
+    Public Property Let FontTransparent(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontTransparent = Value
+    End Property
+    
+    Public Property Get FontUnderline() As Boolean
+        Return InternalGraphicsBase.FontUnderline
+    End Property
+    
+    Public Property Let FontUnderline(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontUnderline = Value
+    End Property
+    
+    Public Property Get FontName() As String
+        Return InternalGraphicsBase.FontName
+    End Property
+    
+    Public Property Let FontName(ByVal Value As String)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontName = Value
+    End Property
+    
+    Public Property Get FontSize() As Single
+        Return InternalGraphicsBase.FontSize
+    End Property
+    
+    Public Property Let FontSize(ByVal Value As Single)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.FontSize = Value
+    End Property
+    #End If
+    
+    #If FEATURE_DRAWING Then
+    Public Property Get ForeColor() As OLE_COLOR
+        Return InternalGraphicsBase.ForeColor
+    End Property
+    
+    Public Property Let ForeColor(ByVal Value As OLE_COLOR)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.ForeColor = Value
+    End Property
+    
+    Public Sub PaintPicture(ByVal Picture As IPictureDisp, ByVal X1 As Single, ByVal Y1 As Single, Optional ByVal Width1 As Variant, Optional ByVal Height1 As Variant, Optional ByVal X2 As Variant, Optional ByVal Y2 As Variant, Optional ByVal Width2 As Variant, Optional ByVal Height2 As Variant, Optional ByVal Opcode As Variant)
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        InternalGraphicsBase.PaintPicture(Picture, X1, Y1, Width1, Height1, X2, Y2, Width2, Height2, Opcode)
+    End Sub
+    #End If
+    
+    Public Sub Scale(ByVal Flags As Long, _
+                        ByVal X1 As Single, _
+                        ByVal Y1 As Single, _
+                        ByVal X2 As Single, _
+                        ByVal Y2 As Single)
+        If InternalPrintId = -1 Then StartPrint     ' Don't know why, but VB6 causes StartDoc here(despite setting the coords independently does not)
+        
+        If Flags = 0 Then
+            InternalGraphicsBase.ScaleLeft = 0
+            InternalGraphicsBase.ScaleTop = 0
+            InternalGraphicsBase.ScaleMode = ScaleModeConstants.vbTwips
+        Else
+            InternalGraphicsBase.ScaleLeft = X1
+            InternalGraphicsBase.ScaleTop = Y1
+            UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthX = (X2 - X1) / Me.Width
+            UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthY = (Y2 - Y1) / Me.Height
+            InternalGraphicsBase.ScaleMode = ScaleModeConstants.vbUser
+            End If
+    End Sub
+    
+    Public Property Get ScaleLeft() As Double
+        Return InternalGraphicsBase.ScaleLeft
+    End Property
+    
+    Protected Sub ChangeToUserScaleMode()
+        If InternalGraphicsBase.ScaleMode <> vbUser Then
+            Dim scaleWidthBefore As Any = Me.ScaleWidth
+            Dim scaleHeightBefore As Any = Me.ScaleHeight
+            InternalGraphicsBase.ScaleMode = vbUser
+            UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthX = scaleWidthBefore / Me.Width
+            UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthY = scaleHeightBefore / Me.Height
+        End If
+    End Sub
+    
+    Public Property Let ScaleLeft(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        ChangeToUserScaleMode()
+        InternalGraphicsBase.ScaleLeft = Value
+    End Property
+    
+    Public Property Get ScaleTop() As Double
+        Return InternalGraphicsBase.ScaleTop
+    End Property
+    
+    Public Property Let ScaleTop(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        ChangeToUserScaleMode()
+        InternalGraphicsBase.ScaleTop = Value
+    End Property
+    
+    Public Property Get ScaleWidth() As Double
+        
+        If InternalGraphicsBase.ScaleMode = vbUser Then
+            Return Me.Width * UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthX
+        End If
+        
+        Dim hdc As HDC = Me.hDC
+       
+        ' Despite reading the print offset, VB6 doesn't actually seem to use it here, so we don't bother.
+        ' Dim printOffset As VB.POINT
+        ' If Escape(hdc, GETPRINTINGOFFSET, 0, 0, printOffset) = 0 Then
+        '     GoTo PrinterError
+        ' End If
+        
+        Dim xRes As Long = hdc.GetDeviceCaps(8)  ' HORZRES
+
+        Dim pixelsPerLogicalInchX As Long = hdc.GetDeviceCaps(LOGPIXELSX)
+        'Debug.Print "pixelsPerLogicalInchX: " & pixelsPerLogicalInchX
+        If pixelsPerLogicalInchX = 0 Then GoTo PrinterError
+        ' Dim physicalSize As VB.POINT
+        ' If Escape(hdc, GETPHYSPAGESIZE, 0, 0, physicalSize) = 0 Then
+        '     GoTo PrinterError
+        ' End If
+        Return ScaleX((xRes * 1440) / pixelsPerLogicalInchX, vbTwips)
+        
+    PrinterError:
+        Err.Raise 482, , "Printer error"
+    End Property
+    
+    Public Property Let ScaleWidth(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        ChangeToUserScaleMode()
+        UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthX = Value / Me.Width
+    End Property
+    
+    Public Property Get ScaleHeight() As Double
+       
+        If InternalGraphicsBase.ScaleMode = vbUser Then
+            Return Me.Height * UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthY
+        End If
+        
+        Dim hdc As HDC = Me.hDC
+       
+        ' Despite reading the print offset, VB6 doesn't actually seem to use it here, so we don't bother.
+        ' Dim printOffset As VB.POINT
+        ' If Escape(hdc, GETPRINTINGOFFSET, 0, 0, printOffset) = 0 Then
+        '     GoTo PrinterError
+        ' End If
+
+        Dim yRes As Long = hdc.GetDeviceCaps(10)  ' VERTRES
+        
+        Dim pixelsPerLogicalInchY As Long = hdc.GetDeviceCaps(LOGPIXELSY)
+        'Debug.Print "pixelsPerLogicalInchY: " & pixelsPerLogicalInchY
+        If pixelsPerLogicalInchY = 0 Then GoTo PrinterError
+        ' Dim physicalSize As VB.POINT
+        ' If Escape(hdc, GETPHYSPAGESIZE, 0, 0, physicalSize) = 0 Then
+        '     GoTo PrinterError
+        ' End If
+        Return ScaleY((yRes * 1440) / pixelsPerLogicalInchY, vbTwips)
+        
+    PrinterError:
+        Err.Raise 482, , "Printer error"
+    End Property
+    
+    Public Property Let ScaleHeight(ByVal Value As Double)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        ChangeToUserScaleMode()
+        UnprotectedAccess(InternalGraphicsBase).InternalPrinterUserScaleWidthY = Value / Me.Height
+    End Property
+    
+    Public Property Get ScaleMode() As ScaleModeConstants
+        Return InternalGraphicsBase.ScaleMode
+    End Property
+    
+    Public Property Let ScaleMode(ByVal Value As ScaleModeConstants)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        InternalGraphicsBase.ScaleMode = Value
+        
+        If Value <> vbUser Then
+            InternalGraphicsBase.ScaleLeft = 0
+            InternalGraphicsBase.ScaleTop = 0
+        End If
+    End Property
+    
+    Public Function ScaleX(ByVal Width As Double, [TypeHint(ScaleModeConstants)] Optional ByVal FromScale As Variant, [TypeHint(ScaleModeConstants)] Optional ByVal ToScale As Variant) As Double
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        If IsMissing(FromScale) Then Err.Raise 448, , "Named argument not found"
+        If IsMissing(ToScale) Then ToScale = Me.ScaleMode
+        
+        Dim _FromScale As ScaleModeConstants = CType(Of ScaleModeConstants)(FromScale)
+        Dim _ToScale As ScaleModeConstants = CType(Of ScaleModeConstants)(ToScale)
+            
+        If _FromScale = _ToScale Then
+            Return Width
+        End If
+        
+        Dim _scaleX As Double
+        Dim _scaleY As Double
+        Dim _resX As Double
+        Dim _resY As Double
+        _resX = InternalHDC.GetDeviceCaps(LOGPIXELSX) / 1440
+        
+        UnprotectedAccess(InternalGraphicsBase).InternalGetPrinterScalesFromScaleMode(_FromScale, _scaleX, _scaleY, _resX, _resY)
+        
+        Dim interimValue As Double = Width / _scaleX 
+        
+        UnprotectedAccess(InternalGraphicsBase).InternalGetPrinterScalesFromScaleMode(_ToScale, _scaleX, _scaleY, _resX, _resY)
+    
+        Return interimValue * _scaleX
+    End Function
+    
+    Public Function ScaleY(ByVal Height As Double, [TypeHint(ScaleModeConstants)] Optional ByVal FromScale As Variant, [TypeHint(ScaleModeConstants)] Optional ByVal ToScale As Variant) As Double
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        If IsMissing(FromScale) Then Err.Raise 448, , "Named argument not found"
+        If IsMissing(ToScale) Then ToScale = Me.ScaleMode
+        
+        Dim _FromScale As ScaleModeConstants = CType(Of ScaleModeConstants)(FromScale)
+        Dim _ToScale As ScaleModeConstants = CType(Of ScaleModeConstants)(ToScale)
+            
+        If _FromScale = _ToScale Then
+            Return Height
+        End If
+        
+        Dim _scaleX As Double
+        Dim _scaleY As Double
+        Dim _resX As Double
+        Dim _resY As Double
+        _resY = InternalHDC.GetDeviceCaps(LOGPIXELSY) / 1440
+        
+        UnprotectedAccess(InternalGraphicsBase).InternalGetPrinterScalesFromScaleMode(_FromScale, _scaleX, _scaleY, _resX, _resY)
+        
+        Dim interimValue As Double = Height / _scaleY 
+        
+        UnprotectedAccess(InternalGraphicsBase).InternalGetPrinterScalesFromScaleMode(_ToScale, _scaleX, _scaleY, _resX, _resY)
+    
+        Return interimValue * _scaleY        
+    End Function
+    
+    Public Function TextWidth(ByVal str As String) As Double
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        #If FEATURE_DRAWING Then
+        Return InternalGraphicsBase.TextWidth(str)
+        #End If
+    End Function
+    
+    Public Function TextHeight(ByVal str As String) As Double
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        #If FEATURE_DRAWING Then
+        Return InternalGraphicsBase.TextHeight(str)
+        #End If
+    End Function
+    
+    Protected Sub WriteText(ByVal Value As String) _
+            Implements IVBPrint.WriteText
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        #If FEATURE_DRAWING Then
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        Dim GraphicsBaseText As VB.IVBPrint = InternalGraphicsBase
+        GraphicsBaseText.WriteText(Value)
+        #End If
+    End Sub
+    
+    Protected Property Get Column() As Long _
+            Implements IVBPrint.Column
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        #If FEATURE_DRAWING Then
+        Dim GraphicsBaseText As VB.IVBPrint = InternalGraphicsBase
+        Return GraphicsBaseText.Column
+        #End If
+    End Property
+    
+    Protected Property Let Column(ByVal Value As Long) _
+            Implements IVBPrint.Column
+        If InternalMutable = False Then ThrowObjectDoesntSupportError()
+        #If FEATURE_DRAWING Then
+        Dim GraphicsBaseText As VB.IVBPrint = InternalGraphicsBase
+        GraphicsBaseText.Column = Value
+        #End If
+    End Property
+    
+    Protected Sub CacheFontInfo()
+        RuntimePrinterGetFonts(Me.InternalHDC.Value, InternalCachedFontInfo)
+    End Sub
+    
+    Public Property Get FontCount() As Long
+        If IsArrayInitialized(InternalCachedFontInfo) = False Then CacheFontInfo()
+        Return UBound(InternalCachedFontInfo) + 1
+    End Property
+    
+    Public Property Get Fonts(ByVal Index As Long) As String
+        If Index >= FontCount Then Return ""
+        Return InternalCachedFontInfo(Index)
+    End Property
+    
+    [Unimplemented]
+    Public RightToLeft As Boolean
+    
+    Public Property Get TwipsPerPixelX() As Double
+        Dim scaleX As Double
+        Dim scaleY As Double
+        Dim resX As Double
+        Dim resY As Double
+        UnprotectedAccess(InternalGraphicsBase).InternalGetXYScales(scaleX, scaleY, resX, resY)
+        Return 1 / resX
+    End Property
+    
+    Public Property Get TwipsPerPixelY() As Double
+        Dim scaleX As Double
+        Dim scaleY As Double
+        Dim resX As Double
+        Dim resY As Double
+        UnprotectedAccess(InternalGraphicsBase).InternalGetXYScales(scaleX, scaleY, resX, resY)
+        Return 1 / resY
+    End Property
+    
+    Public Property Get TrackDefault() As Boolean
+        Return InternalTrackDefault
+    End Property
+    
+    Public Property Let TrackDefault(ByVal Value As Boolean)
+        If InternalMutable = False Then ThrowPropertyIsReadOnlyError(CurrentProcedureName)
+        
+        If InternalTrackDefault = True And Value = False Then
+            ' Lock on to the specific printer now
+            Dim liveDefaultPrinterInfo As Variant = GetLiveDefaultDeviceInfo()
+            InternalDeviceName = CStr(liveDefaultPrinterInfo(0))
+            InternalDriver = CStr(liveDefaultPrinterInfo(1))
+            InternalPort = CStr(liveDefaultPrinterInfo(2))
+            
+            If HasDCPrinterChanged() Then
+                'Debug.Print "** DETECTED CHANGED DEFAULT PRINTER... UNCACHING HDC"
+                UncacheDC()
+            End If
+        ElseIf Value = True Then
+            If Me.InternalPrintId <> -1 Then
+                Me.EndDoc
+            End If
+            InternalDeviceName = vbNullString
+            InternalDriver = vbNullString
+            InternalPort = vbNullString
+            UncacheDC()
+        End If
+        
+        If Value Then
+            #If FEATURE_DRAWING Then
+            InternalGraphicsBase.DrawMode = InternalCachedExplicitDrawMode
+            #End If
+        End If
+        InternalTrackDefault = Value
+    End Property
+
+    Protected Function PreparePrintForm() As GraphicsBase _
+            Implements ITwinBasicPrinter.PreparePrintForm
+        If InternalPrintId = -1 Then StartPrint
+        InternalIsBlankPage = False
+        Return InternalGraphicsBase
+    End Function
+    
+    Protected Sub ChangePrinter(ByVal NewPrinter As Printer) _
+               Implements ITwinBasicPrinter.ChangePrinter
+        Dim preservedScaleWidth As Double
+        Dim preservedScaleHeight As Double
+        Dim mustResetDrawMode As Boolean
+        If InternalDevModeIsCustomized Then
+            mustResetDrawMode = True
+        End If
+        If Me.ScaleMode = vbUser Then
+            ' We need to resotre the scale width/height after the change
+            preservedScaleWidth = Me.ScaleWidth
+            preservedScaleHeight = Me.ScaleHeight
+        End If
+        If Me.InternalPrintId <> -1 Then
+            Me.EndDoc
+        End If
+        Me.InternalDeviceName = NewPrinter.DeviceName
+        Me.InternalDriver = NewPrinter.DriverName
+        Me.InternalPort = NewPrinter.Port
+        InternalTrackDefault = False
+        UncacheDC()
+        If Me.ScaleMode = vbUser Then
+            ' We need to resotre the scale width/height after the change
+            Me.ScaleWidth = preservedScaleWidth
+            Me.ScaleHeight = preservedScaleHeight
+        End If
+        If mustResetDrawMode = True Then
+            #If FEATURE_DRAWING Then
+            Me.DrawMode = vbCopyPen     ' not sure why VB6 does this
+            #End If
+        End If
+    End Sub
+        
+End Class
+
+' [InterfaceId("33AD4F31-6699-11CF-B70C-00AA0060D393")]
+' Public Class Printer
+    
+'     [Unimplemented] Public Width As Long
+'     [Unimplemented] Public Height As Long
+'     [Unimplemented] Public FontName As String
+'     [Unimplemented] Public FontSize As Single
+'     [Unimplemented] Public FontBold As Boolean
+'     [Unimplemented] Public FontItalic As Boolean
+'     [Unimplemented] Public FontStrikethru As Boolean
+'     [Unimplemented] Public FontUnderline As Boolean
+'     [Unimplemented] Public hDC As LongPtr
+'     [Unimplemented] Public CurrentX As Single
+'     [Unimplemented] Public CurrentY As Single
+'     [Unimplemented] Public ScaleLeft As Single
+'     [Unimplemented] Public ScaleTop As Single
+'     [Unimplemented] Public ScaleWidth As Single
+'     [Unimplemented] Public ScaleHeight As Single
+'     [Unimplemented] Public ScaleMode As Integer
+'     [Unimplemented] Public FontTransparent As Boolean
+'     [Unimplemented] Public DrawStyle As Integer
+'     [Unimplemented] Public DrawWidth As Integer
+'     [Unimplemented] Public FillStyle As Integer
+'     [Unimplemented] Public FillColor As Long
+'     [Unimplemented] Public DrawMode As Integer
+'     [Unimplemented] Public ReadOnly Page As Integer
+'     [Unimplemented] Public ReadOnly FontCount As Integer
+'     [Unimplemented] Public Property Get Fonts(ByVal Index As Integer) As String
+'     End Property
+'     [Unimplemented] Public ReadOnly TwipsPerPixelX As Single
+'     [Unimplemented] Public ReadOnly TwipsPerPixelY As Single
+'     [Unimplemented] Public ReadOnly DeviceName As String
+'     [Unimplemented] Public ReadOnly DriverName As String
+'     [Unimplemented] Public ReadOnly Port As String
+'     [Unimplemented] Public Orientation As Integer
+'     [Unimplemented] Public PaperSize As Integer
+'     [Unimplemented] Public Zoom As Long
+'     [Unimplemented] Public Copies As Integer
+'     [Unimplemented] Public PaperBin As Integer
+'     [Unimplemented] Public ColorMode As Integer
+'     [Unimplemented] Public Duplex As Integer
+'     [Unimplemented] Public TrackDefault As Boolean
+'     [Unimplemented] Public PrintQuality As Integer
+'     [Unimplemented] Public Font As StdFont
+'     [Unimplemented] Public RightToLeft As Boolean
+'     [Unimplemented] Public ForeColor As Long
+'     [Unimplemented] Public Sub EndDoc()
+'     End Sub
+'     [Unimplemented] Public Sub NewPage()
+'     End Sub
+'     [Unimplemented] Public Sub KillDoc()
+'     End Sub
+'     [Unimplemented] Public Sub Circle(ByVal Flags As Integer, _
+'                         ByVal X As Single, ByVal Y As Single, _
+'                         ByVal Radius As Single, _	
+'                         ByVal Color As Long, _
+'                         ByVal Start As Single, _
+'                         ByVal _End As Single, _
+'                         ByVal Aspect As Single)
+'     End Sub
+'     [Unimplemented] Public Sub Line(ByVal Flags As Integer, _
+'                         ByVal X1 As Single, _
+'                         ByVal Y1 As Single, _
+'                         ByVal X2 As Single, _
+'                         ByVal Y2 As Single, _
+'                         ByVal Color As Long)
+'     End Sub
+'     [Unimplemented] Public Sub PaintPicture(ByVal Picture As StdPicture, ByVal X1 As Single, ByVal Y1 As Single, Optional ByVal Width1 As Variant, Optional ByVal Height1 As Variant, Optional ByVal X2 As Variant, Optional ByVal Y2 As Variant, Optional ByVal Width2 As Variant, Optional ByVal Height2 As Variant, Optional ByVal Opcode As Variant)
+'     End Sub
+'     [Unimplemented] Public Sub PSet(ByVal Flags As Integer, _
+'                         ByVal X As Single, _
+'                         ByVal Y As Single, _
+'                         ByVal Color As Long)
+'     End Sub
+'     [Unimplemented] Public Sub Scale(ByVal Flags As Integer, _
+'                         Optional ByVal X1 As Single, _
+'                         Optional ByVal Y1 As Single, _
+'                         Optional ByVal X2 As Single, _
+'                         Optional ByVal Y2 As Single)
+'     End Sub
+'     [Unimplemented] Public Function ScaleX(ByVal Width As Single, Optional ByVal FromScale As Variant, Optional ByVal ToScale As Variant) As Single
+'     End Function
+
+'     [Unimplemented] Public Function ScaleY(ByVal Height As Single, Optional ByVal FromScale As Variant, Optional ByVal ToScale As Variant) As Single
+'     End Function
+'     [Unimplemented] Public Function TextWidth(str As String) As Double
+'     End Function
+'     [Unimplemented] Public Function TextHeight(str As String) As Double
+'     End Function
+' End Class
+#End If

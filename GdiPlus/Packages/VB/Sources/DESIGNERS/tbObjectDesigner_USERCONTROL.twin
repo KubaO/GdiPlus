@@ -1,0 +1,8 @@
+[Description("")]
+[FormDesignerId("C1FD7E04-97AB-42E1-AAD6-0B82A0188576")]
+[ClassId("E62A63FC-DF1A-4F1B-B680-8F0A24E6717F")]
+[InterfaceId("10B79262-EC44-4358-9C0D-649FCE47F499")]
+[EventInterfaceId("CA3301ED-3F3C-4BD4-9DA6-3B6FAEE44EB3")]
+[COMControl]
+Private Class tbObjectDesigner_USERCONTROL
+End Class

@@ -1,0 +1,21 @@
+[InterfaceId("CBB76011-C508-11D1-A3E3-00A0C90AEA82")]
+'[ DualInterface]
+[Description("The AsyncProperty object is passed in to the AsyncReadComplete and AsyncReadProgress events, and contains the results of the asynchronous read.")]
+Public Interface AsyncProperty Extends stdole.IDispatch
+    [DispId(1)]
+    /* voffset &H001C*/ Property Get Value() As Variant
+    [DispId(2)]
+    /* voffset &H0020*/ Property Get AsyncType() As AsyncTypeConstants
+    [DispId(3)]
+    /* voffset &H0024*/ Property Get PropertyName() As String
+    [DispId(4)]
+    /* voffset &H0028*/ Property Get Target() As String
+    [DispId(5)]
+    /* voffset &H002C*/ Property Get BytesRead() As Long
+    [DispId(6)]
+    /* voffset &H0030*/ Property Get BytesMax() As Long
+    [DispId(7)]
+    /* voffset &H0034*/ Property Get Status() As String
+    [DispId(8)]
+    /* voffset &H0038*/ Property Get StatusCode() As AsyncStatusCodeConstants
+End Interface

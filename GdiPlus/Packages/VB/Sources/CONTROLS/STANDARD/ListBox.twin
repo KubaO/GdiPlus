@@ -1,0 +1,949 @@
+#If FEATURE_LISTBOX Then
+[ClassId("8DC63FEA-B470-47A4-BB0E-1A57D0254B02")]
+[InterfaceId("153EA3C9-2359-4F14-B8C9-F3BB5584B2B1")]    ' FIXME implement {33AD4F11-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class ListBoxBaseCtl
+    
+    #Region "INHERITANCE"
+
+        Inherits BaseControlFocusable
+        #If FEATURE_DATA_BINDINGS Then
+        Inherits DataFieldBinderBase
+        #End If
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements ITwinBasicDesignerExtensions2
+        Implements IWindowElementEventsCommon
+
+    #End Region
+        
+    #Region "STATE"
+    
+        [Description("")]
+            Public BorderStyle As VBRUN.ControlBorderStyleConstants = ControlBorderStyleConstants.vbFixedSingleBorder
+        [Description("")]
+            Public Sorted As Boolean = False
+        [Description("")]
+            Public MultiSelect As VBRUN.MultiSelectConstants '= VBRUN.MultiSelectConstants.vbMultiSelectNone
+        [Description("")]
+            Public Style As VBRUN.ListBoxConstants '= VBRUN.ListBoxConstants.vbListBoxStandard
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public ForeColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description("")]
+            Public IntegralHeight As Boolean = True
+        [Description("")]
+            Public Columns As Long
+        [Serialize(False)]
+        [Description("")]
+            Public NewIndex As Long = -1
+        [Description("VB6 doesn't trigger the Scroll event for mouse-wheel events.  Set this to True to generate Scroll events in response to mouse-wheel notifications")]
+            Public WheelScrollEvent As Boolean = True
+        [Description("")]
+            Public MaxCheckboxSize As Long = 15
+        [Description("Specifies whether vbTab characters are expanded when rendering strings in the listbox")]
+            Public UseTabStops As Boolean = True
+            
+        [Serialize(True, "List")]
+            Protected List_INIT() As String
+        [Serialize(True, "ItemData")]
+            ' This field is purposely declared as a Long not LongPtr, since item data stored in the form designer needs to be platform agnostic
+            Protected ItemData_INIT() As Long
+            Protected IsMultiColumn As Boolean
+            Protected CachedTopIndex As Long
+            Protected CheckBoxState() As Byte
+            Protected ListBoxImageSize As Long
+            Protected IsInitializing As Boolean
+                        
+            #If FEATURE_OLEDRAGDROP Then
+            Protected OLEDragDropHandler As OLEDragDropHandler
+            #end if
+            Protected MouseDownNeedsManualRelease As Boolean
+            Protected IsDesignMode As Boolean
+            Protected InternalActualItemTextHeight As Long
+            
+        [Unimplemented]
+            Public RightToLeft As Boolean
+
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+
+        #If FEATURE_OLEDRAGDROP Then
+        Public OLEDragMode As VBRUN.OLEDragConstants
+    
+        [CustomDesigner("designer_RestrictedOLEDropMode")]
+            Public OLEDropMode As VBRUN.OLEDropConstants
+        
+        Public Sub OLEDrag()
+            CommonOLEDrag(Me)
+        End Sub
+        #End If
+                
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #end if
+        
+    #End Region
+
+    #Region "EVENTS"
+    
+        [DefaultDesignerEvent]
+        [Description("")]
+        [DispId(&HEAEA0004)]
+            Event Click()
+        [Description("")]
+        [DispId(&HEAEA0005)]
+            Event DblClick()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+        [DispId(&HEAEA0001)]
+            Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0002)]
+            Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA0003)]
+            Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        [Description("")]
+            Event ItemCheck(Item As Integer)
+        [Description("")]
+            Event Scroll()
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        Event OLECompleteDrag(Effect As Long)
+        Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Event OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+        Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+        Event OLESetData(Data As DataObject, DataFormat As Integer)
+        Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+
+    #End Region
+               
+    #Region "MEMBERS"
+    
+        Sub New()
+            BaseControlFocusable.New(ControlTypeConstants.vbListBox)
+        End Sub
+             
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+            
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+            
+            Me.InternalStateReset()     ' resets all the base class state
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #endif
+            
+            Me.IsMultiColumn = False
+            Me.CachedTopIndex = 0
+            Erase Me.CheckBoxState
+            Me.ListBoxImageSize = 0
+            Me.IsInitializing = True
+            Me.MouseDownNeedsManualRelease = False
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "ListBox"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Me.IsMultiColumn = Me.Columns > 0
+                            
+            Dim extendedStyles As Long = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+                
+                If Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                    If BaseControlFocusable.Appearance = AppearanceConstants.vbAppear3d Then
+                        extendedStyles += WS_EX_CLIENTEDGE
+                    End If
+                End If
+
+            Dim InitData As WindowCreationData
+            InitData.WindowAtomIdx = CInt(EnumWindowAtoms.AtomIdx_ThunderListBox)
+            'InitData.Caption = vbNullString
+            InitData.WindowStyles = GetStyles()
+            InitData.ExtendedStyles = extendedStyles
+            InitData.Flags = NeedsPrePostMessages Or _
+                                ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardMouseMove Or _
+                                ForwardMouseUp Or _
+                                ForwardDragOver Or _
+                                ForwardValidate
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        Protected Function GetStyles() As Long
+        	Dim myStyle As Any = Me.Style
+            Dim styles As Long = CLng(ListBoxStyles.LBS_NOTIFY) + _
+                        If(Me.UseTabStops, CLng(ListBoxStyles.LBS_USETABSTOPS), 0&) + _
+                        If(Me.Sorted, CLng(ListBoxStyles.LBS_SORT), 0&) + _
+                        If(Me.Columns > 0, CLng(ListBoxStyles.LBS_MULTICOLUMN Or WS_HSCROLL), CLng(WS_VSCROLL)) + _
+                        If(Me.IntegralHeight = False, CLng(ListBoxStyles.LBS_NOINTEGRALHEIGHT), 0&) + _
+                        If(myStyle <> ListBoxConstants.vbListBoxStandard, CLng(ListBoxStyles.LBS_OWNERDRAWFIXED Or ListBoxStyles.LBS_HASSTRINGS), 0&)
+
+                If myStyle = ListBoxConstants.vbListBoxStandard Then
+                    Select Case Me.MultiSelect
+                        Case MultiSelectConstants.vbMultiSelectSimple: styles += ListBoxStyles.LBS_MULTIPLESEL
+                        Case MultiSelectConstants.vbMultiSelectExtended: styles += ListBoxStyles.LBS_EXTENDEDSEL
+                    End Select
+                Else
+                    ' FIXME error if MultiSelect is not 0
+                End If
+                
+                If Me.BorderStyle = ControlBorderStyleConstants.vbFixedSingleBorder Then
+                    If BaseControlFocusable.Appearance = AppearanceConstants.vbAppear3d Then
+                    Else
+                        styles += WS_BORDER
+                    End If
+                End If
+            
+            Return styles
+        End Function
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            
+            ' disconnect anything that causes a circular reference here
+            #If FEATURE_OLEDRAGDROP Then
+            If OLEDragDropHandler IsNot Nothing Then OLEDragDropHandler.Disconnect()
+            #End If
+            
+            #If FEATURE_DATA_BINDINGS Then
+            Me.InternalStateResetDataBinderBase()
+            #end if
+            Set Me.Font = Nothing
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+                
+        Protected Sub PostProcessMessage(ByVal hwnd As LongPtr, ByVal Message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByRef ReturnValue As LongPtr, ByVal PostMessageCookie As Long) _
+                Implements IWindowElementEventsCommon.PostProcessMessage
+
+            Select Case Message
+                Case ListBoxMessages.LB_SETTOPINDEX
+                    CheckTopIndexChanged()
+            End Select
+        End Sub
+    
+        Protected Function GetCustomDrawnHeight() As Long
+            With GetFontMetrics()
+                InternalActualItemTextHeight = .TMHeight + .TMExternalLeading
+                If Style = vbListBoxColorSwatch Then
+                    Return CLng(InternalActualItemTextHeight + (8 * (RootWindowElementBase.RuntimeUIGetDPI() / 96)))
+                Else
+                    Return InternalActualItemTextHeight
+                End If
+            End With
+        End Function
+        
+        Protected Sub HandleFontChanged() _
+                Implements IWindowElementEventsCommon.FontChanged
+        
+            If IsInitializing = False Then
+                If Style <> ListBoxConstants.vbListBoxStandard Then
+                    ' for custom drawing we have to manually update the item height as MeasureItem won't be recalled
+                    SendMessageCtl(LB_SETITEMHEIGHT, 0, GetCustomDrawnHeight())
+                End If
+            End If
+        End Sub
+        
+        Protected Sub MeasureItem(ByRef Info As MEASUREITEMSTRUCT, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.MeasureItem
+ 
+            ' Careful! This occurs BEFORE the Create event, so the windows font has not yet been set!
+            Info.ItemHeight = GetCustomDrawnHeight()
+        End Sub
+         
+        Protected Sub DrawItem(ByRef Info As DRAWITEMSTRUCT, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.DrawItem
+ 
+            Dim ItemId As Any = Info.ItemID
+            
+            If Info.CtlType = OwnerDrawTypes.ODT_LISTBOX And ItemId > -1 Then
+                
+                Dim Info_hDC As Any = Info.hDC
+                
+                Dim itemHeight As Long = Info.RCItem.Bottom - Info.RCItem.Top
+                If Style = vbListBoxCheckbox Then
+                    ListBoxImageSize = CLng(MaxCheckboxSize * (RootWindowElementBase.RuntimeUIGetDPI() / 96))
+                    If ListBoxImageSize > itemHeight Then ListBoxImageSize = itemHeight
+                Else
+                    ListBoxImageSize = itemHeight
+                End If
+                
+                Dim checkBoxRect As tbRECT
+                With Info.RCItem
+                    checkBoxRect.Left = .Left + 1
+                    checkBoxRect.Top = .Top + 1
+                    checkBoxRect.Right = .Left + ListBoxImageSize - 1
+                    checkBoxRect.Bottom = .Bottom - 1
+                    
+                    Info.RCItem.Left += ListBoxImageSize
+                End With
+
+                Dim itemIsChecked As Boolean
+                
+                If Style = vbListBoxCheckbox Then
+                    itemIsChecked = IsItemChecked(ItemId)
+                End If
+                
+                Dim frameFlags As Long
+                frameFlags = DrawFrameTypes.DFCS_FLAT + _ 
+                                DrawFrameTypes.DFCS_BUTTONCHECK + _
+                                If(itemIsChecked, DrawFrameTypes.DFCS_CHECKED, 0&)
+                
+                Dim backColor As OLE_COLOR
+                Dim textColor As OLE_COLOR
+                If Info.ItemState And OwnerDrawState.ODS_DISABLED Then
+                    backColor = Me.BackColor
+                    textColor = vbGrayText
+                    frameFlags += DrawFrameTypes.DFCS_INACTIVE
+                ElseIf Info.ItemState And OwnerDrawState.ODS_SELECTED Then
+                    backColor = vbHighlight
+                    textColor = vbHighlightText
+                Else
+                    backColor = Me.BackColor
+                    textColor = Me.ForeColor
+                End If
+                
+                Dim backBrush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(backColor))
+                Info_hDC.FillRect(Info.RCItem, backBrush)
+                GDI32.DeleteObject(backBrush)
+                
+                Dim TextPaddingLeft As Long
+                If Style = vbListBoxCheckbox Then
+                    If VisualStyles Then
+                        Dim Theme As LongPtr = UXTHEME.OpenThemeData(RootWindowElementBase.RuntimeUIGetHandle(), "Button")
+                        Dim CheckState As Long
+                        If Info.ItemState And ODS_DISABLED Then
+                            CheckState = If(itemIsChecked, CBS_CHECKEDDISABLED, CBS_UNCHECKEDDISABLED)
+                        Else
+                            CheckState = If(itemIsChecked, CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL)
+                        End If
+                        
+                        If UXTHEME.IsThemeBackgroundPartiallyTransparent(Theme, BP_CHECKBOX, CheckState) <> 0 Then
+                            UXTHEME.DrawThemeParentBackground(Info.hWndItem, Info_hDC, checkBoxRect)
+                        End If
+                        UXTHEME.DrawThemeBackground(Theme, Info_hDC, BP_CHECKBOX, CheckState, checkBoxRect, checkBoxRect)
+                        UXTHEME.CloseThemeData Theme
+                    Else
+                        Info_hDC.DrawFrameControl(checkBoxRect, DFC_BUTTON, frameFlags)
+                    End If
+                    TextPaddingLeft = 1
+                ElseIf Style = vbListBoxColorSwatch Then
+                    ' For displaying color swatches in place of checkboxes
+                    Dim backBrush2 As LongPtr = GDI32.CreateSolidBrush(TranslateColor(CLng(ItemData(ItemId))))
+                    Info_hDC.FillRect(checkBoxRect, backBrush2)
+                    GDI32.DeleteObject(backBrush2)
+                    TextPaddingLeft = 3
+                End If
+                      
+                Dim TextPaddingTop As Long = (itemHeight - InternalActualItemTextHeight) \ 2
+                Info_hDC.CommonTextOut(Me.List(ItemId), textColor, CLng(Info.RCItem.Left + (TextPaddingLeft * (RootWindowElementBase.RuntimeUIGetDPI() / 96))), Info.RCItem.Top + TextPaddingTop, Me.UseTabStops)
+
+                If Info.ItemState And OwnerDrawState.ODS_FOCUS Then
+                    Dim oldForeColor As Long = Info_hDC.SetTextColor(vbBlack)        ' important to ensure the focus rect appears dotted
+                    Dim oldBkColor As Long = Info_hDC.SetBkColor(vbWhite)            ' important to ensure the focus rect appears dotted
+                    Info_hDC.DrawFocusRect(Info.RCItem)
+                    Info_hDC.SetTextColor(oldForeColor)
+                    Info_hDC.SetBkColor(oldBkColor)
+                End If
+            End If
+            
+        End Sub
+        
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+                
+            If IsHorizontal = False Then
+                If RootWindowElementBase.CommonHandleVerticalScroll(ScrollType, Me.ListCount) = True Then
+                    Dim Value As Long = RootWindowElementBase.GetScrollValue(SB_VERT)
+                    SendMessageCtl(ListBoxMessages.LB_SETTOPINDEX, Value, 0)
+                End If
+            End If
+            
+            'CheckTopIndexChanged()
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            ' Set the font into the control first.  If IntegralHeight is active, then the control will adjust accordingly.
+            SyncFontProperties()
+            If Me.IntegralHeight Then
+                Me.InternalSyncHeight()
+            End If
+            
+            SyncColumns()
+            
+            If Style = ListBoxConstants.vbListBoxCheckbox Then
+                ReDim CheckBoxState(0)
+            End If
+
+            ' FIXME could send LB_INITSTORAGE to pre-allocate the storage here
+            Dim Item As String
+            For Each Item In List_INIT
+                AddItem(Item)
+            Next
+            
+            ' FIXME handle ItemData list is longer than List
+            Dim ItemData As Long
+            Dim ItemDataIndex As Long
+            For Each ItemData In ItemData_INIT
+                Me.ItemData(ItemDataIndex) = CLngPtr(ItemData)
+                ItemDataIndex += 1
+            Next
+                      
+            #If FEATURE_OLEDRAGDROP Then
+            SyncOLEDropMode()
+            #end if
+            
+            #If FEATURE_DATA_BINDINGS Then
+            If IsDesignMode = False Then SetupBindings()
+            #end If
+            
+            RaiseEvent Initialize()
+            IsInitializing = False
+        End Sub
+        
+        Protected Sub SyncRecreate() _
+                Handles Style.OnPropertyLet, _
+                        MultiSelect.OnPropertyLet, _
+                        Sorted.OnPropertyLet, _
+                        IntegralHeight.OnPropertyLet, _
+                        UseTabStops.OnPropertyLet
+                
+            Dim TopIndex As Long = Me.TopIndex
+            Dim ListIndex As Long = Me.ListIndex
+            Dim ListCount As Long = Me.ListCount
+
+            Dim List() As String
+            Dim ItemData() As LongPtr
+            Dim ItemCheckedState() As Byte
+            ReDim List(ListCount)
+            ReDim ItemData(ListCount)
+            ReDim ItemCheckedState(ListCount)
+            
+            Dim index As Long = 0
+            While index < ListCount
+            	List(index) = Me.List(index)
+            	ItemData(index) = Me.ItemData(index)
+                ItemCheckedState(index) = CByte(Me.IsItemChecked(index))
+                index += 1
+            Wend
+            
+            Erase List_INIT ' prevent auto repopulation from the initialization data
+            Erase ItemData_INIT
+            Erase CheckBoxState
+            
+            RecreateWindow(GetStyles())
+            
+            index = 0
+            While index < ListCount
+                'AddItem(List(index))       ' dont use this as it resets the Checked state
+                Dim newItemIndex As Long = CLng(SendMessageCtl(ListBoxMessages.LB_ADDSTRING, 0, StrPtrSafe(List(index))))
+            	Me.ItemData(newItemIndex) = ItemData(index)
+                
+                If Style = ListBoxConstants.vbListBoxCheckbox Then
+                    Me.SetItemCheckedState(newItemIndex, CBool(ItemCheckedState(index)))
+                End If
+                index += 1
+            Wend
+                        
+            If ListIndex <> -1 Then Me.ListIndex = ListIndex
+            Me.TopIndex = TopIndex
+        End Sub
+        
+        Protected Sub HandleGetColors(ByVal hdc As HDC, ByRef BackBrushOut As LongPtr, ByVal ControlType As ControlTypeConstants) _
+                Implements IWindowElementEventsCommon.GetColors
+                
+            HandleGetColorsCommon(hdc, BackBrushOut, Me)
+        End Sub
+        
+        Protected Sub HandleCommand(ByVal NotificationCode As ListBoxNotifications, _
+                                    ByVal Identifier As Integer, ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Command
+                
+            Select Case NotificationCode
+                Case ListBoxNotifications.LBN_SELCHANGE
+                    CheckTopIndexChanged()
+                    #If FEATURE_DATA_BINDINGS Then
+                    OnDataChanged()
+                    #end if
+                    RaiseEvent Click()
+                    Handled = True
+                Case ListBoxNotifications.LBN_SELCANCEL
+                    #If FEATURE_DATA_BINDINGS Then
+                    OnDataChanged()
+                    #end if
+                    RaiseEvent Click()
+                    Handled = True
+                Case ListBoxNotifications.LBN_DBLCLK
+                    RaiseEvent DblClick()
+                    Handled = True
+            End Select
+        End Sub
+        
+        Protected Sub HandleWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
+                Implements IWindowElementEventsCommon.MouseWheel
+                
+            If Horizontal = False Then
+                If WheelScrollEvent Then CheckTopIndexChanged()
+            End If
+        End Sub
+
+        Protected Sub HandleKeyDown(ByRef KeyCode As VBRUN.KeyCodeConstants, _
+                                    ByVal ShiftState As VBRUN.ShiftConstants) _
+                Implements IWindowElementEventsCommon.KeyDown
+                
+            Dim KeyCodeInt As Integer = CInt(KeyCode)
+            RaiseEvent KeyDown(KeyCodeInt, CInt(ShiftState))
+            KeyCode = CType(Of VBRUN.KeyCodeConstants)(KeyCodeInt)
+            
+            If Style = vbListBoxCheckbox And KeyCode = vbKeySpace Then
+                ToggleItemCheckedState(ListIndex)
+            End If
+        End Sub
+                        
+        Protected Sub HandlePreMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single, _
+                                        ByRef SwallowMessage As Boolean) _
+                Implements IWindowElementEventsCommon.PreMouseDown
+            
+            Dim ControlContext As Any = Me.ControlContext
+            Dim itemIndex As Long
+            
+            #If FEATURE_OLEDRAGDROP Then
+            If OLEDragMode = vbOLEDragAutomatic Then
+                itemIndex = RootWindowElementBase.CommonListBoxPreMouseDownHandleOLEDragDetect(ControlContext, MouseDownNeedsManualRelease, Me.ListIndex, X, Y)
+                If itemIndex <> -1 Then
+                	Dim setValue As Variant
+                    If Me.MultiSelect Then
+                        setValue = RootWindowElementBase.CommonGetSelectedItemsAsDelimitedString()
+                    Else
+                        setValue = List(itemIndex)
+                    End If
+                    #If FEATURE_OLEDRAGDROP Then
+                    CommonOLEDrag(Me, setValue, False, False)
+                    #end if
+                    SwallowMessage = True
+                End If
+            End If
+            #end if
+            
+            If Style = ListBoxConstants.vbListBoxCheckbox Then
+                itemIndex = RootWindowElementBase.CommonListBoxGetItemIndexFromXY(ControlContext, X, Y)
+                If itemIndex = -1 Then Exit Sub
+                Dim clickedOnCheckBoxPart As Boolean = ((X * RootWindowElementBase.RuntimeUIGetUnitScale()) / ControlContext.RuntimeUICtxGetScaleModePixelsMultiplierX()) < ListBoxImageSize
+                                
+                If clickedOnCheckBoxPart Then
+                    ToggleItemCheckedState(itemIndex)
+                Else
+                    Dim isNewSelection As Boolean = ListIndex <> itemIndex
+                    If isNewSelection = False Then
+                        ToggleItemCheckedState(itemIndex)
+                    End If
+                End If
+            End If
+        End Sub
+                
+        Protected Sub HandleMouseDown(ByVal Button As VBRUN.MouseButtonConstants, _
+                                        ByVal ShiftState As VBRUN.ShiftConstants, _
+                                        ByVal X As Single, ByVal Y As Single) _
+                Implements IWindowElementEventsCommon.MouseDown
+                
+            RaiseEvent MouseDown(CInt(Button), CInt(ShiftState), X, Y)
+            
+            If MouseDownNeedsManualRelease = True Then
+                MouseDownNeedsManualRelease = False
+                USER32.ReleaseCapture()
+                RaiseEvent MouseUp(CInt(Button), CInt(ShiftState), X, Y)
+            End If
+        End Sub
+                        
+        [Serialize(False)]
+        Public Property Get TopIndex() As Long
+            Return CLng(SendMessageCtl(ListBoxMessages.LB_GETTOPINDEX, 0, 0))
+        End Property
+        
+        Protected Function CheckTopIndexChanged() As Boolean
+            Dim topIndex As Long = Me.TopIndex
+           ' Debug.TracePrint "topIndex: " & topIndex
+            If CachedTopIndex <> topIndex Then
+                CachedTopIndex = topIndex
+                RaiseEvent Scroll
+                Return True
+            End If
+            Return False
+        End Function
+    
+        [Serialize(False)]
+        Public Property Let TopIndex(ByVal Value As Long)
+            SendMessageCtl(ListBoxMessages.LB_SETTOPINDEX, Value, 0)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListIndex() As Long
+            Return CLng(SendMessageCtl(ListBoxMessages.LB_GETCURSEL, 0, 0))
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let ListIndex(ByVal NewValue As Long)
+            ' FIXME this is not correct for multi select lists
+            If Me.ListIndex <> NewValue Then
+                SendMessageCtl(ListBoxMessages.LB_SETCURSEL, NewValue, 0)
+                Me.Refresh
+                #If FEATURE_DATA_BINDINGS Then
+                OnDataChanged()
+                #end if
+                RaiseEvent Click()
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Text() As String
+            Return Me.List(Me.ListIndex)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Text(ByVal Value As String)
+            Me.ListIndex = CLng(SendMessageCtl(LB_FINDSTRINGEXACT, -1, StrPtr(Value)))
+        End Property
+
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As String
+            Return Me.Text
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As String)
+            Me.Text = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get SelCount() As Long
+            Return CLng(SendMessageCtl(ListBoxMessages.LB_GETSELCOUNT, 0, 0))
+        End Property
+        
+        Public Sub AddItem(ByVal Value As String, Optional ByVal Index As Variant)
+            Dim newIndex As Long
+            If IsMissing(Index) Then
+                newIndex = CLng(SendMessageCtl(ListBoxMessages.LB_ADDSTRING, 0, StrPtrSafe(Value)))
+            Else
+                ' FIXME error when Index is out of range
+                newIndex = CLng(SendMessageCtl(ListBoxMessages.LB_INSERTSTRING, CLng(Index), StrPtrSafe(Value)))
+            End If
+            
+            If newIndex = ListBoxConsts.LB_ERR Then Err.Raise 5
+                
+            Me.NewIndex = newIndex
+            
+            If Style = ListBoxConstants.vbListBoxCheckbox Then
+                Dim listCount As Long = Me.ListCount
+                ReDim Preserve CheckBoxState(listCount)
+                If newIndex < (listCount - 1) Then
+                    ' item wasn't added to the end of the list, so shift the checkbox states to match
+                    KERNEL32.RtlMoveMemory(VarPtr(CheckBoxState(newIndex + 1)), VarPtr(CheckBoxState(newIndex)), (listCount - newIndex - 1))
+                    CheckBoxState(newIndex) = CByte(0)
+                End If
+            End If
+            
+            'Me.Refresh
+        End Sub
+        
+        Public Sub RemoveItem(ByVal Index As Variant)
+            Dim newListCount As Long = CLng(SendMessageCtl(ListBoxMessages.LB_DELETESTRING, CLng(Index), 0&))
+            If newListCount = ListBoxConsts.LB_ERR Then Err.Raise 5
+                
+            If Style = ListBoxConstants.vbListBoxCheckbox Then
+                If newListCount = 0 Then
+                    ReDim Preserve CheckBoxState(0)
+                Else
+                    Dim oldListCount As Long = newListCount + 1
+                    KERNEL32.RtlMoveMemory(VarPtr(CheckBoxState(CLng(Index))), VarPtr(CheckBoxState(CLng(Index) + 1)), oldListCount - CLng(Index))
+                    ReDim Preserve CheckBoxState(newListCount)
+                End If
+            End If
+            
+            'Me.Refresh
+        End Sub
+        
+        Public Sub Clear()
+            SendMessageCtl(ListBoxMessages.LB_RESETCONTENT, 0, 0)
+            
+            If Style = ListBoxConstants.vbListBoxCheckbox Then
+                ReDim Preserve CheckBoxState(0)
+            End If
+        End Sub
+
+        [Serialize(False)]
+        Public Property Get List(ByVal Index As Long) As String
+            Return RootWindowElementBase.CommonGetListBoxStringByIndex(Index)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let List(ByVal Index As Long, ByVal Value As String)
+            ' FIXME error if out of range
+            RemoveItem(Index)
+            AddItem(Value, Index)
+        End Property
+        
+        Protected Sub RedrawItem(ByVal Index As Long)
+            Dim rect As tbRECT
+            SendMessageCtl(LB_GETITEMRECT, Index, VarPtr(rect))
+            RootWindowElementBase.RedrawRect(rect, False)
+        End Sub
+        
+        Protected Function IsItemChecked(ByVal Index As Long) As Boolean
+            If (IsArrayInitialized(CheckBoxState) = False) OrElse (Index > UBound(CheckBoxState)) Then
+                Return False
+            End If
+            Return CheckBoxState(Index)
+        End Function
+
+        Protected Sub SetItemCheckedState(ByVal Index As Long, Checked As Boolean)
+            If Index > UBound(CheckBoxState) Then
+                ReDim Preserve CheckBoxState(Index)
+            End If
+            
+            Dim bChecked As Byte
+            If Checked Then bChecked = CByte(255)
+            
+            If CheckBoxState(Index) <> bChecked Then
+                CheckBoxState(Index) = bChecked
+                RedrawItem(Index)
+                If Index <= 32768 Then                      ' FIXME need a new event to handle > 32768 entries here
+                    RaiseEvent ItemCheck(CInt(Index))
+                End If
+            End If
+        End Sub
+        
+        Protected Sub ToggleItemCheckedState(ByVal Index As Long)
+            If Index > UBound(CheckBoxState) Then
+                ReDim Preserve CheckBoxState(Index)
+            End If
+            CheckBoxState(Index) = Not CheckBoxState(Index)
+            RedrawItem(Index)
+            If Index <= 32768 Then                      ' FIXME need a new event to handle > 32768 entries here
+                RaiseEvent ItemCheck(CInt(Index))
+            End If
+        End Sub
+
+        [Serialize(False)]
+        Public Property Get Selected(ByVal Index As Long) As Boolean
+            If Style = ListBoxConstants.vbListBoxStandard Then
+                Return SendMessageCtl(ListBoxMessages.LB_GETSEL, Index, 0)
+            Else
+                Return IsItemChecked(Index)
+            End If
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Selected(ByVal Index As Long, ByVal NewValue As Boolean)
+            If Style = ListBoxConstants.vbListBoxStandard Then
+                If Me.MultiSelect = vbMultiSelectNone Then
+                    If Selected(Index) <> NewValue Then
+                        SendMessageCtl(ListBoxMessages.LB_SETCURSEL, Index, 0)
+                        Me.Refresh
+                        #If FEATURE_DATA_BINDINGS Then
+                        OnDataChanged()
+                        #end if
+                        RaiseEvent Click()
+                    End If
+                Else
+                    If Selected(Index) <> NewValue Then
+                        SendMessageCtl(ListBoxMessages.LB_SETSEL, If(NewValue, 1, 0), Index)
+                        Me.Refresh
+                        #If FEATURE_DATA_BINDINGS Then
+                        OnDataChanged()
+                        #end if
+                        RaiseEvent Click()
+                    End If
+                End If
+            Else
+                SetItemCheckedState(Index, NewValue)
+            End If
+        End Property
+            
+        [Serialize(False)]
+        Public Property Get ItemData(ByVal Index As Long) As LongPtr
+            ' FIXME error if out of range
+            ' Note Index is limited to 32767 due to Win95/98/ME support (see docs for LB_GETTEXT)
+            ' FIXME In the official matching _ListBox interface, we need to change Index to Integer
+            Return SendMessageCtl(ListBoxMessages.LB_GETITEMDATA, Index, 0)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let ItemData(ByVal Index As Long, ByVal Value As LongPtr)
+            ' FIXME error if out of range
+            SendMessageCtl(ListBoxMessages.LB_SETITEMDATA, Index, Value)
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get ListCount() As Long
+            Return CLng(SendMessageCtl(ListBoxMessages.LB_GETCOUNT, 0, 0))
+        End Property
+
+        Protected Sub SyncColumns() _
+                Handles Columns.OnPropertyLet
+                
+            If Me.IsMultiColumn Then
+                If Me.Columns = 0 Then Err.Raise 380 ' can only change columns if the LBS_MULTICOLUMN flag was set to start with
+                SendMessageCtl(ListBoxMessages.LB_SETCOLUMNWIDTH, CLng((Me.PixelsWidth * RootWindowElementBase.RuntimeUIGetUnitScale()) / Columns), 0)
+            Else
+                If Me.Columns <> 0 Then Err.Raise 380 ' can only change columns if the LBS_MULTICOLUMN flag was set to start with
+            End If
+        End Sub
+        
+        Protected Sub ColorsChanged() _
+                Handles BackColor.OnPropertyLet, _
+                        ForeColor.OnPropertyLet
+            
+            Me.Refresh
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        Protected Sub BorderStyleChanged() _  
+        	    Handles BorderStyle.OnPropertyLet
+                
+            CommonSyncBorderStyle(Me)
+        End Sub
+        
+        #If FEATURE_OLEDRAGDROP Then
+        Protected Sub SyncOLEDropMode() _
+                Handles OLEDropMode.OnPropertyLet
+                
+            BaseSyncOLEDropMode(Me, Me.OLEDropMode, Me.OLEDragDropHandler, False, False)
+        End Sub
+        #end if
+        
+        Public Function SelectedIndices() As Collection
+            Return CommonGetSelectedIndices(RootWindowElementBase.RuntimeUIGetHandle())
+        End Function
+        
+        #If FEATURE_DATA_BINDINGS Then
+        Protected Sub DataSetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.SetLiveValue
+            On Error Resume Next
+            Me.Text = If(IsNull(fieldValue), "", CStr(fieldValue))
+            If Err.Number <> 0 Then Me.Text = ""
+        End Sub
+        
+        Protected Sub DataGetLiveValue(fieldValue As Variant) _
+                Overrides DataFieldBinderBase.GetLiveValue
+            fieldValue = Me.Text
+        End Sub
+        
+        Protected Sub DataGetParent(out As Control) _
+                Overrides DataFieldBinderBase.GetParent
+            Set out = CType(Of Control)(Me.Parent)
+        End Sub
+        #end if
+                
+        Protected Sub DesignerArrayFieldUpdated(ByVal FieldName As String) _
+                Implements ITwinBasicDesignerExtensions2.DesignerArrayFieldUpdated
+            If FieldName = "List" Then
+                Me.Clear()
+                Dim Item As String
+                For Each Item In List_INIT
+                    AddItem(Item)
+                Next
+            End If
+        End Sub
+        
+        ' Protected Sub Class_Terminate()
+        '     MsgBox CurrentComponentName & ".Class_Terminate"
+        ' End Sub
+    #End Region
+
+End Class
+
+[Description("A Win32 native ListBox")]
+[WindowsControl("/miscellaneous/ICONS??/ListBox??.png")]
+[ClassId("33AD4F10-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("8EEBCDA0-C8F9-4A65-85D4-4D5C89655A0F")]    ' FIXME implement {33AD4F11-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class ListBox
+    Inherits ListBoxBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

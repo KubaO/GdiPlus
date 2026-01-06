@@ -1,0 +1,521 @@
+#If FEATURE_SHAPE Then
+[ClassId("17A53B79-73AF-4E99-8B98-2ADCFE291CBE")]
+[InterfaceId("31D9F845-AE3F-4934-A81D-ED9A4FA50808")]    ' FIXME implement {33AD4F81-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class ShapeBaseCtl
+
+    #Region "INHERITANCE"
+     
+        Inherits BaseControlWindowlessNoDrag
+        
+        [WithDispatchForwarding] Implements Control
+        Implements IWindowsControl
+        Implements IWindowElementEventsCommon
+        
+    #End Region
+        
+    #Region "STATE"
+    
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BackColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowBackground
+        [Description("")]
+            Public BackStyle As BackFillStyleConstants = BackFillStyleConstants.vbBFTransparent
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public BorderColor As OLE_COLOR = VBRUN.SystemColorConstants.vbWindowText
+        [Description("")]
+            Public BorderStyle As BorderStyleConstants = BorderStyleConstants.vbBSSolid
+        [Description("")]
+            Public BorderWidth As Long = 1
+        [Description("")]
+            Public DrawMode As DrawModeConstants = DrawModeConstants.vbCopyPen
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("")]
+            Public FillColor As OLE_COLOR = VBRUN.SystemColorConstants.vbScrollBars
+        [CustomDesigner("designer_SpectrumWindows")]
+        [Description("A second fill color, used for gradients")]
+            Public FillColorAlt As OLE_COLOR = vbWhite
+        [Description("")]
+            Public FillStyle As FillStyleConstantsEx = FillStyleConstantsEx.vbFSTransparent
+        [Description("")]
+            Public Shape As ShapeConstants '= ShapeConstants.vbShapeRectangle
+        [Description("")]
+            Public RoundedCornerSize As Long = 20
+        [Description("For use with Stars and Arrows (Stars 0-30, Arrows 0-100)")]
+            Public VariationA As Long = -1
+        [Description("For use with Stars and Arrows (Stars 0+, Arrows 0-100)")]
+            Public VariationB As Long = -1
+        [Description("For use with Stars, from 0-12")]
+            Public VariationC As Long = -1
+
+        [Description("Angle at which the control is rendered.  0 is the natural angle, 90 is a quarter anti-clockwise turn.  Control is turned relative to the top-left position.")]
+            Public Angle As Double
+            
+            Protected IsDesignMode As Boolean
+            Protected InternalLastPaintWasAngled As Boolean
+            
+        [NonBrowsable]
+        [Serialize(True)]
+            Protected InternalSectionId As Integer = -1
+                        
+            Protected IsReportMode As Boolean
+    #End Region
+
+    #Region "EVENTS"
+                            
+    [DefaultDesignerEvent]
+        [Description("")]
+            Event Initialize()
+
+    #End Region
+               
+    #Region "MEMBERS"
+        
+        Sub New()
+            BaseControlWindowlessNoDrag.New(ControlTypeConstants.vbShape)
+        End Sub
+    
+        #If LOG_TERMINATE Then
+            Protected Sub Class_Terminate()
+                    Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            End Sub
+        #End If
+                
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                
+            Me.InternalStateResetRectDockable()     ' resets all the base class state()
+            Me.InternalLastPaintWasAngled = False
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "Shape"
+            End If
+            IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
+            
+            Dim InitData As WindowCreationData
+            InitData.InternalSectionId = InternalSectionId + 1
+            InitData.Flags = RequiresWindowlessPaintingWithoutEvents Or _
+                                If(Angle <> 0, IsAngledControl, 0&)
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+                
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+                
+            ' disconnect anything that causes a circular reference here
+            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            RaiseEvent Initialize()
+        End Sub
+
+        Type contigiousPoints30
+        	points(0 To 60) As POINT
+        End Type
+
+        [ArrayBoundsChecks(False)]
+        Protected Sub HandlePaint(ByRef Handled As Boolean) _
+                Implements IWindowElementEventsCommon.Paint
+                                    
+            ' Can't use CurrentLeft/etc for windowless controls
+            ' Dim X As Long = RootWindowElementBase.CurrentLeft
+            ' Dim Y As Long = RootWindowElementBase.CurrentTop
+            ' Dim Width As Long = RootWindowElementBase.CurrentWidth
+            ' Dim Height As Long = RootWindowElementBase.CurrentHeight
+
+            Dim RootWindowElementBase As Any = Me.RootWindowElementBase
+            Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+            Dim X As Long
+            Dim Y As Long
+            Dim Width As Long
+            Dim Height As Long
+            
+            If Me.Angle <> 0 Then
+                 X = 0
+                 Y = 0
+                 Width = CLng((Me.PixelsWidth * UnitPixelScale))
+                 Height = CLng((Me.PixelsHeight * UnitPixelScale))
+             Else
+                X = CLng(Me.PixelsLeft * UnitPixelScale)
+                Y = CLng(Me.PixelsTop * UnitPixelScale)
+                Width = CLng(Me.PixelsWidth * UnitPixelScale)
+                Height = CLng(Me.PixelsHeight * UnitPixelScale)
+             End If
+            
+            If Width <= 0 Or Height <= 0 Then Exit Sub
+            
+            If Visible = False And Me.IsDesignMode = False Then Exit Sub
+
+            ' FIXME need to cache these pens and brushes!
+
+            Dim backBrush As LongPtr
+            Dim backColor As Long = TranslateColor(Me.BackColor)
+            Dim fillColor As Long = TranslateColor(Me.FillColor)
+            Dim FillColorAlt As Long = TranslateColor(Me.FillColorAlt)
+            Dim borderColor As Long = TranslateColor(Me.BorderColor)
+            
+            
+            Dim penType As Long = CommonBorderStyleToPenType(Me.BorderStyle)
+            Dim pen As LongPtr = GDI32.CreatePen(penType, Me.BorderWidth, borderColor)
+            
+            Dim ps As PAINTSTRUCT
+            RootWindowElementBase.RuntimeUIBeginPaint(ps)    ' you MUST use this method, and NOT the BeginPaint API directly
+    
+                Dim ps_hdc As Any = ps.hdc
+                
+                If Me.Angle <> 0 Then
+                    Dim angleData As WorldTransformAngleData
+                    DoWorldTransformAngle(angleData, ps_hdc, Me.Angle, Me.PixelsLeft * UnitPixelScale, Me.PixelsTop * UnitPixelScale)
+                    InternalLastPaintWasAngled = True
+                Else
+                    InternalLastPaintWasAngled = False
+                End If
+                
+                Dim NeedsComplexFill As Boolean = False
+                            
+                ' ' FIXME we definitely want to cache the brush if it's based on a bitmap (e.g. gradient)
+                'Dim isReportMode As Any = TypeOf RootWindowElementBase.Container Is Report
+                Dim backStyleTransparent As Any = (Me.BackStyle = vbBFTransparent)
+                
+                If Me.FillStyle >= 8 Then
+                    If Me.Angle = 0 Then
+                        NeedsComplexFill = True
+                        
+                        Dim rect1 As tbRECT
+                        rect1.Left = X
+                        rect1.Top = Y
+                        rect1.Right = X + Width
+                        rect1.Bottom = Y + Height
+                        backBrush = CommonFillStyleToBrush(FillStyleConstants.vbFSTransparent, backStyleTransparent, backColor, fillColor)
+                    Else
+                        ' GradientFill doesn't support world transforms, so we just ignore the gradient fill
+                        backBrush = CommonFillStyleToBrush(FillStyleConstants.vbFSSolid, backStyleTransparent, backColor, fillColor)
+                    End If
+                Else
+                    backBrush = CommonFillStyleToBrush(CType(Of FillStyleConstants)(Me.FillStyle), backStyleTransparent, backColor, fillColor)
+                End If
+                'backBrush = CommonFillStyleToBrushEx(ps_hdc, rect1, FillStyleConstantsEx.vbFSSolid, Me.BackStyle = vbBFTransparent, backColor, fillColor, FillColorAlt)
+                
+                
+                
+               ' Stop
+                
+                
+                'ScaleViewportExtEx(ps_hdc, 5, 1, 5, 1, vbNullPtr)
+                                
+                Dim oldBkMode As Long
+                If backStyleTransparent Then
+                    oldBkMode = ps_hdc.SetBkMode(BackgroundModes.TRANSPARENT)
+                Else
+                    ps_hdc.SetBkColor(backColor)
+                    oldBkMode = ps_hdc.SetBkMode(BackgroundModes.OPAQUE)
+                End If
+
+                'Dim oldBkMode As Long = WindowsAPI.GDI32.SetBackMode(ps_hdc, If((Me.FillStyle = vbFSTransparent) And (Me.BackStyle = vbBFTransparent), BackgroundModes.TRANSPARENT, BackgroundModes.OPAQUE))
+                'Dim oldBkMode As Long = WindowsAPI.GDI32.SetBackMode(ps_hdc, BackgroundModes.OPAQUE)
+
+                Dim oldBrush As LongPtr
+                Dim oldPen As LongPtr
+                
+                If backBrush <> 0 Then
+                    oldBrush = ps_hdc.SelectObject(backBrush)
+                End If
+
+                If pen <> 0 Then
+                    oldPen = ps_hdc.SelectObject(pen)
+                End If
+
+                ps_hdc.SetROP2(Me.DrawMode)
+
+                Dim shape As Any = Me.Shape
+                Select Case shape
+                    Case ShapeConstants.vbShapeCircle, _
+                            ShapeConstants.vbShapeSquare, _
+                            ShapeConstants.vbShapeRoundedSquare, _
+                            ShapeConstants.vbShapeStar
+                        If Width > Height Then
+                            X += CLng((Width - Height) / 2)
+                        	Width = Height
+                        Else
+                            Y += CLng((Height - Width) / 2)
+                            Height = Width
+                        End If
+                End Select
+
+                Dim points As contigiousPoints30
+                Dim arrowHeadSize As Double
+                Dim arrowHeadSize2 As Double
+                
+                Dim VariationA As Any = Me.VariationA
+                Dim VariationB As Any = Me.VariationB
+                Dim VariationC As Any = Me.VariationC
+                
+                Dim complexRgn As LongPtr
+                Const ALTERNATE As Long = 1
+                Const WINDING As Long = 2
+                
+                Select Case shape
+                    Case ShapeConstants.vbShapeOval, ShapeConstants.vbShapeCircle
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreateEllipticRgn(X, Y, X + Width, Y + Height)
+                        End If
+                    Case ShapeConstants.vbShapeRectangle, ShapeConstants.vbShapeSquare
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreateRectRgn(X, Y, X + Width, Y + Height)
+                        End If
+                    Case ShapeConstants.vbShapeRoundedRectangle, ShapeConstants.vbShapeRoundedSquare
+                        Dim RoundedCornerSize As Any = Me.RoundedCornerSize
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreateRoundRectRgn(X, Y, X + Width, Y + Height, CLng(RoundedCornerSize * UnitPixelScale), CLng(RoundedCornerSize * UnitPixelScale))
+                        End If
+                    Case ShapeConstants.vbShapeStar
+                        Dim numPoints As Long = If(VariationA >= 2 And VariationA <= 30, VariationA, 5&)
+                        Dim sides As Long = numPoints * 2
+                        Dim divisor As Double
+                        ' FIXME use a constant array for this
+                        Select Case VariationC
+                            Case 1: divisor = 0.01
+                            Case 2: divisor = 0.02
+                            Case 3: divisor = 0.04
+                            Case 4: divisor = 0.05
+                            Case 5: divisor = 0.08
+                            Case 6: divisor = 0.10
+                            Case 7: divisor = 0.20
+                            Case 8: divisor = 0.25
+                            Case 9: divisor = 0.40
+                            Case 10: divisor = 0.50
+                            Case 11: divisor = 1
+                            Case 12: divisor = 2
+                            Case Else: divisor = 2
+                        End Select
+                        Dim alpha As Double = (2 * 3.141592653589793238462643383279) / (numPoints * divisor)
+                        Dim radius As Double = Width / 2
+                        Dim _X As Double = X + (Width / 2)
+                        Dim _Y As Double = Y + (Height / 2)
+                        Dim rA As Double = CDbl(radius / If(VariationB > 0, (VariationB + 100) / 100, 2&))
+                        Dim rB As Double = radius
+                        Dim pointIndex As Long
+                        For pointIndex = 0 To sides
+                            Dim r As Double = If(pointIndex Mod 2, rB, rA)
+                            Dim omega As Double = alpha * pointIndex
+                            points.points(pointIndex).x = CLng(_X + (r * Sin(omega)))
+                            points.points(pointIndex).y = CLng(_Y + (r * Cos(omega)))
+                        Next
+                        
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreatePolygonRgn(points, sides + 1, ALTERNATE)
+                        End If
+
+                    Case ShapeConstants.vbShapeArrowLeft, ShapeConstants.vbShapeArrowRight
+                        arrowHeadSize = Height * If(VariationA >= 0 And VariationA <= 100, VariationA / 100, 0.3)
+                        arrowHeadSize2 = Width * If(VariationB >= 0 And VariationB <= 100, VariationB / 100, 0.5)
+                        If shape = ShapeConstants.vbShapeArrowLeft Then
+                        	X += Width
+                            arrowHeadSize2 = -arrowHeadSize2
+                            Width = -Width
+                        End If
+                        points.points(0).x = X
+                        points.points(0).y = CLng(Y + arrowHeadSize)
+                        points.points(1).x = CLng(X + arrowHeadSize2)
+                        points.points(1).y = CLng(Y + arrowHeadSize)
+                        points.points(2).x = CLng(X + arrowHeadSize2)
+                        points.points(2).y = Y
+                        points.points(3).x = X + Width
+                        points.points(3).y = CLng(Y + (Height / 2))
+                        points.points(4).x = CLng(X + arrowHeadSize2)
+                        points.points(4).y = Y + Height
+                        points.points(5).x = CLng(X + arrowHeadSize2)
+                        points.points(5).y = CLng((Y + Height) - arrowHeadSize)
+                        points.points(6).x = X
+                        points.points(6).y = CLng((Y + Height) - arrowHeadSize)
+                        
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreatePolygonRgn(points, 7, ALTERNATE)
+                        End If
+                    Case ShapeConstants.vbShapeArrowUp, ShapeConstants.vbShapeArrowDown
+                        arrowHeadSize = Width * If(VariationA >= 0 And VariationA <= 100, VariationA / 100, 0.3)
+                        arrowHeadSize2 = Height * If(VariationB >= 0 And VariationB <= 100, VariationB / 100, 0.5)
+                        If shape = ShapeConstants.vbShapeArrowUp Then
+                        	Y += Height
+                            arrowHeadSize2 = -arrowHeadSize2
+                            Height = -Height
+                        End If
+                        points.points(0).x = CLng((X + Width) - arrowHeadSize)
+                        points.points(0).y = Y
+                        points.points(1).x = CLng((X + Width) - arrowHeadSize)
+                        points.points(1).y = CLng(Y + arrowHeadSize2)
+                        points.points(2).x = X + Width
+                        points.points(2).y = CLng(Y + arrowHeadSize2)
+                        points.points(3).x = CLng(X + (Width / 2))
+                        points.points(3).y = Y + Height
+                        points.points(4).x = X
+                        points.points(4).y = CLng(Y + arrowHeadSize2)
+                        points.points(5).x = CLng(X + arrowHeadSize)
+                        points.points(5).y = CLng(Y + arrowHeadSize2)
+                        points.points(6).x = CLng(X + arrowHeadSize)
+                        points.points(6).y = Y
+                        
+                        If NeedsComplexFill Then
+                            complexRgn = GDI32.CreatePolygonRgn(points, 7, ALTERNATE)
+                        End If
+                End Select
+                
+                If complexRgn <> 0 Then
+                    ps_hdc.SelectClipRgn(complexRgn)
+                    
+                    If Me.FillStyle = FillStyleConstantsEx.vbGradientNS Then
+                        GradientFillRect(ps_hdc, rect1, fillColor, FillColorAlt, True)
+                    ElseIf Me.FillStyle = FillStyleConstantsEx.vbGradientWE Then
+                        GradientFillRect(ps_hdc, rect1, fillColor, FillColorAlt, False)
+                    End If
+                    'FillRect(ps_hdc, rect1, CreateSolidBrush(vbRed))
+                    ps_hdc.SelectClipRgn(vbNullPtr)
+                    GDI32.DeleteObject(complexRgn)
+                End If
+                
+                Select Case shape
+                    Case ShapeConstants.vbShapeOval, ShapeConstants.vbShapeCircle
+                        ps_hdc.Ellipse(X, Y, X + Width, Y + Height)
+                    Case ShapeConstants.vbShapeRectangle, ShapeConstants.vbShapeSquare
+                        ps_hdc.Rectangle(X, Y, X + Width, Y + Height)
+                    Case ShapeConstants.vbShapeRoundedRectangle, ShapeConstants.vbShapeRoundedSquare
+                        ps_hdc.RoundRect(X, Y, X + Width, Y + Height, CLng(RoundedCornerSize * UnitPixelScale), CLng(RoundedCornerSize * UnitPixelScale))
+                    Case ShapeConstants.vbShapeStar
+                        ps_hdc.Polygon(points, sides + 1)
+                    Case ShapeConstants.vbShapeArrowLeft, ShapeConstants.vbShapeArrowRight
+                        ps_hdc.Polygon(points, 7)
+                    Case ShapeConstants.vbShapeArrowUp, ShapeConstants.vbShapeArrowDown
+                        ps_hdc.Polygon(points, 7)
+                End Select
+
+                If backBrush <> 0 Then
+                    ps_hdc.SelectObject(oldBrush)
+                End If
+                
+                If pen <> 0 Then
+                    ps_hdc.SelectObject(oldPen)
+                End If
+
+                ps_hdc.SetBkMode(oldBkMode)
+
+                If angleData.isActive Then
+                    UndoWorldTransformAngle(angleData, ps_hdc)
+                End If
+                
+            RootWindowElementBase.RuntimeUIEndPaint(ps)
+            Handled = True     ' swallow up the event
+
+            If backBrush <> 0 Then GDI32.DeleteObject(backBrush)
+            If pen <> 0 Then GDI32.DeleteObject(pen)
+
+        End Sub
+
+        Protected Sub OnChangeProp() _
+                Handles BackColor.OnPropertyLet, _
+                        BackStyle.OnPropertyLet, _
+                        BorderColor.OnPropertyLet, _
+                        BorderStyle.OnPropertyLet, _
+                        BorderWidth.OnPropertyLet, _
+                        DrawMode.OnPropertyLet, _
+                        FillColor.OnPropertyLet, _
+                        FillColorAlt.OnPropertyLet, _
+                        FillStyle.OnPropertyLet, _
+                        Shape.OnPropertyLet, _
+                        RoundedCornerSize.OnPropertyLet, _
+                        VariationA.OnPropertyLet, _
+                        VariationB.OnPropertyLet, _
+                        VariationC.OnPropertyLet, _
+                        Angle.OnPropertyLet
+
+            Me.WindowlessRefresh()
+        End Sub
+        
+        Protected Sub AngleChanged() _
+                Handles Angle.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIAngleChanged(Angle <> 0)
+            Me.WindowlessRefresh()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Long
+            Return Me.Shape
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(Value As Long)
+            Me.Shape = CType(Of ShapeConstants)(Value)
+        	Me.WindowlessRefresh()
+        End Property
+        
+        Protected Sub HandleResizeWindowless(ByVal oldLeft As Long, ByVal oldTop As Long, ByVal oldWidth As Long, ByVal oldHeight As Long, _
+                                               ByVal newLeft As Long, ByVal newTop As Long, ByVal newWidth As Long, ByVal newHeight As Long) _
+                Implements IWindowElementEventsCommon.ResizeWindowless
+                
+            On Error Resume Next
+            Dim containerHwnd As Any = GetHwnd(BaseControlWindowlessNoDrag.Container)
+            On Error GoTo 0
+            
+            If containerHwnd.Value = 0 Then
+                ' Windowless UC container...  FIXME need to pass on the RECTs to refine the InvalidateRect passed to the UC site
+                CommonRaiseViewChanged(BaseControlWindowlessNoDrag.Container)
+                Exit Sub
+            End If
+            
+            If (Me.Angle <> 0) Or InternalLastPaintWasAngled Then
+                ' For now we just update the whole container, but we could at least refine the rectangle to contain all 4 corner points
+                ' (using translateXY), but we'd need to also get oldAngle and newAngle in order to work out the real bounds
+                containerHwnd.InvalidateRect(ByVal vbNullPtr, 1)
+                containerHwnd.UpdateWindow()   ' repaint now
+                Exit Sub
+            End If
+            
+            With InternalBaseControlInfo
+                Dim UnitPixelScale As Any = RootWindowElementBase.RuntimeUIGetUnitScale()
+                .PixelsLeft = newLeft / UnitPixelScale
+                .PixelsTop = newTop / UnitPixelScale
+                .PixelsWidth = newWidth / UnitPixelScale
+                .PixelsHeight = newHeight / UnitPixelScale
+            End With
+            
+            CommonResizeWindowless(containerHwnd, CLng(Round(BorderWidth / 2) + 1), oldLeft, oldTop, oldWidth, oldHeight, newLeft, newTop, newWidth, newHeight)
+        End Sub
+               
+    #End Region
+    
+End Class
+
+[Description("A Win32 native Shape")]
+[WindowsControl("/miscellaneous/ICONS??/Shape??.png")]
+[ClassId("33AD4F80-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("CF3EAF95-9CE0-4852-AB1A-052B8C7EA05B")]    ' FIXME implement {33AD4F81-6699-11CF-B70C-00AA0060D393} for backcompat
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Class Shape
+    Inherits ShapeBaseCtl
+    
+    Protected Sub Class_BeforeFirstMethodAccess()
+        [_HiddenModule].EnsureContainerIsLoaded(Me)
+    End Sub
+End Class
+#End If

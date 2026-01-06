@@ -1,0 +1,126 @@
+#If FEATURE_PICTUREBOX And FEATURE_LABEL And FEATURE_COMMANDBUTTON And FEATURE_LISTBOX And FEATURE_IMAGE And FEATURE_PROPERTYPAGE Then
+[Description("")]
+[FormDesignerId("DDC40320-6AD0-4E61-8C5A-7D2E25CD1C74")]
+[ClassId("^8F51C46C-6D53-4AD0-B396-455B872C0E1E")]				' will be XOR'd with the root project GUID to provide a stable but unique CLSID
+[InterfaceId("94E2382C-6906-47AA-ABE6-251E80C07015")]
+[EventInterfaceId("069C59EF-314A-4920-9557-F05AB0B0EDA1")]
+Private Class StandardPicture
+
+    ' Sub New()
+    '     MsgBox "New StandardPicture"
+    ' End Sub
+        
+    Protected InternalNoChange As Boolean = False
+    Protected InternalSelectedPropertyName As String
+    
+    Protected Sub ApplyChanges() _
+            Handles PropertyPage.ApplyChanges
+        Dim ctl As Object
+        For Each ctl In Me.SelectedControls
+            On Error GoTo NotPutter
+            'MsgBox "trying prop-putref " & InternalSelectedPropertyName
+            CallByName(ctl, InternalSelectedPropertyName, vbSet, imgPreview.Picture)
+        TryNext:
+            On Error GoTo 0
+        Next
+        Me.Changed = False
+        Exit Sub
+    NotPutter:
+        Resume TrySetter
+    TrySetter:
+        'MsgBox "trying prop-put " & InternalSelectedPropertyName
+        CallByName(ctl, InternalSelectedPropertyName, vbLet, imgPreview.Picture)
+        GoTo TryNext
+    End Sub
+    
+    Protected Sub SelectionChanged() _
+               Handles PropertyPage.SelectionChanged
+        If lstProperties.ListCount = 0 Then
+            RefreshProperties()
+        End If
+    End Sub
+    
+    Protected Sub RefreshProperties()
+        lstProperties.Clear()
+        
+        If Me.SelectedControls.Count > 0 Then
+            Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+            'MsgBox "PictureProps:" & RuntimeGetTypeInfoPropertyList(selectedControl, 2)
+            Dim pictureProps As String = RuntimeGetTypeInfoPropertyList(selectedControl, 2)
+            Dim pictureProp As String
+            For Each pictureProp In Split(pictureProps, ";")
+                If Len(pictureProp) > 0 Then
+                    lstProperties.AddItem(pictureProp)
+                End If
+                NextProp:
+            Next
+        End If
+        
+        If lstProperties.ListCount = 0 Then
+            lstProperties.Enabled = False
+            picPreviewContainer.Enabled = False
+            picPreviewContainer.BackColor = RGB(215, 215, 215)
+        Else
+            lstProperties.ListIndex = 0
+        End If
+        Exit Sub
+    End Sub
+    
+    Protected Sub SetPicture(newPicture As StdPicture)
+        ' Determine the aspect ratio of the image, and then adjust the image control to match
+        If newPicture IsNot Nothing Then
+            If newPicture.Handle = vbNullPtr Then GoTo IsClear
+            Dim aspectRatio As Double = newPicture.Width / newPicture.Height
+            Dim aspectRatio_Container As Double = picPreviewContainer.ScaleWidth / picPreviewContainer.ScaleHeight
+            If aspectRatio > aspectRatio_Container Then
+                ' need to position with top/bottom padding
+                imgPreview.Left = 0
+                imgPreview.Width = picPreviewContainer.ScaleWidth       ' full width
+                imgPreview.Height = imgPreview.Width / aspectRatio
+                imgPreview.Top = (picPreviewContainer.ScaleHeight - imgPreview.Height) / 2
+            Else
+                ' need to position with left/right padding
+                imgPreview.Top = 0
+                imgPreview.Height = picPreviewContainer.ScaleHeight         ' full height
+                imgPreview.Width = imgPreview.Height * aspectRatio
+                imgPreview.Left = (picPreviewContainer.ScaleWidth - imgPreview.Width) / 2
+            End If
+            btnClear.Enabled = True
+        Else
+        IsClear:
+            btnClear.Enabled = False
+        End If
+        Set imgPreview.Picture = newPicture
+    End Sub
+    
+    Protected Sub lstPropertiesClick() _
+            Handles lstProperties.Click
+        If Me.Changed = True Then
+            ApplyChanges() ' auto apply change when switching properties
+        End If
+
+        InternalSelectedPropertyName = lstProperties.Text
+        
+        Dim selectedControl As Object = Me.SelectedControls(0)      ' use props and values from first selected control
+        On Error Resume Next
+            Dim newImage As StdPicture = CType(Of StdPicture)(CallByName(selectedControl, InternalSelectedPropertyName, vbGet))
+            SetPicture(newImage)
+    End Sub
+    
+    Protected Sub btnClearClick() _
+            Handles btnClear.Click
+        SetPicture(Nothing)
+        Me.Changed = True
+    End Sub
+    
+    Protected Sub btnBrowseClick() _
+            Handles btnBrowse.Click
+        Dim picPath As String
+        If PickPictureFile(Me.hWnd, picPath) = True Then
+            SetPicture(Global.LoadPicture(picPath))
+            Me.Changed = True
+        End If
+    End Sub
+    
+End Class
+#End If

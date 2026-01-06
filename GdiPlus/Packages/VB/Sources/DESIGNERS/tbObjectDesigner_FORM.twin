@@ -1,0 +1,7 @@
+[Description("")]
+[FormDesignerId("B7CFE976-3645-4B17-9F0D-8A29E4043679")]
+[ClassId("0EBFD436-0B7B-4B9F-88FF-69537D42AA32")]
+[COMCreatable(False)]
+[ComImport(True)]
+Private Class tbObjectDesigner_FORM
+End Class

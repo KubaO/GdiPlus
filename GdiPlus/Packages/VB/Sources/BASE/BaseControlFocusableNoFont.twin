@@ -1,0 +1,226 @@
+[ClassId("628679CC-8C97-4AA2-9C60-F112F1E82FFD")]
+[InterfaceId("BC11FDD9-D213-454D-AF5A-2CDA348D18CB")]
+[COMCreatable(False)]
+Private Class BaseControlFocusableNoFont
+ 
+    Inherits BaseControlRectDockable
+
+    [Description("Adjusts the TAB key order of this control at runtime")]
+    [Serialize(True, "TabIndex")]
+        Protected TabIndexINIT As Long
+    [Description("")]
+    [Serialize(True, "MousePointer")]
+        Protected MousePointerINIT As VBRUN.MousePointerConstants = VBRUN.MousePointerConstants.vbDefault
+    [Serialize(True, "MouseIcon")]
+    [CustomDesigner("designer_IconBytes")]
+        Protected ReadOnly MouseIconINIT() As Byte
+        
+    [Serialize(True, "DragIcon")]
+    [CustomDesigner("designer_IconBytes")]
+    [Description("")]
+        Protected ReadOnly DragIconINIT() As Byte
+    [Serialize(True, "DragMode")]
+        Protected DragModeINIT As VBRUN.DragModeConstants
+            
+    [Description("Adjusts the visibility of this control at runtime")]
+    [Serialize(True, ":Visible")]
+        Protected VisibleINIT As Boolean = True
+    [Description("")]
+    [Serialize(True, "Enabled")]
+        Protected EnabledINIT As Boolean = True
+    [Description("Indicates if the user can use the TAB key to focus on this control at runtime")]
+    [Serialize(True, "TabStop")]
+        Protected TabStopINIT As Boolean = True
+        
+    [Serialize(True, "CausesValidation")]
+        Protected CausesValidationINIT As Boolean = True
+    
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        BaseControlRectDockable.New(ControlType)
+    End Sub
+    
+    Protected Sub CreateRootWindowElement(ByVal _ControlContext As ControlContext, _
+                                                ByRef InitData As WindowCreationData)
+        With InternalBaseControlInfo
+            .MousePointer = MousePointerINIT
+            .DragMode = Me.DragModeINIT
+            .CausesValidation = Me.CausesValidationINIT
+            .TabStop = Me.TabStopINIT
+            .HasTabIndex = True
+            .TabIndex = Me.TabIndexINIT
+        End With
+                
+        InternalBaseControlBeforeCreateRootWindow(InitData)
+        Me.ControlContext.Pointer = _ControlContext.Pointer
+        InitData.WindowStyles += If(Me.EnabledINIT, 0&, WS_DISABLED) + _
+                                 If(Me.VisibleINIT, WS_VISIBLE, 0&) + _
+                                 If(Me.TabStopINIT, WS_TABSTOP, 0&)
+        Me.RootWindowElementBase.Pointer = ControlContext.RuntimeUICtxCreateWindowElement(InitData)
+        CommonLoadPictureInit(InternalBaseControlInfo.MouseIcon, Me.MouseIconINIT)
+        CommonLoadPictureInit(InternalBaseControlInfo.DragIcon, Me.DragIconINIT)
+    End Sub
+    
+    Protected Sub RecreateWindow(ByVal StyleFlags As Long)
+        RootWindowElementBase.RuntimeUIRecreateWindow(StyleFlags)
+    End Sub
+             
+    [Serialize(False)]
+    [Description("")]
+    Property Get Enabled() As Boolean
+        Return CommonGetEnabled()
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    Property Let Enabled(Value As Boolean)
+        CommonLetEnabled(Value)
+    End Property
+
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Get Visible() As Boolean
+        Return CommonGetVisible()
+    End Property
+        
+    [Serialize(False)]
+    [Description("Adjusts the visibility of this control at runtime")]
+    Property Let Visible(Value As Boolean)
+        Me.RootWindowElementBase.ShowWindow(CLng(If(Value, SW_NORMAL, SW_HIDE)))
+        
+        If Dock <> DockModeConstants.vbDockNone Then
+            ' FIXME bodge, this forces layout to be recalculated
+            Me.RootWindowElementBase.GetParent().SendMessageW(WM_SIZE, -1, 0)
+        End If
+        
+        If Value Then
+            RootWindowElementBase.RuntimeUIGetHandle().UpdateWindow()
+        End If
+    End Property
+    
+    Public Sub SetFocus()
+        CommonSetFocus()
+    End Sub
+        
+    Public Sub Drag([TypeHint(DragConstants)] Optional ByVal Action As Variant)
+        CommonDrag(Action)
+    End Sub
+    
+    #If FEATURE_OLEDRAGDROP Then
+    Protected Sub BaseSyncOLEDropMode(ByVal RootThis As Object, ByVal OLEDropMode As OLEDropConstants, ByRef DragDropHandler As OLEDragDropHandler, ByVal IsContainer As Boolean, ByVal AllowedAutomatic As Boolean)
+        CommonSyncOLEDropMode(RootThis, OLEDropMode, DragDropHandler, ControlContext, RootWindowElementBase, IsContainer, AllowedAutomatic)
+    End Sub
+    #endif
+    
+    Public Sub ZOrder([TypeHint(ZOrderConstants)] Optional ByVal Position As Variant)
+        CommonZOrder(Position, RootWindowElementBase.RuntimeUIGetHandle())
+    End Sub
+    
+    [Serialize(False)]
+    Public Property Get MouseIcon() As StdPicture
+        Return InternalBaseControlInfo.MouseIcon
+    End Property
+
+    [Serialize(False)]
+    Public Property Set MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+
+    [Serialize(False)]
+    Public Property Let MouseIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.MouseIcon = Value
+        CommonMousePointerChanged()
+    End Property
+        
+    [Serialize(False)]
+    Public Property Get hWnd() As LongPtr
+        Return CommonGetHWND()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get MousePointer() As MousePointerConstants
+        Return InternalBaseControlInfo.MousePointer
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let MousePointer(ByVal Value As MousePointerConstants)
+        InternalBaseControlInfo.MousePointer = Value
+        CommonMousePointerChanged()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get DragMode() As DragModeConstants
+        Return InternalBaseControlInfo.DragMode
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let DragMode(ByVal Value As DragModeConstants)
+        InternalBaseControlInfo.DragMode = Value
+        RootWindowElementBase.RuntimeUIDragModeChanged()
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get CausesValidation() As Boolean
+        Return InternalBaseControlInfo.CausesValidation
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let CausesValidation(ByVal Value As Boolean)
+        InternalBaseControlInfo.CausesValidation = Value
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    [DispId(-854)]
+    Property Get TabStop() As Boolean
+        Return CommonGetTabStop()
+    End Property
+    
+    [Serialize(False)]
+    [Description("")]
+    [DispId(-854)]
+    Property Let TabStop(Value As Boolean)
+        CommonLetTabStop(Value)
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get TabIndex() As Long
+        Return InternalBaseControlInfo.TabIndex
+    End Property
+    
+    [Serialize(False)]
+    Public Property Let TabIndex(ByVal Value As Long)
+        InternalBaseControlInfo.TabIndex = Value
+    End Property
+    
+    [Serialize(False)]
+    Public Property Get DragIcon() As StdPicture
+        Return InternalBaseControlInfo.DragIcon
+    End Property
+
+    [Serialize(False)]
+    Public Property Set DragIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.DragIcon = Value
+    End Property
+
+    [Serialize(False)]
+    Public Property Let DragIcon(Value As StdPicture)
+        Set InternalBaseControlInfo.DragIcon = Value
+    End Property
+    
+    Protected Function SendMessageLngPtr(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+        Return RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(msg, wParam, lParam)
+    End Function
+        
+    Protected Function SendMessageLng(ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Long
+        Dim retValLngPtr As Any = RootWindowElementBase.RuntimeUIGetHandle().SendMessageW(msg, wParam, lParam)
+        #If Win64 Then
+            Dim retValLng As Long
+            GetMem4(VarPtr(retValLngPtr), retValLng)
+            Return retValLng
+        #Else
+            Return retValLngPtr
+        #End If
+    End Function
+    
+End Class

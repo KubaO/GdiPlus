@@ -1,0 +1,355 @@
+#If FEATURE_VSCROLLBAR Or FEATURE_HSCROLLBAR Then
+[ClassId("33AD4F20-6699-11CF-B70C-00AA0060D393")]
+[InterfaceId("49388E0C-E1FB-4460-A913-9ED7ED6BC0AF")]
+[COMCreatable(False)]
+[EventsUseDispInterface]
+[ComImport(True)]
+Private Class ScrollBarBase
+    Inherits BaseControlFocusableNoFont
+    
+    [WithDispatchForwarding] Implements Control
+    Implements IWindowsControl
+    Implements IWindowElementEventsCommon
+    
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        BaseControlFocusableNoFont.New(ControlType)
+    End Sub
+    
+    [Description("")]
+        Public SmallChange As Long = 1
+    [Description(""), Serialize(True, "LargeChange")]
+        Protected LargeChange_INIT As Long = 1
+        
+    [Serialize(True, "Min")]
+        Protected Min_INIT As Long
+    [Serialize(True, "Max")]
+        Protected Max_INIT As Long = 32767
+    [Serialize(True, "Value")]
+        Protected Value_INIT As Long
+
+    [Unimplemented]
+        Public RightToLeft As Boolean
+
+    [Serialize(True, "VisualStyles")]
+        Protected VisualStylesINIT As Boolean = True
+            
+        [Description("Opacity, given as a percentage, 0 - 100.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public Opacity As Double = 100
+        
+        [CustomDesigner("designer_SpectrumWindowsOrClear")]
+        [Description("A color, when set, that will appear fully transparent in the window.  REQUIRES TARGET OS 6.2+ FOR CHILD CONTROLS.")]
+            Public TransparencyKey As OLE_COLOR = -1
+                        
+        #If FEATURE_HELP Then
+        Public HelpContextID As Long
+        Public WhatsThisHelpID As Long
+        Public Sub ShowWhatsThis()
+            HelpSystem.ShowControlHelpManual(Me)
+        End Sub
+        #End If
+            
+        Protected InternalMin As Long
+        Protected InternalMax As Long
+        Protected InternalValue As Long
+        Protected InternalLargeChange As Long
+        Protected InternalIsScrolling As Boolean
+        Protected InternalValueBeforeScroll As Long
+        
+        [DefaultDesignerEvent]
+        [Description("")]
+            Event Change()
+        [Description("")]
+        [DispId(&HEAEA0006)]
+            Event GotFocus()
+        [Description("")]
+        [DispId(&HEAEA0008)]
+            Event KeyDown(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0009)]
+            Event KeyPress(KeyAscii As Integer)
+        [Description("")]
+        [DispId(&HEAEA000A)]
+            Event KeyUp(KeyCode As Integer, Shift As Integer)
+        [Description("")]
+        [DispId(&HEAEA0007)]
+            Event LostFocus()
+        [Description("")]
+            Event Scroll()
+        [Description("")]
+            Event Initialize()
+        [Description("")]
+        [DispId(&HEAEA000B)]
+            Event DragDrop(Source As Control, X As Single, Y As Single)
+        [Description("")]
+        [DispId(&HEAEA000C)]
+            Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
+        
+        [DispId(&HEAEA000D)]
+            Event Validate(Cancel As Boolean)
+    
+        Protected Sub HandleLoad() _
+                Implements IWindowElementEventsCommon.Load
+        
+            Dim Opacity As Any = Me.Opacity
+            If ((Opacity >= 0) And (Opacity < 100)) Or (TransparencyKey <> -1) Then
+                SyncOpacity
+            End If
+        End Sub
+        
+        Protected Sub SyncOpacity() _ 
+                Handles Opacity.OnPropertyLet, _
+                        TransparencyKey.OnPropertyLet
+            
+            RootWindowElementBase.RuntimeUIGetHandle().CommonSyncOpacity(Me.TransparencyKey, Me.Opacity)
+        End Sub
+        
+        Protected Sub HandleInitialize(ByVal ControlContext As ControlContext) _
+                Implements IWindowsControl.Initialize
+                        
+            Me.InternalStateResetRectDockable()     ' resets all the base class state()
+            
+            Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+                'Caption_INIT = "VScrollBar"
+            End If
+            'IsDesignMode = .IsDesignMode
+            
+            With InternalBaseControlInfo
+                .VisualStyles = Me.VisualStylesINIT
+            End With
+            
+            Dim Opacity As Any = Me.Opacity
+            If Opacity > 100 Then Me.Opacity = 100
+            If Opacity < 0 Then Me.Opacity = 0
+            
+            Dim InitData As WindowCreationData
+            OnInitData(InitData)
+            InitData.ExtendedStyles = If(ControlContext.RuntimeUICtxIsPlacedOnUserControl(), 0&, WS_EX_NOPARENTNOTIFY)
+            InitData.Flags = ForwardGotFocus Or _
+                                ForwardLostFocus Or _
+                                ForwardKeyDown Or _
+                                ForwardKeyUp Or _
+                                ForwardKeyPress Or _
+                                ForwardValidate Or _
+                                ForwardDragOver
+            CreateRootWindowElement(ControlContext, InitData)
+            RootWindowElementBase.RuntimeUISetAndSinkEvents(Me)
+        End Sub
+        
+        ' ABSTRACT
+        Protected Overridable Sub OnInitData(InitData As WindowCreationData)
+        End Sub
+        
+        Protected Sub HandleDestroy() _
+                Implements IWindowsControl.Destroy
+
+            #If LOG_TERMINATE Then
+                Debug.Print CurrentComponentName & "." & CurrentProcedureName
+            #End If
+            ' disconnect anything that causes a circular reference here
+            OnDestroy()
+        End Sub
+        
+        Overridable Sub OnDestroy()
+        End Sub
+        
+        Protected Sub HandleCreate() _
+                Implements IWindowElementEventsCommon.Create
+                
+            RootWindowElementBase.SetScrollRange(0, 32767)
+            Me.InternalMin = Me.Min_INIT
+            Me.InternalMax = Me.Max_INIT
+            Me.InternalLargeChange = Me.LargeChange_INIT
+            Me.InternalValue = Me.Value_INIT
+            SyncScrollBar()
+            RaiseEvent Initialize()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Min() As Long
+            Return InternalMin
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Min(ByVal Value As Long)
+           InternalMin = Value
+           SyncScrollBar()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Max() As Long
+            Return InternalMax
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Max(ByVal Value As Long)
+            InternalMax = Value
+            SyncScrollBar()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get LargeChange() As Long
+            Return InternalLargeChange
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let LargeChange(ByVal Value As Long)
+            InternalLargeChange = Value
+            SyncScrollBar()
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get Value() As Long
+            Return InternalValue
+        End Property
+        
+        [Serialize(False)]
+        Public Property Let Value(ByVal NewValue As Long)
+            If InternalValue <> NewValue Then
+                If InternalMin <= InternalMax Then
+                    If (NewValue < InternalMin) Or (NewValue > InternalMax) Then Err.Raise 380
+                Else
+                    If (NewValue < InternalMax) Or (NewValue > InternalMin) Then Err.Raise 380
+                End If
+                InternalValue = NewValue
+                SyncScrollBar()
+                RaiseEvent Change
+            End If
+        End Property
+        
+        Public Sub SyncScrollBar()
+            Dim ActualPos As Long
+            If InternalMin <= InternalMax Then
+                If InternalValue < InternalMin Then InternalValue = InternalMin
+                If InternalValue > InternalMax Then InternalValue = InternalMax
+                ActualPos = InternalValue - InternalMin
+            Else
+                ' inverted
+                If InternalValue > InternalMin Then InternalValue = InternalMin
+                If InternalValue < InternalMax Then InternalValue = InternalMax
+                ActualPos = InternalMin - InternalValue
+            End If
+            Dim Scale As Double = 32767 / (InternalLargeChange + CLng(Abs(InternalMax - InternalMin)))
+            RootWindowElementBase.SetScrollPageSize(CLng(InternalLargeChange * Scale), , False)
+            RootWindowElementBase.SetScrollValue(CLng(ActualPos * Scale), , True)
+        End Sub
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Get _Default() As Long
+            Return Me.Value
+        End Property
+        
+        [Serialize(False)]
+        [DefaultMember]
+        Public Property Let _Default(ByVal Value As Long)
+            Me.Value = Value
+        End Property
+
+        Public Sub Refresh()
+            RootWindowElementBase.CommonRedrawEraseInvalidate()
+        End Sub
+        
+        [Serialize(False)]
+        Public Property Get Parent() As Object ' As Form  FIXME, needs to work also for UCs
+            Return ControlContext.RuntimeUICtxEnsureGetForm()
+        End Property
+        
+        [Serialize(False)]
+        Property Get VisualStyles() As Boolean
+            Return InternalBaseControlInfo.VisualStyles
+        End Property
+        
+        [Serialize(False)]
+        Property Let VisualStyles(ByVal Value As Boolean)
+            Me.VisualStylesINIT = Value
+            RootWindowElementBase.RuntimeUIRemoveVisualStyles(RootWindowElementBase.RuntimeUIGetHandle(), Not Value)
+        End Property
+        
+        Protected Sub HandleScroll(ByVal ScrollType As SCROLLNOTIFY, ByVal IsHorizontal As Boolean) _
+                Implements IWindowElementEventsCommon.Scroll
+            
+            If ScrollType <> SB_ENDSCROLL Then
+                If InternalIsScrolling = False Then
+                    InternalValueBeforeScroll = InternalValue
+                    InternalIsScrolling = True
+                End If
+                
+                Dim Scale As Double = 32767 / (InternalLargeChange + CLng(Abs(InternalMax - InternalMin)))
+                If Scale = 0 Then Exit Sub
+                Dim NewValue As Long
+                Dim InverseMode As Boolean = InternalMin > InternalMax
+                Dim NeedsUpdate As Boolean
+                Dim AdjustAmount As Long
+                
+                Select Case ScrollType
+                    Case SCROLLNOTIFY.SB_THUMBPOSITION
+                        InternalIsScrolling = False
+                        NeedsUpdate = True
+                        GoTo HandleHotValue
+                    Case SCROLLNOTIFY.SB_THUMBTRACK
+                    HandleHotValue:
+                        NewValue = CLng(RootWindowElementBase.GetScrollValueHot() / Scale)
+                        If InverseMode = False Then
+                            NewValue += InternalMin
+                            If NewValue > InternalMax Then NewValue = InternalMax
+                            If NewValue < InternalMin Then NewValue = InternalMin
+                        Else
+                            ' inverted mode
+                            NewValue = InternalMin - NewValue
+                            If NewValue > InternalMin Then NewValue = InternalMin
+                            If NewValue < InternalMax Then NewValue = InternalMax
+                        End If
+                    Case SCROLLNOTIFY.SB_PAGELEFT
+                        AdjustAmount = -InternalLargeChange
+                    Case SCROLLNOTIFY.SB_PAGERIGHT
+                        AdjustAmount = InternalLargeChange
+                    Case SCROLLNOTIFY.SB_LINELEFT
+                        AdjustAmount = -SmallChange
+                    Case SCROLLNOTIFY.SB_LINERIGHT
+                        AdjustAmount = SmallChange
+                    Case SCROLLNOTIFY.SB_TOP
+                        NewValue = If(InverseMode, InternalMax, InternalMin)
+                        NeedsUpdate = True
+                        InternalIsScrolling = False
+                    Case SCROLLNOTIFY.SB_BOTTOM
+                        NewValue = If(InverseMode, InternalMin, InternalMax)
+                        NeedsUpdate = True
+                        InternalIsScrolling = False
+                End Select
+                
+                If AdjustAmount Then
+                    If InverseMode = False Then
+                        NewValue = InternalValue + AdjustAmount
+                        If NewValue < InternalMin Then NewValue = InternalMin
+                        If NewValue > InternalMax Then NewValue = InternalMax
+                    Else
+                        NewValue = InternalValue - AdjustAmount
+                        If NewValue > InternalMin Then NewValue = InternalMin
+                        If NewValue < InternalMax Then NewValue = InternalMax
+                    End If
+                    NeedsUpdate = True
+                    InternalIsScrolling = False
+                End If
+                
+                If InternalIsScrolling Then
+                    If NewValue <> InternalValue Then
+                        InternalValue = NewValue
+                        RaiseEvent Scroll()
+                    End If
+                Else
+                    If NewValue <> InternalValueBeforeScroll Then
+                        InternalValue = NewValue
+                        
+                        If NeedsUpdate Then
+                            'Debug.Print "NewValue: " & NewValue
+                            SyncScrollBar()
+                        End If
+                        RaiseEvent Change()
+                    End If
+                End If
+            End If
+        End Sub
+End Class
+#End If

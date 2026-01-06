@@ -1,0 +1,84 @@
+' This deliberately has the same IID as Control
+[ClassId("D02CB910-DA6A-4232-A892-BCD3AECE95C0")]
+[InterfaceId("0F56F78D-26A7-4291-82B7-D4B04978540B")]
+[COMCreatable(False)]
+Private Class BaseControl
+    
+    Protected InternalBaseControlInfo As BaseControlInfo
+
+    [Serialize(True, ":Name")]
+    [Description("The name associated with this control.  Control arrays can share the same name, but for individual controls the assigned name must be unique.")]
+        Protected NameINIT As String
+    
+    [Description("Any string value, allowing you to associate custom data to a control")]
+        Public Tag As String
+    
+    [Serialize(False)]
+    [Description("A numeric value representing the type of this control, see ControlTypeConstants")]
+        Public ReadOnly ControlType As ControlTypeConstants
+ 
+    [Serialize(False)]
+        Protected ControlContext As ControlContext
+        
+    [Serialize(False)]
+        Protected RootWindowElementBase As WindowElement
+    
+    Protected Sub InternalStateResetBaseControl()
+        InternalBaseControlInfo.NamePtr = 0
+        InternalBaseControlInfo.InitialCaption = vbNullString
+        InternalBaseControlInfo.ToolTipText = vbNullString
+        Set InternalBaseControlInfo.MouseIcon = Nothing
+        Set InternalBaseControlInfo.DragIcon = Nothing
+        
+        [_HiddenModule].MemZero(VarPtr(InternalBaseControlInfo), LenB(InternalBaseControlInfo))
+        
+        InternalBaseControlInfo.ControlType = ControlType
+        ControlContext.Pointer = vbNullPtr
+        InternalBaseControlInfo.VisualStyles = True
+    End Sub
+
+    Sub New(ByVal ControlType As ControlTypeConstants)
+        Me.ControlType = ControlType
+        'Me.InternalBaseControlInfoPtrX = VarPtr(InternalBaseControlInfo)
+    End Sub
+    
+    Protected Sub InternalBaseControlBeforeCreateRootWindowBaseControl(ByRef InitData As WindowCreationData)
+        With InternalBaseControlInfo
+            .NamePtr = VarPtr(Me.NameINIT)
+            .InitialCaption = InitData.Caption
+        End With
+        InitData.BaseControlInfoPtr = VarPtr(InternalBaseControlInfo)
+    End Sub
+    
+    Protected Sub BeginMouseCapture(ByVal WindowElement As WindowElement, ByVal CheckFirst As Boolean = False)
+        If CheckFirst Then
+            If USER32.GetCapture() <> vbNullPtr Then
+                Exit Sub
+            End If
+        End If
+        WindowElement.SetCapture()
+        InternalBaseControlInfo.MouseCaptured = True
+    End Sub
+    
+    Protected Function EndMouseCapture() As Boolean
+        With InternalBaseControlInfo
+            If .MouseCaptured = True Then
+                .MouseCaptured = False
+                USER32.ReleaseCapture()
+                Return True
+            End If
+        End With
+    End Function
+
+    [Description("A unique name for the control on this form")]
+    [DispId(-800)]
+    [Serialize(False)]
+    Public Property Get Name() As String
+        Return NameINIT 'InternalBaseControlInfo.Name
+    End Property
+    
+    ' Public Property Let Name(ByVal Value As String)
+    '     Stop
+    ' End Property
+        
+End Class

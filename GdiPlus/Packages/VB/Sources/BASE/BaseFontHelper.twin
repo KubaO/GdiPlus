@@ -1,0 +1,171 @@
+[ClassId("D37D8226-9E2C-48B4-9F1D-D825E6AB9BCA")]
+[InterfaceId("5C027A9E-0BD8-468E-8644-42BC31A486AC")]
+[COMCreatable(False)]
+Private Class BaseFont
+    
+    [Serialize(False)]
+        Protected InternalFontChangeCount As Long
+    
+    [Serialize(False)]
+        Public WithEvents Font As StdFont
+            
+    [Serialize(False)]
+        Protected CurrentFontHandle As LongPtr
+    
+    ' FIXME need a font picker, then hide these from the property sheet
+        [Serialize(True, "FontBold")]
+        Protected FontBoldINIT As Boolean
+        [Serialize(True, "FontItalic")]
+        Protected FontItalicINIT As Boolean
+        [Serialize(True, "FontName")]
+        Protected FontNameINIT As String = "Segoe UI"
+        [Serialize(True, "FontSize")]
+        Protected FontSizeINIT As Single = 8
+        [Serialize(True, "FontStrikethru")]
+        Protected FontStrikethruINIT As Boolean
+        [Serialize(True, "FontUnderline")]
+        Protected FontUnderlineINIT As Boolean
+                
+        Protected Sub InternalStateResetFont()
+            InternalFontChangeCount = 0
+            If Me.CurrentFontHandle <> 0 Then GDI32.DeleteObject(Me.CurrentFontHandle)
+            CurrentFontHandle = 0
+            Set Font = Nothing
+        End Sub
+        
+        Protected Sub SetFontInitData(ByVal Font As StdFont)   ' used by control array initialization
+            With Font
+                FontBoldINIT = .Bold
+                FontItalicINIT = .Italic
+                FontNameINIT = .Name
+                FontSizeINIT = CSng(.Size)
+                FontStrikethruINIT = .Strikethrough
+                FontUnderlineINIT = .Underline
+            End With
+        End Sub
+                        
+        [Serialize(False)]
+        Public Property Get FontBold() As Boolean
+            Return Me.Font.Bold
+        End Property
+        [Serialize(False)]
+        Public Property Let FontBold(ByVal Value As Boolean)
+            Me.Font.Bold = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get FontItalic() As Boolean
+            Return Me.Font.Italic
+        End Property
+        [Serialize(False)]
+        Public Property Let FontItalic(ByVal Value As Boolean)
+            Me.Font.Italic = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get FontName() As String
+            Return Me.Font.Name
+        End Property
+        [Serialize(False)]
+        Public Property Let FontName(ByVal Value As String)
+            Me.Font.Name = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get FontSize() As Single
+            Return CSng(Me.Font.Size)
+        End Property
+        [Serialize(False)]
+        Public Property Let FontSize(ByVal Value As Single)
+            Me.Font.Size = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get FontStrikethru() As Boolean
+            Return Me.Font.Strikethrough
+        End Property
+        [Serialize(False)]
+        Public Property Let FontStrikethru(ByVal Value As Boolean)
+            Me.Font.Strikethrough = Value
+        End Property
+        
+        [Serialize(False)]
+        Public Property Get FontUnderline() As Boolean
+            Return Me.Font.Underline
+        End Property
+        [Serialize(False)]
+        Public Property Let FontUnderline(ByVal Value As Boolean)
+            Me.Font.Underline = Value
+        End Property
+    
+        Sub Class_Terminate()
+    '    Debug.Print "*** DELETING FONT HANDLE: " & Me.CurrentFontHandle
+            If Me.CurrentFontHandle <> 0 Then GDI32.DeleteObject(Me.CurrentFontHandle)
+            CurrentFontHandle = 0
+        End Sub
+        
+        Protected Sub InternalSyncFontNow()
+            SyncFontProperties()
+        End Sub
+         
+        Protected Sub SyncFont() _
+               Handles Font.OnPropertySet
+
+            Dim oldFontHandle As LongPtr = Me.CurrentFontHandle
+            Dim OuterOwner As BaseControl = CType(Of BaseControl)(GetInheritedOwner(Me))
+            If (Me.Font IsNot Nothing) And (OuterOwner IsNot Nothing) Then
+                Dim RootElementBase As Any = UnprotectedAccess(OuterOwner).RootWindowElementBase
+                Me.CurrentFontHandle = RootElementBase.SetFont(CType(Of IFont)(Me.Font))
+            End If
+            If oldFontHandle <> 0 Then GDI32.DeleteObject(oldFontHandle)
+        End Sub
+    
+        Protected Sub FontChanged(ByVal PropertyName As String) _
+                Handles Font.FontChanged
+            
+            SyncFont
+            InternalFontChangeCount += 1
+        End Sub
+        
+        Protected Sub InitializeOLEFont()
+            Dim NewFont As StdFont = New StdFont
+            With NewFont
+                .Bold = Me.FontBoldINIT
+                .Italic = Me.FontItalicINIT
+                .Name = Me.FontNameINIT
+                .Size = Me.FontSizeINIT
+                .Strikethrough = Me.FontStrikethruINIT
+                .Underline = Me.FontUnderlineINIT
+            End With
+            Dim font As Any = CType(Of IFont)(NewFont)
+            Dim OuterOwner As BaseControl = CType(Of BaseControl)(GetInheritedOwner(Me))
+            If OuterOwner IsNot Nothing Then
+                font.SetRatio(UnprotectedAccess(OuterOwner).RootWindowElementBase.RuntimeUIGetDPI(), 2540)
+            End If
+            Set Me.Font = NewFont
+        End Sub
+    
+        Protected Function GetFontMetrics() As TEXTMETRIC
+            If Me.Font Is Nothing Then
+                InitializeOLEFont
+            End If
+        
+            Dim font As Any = CType(Of IFont)(Me.Font)
+            Dim hdc As HDC
+            hdc.Value = hdc.CreateCompatibleDC()
+            Dim OuterOwner As BaseControl = CType(Of BaseControl)(GetInheritedOwner(Me))
+            font.SetRatio(UnprotectedAccess(OuterOwner).RootWindowElementBase.RuntimeUIGetDPI(), 2540)
+            Dim oldFont As LongPtr = hdc.SelectObject(font.hFont)
+            hdc.GetTextMetricsW(GetFontMetrics)
+            hdc.SelectObject(oldFont)
+            hdc.DeleteDC()
+        End Function
+    
+        Protected Sub SyncFontProperties()
+            If Me.Font Is Nothing Then
+                InitializeOLEFont
+            End If
+            SyncFont()
+        End Sub
+        
+End Class

@@ -1,0 +1,97 @@
+[InterfaceId("45046D60-08CA-11CF-A90F-00AA0062BB4C")]
+Public Interface PropertyBag_VB5 Extends stdole.IDispatch
+    [DispId(1)]
+    [Description("Reads a property value from a PropertyBag object." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Function ReadProperty(ByVal Name As String, Optional ByVal DefaultValue As Variant) As Variant`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Name`: The name of the property to read." & vbCrLf & _
+                    "- `DefaultValue`: An optional parameter that specifies the return value if the property is not found. The data type can be any." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "The function returns the value of the specified property. If the property is not found, it returns the `DefaultValue` if provided; otherwise, it returns `Null`." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume 'propBag' is a previously initialized PropertyBag object with properties set." & vbCrLf & _
+                    "Dim myValue As Variant" & vbCrLf & _
+                    "myValue = propBag.ReadProperty(""MyProperty"", ""DefaultValue"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `ReadProperty` function is typically used when an object needs to read its state from a PropertyBag, such as during the `ReadProperties` event when implementing persistence in ActiveX controls (UserControls) or documents.")]
+    Function ReadProperty(ByVal Name As String, Optional ByVal DefaultValue As Variant) As Variant
+    
+    [DispId(2)]
+    [Description("Writes a property value to a PropertyBag object." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Sub WriteProperty(ByVal Name As String, ByVal Value As Variant, Optional ByVal DefaultValue As Variant)`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `Name`: The name of the property to write." & vbCrLf & _
+                    "- `Value`: The value to write to the property. The data type can be any that is supported by the PropertyBag." & vbCrLf & _
+                    "- `DefaultValue`: An optional parameter that specifies the value the client should assume as default when reading the property." & vbCrLf & _
+                    "### Return Value" & vbCrLf & _
+                    "None. This is a Sub procedure and does not return a value." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume 'propBag' is a previously initialized PropertyBag object." & vbCrLf & _
+                    "propBag.WriteProperty(""MyProperty"", ""SomeValue"", ""DefaultValue"")" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `WriteProperty` procedure is typically used when an object needs to save its state to a PropertyBag, such as during the `WriteProperties` event when implementing persistence in ActiveX controls or documents. The `DefaultValue` parameter is used to optimize storage by not storing the value if it is the same as the default.")]
+    Sub WriteProperty(ByVal Name As String, ByVal Value As Variant, Optional ByVal DefaultValue As Variant)
+End Interface
+
+[InterfaceId("4495AD01-C993-11D1-A3E4-00A0C90AEA82")]
+Public Interface _PropertyBag Extends PropertyBag_VB5
+    [DispId(3)]
+    [Description("Retrieves or sets the entire state of the contents of a PropertyBag object." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Property Let Contents(ByVal NewValue As Variant)`" & vbCrLf & _
+                    "`Property Get Contents() As Variant`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `NewValue`: The new value to assign to the contents of the PropertyBag when using `Let`." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "A Variant containing the entire state of the PropertyBag when using `Get`.  The Variant subtype is a byte-array." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume 'propBag' is a previously initialized PropertyBag object." & vbCrLf & _
+                    "' To retrieve the contents:" & vbCrLf & _
+                    "Dim bagContents As Variant" & vbCrLf & _
+                    "bagContents = propBag.Contents" & vbCrLf & _
+                    "" & vbCrLf & _
+                    "' To set the contents:" & vbCrLf & _
+                    "' Assume 'newContents' is a Variant containing the state to load into the PropertyBag" & vbCrLf & _
+                    "propBag.Contents = newContents" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `Contents` property is used to retrieve or set the complete state of the PropertyBag. This is useful when you need to load or save the state of the PropertyBag in one operation. When setting the `Contents`, the existing state is replaced by the `NewValue`. When reading the `Contents`, the entire state is retrieved as a Variant, which can then be manipulated as needed.")]
+    Property Get Contents() As Variant
+        
+    [DispId(3)]
+    [Description("Retrieves or sets the entire state of the contents of a PropertyBag object." & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`Property Let Contents(ByVal NewValue As Variant)`" & vbCrLf & _
+                    "`Property Get Contents() As Variant`" & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "- `NewValue`: The new value to assign to the contents of the PropertyBag when using `Let`." & vbCrLf & _
+                    "### Property Value" & vbCrLf & _
+                    "A Variant containing the entire state of the PropertyBag when using `Get`.  The Variant subtype is a byte-array." & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```vb" & vbCrLf & _
+                    "' Assume 'propBag' is a previously initialized PropertyBag object." & vbCrLf & _
+                    "' To retrieve the contents:" & vbCrLf & _
+                    "Dim bagContents As Variant" & vbCrLf & _
+                    "bagContents = propBag.Contents" & vbCrLf & _
+                    "" & vbCrLf & _
+                    "' To set the contents:" & vbCrLf & _
+                    "' Assume 'newContents' is a Variant containing the state to load into the PropertyBag" & vbCrLf & _
+                    "propBag.Contents = newContents" & vbCrLf & _
+                    "```" & vbCrLf & _
+                    "### Remarks" & vbCrLf & _
+                    "The `Contents` property is used to retrieve or set the complete state of the PropertyBag. This is useful when you need to load or save the state of the PropertyBag in one operation. When setting the `Contents`, the existing state is replaced by the `NewValue`. When reading the `Contents`, the entire state is retrieved as a Variant, which can then be manipulated as needed.")]
+    Property Let Contents(ByVal value As Variant)
+End Interface
+
+[CoClassId("D5DE8D20-5BB8-11D1-A1E3-00A0C90F2731")]
+[CoClassCustomConstructor("CreatePropertyBagObject")]
+Public CoClass PropertyBag
+    [Default] Interface _PropertyBag
+End CoClass 

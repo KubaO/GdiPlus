@@ -1,0 +1,116 @@
+Module Compilation
+ 
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the name of the current project as a literal string.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`projectName = CurrentProjectName()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns the name of the current project as a String.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Retrieve the current project name" & vbCrLf & _
+                    "Dim projectName As String" & vbCrLf & _
+                    "projectName = CurrentProjectName()" & vbCrLf & _
+                    "MsgBox ""The name of this project is "" & projectName" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CurrentProjectName Lib "<compilation>" Alias "#-33" () As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the name of the current component within the project as a literal string.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`componentName = CurrentComponentName()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns the name of the current component as a String.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Retrieve the current component name" & vbCrLf & _
+                    "Dim componentName As String" & vbCrLf & _
+                    "componentName = CurrentComponentName()" & vbCrLf & _
+                    "MsgBox ""The name of this component is "" & componentName" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CurrentComponentName Lib "<compilation>" Alias "#-34" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Obtains the Class ID (CLSID) associated with the current class as a string.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`clsid = CurrentComponentCLSID()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns the CLSID as a String, which corresponds to the `[ClassId(""{guid}"")]` attribute that has been set on the current class.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Retrieve the CLSID of the current class" & vbCrLf & _
+                    "Dim classCLSID As String" & vbCrLf & _
+                    "classCLSID = CurrentComponentCLSID()" & vbCrLf & _
+                    "MsgBox ""The CLSID of this component is "" & classCLSID" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CurrentComponentCLSID Lib "<compilation>" Alias "#-35" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Retrieves the name of the procedure in which this function is called.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`procedureName = CurrentProcedureName()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns a String with the name of the current procedure.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Display the name of the current procedure" & vbCrLf & _
+                    "Dim procName As String" & vbCrLf & _
+                    "procName = CurrentProcedureName()" & vbCrLf & _
+                    "MsgBox ""This code is in the procedure named "" & procName" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CurrentProcedureName Lib "<compilation>" Alias "#-36" () As String
+    
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the full path of the source file where this function is called.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`filePath = CurrentSourceFile()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns a String with the full path to the current source file.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Display the full path of the current source file" & vbCrLf & _
+                    "Dim sourceFilePath As String" & vbCrLf & _
+                    "sourceFilePath = CurrentSourceFile()" & vbCrLf & _
+                    "MsgBox ""This code is in the file located at: "" & sourceFilePath" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CurrentSourceFile Lib "<compilation>" Alias "#-37" () As String
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the processor architecture on which the application is running.  " & vbCrLf & _
+                    "### Syntax" & vbCrLf & _
+                    "`architecture = ProcessorArchitecture()`  " & vbCrLf & _
+                    "### Parameters" & vbCrLf & _
+                    "This function does not take any parameters.  " & vbCrLf & _
+                    "### Return value" & vbCrLf & _
+                    "Returns a `VbArchitecture` enumeration. Possible values are `vbArchWin32` for 32-bit and `vbArchWin64` for 64-bit architectures.  " & vbCrLf & _
+                    "### Example" & vbCrLf & _
+                    "```basic" & vbCrLf & _
+                    "' Example: Display the processor architecture" & vbCrLf & _
+                    "Dim arch As VbArchitecture" & vbCrLf & _
+                    "arch = ProcessorArchitecture()" & vbCrLf & _
+                    "MsgBox ""The application is running on architecture: "" & IIf(arch = vbArchWin32, ""32-bit"", ""64-bit"")" & vbCrLf & _
+                    "```")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function ProcessorArchitecture Lib "<compilation>" Alias "#-38" () As VbArchitecture
+
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("Returns the twinBASIC compiler version number.  ")]
+    ' Note, this function uses special internal bindings and so may not behave like a regular function
+    Public DeclareWide PtrSafe Function CompilerVersion Lib "<compilation>" Alias "#-69" () As Long
+    
+End Module

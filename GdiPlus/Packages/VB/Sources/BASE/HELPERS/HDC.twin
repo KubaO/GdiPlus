@@ -1,0 +1,211 @@
+Private Module HDCModule
+
+    [UserDefinedTypeIsAnAlias]
+    Type HDC
+        Value As LongPtr
+        
+        ' FIXME these need to be inlined
+        
+        Private Sub Type_Assignment(ByVal RHS As LongPtr)
+            Me.Value = RHS
+        End Sub
+        
+        ' Private Function Type_Conversion() As LongPtr
+        '     Return Me.Value
+        ' End Function
+        
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetClipBox Lib "gdi32" (ByVal Me As HDC, ByRef lprect As tbRECT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SelectClipRgn Lib "gdi32" (ByVal Me As HDC, ByVal hrgn As LongPtr) As Long
+    '''    [UseGetLastError(False), DLLStackCheck(False)]
+    '''    Public DeclareWide PtrSafe Function GetTextExtentPointW Lib "gdi32" (ByVal Me As HDC, ByVal lpString As String, ByVal c As Long, ByRef lpsz As size) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetTextAlign Lib "gdi32" (ByVal Me As HDC, ByVal align As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetTextCharacterExtra Lib "gdi32" (ByVal Me As HDC, ByVal extra As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetTextJustification Lib "gdi32" (ByVal Me As HDC, ByVal extra As Long, ByVal count As Long) As Long
+    '''    [UseGetLastError(False), DLLStackCheck(False)]
+    '''    Public DeclareWide PtrSafe Function SetMapMode Lib "gdi32" (ByVal Me As HDC, ByVal iMode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ExtTextOutW Lib "gdi32" (ByVal Me As HDC, ByVal X As Long, ByVal Y As Long, ByVal options As Long, ByRef rect As tbRECT, ByVal lpString As String, ByVal StringLen As Long, ByVal lpDx As LongPtr) As Long
+    '''    [UseGetLastError(False), DLLStackCheck(False)]
+    '''    Public DeclareWide PtrSafe Function Rectangle Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long) As Long
+    '''    [UseGetLastError(False), DLLStackCheck(False)]
+    '''    Public DeclareWide PtrSafe Function FillRect Lib "user32" (ByVal Me As HDC, ByRef rect As tbRECT, ByVal brush As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawFocusRect Lib "user32" (ByVal Me As HDC, ByRef rect As tbRECT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawFrameControl Lib "user32" (ByVal Me As HDC, ByRef outRect As tbRECT, ByVal Type As Long, ByVal InitialState As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawEdge Lib "user32" (ByVal Me As HDC, ByRef rect As tbRECT, ByVal edge As Long, ByVal grfFlags As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetTextColor Lib "gdi32" (ByVal Me As HDC, ByVal Color As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetBkColor Lib "gdi32" (ByVal Me As HDC, ByVal Color As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetBkMode Lib "gdi32" (ByVal Me As HDC, ByVal Mode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetCurrentObject Lib "gdi32" (ByVal Me As HDC, ByVal Type As WindowGDIObjectTypes) As LongPtr
+        '''    [UseGetLastError(False), DLLStackCheck(False)]
+        '''    Public DeclareWide PtrSafe Function GetTextMetricsW Lib "gdi32" (ByVal Me As HDC, ByRef lptm As TEXTMETRIC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function TextOutW Lib "gdi32" (ByVal Me As HDC, ByVal X As Long, ByVal Y As Long, ByVal lpString As String, ByVal StringLen As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function FillRect Lib "user32" (ByVal Me As HDC, ByRef rect As tbRECT, ByVal brush As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetDIBits Lib "gdi32" (ByVal Me As HDC, ByVal hbm As LongPtr, ByVal start As Long, ByVal cLines As Long, ByVal lpvBits As LongPtr, ByRef lpbmi As BITMAPINFO_RGBA, ByVal usage As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function StretchDIBits Lib "gdi32" (ByVal Me As HDC, ByVal xDest As Long, ByVal yDest As Long, ByVal DestWidth As Long, ByVal DestHeight As Long, ByVal xSrc As Long, ByVal ySrc As Long, ByVal SrcWidth As Long, ByVal SrcHeight As Long, ByVal lpBits As LongPtr, ByRef lpbmi As BITMAPINFO_RGBA, ByVal iUsage As Long, ByVal rop As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function StretchBlt Lib "gdi32" (ByVal Me As HDC, ByVal xDest As Long, ByVal yDest As Long, ByVal wDest As Long, ByVal hDest As Long, ByVal hdcSrc As HDC, ByVal xSrc As Long, ByVal ySrc As Long, ByVal wSrc As Long, ByVal hSrc As Long, ByVal rop As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetStretchBltMode Lib "gdi32" (ByVal Me As HDC, ByVal mode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DeleteDC Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetWindowOrgEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByRef lpPoint As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetWindowExtEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByRef lpPoint As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetViewportOrgEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByRef lpPoint As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetViewportExtEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByRef lpPoint As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CloseMetaFile Lib "gdi32" (ByVal Me As HDC) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function PlayMetaFile Lib "gdi32" (ByVal Me As HDC, ByVal hmf As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetMapMode Lib "gdi32" (ByVal Me As HDC, ByVal iMode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function OffsetWindowOrgEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByRef point As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ScaleViewportExtEx Lib "gdi32" (ByVal Me As HDC, ByVal xn As Long, ByVal dx As Long, ByVal yn As Long, ByVal yd As Long, ByVal lpSize As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CreateEnhMetaFileW Lib "gdi32" (ByVal Me As HDC, ByVal lpFilename As String, ByRef lprc As tbRECT, ByVal lpDesc As String) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CloseEnhMetaFile Lib "gdi32" (ByVal Me As HDC) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function PlayEnhMetaFile Lib "gdi32" (ByVal Me As HDC, ByVal hmf As LongPtr, ByRef lprect As tbRECT) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetDCPenColor Lib "gdi32" (ByVal Me As HDC, ByVal Color As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetBrushOrgEx Lib "gdi32" (ByVal Me As HDC, ByVal nXOrg As Long, ByVal nYOrg As Long, ByVal lppt As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetViewportOrgEx Lib "gdi32" (ByVal Me As HDC, ByRef lpPoint As POINT) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Escape Lib "gdi32" (ByVal Me As HDC, ByVal iEscape As Long, ByVal cbIn As Long, ByVal pvIn As LongPtr, ByRef out As Any) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ResetDCW Lib "gdi32" (ByVal Me As HDC, ByRef pDevMode As DEVMODEW) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function EndDoc Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function AbortDoc Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function StartPage Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function EndPage Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function StartDocW Lib "gdi32" (ByVal Me As HDC, ByRef info As DOCINFOW) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function RoundRect Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long, ByVal width As Long, ByVal Height As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Rectangle Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Ellipse Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetROP2 Lib "gdi32" (ByVal Me As HDC, ByVal rop2 As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Polygon Lib "gdi32" (ByVal Me As HDC, ByRef points As Any, ByVal CountOfPoints As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function MoveToEx Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByVal lppt As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function LineTo Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function ExcludeClipRect Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetDeviceCaps Lib "gdi32" (ByVal Me As HDC, ByVal nIndex As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function PolyPolygon Lib "gdi32" (ByVal Me As HDC, lpPoint As Any, lpPolyCounts As Any, ByVal nCount As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SaveDC Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function RestoreDC Lib "gdi32" (ByVal Me As HDC, ByVal nSavedDC As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function IntersectClipRect Lib "gdi32" (ByVal Me As HDC, ByVal left As Long, ByVal top As Long, ByVal right As Long, ByVal bottom As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GradientFill Lib "msimg32" (ByVal Me As HDC, ByRef Vertex As TRIVERTEX, ByVal nVertex As Long, ByRef Mesh As Any, ByVal nMesh As Long, ByVal Mode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetWorldTransform Lib "gdi32" (ByVal Me As HDC, ByRef xf As XFORM) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetWorldTransform Lib "gdi32" (ByVal Me As HDC, ByRef xf As XFORM) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetGraphicsMode Lib "gdi32" (ByVal Me As HDC, ByVal iMode As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawIcon Lib "user32" (ByVal Me As HDC, ByVal X As Long, ByVal Y As Long, ByVal hicon As LongPtr) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawIconEx Lib "user32" (ByVal Me As HDC, ByVal xLeft As Long, ByVal yTop As Long, ByVal hicon As LongPtr, ByVal cxWidth As Long, ByVal cyWidth As Long, ByVal istepIfAniCur As Long, ByVal hbrFlickerFreeDraw As LongPtr, ByVal diFlags As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CreateDIBSection Lib "gdi32" (ByVal Me As HDC, ByRef pbmi As Any, ByVal usage As Long, ByRef ppvBits As LongPtr, ByVal hSection As LongPtr, ByVal offset As Long) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetDIBits Lib "gdi32" (ByVal Me As HDC, ByVal hbm As LongPtr, ByVal start As Long, ByVal cLines As Long, ByVal lpvBits As LongPtr, ByRef lpbmi As BITMAPINFO_RGBA, ByVal usage As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SetPixel Lib "gdi32" (ByVal Me As HDC, ByVal X As Long, ByVal Y As Long, ByVal crColor As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTextMetricsW Lib "gdi32" (ByVal Me As HDC, lptm As TEXTMETRICW) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetDCPenColor Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTextColor Lib "gdi32" (ByVal Me As HDC) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function DrawTextW Lib "user32" (ByVal Me As HDC, ByVal lpchText As String, ByVal cchText As Long, ByRef lprc As tbRECT, ByVal format As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTextExtentPointW Lib "gdi32" (ByVal Me As HDC, ByVal lpString As String, ByVal c As Long, ByRef lpsz As SIZE) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function TabbedTextOutW Lib "user32" (ByVal Me As HDC, ByVal X As Long, ByVal Y As Long, ByVal lpString As String, ByVal StringLen As Long, ByVal nTabPositions As Long, ByRef arrayOfPositions As Long, ByVal nTabOrigin As Long) As Long  ' we only pass 1 value to arrayOfPositions, so this definition is OK for our needs
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTabbedTextExtentW Lib "user32" (ByVal Me As HDC, ByVal lpString As LongPtr, ByVal StringLen As Long, ByVal nTabPositions As Long, ByRef arrayOfPositions As Long) As Long  ' we only pass 1 value to arrayOfPositions, so this definition is OK for our needs    
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CreateCompatibleDC Lib "gdi32" (ByVal Me As HDC) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function CreateCompatibleBitmap Lib "gdi32" (ByVal Me As HDC, ByVal nWidth As Long, ByVal nHeight As Long) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function SelectObject Lib "gdi32" (ByVal Me As HDC, ByVal hObject As LongPtr) As LongPtr
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetCurrentPositionEx Lib "gdi32" (ByVal Me As HDC, ByRef lppt As POINTL) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Arc Lib "gdi32" (ByVal Me As HDC, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long, ByVal x3 As Long, ByVal y3 As Long, ByVal x4 As Long, ByVal y4 As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function Pie Lib "gdi32" (ByVal Me As HDC, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long, ByVal x3 As Long, ByVal y3 As Long, ByVal x4 As Long, ByVal y4 As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function BitBlt Lib "gdi32" (ByVal Me As HDC, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal hdcSrc As HDC, ByVal x1 As Long, ByVal y1 As Long, ByVal ROP As Long) As Long
+        [UseGetLastError(False), DLLStackCheck(False)]
+        Public DeclareWide PtrSafe Function GetTextExtentPoint32W Lib "gdi32" (ByVal Me As HDC, ByVal lpsz As String, ByVal cbString As Long, ByRef lpSize As SIZE) As Long
+        
+        Public Function TranslateColor(ByVal Color As OLE_COLOR) As Long
+            Dim currentPalette As LongPtr = Me.GetCurrentObject(WindowGDIObjectTypes.OBJ_PAL)
+            Return TranslateColor(Color, currentPalette)
+        End Function
+        
+        Public Sub CommonFillRect(ByRef rect As tbRECT, ByVal Color As OLE_COLOR)
+            Dim brush As LongPtr = GDI32.CreateSolidBrush(TranslateColor(Color))
+            Me.FillRect(rect, brush)
+            GDI32.DeleteObject(brush)
+        End Sub
+    
+        Public Sub CommonTextOut(ByVal itemText As String, ByVal Color As OLE_COLOR, ByVal X As Long, ByVal Y As Long, ByVal UseTabStops As Boolean)
+            Dim oldTextColor As Long = Me.SetTextColor(TranslateColor(Color))
+            Dim oldBkMode As Long = Me.SetBkMode(1)
+            If UseTabStops = False Then
+                Me.TextOutW(X, Y, itemText, Len(itemText))
+            Else
+                Me.TabbedTextOutW(X, Y, itemText, Len(itemText), 0, 0, 0)
+            End If
+            Me.SetBkMode(oldBkMode)
+            Me.SetTextColor(oldTextColor)
+        End Sub
+                
+    End Type
+    
+End Module

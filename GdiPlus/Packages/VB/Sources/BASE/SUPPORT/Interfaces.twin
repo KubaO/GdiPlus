@@ -1,0 +1,149 @@
+[InterfaceId("0c733a30-2a1c-11ce-ade5-00aa0044773d")]
+Private Interface ISequentialStream Extends stdole.IUnknown
+    Sub Read(ByVal pv As LongPtr, ByVal cb As Long, ByRef pcbRead As Long)
+    Sub Write(ByVal pv As LongPtr, ByVal cb As Long, ByRef pcbWritten As Long)
+End Interface
+ 
+[InterfaceId("0000000c-0000-0000-C000-000000000046")]
+Private Interface IStream Extends ISequentialStream
+    Type STATSTG
+        pwcsName As LongPtr
+        Type As Long
+        cbSize As LongLong
+        mtime As LongLong
+        ctime As LongLong
+        atime As LongLong
+        grfMode As Long
+        grfLocksSupported As Long
+        clsid As GUID2
+        grfStateBits As Long
+        reserved As Long
+    End Type
+    
+    Sub Seek(ByVal dlibMove As LongLong, ByVal dwOrigin As Long, ByRef plibNewPosition As LongLong)
+    Sub SetSize(ByVal libNewSize As LongLong)
+    Sub CopyTo(ByVal pstm As IStream, ByVal cb As Long, ByRef pcbRead As LongLong, ByRef pcbWritten As LongLong)
+    Sub Commit(ByVal grfCommitFlags As Long)
+    Sub Revert()
+    Sub LockRegion(ByVal libOffset As LongLong, ByVal cb As LongLong, ByVal dwLockType As Long)
+    Sub UnlockRegion(ByVal libOffset As LongLong, ByVal cb As LongLong, ByVal dwLockType As Long)
+    Sub Stat(ByRef pstatstg As STATSTG, ByVal grfStatFlag As Long)
+    Sub Clone(ByRef ppstm As IStream)
+End Interface
+    
+[InterfaceId("0000000d-0000-0000-C000-000000000046")]
+Private Interface IEnumSTATSTG Extends stdole.IUnknown
+    Sub Next(ByVal celt As Long, ByRef rgelt As STATSTG, ByRef pceltFetched As Long)
+    Sub Skip(ByVal celt As Long)
+    Sub Reset()
+    Sub Clone(ByRef ppenum As IEnumSTATSTG)
+End Interface
+    
+[InterfaceId("0000000b-0000-0000-C000-000000000046")]
+Private Interface IStorage Extends stdole.IUnknown
+    Sub CreateStream(ByVal pwcsName As LongPtr, ByVal grfMode As Long, ByVal reserved1 As Long, ByVal reserved2 As Long, ByRef ppstm As IStream)
+    Sub OpenStream(ByVal pwcsName As LongPtr, ByVal reserved1 As LongPtr, ByVal grfMode As Long, ByVal reserved2 As Long, ByRef ppstm As IStream)
+    Sub CreateStorage(ByVal pwcsName As LongPtr, ByVal grfMode As Long, ByVal reserved1 As Long, ByVal reserved2 As Long, ByRef ppstg As IStorage)
+    Sub OpenStorage(ByVal pwcsName As LongPtr, ByVal pstgPriority As IStorage, ByVal grfMode As Long, ByVal snbExclude As Long, ByVal reserved As Long, ByRef ppstg As IStorage)
+    Sub CopyTo(ByVal ciidExclude As Long, ByRef rgiidExclude As GUID2, ByVal snbExclude As Long, ByVal pstgDest As IStorage)    ' FIXME array
+    Sub MoveElementTo(ByVal pwcsName As LongPtr, ByVal pstgDest As IStorage, ByVal pwcsNewName As LongPtr, ByVal grfFlags As Long)
+    Sub Commit(ByVal grfCommitFlags As Long)
+    Sub Revert()
+    Sub EnumElements(ByVal reserved1 As Long, ByVal reserved2 As LongPtr, ByVal reserved3 As Long, ByRef ppenum As IEnumSTATSTG)
+    Sub DestroyElement(ByVal pwcsName As LongPtr)
+    Sub RenameElement(ByVal pwcsOldName As LongPtr, ByVal pwcsNewName As LongPtr)
+    Sub SetElementTimes(ByVal pwcsName As LongPtr, ByRef pctime As LongLong, ByRef patime As LongLong, ByRef pmtime As LongLong)
+    Sub SetClass(ByRef clsid As GUID2)
+    Sub SetStateBits(ByVal grfStateBits As Long, ByVal grfMask As Long)
+    Sub Stat(ByRef pstatstg As STATSTG, ByVal grfStatFlag As Long)
+End Interface
+
+[InterfaceId("F090D785-19CB-4910-A6F0-7B70CE8F0570")]
+Private Interface IScheduledCallback Extends stdole.IUnknown
+    Sub Execute()
+End Interface
+
+
+' [InterfaceId("00000103-0000-0000-C000-000000000046")]
+' Private Interface IEnumFORMATETC Extends stdole.IUnknown
+'     Sub Next(ByVal celt As Long, ByRef rgelt As FORMATETC, ByRef pceltFetched As Long)
+'     Sub Skip(ByVal celt As Long)
+'     Sub Reset()
+'     Sub Clone(ByRef ppenum As IEnumFORMATETC)
+' End Interface
+
+' [InterfaceId("0000010e-0000-0000-C000-000000000046")]
+' Private Interface IDataObject Extends stdole.IUnknown
+'     Enum TYMED
+'         TYMED_HGLOBAL = 1
+'         TYMED_FILE = 2
+'         TYMED_ISTREAM = 4
+'         TYMED_ISTORAGE = 8
+'         TYMED_GDI = 16
+'         TYMED_MFPICT = 32
+'         TYMED_ENHMF = 64
+'         TYMED_NULL = 0
+'     End Enum
+'     Type FORMATETC
+'         cfFormat As Integer     ' CLIPFORMAT
+'         ptd As LongPtr          ' DVTARGETDEVICE
+'         dwAspect As Long
+'         lindex As Long
+'         tymed As TYMED
+'     End Type
+'     Type STGMEDIUM
+'         tymed As TYMED
+'         unionData As LongPtr
+'         pUnkForRelease As stdole.IUnknown
+'     End Type
+    
+'     Sub GetData(ByRef pformatetcIn As FORMATETC, ByRef pmedium As STGMEDIUM)
+'     Sub GetDataHere(ByRef pformatetcIn As FORMATETC, ByRef pmedium As STGMEDIUM)
+'     Sub QueryGetData(ByRef pformatetc As FORMATETC)
+'     Sub GetCanonicalFormatEtc(ByRef pformatectIn As FORMATETC, ByRef pformatetcOut As FORMATETC)
+'     Sub SetData(ByRef pformatetc As FORMATETC, ByRef pmedium As STGMEDIUM, ByVal fRelease As Long)
+'     Sub EnumFormatEtc(ByVal dwDirection As Long, ByRef ppenumFormatEtc As IEnumFORMATETC)
+'     Sub DAdvise(ByRef pformatetc As FORMATETC, ByVal advf As Long, ByVal pAdvSink As IAdviseSink, ByRef pdwConnection As Long)
+'     Sub DUnadvise(ByVal dwConnection As Long)
+'     Sub EnumDAdvise(ByRef ppenumAdvise As IEnumSTATDATA)
+' End Interface
+
+[InterfaceId("00000122-0000-0000-C000-000000000046")]
+Private Interface IDropTarget Extends stdole.IUnknown
+    Enum DROPEFFECT
+        DROPEFFECT_NONE = 0
+        DROPEFFECT_COPY = 1
+        DROPEFFECT_MOVE = 2
+        DROPEFFECT_LINK = 4
+        DROPEFFECT_SCROLL = &H80000000
+    End Enum
+    Sub DragEnter(ByVal pDataObj As tbInternal_IDataObject, ByVal grfKeyState As Long, ByVal xy As LongLong, ByRef pdwEffect As DROPEFFECT)
+    Sub DragOver(ByVal grfKeyState As Long, ByVal xy As LongLong, ByRef pdwEffect As DROPEFFECT)
+    Sub DragLeave()
+    Sub Drop(ByVal pDataObj As tbInternal_IDataObject, ByVal grfKeyState As Long, ByVal xy As LongLong, ByRef pdwEffect As DROPEFFECT)
+End Interface
+
+[InterfaceId("00000121-0000-0000-C000-000000000046")]
+Private Interface IDropSource Extends stdole.IUnknown
+    Sub QueryContinueDrag(ByVal fEscapePressd As Long, ByVal grfKeyState As Long)
+    Sub GiveFeedback(ByVal dwEffect As Long)
+End Interface
+
+' [InterfaceId("0000010f-0000-0000-C000-000000000046")]
+' Private Interface IAdviseSink Extends stdole.IUnknown
+'     Sub OnDataChange(ByVal pFormatetc As LongPtr, ByVal pStgmed As LongPtr)
+'     Sub OnViewChange(ByVal dwAspect As Long, ByVal lindex As Long)
+'     Sub OnRename(ByVal pmk As IMoniker)
+'     Sub OnSave()
+'     Sub OnClose()
+' End Interface
+
+' [InterfaceId("0000000f-0000-0000-C000-000000000046")]
+' Private Interface IMoniker Extends stdole.IUnknown
+'     ' Not yet supported
+' End Interface
+
+' [InterfaceId("00000105-0000-0000-C000-000000000046")]
+' Private Interface IEnumSTATDATA Extends stdole.IUnknown
+'     ' Not yet supported    
+' End Interface
