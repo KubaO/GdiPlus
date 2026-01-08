@@ -8,8 +8,11 @@ Module GraphicsStateModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class GraphicsState
+    Inherits GdiPlusBase
     Dim gs As GpGraphicsState
+    Dim LastResult As GpStatus
     
     Public Property Get Native() As GpGraphicsState
         Return gs
@@ -17,5 +20,21 @@ Class GraphicsState
     
     Public Static Function GetNative(state As GraphicsState) As GpGraphicsState
         If state IsNot Nothing Then GetNative = state.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeState As GpGraphicsState)
+        LastResult = Ok
+        SetNativeGraphicsState(nativeState)
+    End Sub
+    
+    Protected Sub SetNativeGraphicsState(ByVal nativeState As GpGraphicsState)
+        gs = nativeState
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

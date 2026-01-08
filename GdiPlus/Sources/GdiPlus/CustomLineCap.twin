@@ -1,0 +1,40 @@
+Module CustomLineCapModule
+    Type GpCustomLineCap
+        Native As LongPtr
+    End Type
+    
+    Function GpCustomLineCap() As GpCustomLineCap
+        GpCustomLineCap.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class CustomLineCap
+    Inherits GdiPlusBase
+    Dim lc As GpCustomLineCap
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpCustomLineCap
+        Return lc
+    End Property
+    
+    Public Static Function GetNative(obj As CustomLineCap) As GpCustomLineCap
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeLineCap As GpCustomLineCap)
+        LastResult = Ok
+        SetNativeLineCap(nativeLineCap)
+    End Sub
+    
+    Protected Sub SetNativeLineCap(ByVal nativeLineCap As GpCustomLineCap)
+        lc = nativeLineCap
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

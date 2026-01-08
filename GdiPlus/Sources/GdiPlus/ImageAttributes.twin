@@ -8,11 +8,11 @@ Module ImageAttributesModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class ImageAttributes
     Inherits GdiPlusBase
     Dim ia As GpImageAttributes
-
-    Dim LastError As GpStatus
+    Dim LastResult As GpStatus
     
     Property Get Native() As GpImageAttributes
         Return ia
@@ -20,5 +20,21 @@ Class ImageAttributes
     
     Public Static Function GetNative(attributes As ImageAttributes) As GpImageAttributes
         If attributes IsNot Nothing Then GetNative = attributes.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
+        LastResult = Ok
+        SetNativeImageAttributes(nativeAttributes)
+    End Sub
+    
+    Protected Sub SetNativeImageAttributes(ByVal nativeAttributes As GpImageAttributes)
+        ia = nativeAttributes
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

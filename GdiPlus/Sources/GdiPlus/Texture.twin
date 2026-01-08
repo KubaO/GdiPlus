@@ -1,0 +1,41 @@
+Module TextureModule
+    Type GpTexture
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpTexture() As GpTexture
+        GpTexture.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class Texture
+    Inherits GdiPlusBase
+    Dim tx As GpTexture
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpTexture
+        Return tx
+    End Property
+    
+    Public Static Function GetNative(obj As Texture) As GpTexture
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeTexture As GpTexture)
+        LastResult = Ok
+        SetNativeTexture(nativeTexture)
+    End Sub
+    
+    Protected Sub SetNativeTexture(ByVal nativeTexture As GpTexture)
+        tx = nativeTexture
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

@@ -1,0 +1,41 @@
+Module InstalledFontCollectionModule
+    Type GpInstalledFontCollection
+        ' Inherits GpFontCollection
+        Native As LongPtr
+    End Type
+    
+    Function GpInstalledFontCollection() As GpInstalledFontCollection
+        GpInstalledFontCollection.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class InstalledFontCollection
+    Inherits GdiPlusBase
+    Dim fc As GpInstalledFontCollection
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpInstalledFontCollection
+        Return fc
+    End Property
+    
+    Public Static Function GetNative(obj As InstalledFontCollection) As GpInstalledFontCollection
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
+        LastResult = Ok
+        SetNativeInatalledFontCollection(nativeCollection)
+    End Sub
+    
+    Protected Sub SetNativeInatalledFontCollection(ByVal nativeCollection As GpInstalledFontCollection)
+        fc = nativeCollection
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

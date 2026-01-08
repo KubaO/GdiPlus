@@ -8,14 +8,33 @@ Module FontModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Font
-    Dim fo As GpFont
+    Inherits GdiPlusBase
+    Dim ft As GpFont
+    Dim LastResult As GpStatus
     
     Public Property Get Native() As GpFont
-        Return fo
+        Return ft
     End Property
     
     Public Static Function GetNative(font As Font) As GpFont
         If font IsNot Nothing Then GetNative = font.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeFont As GpFont)
+        LastResult = Ok
+        SetNativeFont(nativeFont)
+    End Sub
+    
+    Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
+        ft = nativeFont
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

@@ -1,0 +1,41 @@
+Module BitmapModule
+    Type GpBitmap
+        ' Inherits GpImage
+        Native As LongPtr
+    End Type
+    
+    Function GpBitmap() As GpBitmap
+        GpBitmap.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class Bitmap
+    Inherits GdiPlusBase
+    Dim bm As GpBitmap
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpBitmap
+        Return bm
+    End Property
+    
+    Public Static Function GetNative(obj As Bitmap) As GpBitmap
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeBitmap As GpBitmap)
+        LastResult = Ok
+        SetNativeBitmap(nativeBitmap)
+    End Sub
+    
+    Protected Sub SetNativeBitmap(ByVal nativeBitmap As GpBitmap)
+        bm = nativeBitmap
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

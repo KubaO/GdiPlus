@@ -8,6 +8,7 @@ Module MetafileModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Metafile
     Inherits GdiPlusBase
     Dim mf As GpMetafile
@@ -19,5 +20,21 @@ Class Metafile
     
     Public Static Function GetNative(metafile As Metafile) As GpMetafile
         If metafile IsNot Nothing Then GetNative = metafile.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeMetafile As GpMetafile)
+        LastResult = Ok
+        SetNativeMetafile(nativeMetafile)
+    End Sub
+    
+    Protected Sub SetNativeMetafile(ByVal nativeMetafile As GpMetafile)
+        mf = nativeMetafile
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

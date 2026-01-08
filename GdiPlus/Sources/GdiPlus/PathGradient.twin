@@ -1,0 +1,41 @@
+Module PathGradientModule
+    Type GpPathGradient
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpPathGradient() As GpPathGradient
+        GpPathGradient.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class PathGradient
+    Inherits GdiPlusBase
+    Dim pg As GpPathGradient
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpPathGradient
+        Return pg
+    End Property
+    
+    Public Static Function GetNative(obj As PathGradient) As GpPathGradient
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeGradient As GpPathGradient)
+        LastResult = Ok
+        SetNativePathGradient(nativeGradient)
+    End Sub
+    
+    Protected Sub SetNativePathGradient(ByVal nativeGradient As GpPathGradient)
+        pg = nativeGradient
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

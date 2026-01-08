@@ -8,6 +8,7 @@ Module MatrixModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Matrix
     Inherits GdiPlusBase
     Dim mx As GpMatrix
@@ -19,5 +20,21 @@ Class Matrix
     
     Public Static Function GetNative(matrix As Matrix) As GpMatrix
         If matrix IsNot Nothing Then GetNative = matrix.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeMatrix As GpMatrix)
+        LastResult = Ok
+        SetNativeMatrix(nativeMatrix)
+    End Sub
+    
+    Protected Sub SetNativeMatrix(ByVal nativeMatrix As GpMatrix)
+        mx = nativeMatrix
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

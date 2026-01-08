@@ -8,6 +8,7 @@ Module EffectsModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Effect
     Inherits GdiPlusBase
     Dim fx As GpEffect
@@ -19,5 +20,21 @@ Class Effect
     
     Public Static Function GetNative(effect As Effect) As GpEffect
         If effect IsNot Nothing Then GetNative = effect.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeEffect As GpEffect)
+        LastResult = Ok
+        SetNativeMatrix(nativeEffect)
+    End Sub
+    
+    Protected Sub SetNativeMatrix(ByVal nativeEffect As GpEffect)
+        fx = nativeEffect
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

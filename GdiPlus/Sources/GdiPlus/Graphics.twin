@@ -12,10 +12,6 @@ End Class
 Alias ARGB As Long
 Alias UINT As Long
 
-Class GraphicsContainer
-    Public Native As GpGraphicsContainer
-End Class
-
 Module GdiPlus
     Const REAL_EPSILON! = 1.192092896E-07! ' FLT_EPSILON
     
@@ -34,11 +30,6 @@ Module GdiPlus
     Function GDIPLUS_MAX&(ByVal a&, ByVal b&)
         Return If(a > b, a, b)
     End Function
-
-    Type GpGraphicsContainer
-        Native As LongPtr
-    End Type
-
     
     [Description("Represents a dimension in a 2D coordinate system (floating-point coordinates)")]
     Type GpSizeF

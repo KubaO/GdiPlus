@@ -8,10 +8,11 @@ Module StringFormatModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class StringFormat
     Inherits GdiPlusBase
     Dim sf As GpStringFormat
-    Dim LastError As GpStatus
+    Dim LastResult As GpStatus
     
     Property Get Native() As GpStringFormat
         Return sf
@@ -19,5 +20,21 @@ Class StringFormat
     
     Public Static Function GetNative(stringFormat As StringFormat) As GpStringFormat
         If stringFormat IsNot Nothing Then GetNative = stringFormat.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeFormat As GpStringFormat)
+        LastResult = Ok
+        SetNativeStringFormat(nativeFormat)
+    End Sub
+    
+    Protected Sub SetNativeStringFormat(ByVal nativeFormat As GpStringFormat)
+        sf = nativeFormat
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

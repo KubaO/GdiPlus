@@ -8,6 +8,7 @@ Module BrushModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Brush
     Inherits GdiPlusBase
     Dim br As GpBrush
@@ -19,5 +20,21 @@ Class Brush
     
     Public Static Function GetNative(brush As Brush) As GpBrush
         If brush IsNot Nothing Then GetNative = brush.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeBrush As GpBrush)
+        LastResult = Ok
+        SetNativeBrush(nativeBrush)
+    End Sub
+    
+    Protected Sub SetNativeBrush(ByVal nativeBrush As GpBrush)
+        br = nativeBrush
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

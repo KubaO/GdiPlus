@@ -1,0 +1,41 @@
+Module AdjustableArrowCapModule
+    Type GpAdjustableArrowCap
+        ' Inherits GpCustomLineCap
+        Native As LongPtr
+    End Type
+    
+    Function GpAdjustableArrowCap() As GpAdjustableArrowCap
+        GpAdjustableArrowCap.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class AdjustableArrowCap
+    Inherits GdiPlusBase
+    Dim ac As GpAdjustableArrowCap
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpAdjustableArrowCap
+        Return ac
+    End Property
+    
+    Public Static Function GetNative(obj As AdjustableArrowCap) As GpAdjustableArrowCap
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        LastResult = Ok
+        SetNativeArrowCap(nativeArrowCap)
+    End Sub
+    
+    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        ac = nativeArrowCap
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

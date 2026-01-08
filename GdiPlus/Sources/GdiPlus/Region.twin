@@ -8,10 +8,11 @@ Module RegionModule
     End Function
 End Module
 
+[COMCreatable(False)]
 Class Region
     Inherits GdiPlusBase
     Dim rg As GpRegion
-    Dim LastError As GpStatus
+    Dim LastResult As GpStatus
     
     Property Get Native() As GpRegion
         Return rg
@@ -19,5 +20,21 @@ Class Region
     
     Public Static Function GetNative(region As Region) As GpRegion
         If region IsNot Nothing Then GetNative = region.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeRegion As GpRegion)
+        LastResult = Ok
+        SetNativeRegion(nativeRegion)
+    End Sub
+    
+    Protected Sub SetNativeRegion(ByVal nativeRegion As GpRegion)
+        rg = nativeRegion
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
     End Function
 End Class

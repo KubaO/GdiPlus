@@ -1,0 +1,41 @@
+Module PrivateFontCollectionModule
+    Type GpPrivateFontCollection
+        ' Inherits GpFontCollection
+        Native As LongPtr
+    End Type
+    
+    Function GpPrivateFontCollection() As GpPrivateFontCollection
+        GpPrivateFontCollection.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class PrivateFontCollection
+    Inherits GdiPlusBase
+    Dim fc As GpPrivateFontCollection
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpPrivateFontCollection
+        Return fc
+    End Property
+    
+    Public Static Function GetNative(obj As PrivateFontCollection) As GpPrivateFontCollection
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection)
+        LastResult = Ok
+        SetNativePrivateFontCollection(nativeCollection)
+    End Sub
+    
+    Protected Sub SetNativePrivateFontCollection(ByVal nativeCollection As GpPrivateFontCollection)
+        fc = nativeCollection
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class

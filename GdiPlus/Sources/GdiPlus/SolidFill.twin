@@ -1,0 +1,41 @@
+Module SolidFillModule
+    Type GpSolidFill
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpSolidFill() As GpSolidFill
+        GpSolidFill.Native = 0
+    End Function
+End Module
+
+[COMCreatable(False)]
+Class SolidFill
+    Inherits GdiPlusBase
+    Dim sf As GpSolidFill
+    Dim LastResult As GpStatus
+    
+    Public Property Get Native() As GpSolidFill
+        Return sf
+    End Property
+    
+    Public Static Function GetNative(obj As SolidFill) As GpSolidFill
+        If obj IsNot Nothing Then GetNative = obj.Native
+    End Function
+    
+    Protected Sub New(ByVal nativeFill As GpSolidFill)
+        LastResult = Ok
+        SetNativeSolidFill(nativeFill)
+    End Sub
+    
+    Protected Sub SetNativeSolidFill(ByVal nativeFill As GpSolidFill)
+        sf = nativeFill
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+End Class
