@@ -1,18 +1,3 @@
-Module ImageModule
-    Type GpImage
-        Native As LongPtr
-        
-        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
-        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
-        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
-    End Type
-    
-    Function GpImage() As GpImage
-        GpImage.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class Image
     Inherits GdiPlusBase
@@ -29,3 +14,18 @@ Class Image
     Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
     End Sub
 End Class
+
+Module ImageModule
+    Type GpImage
+        Native As LongPtr
+        
+        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
+        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
+        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
+        Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
+    End Type
+    
+    Function GpImage() As GpImage
+        GpImage.Native = 0
+    End Function
+End Module

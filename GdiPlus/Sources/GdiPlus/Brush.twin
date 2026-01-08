@@ -1,17 +1,3 @@
-Module BrushModule
-    Type GpBrush
-        Native As LongPtr
-        
-        Public Declare PtrSafe Function DeleteBrush Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpBrush) As GpStatus
-        Public Declare PtrSafe Function CloneBrush Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
-        Public Declare PtrSafe Function GetBrushType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
-    End Type
-    
-    Function GpBrush() As GpBrush
-        GpBrush.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 [Description("Abstract base class for various brush types")]
 Class Brush
@@ -52,7 +38,7 @@ Class Brush
         SetStatus(NotImplemented)
     End Sub
     
-    Protected Sub New(ByVal nativeBrush As GpBrush, status As GpStatus)
+    Sub New(ByVal nativeBrush As GpBrush, status As GpStatus)
         LastResult = status
         SetNativeBrush(nativeBrush)
     End Sub
@@ -77,3 +63,17 @@ Class Brush
         Return status
     End Function
 End Class
+
+Module BrushModule
+    Type GpBrush
+        Native As LongPtr
+        
+        Public Declare PtrSafe Function DeleteBrush Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpBrush) As GpStatus
+        Public Declare PtrSafe Function CloneBrush Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
+        Public Declare PtrSafe Function GetBrushType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
+    End Type
+    
+    Function GpBrush() As GpBrush
+        GpBrush.Native = 0
+    End Function
+End Module

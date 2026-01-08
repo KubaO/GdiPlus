@@ -1,46 +1,3 @@
-Module LineGradientModule
-    Type GpLineGradient
-        'Inherits GpBrush
-        Native As LongPtr
-    End Type
-    
-    Function GpLineGradient() As GpLineGradient
-        GpLineGradient.Native = 0
-    End Function
-    
-    Public Declare PtrSafe Function GdipCreateLineBrush Lib "gdiplus" (point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushI Lib "gdiplus" (point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRect Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngle Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    
-    Public Declare PtrSafe Function GdipSetLineColors Lib "gdiplus" (ByVal brush As GpBrush, ByVal color1 As Color, ByVal color2 As Color) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineColors Lib "gdiplus" (ByVal brush As GpBrush, colors As Color) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineRect Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRectF) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineRectI Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRect) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, ByVal useGammaCorrection As BOOL) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, useGammaCorrection As BOOL) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineBlendCount Lib "gdiplus" (ByVal brush As GpBrush, count&) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineBlend Lib "gdiplus" (ByVal brush As GpBrush, blend!, positions!, ByVal count&) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineBlend Lib "gdiplus" (ByVal brush As GpBrush, blend!, positions!, ByVal count&) As GpStatus
-    
-    Public Declare PtrSafe Function GdipGetLinePresetBlendCount Lib "gdiplus" (ByVal brush As GpBrush, count As Long) As GpStatus
-    Public Declare PtrSafe Function GdipGetLinePresetBlend Lib "gdiplus" (ByVal brush As GpBrush, blend As Color, positions As Single, ByVal count As Long) As GpStatus
-    Public Declare PtrSafe Function GdipSetLinePresetBlend Lib "gdiplus" (ByVal brush As GpBrush, blend As Color, positions As Single, ByVal count As Long) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineSigmaBlend Lib "gdiplus" (ByVal brush As GpBrush, ByVal focus As Single, ByVal scale As Single) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineLinearBlend Lib "gdiplus" (ByVal brush As GpBrush, ByVal focus As Single, ByVal scale As Single) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineWrapMode Lib "gdiplus" (ByVal brush As GpBrush, ByVal wrapMode As GpWrapMode) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineWrapMode Lib "gdiplus" (ByVal brush As GpBrush, wrapMode As GpWrapMode) As GpStatus
-    Public Declare PtrSafe Function GdipSetLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
-    Public Declare PtrSafe Function GdipGetLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
-    Public Declare PtrSafe Function GdipResetLineTransform Lib "gdiplus" (ByVal brush As GpBrush) As GpStatus
-    Public Declare PtrSafe Function GdipMultiplyLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
-    Public Declare PtrSafe Function GdipTranslateLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    Public Declare PtrSafe Function GdipScaleLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    Public Declare PtrSafe Function GdipRotateLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
-End Module
-
 [COMCreatable(False)]
 Class LinearGradientBrush
     Inherits Brush
@@ -49,11 +6,11 @@ Class LinearGradientBrush
         Native.Native = br.Native
     End Property
     
-    Protected Sub New(ByVal nativeGradient As GpLineGradient)
-        LastResult = Ok
+    Sub New(ByVal nativeGradient As GpLineGradient, status As GpStatus = Ok)
+        LastResult = status
         SetNativeLineGradient(nativeGradient)
     End Sub
-    
+        
     Protected Sub SetNativeLineGradient(ByVal nativeGradient As GpLineGradient)
         br.Native = nativeGradient.Native
     End Sub
@@ -243,6 +200,53 @@ Class LinearGradientBrush
     Protected Sub New()
     End Sub
 End Class
+
+Module LineGradientModule
+    Type GpLineGradient
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpLineGradient() As GpLineGradient
+        GpLineGradient.Native = 0
+    End Function
+    
+    Function GpLineGradient(nativeBrush As GpBrush) As GpLineGradient
+        GpLineGradient.Native = nativeBrush.Native
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateLineBrush Lib "gdiplus" (point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushI Lib "gdiplus" (point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRect Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngle Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    
+    Public Declare PtrSafe Function GdipSetLineColors Lib "gdiplus" (ByVal brush As GpBrush, ByVal color1 As Color, ByVal color2 As Color) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineColors Lib "gdiplus" (ByVal brush As GpBrush, colors As Color) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineRect Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRectF) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineRectI Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRect) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, ByVal useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineBlendCount Lib "gdiplus" (ByVal brush As GpBrush, count&) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineBlend Lib "gdiplus" (ByVal brush As GpBrush, blend!, positions!, ByVal count&) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineBlend Lib "gdiplus" (ByVal brush As GpBrush, blend!, positions!, ByVal count&) As GpStatus
+    
+    Public Declare PtrSafe Function GdipGetLinePresetBlendCount Lib "gdiplus" (ByVal brush As GpBrush, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetLinePresetBlend Lib "gdiplus" (ByVal brush As GpBrush, blend As Color, positions As Single, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetLinePresetBlend Lib "gdiplus" (ByVal brush As GpBrush, blend As Color, positions As Single, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineSigmaBlend Lib "gdiplus" (ByVal brush As GpBrush, ByVal focus As Single, ByVal scale As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineLinearBlend Lib "gdiplus" (ByVal brush As GpBrush, ByVal focus As Single, ByVal scale As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineWrapMode Lib "gdiplus" (ByVal brush As GpBrush, ByVal wrapMode As GpWrapMode) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineWrapMode Lib "gdiplus" (ByVal brush As GpBrush, wrapMode As GpWrapMode) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipResetLineTransform Lib "gdiplus" (ByVal brush As GpBrush) As GpStatus
+    Public Declare PtrSafe Function GdipMultiplyLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipTranslateLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipScaleLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipRotateLineTransform Lib "gdiplus" (ByVal brush As GpBrush, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+End Module
 
 '--------------------------------------------------------------------------
 ' PathGradientBrush object is defined

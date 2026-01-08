@@ -18,7 +18,7 @@ Class Matrix
         Return mx
     End Property
     
-    Protected Sub New(ByVal nativeMatrix As GpMatrix)
+    Sub New(ByVal nativeMatrix As GpMatrix)
         LastResult = Ok
         SetNativeMatrix(nativeMatrix)
     End Sub

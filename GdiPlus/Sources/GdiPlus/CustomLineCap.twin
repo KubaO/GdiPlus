@@ -18,7 +18,7 @@ Class CustomLineCap
         Return lc
     End Property
     
-    Protected Sub New(ByVal nativeLineCap As GpCustomLineCap)
+    Sub New(ByVal nativeLineCap As GpCustomLineCap)
         LastResult = Ok
         SetNativeLineCap(nativeLineCap)
     End Sub

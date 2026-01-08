@@ -1,85 +1,3 @@
-Module GraphicsPathModule
-    Type GpPath
-        Native As LongPtr
-        
-        Public Declare PtrSafe Function GetPathWorldBounds Lib "gdiplus" Alias "GdipGetPathWorldBounds" (ByVal Me As GpPath, bounds As GpRectF, ByVal matrix As GpMatrix, ByVal pen As GpPen) As GpStatus
-        Public Declare PtrSafe Function GetPathWorldBoundsI Lib "gdiplus" Alias "GdipGetPathWorldBoundsI" (ByVal Me As GpPath, bounds As GpRect, ByVal matrix As GpMatrix, ByVal pen As GpPen) As GpStatus
-        Public Declare PtrSafe Function ClonePath Lib "gdiplus" Alias "GdipClonePath" (ByVal Me As GpPath, clonePath As GpPath) As GpStatus
-        Public Declare PtrSafe Function ResetPath Lib "gdiplus" Alias "GdipResetPath" (ByVal Me As GpPath) As GpStatus
-        Public Declare PtrSafe Function TransformPath Lib "gdiplus" Alias "GdipTransformPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix) As GpStatus
-        Public Declare PtrSafe Function WidenPath Lib "gdiplus" Alias "GdipWidenPath" (ByVal Me As GpPath, ByVal pen As GpPen, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
-        Public Declare PtrSafe Function FlattenPath Lib "gdiplus" Alias "GdipFlattenPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
-        Public Declare PtrSafe Function WarpPath Lib "gdiplus" Alias "GdipWarpPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, points As GpPointF, ByVal count&, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal warpMode As WarpMode, ByVal flatness!) As GpStatus
-        Public Declare PtrSafe Function ReversePath Lib "gdiplus" Alias "GdipReversePath" (ByVal Me As GpPath) As GpStatus
-        
-        Public Declare PtrSafe Function GetPathFillMode Lib "gdiplus" Alias "GdipGetPathFillMode" (ByVal Me As GpPath, fillmode As GpFillMode) As GpStatus
-        Public Declare PtrSafe Function SetPathFillMode Lib "gdiplus" Alias "GdipSetPathFillMode" (ByVal Me As GpPath, ByVal fillmode As GpFillMode) As GpStatus
-        
-        Public Declare PtrSafe Function GetPathData Lib "gdiplus" Alias "GdipGetPathData" (ByVal Me As GpPath, pathData As GpPathData) As GpStatus
-        Public Declare PtrSafe Function GetPathTypes Lib "gdiplus" Alias "GdipGetPathTypes" (ByVal Me As GpPath, types As Any, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function GetPathPoints Lib "gdiplus" Alias "GdipGetPathPoints" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function GetPathPointsI Lib "gdiplus" Alias "GdipGetPathPointsI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        
-        Public Declare PtrSafe Function StartPathFigure Lib "gdiplus" Alias "GdipStartPathFigure" (ByVal Me As GpPath) As GpStatus
-        Public Declare PtrSafe Function ClosePathFigure Lib "gdiplus" Alias "GdipClosePathFigure" (ByVal Me As GpPath) As GpStatus
-        Public Declare PtrSafe Function ClosePathFigures Lib "gdiplus" Alias "GdipClosePathFigures" (ByVal Me As GpPath) As GpStatus
-        
-        Public Declare PtrSafe Function SetPathMarker Lib "gdiplus" Alias "GdipSetPathMarker" (ByVal Me As GpPath) As GpStatus
-        Public Declare PtrSafe Function ClearPathMarkers Lib "gdiplus" Alias "GdipClearPathMarkers" (ByVal Me As GpPath) As GpStatus
-        
-        Public Declare PtrSafe Function GetPointCount Lib "gdiplus" Alias "GetPointCount " (ByVal Me As GpPath, count&) As GpStatus
-        Public Declare PtrSafe Function GetPathLastPoint Lib "gdiplus" Alias "GdipGetPathLastPoint" (ByVal Me As GpPath, lastPoint As GpPointF) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathLine Lib "gdiplus" Alias "GdipAddPathLine" (ByVal Me As GpPath, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!) As GpStatus
-        Public Declare PtrSafe Function AddPathLine2 Lib "gdiplus" Alias "GdipAddPathLine2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathLineI Lib "gdiplus" Alias "GdipAddPathLineI" (ByVal Me As GpPath, ByVal X1&, ByVal Y1&, ByVal X2&, ByVal Y2&) As GpStatus
-        Public Declare PtrSafe Function AddPathLine2I Lib "gdiplus" Alias "GdipAddPathLine2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathArc Lib "gdiplus" Alias "GdipAddPathArc" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Public Declare PtrSafe Function AddPathArcI Lib "gdiplus" Alias "GdipAddPathArcI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathBezier Lib "gdiplus" Alias "GdipAddPathBezier" (ByVal Me As GpPath, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
-        Public Declare PtrSafe Function AddPathBeziers Lib "gdiplus" Alias "GdipAddPathBeziers" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathBezierI Lib "gdiplus" Alias "GdipAddPathBezierI" (ByVal Me As GpPath, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
-        Public Declare PtrSafe Function AddPathBeziersI Lib "gdiplus" Alias "GdipAddPathBeziersI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathCurve Lib "gdiplus" Alias "GdipAddPathCurve" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathCurve2 Lib "gdiplus" Alias "GdipAddPathCurve2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
-        Public Declare PtrSafe Function AddPathCurve3 Lib "gdiplus" Alias "GdipAddPathCurve3" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-        Public Declare PtrSafe Function AddPathCurveI Lib "gdiplus" Alias "GdipAddPathCurveI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathCurve2I Lib "gdiplus" Alias "GdipAddPathCurve2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
-        Public Declare PtrSafe Function AddPathCurve3I Lib "gdiplus" Alias "GdipAddPathCurve3I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-                
-        Public Declare PtrSafe Function AddPathClosedCurve Lib "gdiplus" Alias "GdipAddPathClosedCurve" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathClosedCurve2 Lib "gdiplus" Alias "GdipAddPathClosedCurve2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
-        Public Declare PtrSafe Function AddPathClosedCurveI Lib "gdiplus" Alias "GdipAddPathClosedCurveI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathClosedCurve2I Lib "gdiplus" Alias "GdipAddPathClosedCurve2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathRectangle Lib "gdiplus" Alias "GdipAddPathRectangle" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
-        Public Declare PtrSafe Function AddPathRectangles Lib "gdiplus" Alias "GdipAddPathRectangles" (ByVal Me As GpPath, rects As GpRectF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathRectangleI Lib "gdiplus" Alias "GdipAddPathRectangleI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
-        Public Declare PtrSafe Function AddPathRectanglesI Lib "gdiplus" Alias "GdipAddPathRectanglesI" (ByVal Me As GpPath, rects As GpRect, ByVal count&) As GpStatus
-                
-        Public Declare PtrSafe Function AddPathEllipse Lib "gdiplus" Alias "GdipAddPathEllipse" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
-        Public Declare PtrSafe Function AddPathEllipseI Lib "gdiplus" Alias "GdipAddPathEllipseI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
-        Public Declare PtrSafe Function AddPathPie Lib "gdiplus" Alias "GdipAddPathPie" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Public Declare PtrSafe Function AddPathPieI Lib "gdiplus" Alias "GdipAddPathPieI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Public Declare PtrSafe Function AddPathPolygon Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function AddPathPolygonI Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
-        
-        Public Declare PtrSafe Function AddPathPath Lib "gdiplus" Alias "GdipAddPathPath" (ByVal Me As GpPath, ByVal addingPath As GpPath, ByVal bConnect&) As GpStatus
-        Public Declare PtrSafe Function AddPathString Lib "gdiplus" Alias "GdipAddPathString" (ByVal Me As GpPath, ByVal str As LongPtr, ByVal length&, ByVal family As GpFontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat) As GpStatus
-        Public Declare PtrSafe Function AddPathStringI Lib "gdiplus" Alias "GdipAddPathStringI" (ByVal Me As GpPath, ByVal str As LongPtr, ByVal length&, ByVal family As GpFontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRect, ByVal StringFormat As GpStringFormat) As GpStatus
-        
-        Public Declare PtrSafe Function WindingModeOutline Lib "gdiplus" Alias "GdipWindingModeOutline" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
-        
-        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
-        Public Declare PtrSafe Function IsVisiblePathPointI Lib "gdiplus" Alias "GdipIsVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
-        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
-        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
-    End Type
-End Module
-
 [COMCreatable(False)]
 Class GraphicsPath
     Inherits GdiPlusBase
@@ -624,3 +542,85 @@ Class GraphicsPath
         Return status
     End Function
 End Class
+
+Module GraphicsPathModule
+    Type GpPath
+        Native As LongPtr
+        
+        Public Declare PtrSafe Function GetPathWorldBounds Lib "gdiplus" Alias "GdipGetPathWorldBounds" (ByVal Me As GpPath, bounds As GpRectF, ByVal matrix As GpMatrix, ByVal pen As GpPen) As GpStatus
+        Public Declare PtrSafe Function GetPathWorldBoundsI Lib "gdiplus" Alias "GdipGetPathWorldBoundsI" (ByVal Me As GpPath, bounds As GpRect, ByVal matrix As GpMatrix, ByVal pen As GpPen) As GpStatus
+        Public Declare PtrSafe Function ClonePath Lib "gdiplus" Alias "GdipClonePath" (ByVal Me As GpPath, clonePath As GpPath) As GpStatus
+        Public Declare PtrSafe Function ResetPath Lib "gdiplus" Alias "GdipResetPath" (ByVal Me As GpPath) As GpStatus
+        Public Declare PtrSafe Function TransformPath Lib "gdiplus" Alias "GdipTransformPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix) As GpStatus
+        Public Declare PtrSafe Function WidenPath Lib "gdiplus" Alias "GdipWidenPath" (ByVal Me As GpPath, ByVal pen As GpPen, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
+        Public Declare PtrSafe Function FlattenPath Lib "gdiplus" Alias "GdipFlattenPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
+        Public Declare PtrSafe Function WarpPath Lib "gdiplus" Alias "GdipWarpPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, points As GpPointF, ByVal count&, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal warpMode As WarpMode, ByVal flatness!) As GpStatus
+        Public Declare PtrSafe Function ReversePath Lib "gdiplus" Alias "GdipReversePath" (ByVal Me As GpPath) As GpStatus
+        
+        Public Declare PtrSafe Function GetPathFillMode Lib "gdiplus" Alias "GdipGetPathFillMode" (ByVal Me As GpPath, fillmode As GpFillMode) As GpStatus
+        Public Declare PtrSafe Function SetPathFillMode Lib "gdiplus" Alias "GdipSetPathFillMode" (ByVal Me As GpPath, ByVal fillmode As GpFillMode) As GpStatus
+        
+        Public Declare PtrSafe Function GetPathData Lib "gdiplus" Alias "GdipGetPathData" (ByVal Me As GpPath, pathData As GpPathData) As GpStatus
+        Public Declare PtrSafe Function GetPathTypes Lib "gdiplus" Alias "GdipGetPathTypes" (ByVal Me As GpPath, types As Any, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function GetPathPoints Lib "gdiplus" Alias "GdipGetPathPoints" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function GetPathPointsI Lib "gdiplus" Alias "GdipGetPathPointsI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        
+        Public Declare PtrSafe Function StartPathFigure Lib "gdiplus" Alias "GdipStartPathFigure" (ByVal Me As GpPath) As GpStatus
+        Public Declare PtrSafe Function ClosePathFigure Lib "gdiplus" Alias "GdipClosePathFigure" (ByVal Me As GpPath) As GpStatus
+        Public Declare PtrSafe Function ClosePathFigures Lib "gdiplus" Alias "GdipClosePathFigures" (ByVal Me As GpPath) As GpStatus
+        
+        Public Declare PtrSafe Function SetPathMarker Lib "gdiplus" Alias "GdipSetPathMarker" (ByVal Me As GpPath) As GpStatus
+        Public Declare PtrSafe Function ClearPathMarkers Lib "gdiplus" Alias "GdipClearPathMarkers" (ByVal Me As GpPath) As GpStatus
+        
+        Public Declare PtrSafe Function GetPointCount Lib "gdiplus" Alias "GetPointCount " (ByVal Me As GpPath, count&) As GpStatus
+        Public Declare PtrSafe Function GetPathLastPoint Lib "gdiplus" Alias "GdipGetPathLastPoint" (ByVal Me As GpPath, lastPoint As GpPointF) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathLine Lib "gdiplus" Alias "GdipAddPathLine" (ByVal Me As GpPath, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!) As GpStatus
+        Public Declare PtrSafe Function AddPathLine2 Lib "gdiplus" Alias "GdipAddPathLine2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathLineI Lib "gdiplus" Alias "GdipAddPathLineI" (ByVal Me As GpPath, ByVal X1&, ByVal Y1&, ByVal X2&, ByVal Y2&) As GpStatus
+        Public Declare PtrSafe Function AddPathLine2I Lib "gdiplus" Alias "GdipAddPathLine2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathArc Lib "gdiplus" Alias "GdipAddPathArc" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Public Declare PtrSafe Function AddPathArcI Lib "gdiplus" Alias "GdipAddPathArcI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathBezier Lib "gdiplus" Alias "GdipAddPathBezier" (ByVal Me As GpPath, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
+        Public Declare PtrSafe Function AddPathBeziers Lib "gdiplus" Alias "GdipAddPathBeziers" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathBezierI Lib "gdiplus" Alias "GdipAddPathBezierI" (ByVal Me As GpPath, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
+        Public Declare PtrSafe Function AddPathBeziersI Lib "gdiplus" Alias "GdipAddPathBeziersI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathCurve Lib "gdiplus" Alias "GdipAddPathCurve" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathCurve2 Lib "gdiplus" Alias "GdipAddPathCurve2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
+        Public Declare PtrSafe Function AddPathCurve3 Lib "gdiplus" Alias "GdipAddPathCurve3" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
+        Public Declare PtrSafe Function AddPathCurveI Lib "gdiplus" Alias "GdipAddPathCurveI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathCurve2I Lib "gdiplus" Alias "GdipAddPathCurve2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
+        Public Declare PtrSafe Function AddPathCurve3I Lib "gdiplus" Alias "GdipAddPathCurve3I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
+                
+        Public Declare PtrSafe Function AddPathClosedCurve Lib "gdiplus" Alias "GdipAddPathClosedCurve" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathClosedCurve2 Lib "gdiplus" Alias "GdipAddPathClosedCurve2" (ByVal Me As GpPath, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
+        Public Declare PtrSafe Function AddPathClosedCurveI Lib "gdiplus" Alias "GdipAddPathClosedCurveI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathClosedCurve2I Lib "gdiplus" Alias "GdipAddPathClosedCurve2I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathRectangle Lib "gdiplus" Alias "GdipAddPathRectangle" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Public Declare PtrSafe Function AddPathRectangles Lib "gdiplus" Alias "GdipAddPathRectangles" (ByVal Me As GpPath, rects As GpRectF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathRectangleI Lib "gdiplus" Alias "GdipAddPathRectangleI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Public Declare PtrSafe Function AddPathRectanglesI Lib "gdiplus" Alias "GdipAddPathRectanglesI" (ByVal Me As GpPath, rects As GpRect, ByVal count&) As GpStatus
+                
+        Public Declare PtrSafe Function AddPathEllipse Lib "gdiplus" Alias "GdipAddPathEllipse" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Public Declare PtrSafe Function AddPathEllipseI Lib "gdiplus" Alias "GdipAddPathEllipseI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Public Declare PtrSafe Function AddPathPie Lib "gdiplus" Alias "GdipAddPathPie" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Public Declare PtrSafe Function AddPathPieI Lib "gdiplus" Alias "GdipAddPathPieI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Public Declare PtrSafe Function AddPathPolygon Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
+        Public Declare PtrSafe Function AddPathPolygonI Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        
+        Public Declare PtrSafe Function AddPathPath Lib "gdiplus" Alias "GdipAddPathPath" (ByVal Me As GpPath, ByVal addingPath As GpPath, ByVal bConnect&) As GpStatus
+        Public Declare PtrSafe Function AddPathString Lib "gdiplus" Alias "GdipAddPathString" (ByVal Me As GpPath, ByVal str As LongPtr, ByVal length&, ByVal family As GpFontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat) As GpStatus
+        Public Declare PtrSafe Function AddPathStringI Lib "gdiplus" Alias "GdipAddPathStringI" (ByVal Me As GpPath, ByVal str As LongPtr, ByVal length&, ByVal family As GpFontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRect, ByVal StringFormat As GpStringFormat) As GpStatus
+        
+        Public Declare PtrSafe Function WindingModeOutline Lib "gdiplus" Alias "GdipWindingModeOutline" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
+        
+        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePathPointI Lib "gdiplus" Alias "GdipIsVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
+    End Type
+End Module
