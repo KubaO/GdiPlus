@@ -1,0 +1,23 @@
+Module FontFamilyModule
+    Type GpFontFamily
+        Native As LongPtr
+    End Type
+    
+    Function GpFontFamily() As GpFontFamily
+        GpFontFamily.Native = 0
+    End Function
+End Module
+
+Class FontFamily
+    Inherits GdiPlusBase
+    Dim ff As GpFontFamily
+    Dim LastResult As GpStatus
+        
+    Property Get Native() As GpFontFamily
+        Return ff
+    End Property
+    
+    Public Static Function GetNative(fontFamily As FontFamily) As GpFontFamily
+        If fontFamily IsNot Nothing Then GetNative = fontFamily.Native
+    End Function
+End Class

@@ -1,0 +1,23 @@
+Module MatrixModule
+    Type GpMatrix
+        Native As LongPtr
+    End Type
+    
+    Function GpMatrix() As GpMatrix
+        GpMatrix.Native = 0
+    End Function
+End Module
+
+Class Matrix
+    Inherits GdiPlusBase
+    Dim mx As GpMatrix
+    Dim LastResult As GpStatus
+
+    Property Get Native() As GpMatrix
+        Return mx
+    End Property
+    
+    Public Static Function GetNative(matrix As Matrix) As GpMatrix
+        If matrix IsNot Nothing Then GetNative = matrix.Native
+    End Function
+End Class

@@ -1,0 +1,24 @@
+Module ImageAttributesModule
+    Type GpImageAttributes
+        Native As LongPtr
+    End Type
+    
+    Function GpImageAttributes() As GpImageAttributes
+        GpImageAttributes.Native = 0
+    End Function
+End Module
+
+Class ImageAttributes
+    Inherits GdiPlusBase
+    Dim ia As GpImageAttributes
+
+    Dim LastError As GpStatus
+    
+    Property Get Native() As GpImageAttributes
+        Return ia
+    End Property
+    
+    Public Static Function GetNative(attributes As ImageAttributes) As GpImageAttributes
+        If attributes IsNot Nothing Then GetNative = attributes.Native
+    End Function
+End Class

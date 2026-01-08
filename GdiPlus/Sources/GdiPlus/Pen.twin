@@ -1,0 +1,23 @@
+Module PenModule
+    Type GpPen
+        Native As LongPtr
+    End Type
+    
+    Function GpPen() As GpPen
+        GpPen.Native = 0
+    End Function
+End Module
+
+Class Pen
+    Inherits GdiPlusBase
+    Dim pn As GpPen
+    Dim LastResult As GpStatus
+    
+    Property Get Native() As GpPen
+        Return pn
+    End Property
+    
+    Public Static Function GetNative(pen As Pen) As GpPen
+        If pen IsNot Nothing Then GetNative = pen.Native
+    End Function
+End Class

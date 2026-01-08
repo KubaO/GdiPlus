@@ -1,0 +1,23 @@
+Module EffectsModule
+    Type GpEffect
+        Native As LongPtr
+    End Type
+    
+    Function GpEffect() As GpEffect
+        GpEffect.Native = 0
+    End Function
+End Module
+
+Class Effect
+    Inherits GdiPlusBase
+    Dim fx As GpEffect
+    Dim LastResult As GpStatus
+
+    Property Get Native() As GpEffect
+        Return fx
+    End Property
+    
+    Public Static Function GetNative(effect As Effect) As GpEffect
+        If effect IsNot Nothing Then GetNative = effect.Native
+    End Function
+End Class

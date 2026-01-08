@@ -1,0 +1,139 @@
+Module ColorModule
+    '----------------------------------------------------------------------------
+    ' Color mode
+    '----------------------------------------------------------------------------
+
+    Enum ColorMode
+        ColorModeARGB32 = 0
+        ColorModeARGB64 = 1
+    End Enum
+    
+    '----------------------------------------------------------------------------
+    ' Color Channel flags
+    '----------------------------------------------------------------------------
+    
+    Enum ColorChannelFlags
+        ColorChannelFlagsC = 0
+        ColorChannelFlagsM
+        ColorChannelFlagsY
+        ColorChannelFlagsK
+        ColorChannelFlagsLast
+    End Enum
+
+    '----------------------------------------------------------------------------
+    ' Color
+    '----------------------------------------------------------------------------
+    
+    Function Color() As Color
+        Color.argb = D2D1_COLORS.Black
+    End Function
+    
+    ' Construct an opaque Color object with
+    ' the specified Red, Green, Blue values.
+    '
+    ' Color values are not premultiplied.
+    
+    Function Color(ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+        Color.argb = MakeARGB(255, r, g, b)
+    End Function
+    
+    Function Color(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+        Color.argb = MakeARGB(a, r, g, b)
+    End Function
+    
+    Function Color(ByVal argb As ARGB) As Color
+        Color.argb = argb
+    End Function
+    
+    Type Color
+        argb As ARGB
+        
+        Property Get Alpha() As Byte
+            Return CByte(Me.argb >> AlphaShift)
+        End Property
+        
+        Function GetAlpha() As Byte
+            Return Me.Alpha
+        End Function
+        
+        Property Get A() As Byte
+            Return Me.Alpha
+        End Property
+        
+        Function GetA() As Byte
+            Return Me.Alpha
+        End Function
+
+        Property Get Red() As Byte
+            Return CByte(Me.argb >> RedShift)
+        End Property
+        
+        Function GetRed() As Byte
+            Return Me.Red
+        End Function
+        
+        Property Get R() As Byte
+            Return Me.Red
+        End Property
+        
+        Function GetR() As Byte
+            Return Me.Red
+        End Function
+            
+        Property Get Green() As Byte
+            Return CByte(Me.argb >> GreenShift)
+        End Property
+        
+        Function GetGreen() As Byte
+            Return Me.Green
+        End Function
+        
+        Property Get G() As Byte
+            Return Me.Green
+        End Property
+        
+        Function GetG() As Byte
+            Return Me.Green
+        End Function
+        
+        Property Get Blue() As Byte
+            Return CByte(Me.argb >> BlueShift)
+        End Property
+        
+        Function GetBlue() As Byte
+            Return Me.Blue
+        End Function
+        
+        Property Get B() As Byte
+            Return Me.Blue
+        End Property
+        
+        Function GetB() As Byte
+            Return Me.Blue
+        End Function
+        
+        Property Get Value() As ARGB
+            Return Me.argb
+        End Property
+        
+        Property Set Value(ByVal argb As ARGB)
+            Me.argb = argb
+        End Property
+        
+        Function GetValue() As ARGB
+            Return Me.argb
+        End Function
+        
+        Sub SetValue(ByVal argb As ARGB)
+            Me.argb = argb
+        End Sub
+        
+        Sub SetFromCOLORREF(ByVal rgb As Long)
+            Me.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
+        End Sub
+        
+        Function ToCOLORREF() As Long
+            Return RGB(Me.Red, Me.Green, Me.Blue)
+        End Function
+    End Type
+End Module

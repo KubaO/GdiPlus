@@ -1,0 +1,23 @@
+Module BrushModule
+    Type GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpBrush() As GpBrush
+        GpBrush.Native = 0
+    End Function
+End Module
+
+Class Brush
+    Inherits GdiPlusBase
+    Dim br As GpBrush
+    Dim LastResult As GpStatus
+    
+    Property Get Native() As GpBrush
+        Return br
+    End Property
+    
+    Public Static Function GetNative(brush As Brush) As GpBrush
+        If brush IsNot Nothing Then GetNative = brush.Native
+    End Function
+End Class

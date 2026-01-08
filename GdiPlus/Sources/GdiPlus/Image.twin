@@ -1,0 +1,27 @@
+Module ImageModule
+    Type GpImage
+        Native As LongPtr
+        
+        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
+        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
+        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
+    End Type
+    
+    Function GpImage() As GpImage
+        GpImage.Native = 0
+    End Function
+End Module
+
+Class Image
+    Inherits GdiPlusBase
+    Public im As GpImage
+    Dim LastResult As GpStatus
+
+    Property Get Native() As GpImage
+        Return im
+    End Property
+
+    Public Static Function GetNative(image As Image) As GpImage
+        If image IsNot Nothing Then GetNative = image.Native
+    End Function
+End Class

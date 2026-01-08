@@ -1,0 +1,23 @@
+Module RegionModule
+    Type GpRegion
+        Native As LongPtr
+    End Type
+    
+    Function GpRegion() As GpRegion
+        GpRegion.Native = 0
+    End Function
+End Module
+
+Class Region
+    Inherits GdiPlusBase
+    Dim rg As GpRegion
+    Dim LastError As GpStatus
+    
+    Property Get Native() As GpRegion
+        Return rg
+    End Property
+    
+    Public Static Function GetNative(region As Region) As GpRegion
+        If region IsNot Nothing Then GetNative = region.Native
+    End Function
+End Class
