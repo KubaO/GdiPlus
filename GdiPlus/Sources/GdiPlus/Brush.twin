@@ -1,6 +1,10 @@
 Module BrushModule
     Type GpBrush
         Native As LongPtr
+        
+        Public Declare PtrSafe Function DeleteBrush Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpBrush) As GpStatus
+        Public Declare PtrSafe Function CloneBrush Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
+        Public Declare PtrSafe Function GetBrushType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
     End Type
     
     Function GpBrush() As GpBrush
@@ -9,10 +13,49 @@ Module BrushModule
 End Module
 
 [COMCreatable(False)]
+[Description("Abstract base class for various brush types")]
 Class Brush
     Inherits GdiPlusBase
-    Dim br As GpBrush
-    Dim LastResult As GpStatus
+    Protected br As GpBrush
+    Protected LastResult As GpStatus
+        
+    Sub Class_Terminate()
+        br.DeleteBrush()
+    End Sub
+    
+    Overridable Function Clone() As Brush
+        Dim brush As GpBrush = GpBrush()
+        SetStatus(br.CloneBrush(brush))
+        Dim newBrush As Brush = New Brush(brush, LastResult)
+        If newBrush Is Nothing Then
+            brush.DeleteBrush()
+        End If
+        Return newBrush
+    End Function
+    
+    Property Get Type() As GpBrushType
+        Type = -1
+        SetStatus(br.GetBrushType(Type))
+    End Property
+    
+    Function GetType() As GpBrushType
+        GetType = -1
+        SetStatus(br.GetBrushType(GetType))
+    End Function
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
+    
+    Protected Sub New()
+        SetStatus(NotImplemented)
+    End Sub
+    
+    Protected Sub New(ByVal nativeBrush As GpBrush, status As GpStatus)
+        LastResult = status
+        SetNativeBrush(nativeBrush)
+    End Sub
     
     Protected Property Get Native() As GpBrush
         Return br

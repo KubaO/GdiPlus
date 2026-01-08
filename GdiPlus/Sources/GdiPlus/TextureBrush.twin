@@ -1,0 +1,153 @@
+Module TextureModule
+    Type GpTexture
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpTexture() As GpTexture
+        GpTexture.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateTexture Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, texture As GpTexture) As GpStatus
+    Public Declare PtrSafe Function GdipCreateTexture2 Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, ByVal x!, ByVal y!, ByVal width!, ByVal height!, texture As GpTexture) As GpStatus
+    Public Declare PtrSafe Function GdipCreateTexture2I Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, ByVal x&, ByVal y&, ByVal width&, ByVal height&, texture As GpTexture) As GpStatus
+    Public Declare PtrSafe Function GdipCreateTextureIA Lib "gdiplus" (ByVal Image As GpImage, ByVal imageAttributes As GpImageAttributes, ByVal x!, ByVal y!, ByVal width!, ByVal height!, texture As GpTexture) As GpStatus
+    Public Declare PtrSafe Function GdipCreateTextureIAI Lib "gdiplus" (ByVal Image As GpImage, ByVal imageAttributes As GpImageAttributes, ByVal x&, ByVal y&, ByVal width&, ByVal height&, texture As GpTexture) As GpStatus
+    Public Declare PtrSafe Function GdipSetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipResetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush) As GpStatus
+    Public Declare PtrSafe Function GdipMultiplyTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipTranslateTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipScaleTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipRotateTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipSetTextureWrapMode Lib "gdiplus" (ByVal Brush As GpBrush, ByVal wrapMode As GpWrapMode) As GpStatus
+    Public Declare PtrSafe Function GdipGetTextureWrapMode Lib "gdiplus" (ByVal Brush As GpBrush, wrapMode As GpWrapMode) As GpStatus
+    Public Declare PtrSafe Function GdipGetTextureImage Lib "gdiplus" (ByVal Brush As GpBrush, Image As GpImage) As GpStatus
+End Module
+
+[COMCreatable(False)]
+[Description("Texture Brush Fill Object")]
+Class TextureBrush
+    Inherits Brush
+    
+    Protected Property Get Native() As GpTexture
+        Native.Native = br.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeTexture As GpTexture)
+        LastResult = Ok
+        SetNativeTexture(nativeTexture)
+    End Sub
+    
+    Protected Sub SetNativeTexture(ByVal nativeTexture As GpTexture)
+        br.Native = nativeTexture.Native
+    End Sub
+    
+    Sub New(image As Image, ByVal wrapMode As GpWrapMode = WrapModeTile)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTexture(GetNative(image), wrapMode, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    ' When creating a texture brush from a metafile image, the dstRect
+    ' is used to specify the size that the metafile image should be
+    ' rendered at in the device units of the destination graphics.
+    ' It is NOT used to crop the metafile image, so only the width 
+    ' and height values matter for metafiles.
+    
+    Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstRect As GpRectF)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTexture2(GetNative(image), wrapmode, _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Sub New(image As Image, dstRect As GpRectF, Optional imageAttributes As ImageAttributes)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTextureIA(GetNative(image), GetNative(imageAttributes), _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Sub New(image As Image, dstRect As GpRect, Optional imageAttributes As ImageAttributes)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTextureIAI(GetNative(image), GetNative(imageAttributes), _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Sub New(image As Image, wrapmode As GpWrapMode, dstRect As GpRect)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTexture2I(GetNative(image), wrapmode, _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstX!, dstY!, dstWidth!, dstHeight!)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTexture2(GetNative(image), wrapmode, _
+                dstX, dstY, dstWidth, dstHeight, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstX&, dstY&, dstWidth&, dstHeight&)
+        Dim texture As GpTexture
+        LastResult = GdipCreateTexture2I(GetNative(image), wrapmode, _
+                dstX, dstY, dstWidth, dstHeight, texture)
+        SetNativeTexture(texture)
+    End Sub
+    
+    Function SetTransform(matrix As Matrix) As GpStatus
+        Return SetStatus(GdipSetTextureTransform(br, GetNative(matrix)))
+    End Function
+    
+    Function GetTransform(matrix As Matrix) As GpStatus
+        Return SetStatus(GdipGetTextureTransform(br, UnprotectedAccess(matrix).mx))
+    End Function
+
+    Function ResetTransform() As GpStatus
+        Return SetStatus(GdipResetTextureTransform(br))
+    End Function
+    
+    Function MultiplyTransform(matrix As Matrix, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipMultiplyTextureTransform(br, GetNative(matrix), order))
+    End Function
+    
+    Function TranslateTransform(ByVal dx!, ByVal dy!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipTranslateTextureTransform(br, dx, dy, order))
+    End Function
+    
+    Function ScaleTransform(ByVal sx!, ByVal sy!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipScaleTextureTransform(br, sx, sy, order))
+    End Function
+    
+    Function RotateTransform(ByVal angle!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipRotateTextureTransform(br, angle, order))
+    End Function
+
+    Property Set WrapMode(ByVal wrapMode As GpWrapMode)
+        SetStatus(GdipSetTextureWrapMode(br, wrapMode))
+    End Property
+    
+    Property Get WrapMode() As GpWrapMode
+        SetStatus(GdipGetTextureWrapMode(br, WrapMode))
+    End Property
+    
+    Function SetWrapMode(ByVal wrapMode As GpWrapMode) As GpStatus
+        Return SetStatus(GdipSetTextureWrapMode(br, wrapMode))
+    End Function
+    
+    Function GetWrapMode() As GpWrapMode
+        SetStatus(GdipGetTextureWrapMode(br, GetWrapMode))
+    End Function
+    
+    Function GetImage() As Image
+        Dim img As GpImage
+        SetStatus(GdipGetTextureImage(br, img))
+        Set GetImage = New Image(img, LastResult)
+        If GetImage Is Nothing Then img.DisposeImage()
+    End Function
+    
+    Protected Sub New()
+    End Sub
+End Class

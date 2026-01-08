@@ -1,0 +1,57 @@
+Module HatchModule
+    Type GpHatch
+        'Inherits GpBrush
+        Native As LongPtr
+    End Type
+    
+    Function GpHatch() As GpHatch
+        GpHatch.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateHatchBrush Lib "gdiplus" (ByVal style As GpHatchStyle, ByVal forecolr As Color, ByVal backcolr As Color, Brush As GpBrush) As GpStatus
+    Public Declare PtrSafe Function GdipGetHatchStyle Lib "gdiplus" (ByVal brush As GpBrush, style As GpHatchStyle) As GpStatus
+    Public Declare PtrSafe Function GdipGetHatchForegroundColor Lib "gdiplus" (ByVal brush As GpBrush, forecol As Color) As GpStatus
+    Public Declare PtrSafe Function GdipGetHatchBackgroundColor Lib "gdiplus" (ByVal brush As GpBrush, backcol As Color) As GpStatus
+End Module
+
+[COMCreatable(False)]
+[Description("Hatch Brush Object")]
+Class HatchBrush
+    Inherits Brush
+    
+    Protected Property Get Native() As GpHatch
+        Native.Native = br.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeHatch As GpHatch)
+        LastResult = Ok
+        SetNativeHatch(nativeHatch)
+    End Sub
+    
+    Protected Sub SetNativeHatch(ByVal nativeHatch As GpHatch)
+        br.Native = nativeHatch.Native
+    End Sub
+    
+    Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreColor As Color, ByVal backColor As Color)
+        Dim brush As GpHatch
+        LastResult = GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush)
+        SetNativeHatch(brush)
+    End Sub
+    
+    Function GetHatchStyle() As GpHatchStyle
+        SetStatus(GdipGetHatchStyle(br, GetHatchStyle))
+    End Function
+    
+    Function GetForegroundColor(color As Color) As GpStatus
+        If VarPtr(color) = vbNullPtr Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipGetHatchForegroundColor(br, color))
+    End Function
+    
+    Function GetBackgroundColor(color As Color) As GpStatus
+        If VarPtr(color) = vbNullPtr Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipGetHatchBackgroundColor(br, color))
+    End Function
+    
+    Protected Sub New()
+    End Sub
+End Class

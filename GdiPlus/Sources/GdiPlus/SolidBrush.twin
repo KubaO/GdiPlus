@@ -1,0 +1,44 @@
+Module SolidBrushModule
+    Type GpSolidFill
+        'Inherits GpBrush
+        Native As LongPtr
+        
+        Function AsGpBrush() As GpBrush
+            AsGpBrush.Native = Me.Native
+        End Function
+    End Type
+    
+    Function GpSolidFill() As GpSolidFill
+        GpSolidFill.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateSolidFill Lib "gdiplus" (ByVal argb As Long, brush As GpSolidFill) As GpStatus
+    Public Declare PtrSafe Function GdipSetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, ByVal color&) As GpStatus
+    Public Declare PtrSafe Function GdipGetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, color&) As GpStatus
+End Module
+
+[COMCreatable(False)]
+[Description("Solid Fill Brush Object")]
+Class SolidBrush
+    Inherits Brush
+    
+    Protected Property Get Native() As GpSolidFill
+        Native.Native = br.Native
+    End Property
+    
+    Sub New(color As Color)
+        LastResult = GdipCreateSolidFill(color.GetValue(), br)
+    End Sub
+    
+    Function GetColor(acolor As Color) As GpStatus
+        Dim argb As ARGB
+        If VarPtr(Color) = vbNullPtr Then Return SetStatus(InvalidParameter)
+        SetStatus(GdipGetSolidFillColor(br, argb))
+        acolor = Color(argb)
+        Return LastResult
+    End Function
+    
+    Function SetColor(color As Color) As GpStatus
+        Return SetStatus(GdipSetSolidFillColor(br, color.GetValue()))
+    End Function
+End Class

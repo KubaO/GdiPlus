@@ -31,23 +31,23 @@ Module Native
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As Texture) As GpTexture
+    Public Function GetNative(for As TextureBrush) As GpTexture
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As SolidFill) As GpSolidFill
+    Public Function GetNative(for As SolidBrush) As GpSolidFill
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As LineGradient) As GpLineGradient
+    Public Function GetNative(for As LinearGradientBrush) As GpLineGradient
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As PathGradient) As GpPathGradient
+    Public Function GetNative(for As PathGradientBrush) As GpPathGradient
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As Hatch) As GpHatch
+    Public Function GetNative(for As HatchBrush) As GpHatch
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     

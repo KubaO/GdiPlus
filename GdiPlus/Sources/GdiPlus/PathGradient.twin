@@ -10,7 +10,7 @@ Module PathGradientModule
 End Module
 
 [COMCreatable(False)]
-Class PathGradient
+Class PathGradientBrush
     Inherits GdiPlusBase
     Dim pg As GpPathGradient
     Dim LastResult As GpStatus
