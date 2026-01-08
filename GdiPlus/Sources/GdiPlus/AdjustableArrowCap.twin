@@ -15,13 +15,9 @@ Class AdjustableArrowCap
     Dim ac As GpAdjustableArrowCap
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpAdjustableArrowCap
+    Protected Property Get Native() As GpAdjustableArrowCap
         Return ac
     End Property
-    
-    Public Static Function GetNative(obj As AdjustableArrowCap) As GpAdjustableArrowCap
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
         LastResult = Ok

@@ -15,13 +15,9 @@ Class Texture
     Dim tx As GpTexture
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpTexture
+    Protected Property Get Native() As GpTexture
         Return tx
     End Property
-    
-    Public Static Function GetNative(obj As Texture) As GpTexture
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeTexture As GpTexture)
         LastResult = Ok

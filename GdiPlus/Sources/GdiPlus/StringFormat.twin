@@ -14,13 +14,9 @@ Class StringFormat
     Dim sf As GpStringFormat
     Dim LastResult As GpStatus
     
-    Property Get Native() As GpStringFormat
+    Protected Property Get Native() As GpStringFormat
         Return sf
     End Property
-    
-    Public Static Function GetNative(stringFormat As StringFormat) As GpStringFormat
-        If stringFormat IsNot Nothing Then GetNative = stringFormat.Native
-    End Function
     
     Protected Sub New(ByVal nativeFormat As GpStringFormat)
         LastResult = Ok

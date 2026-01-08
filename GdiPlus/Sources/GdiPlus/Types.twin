@@ -1,0 +1,641 @@
+' This is the main GDI+ Abort interface
+Interface GdiPlusAbort
+    Function Abort() As Long
+End Interface
+
+[COMCreatable(False)]
+Class GdiPlusBase
+    Static Function Alloc(size As LongPtr) As LongPtr
+        Return GdipAlloc(size)
+    End Function
+    
+    Static Sub Free(ptr As LongPtr)
+        GdipFree(ptr)
+    End Sub
+End Class
+
+Alias ARGB As Long
+Alias UINT As Long
+Alias GraphicsState As Long
+Alias GraphicsContainer As Long
+
+Module Types
+    Function GDIPLUS_MIN!(ByVal a!, ByVal b!)
+        Return If(a < b, a, b)
+    End Function
+
+    Function GDIPLUS_MIN&(ByVal a&, ByVal b&)
+        Return If(a < b, a, b)
+    End Function
+    
+    Function GDIPLUS_MAX!(ByVal a!, ByVal b!)
+        Return If(a > b, a, b)
+    End Function
+    
+    Function GDIPLUS_MAX&(ByVal a&, ByVal b&)
+        Return If(a > b, a, b)
+    End Function
+    
+    '--------------------------------------------------------------------------
+    ' Callback functions
+    '--------------------------------------------------------------------------
+    
+    Public Delegate Function ImageAbort (pv As LongPtr) As BOOL
+    Public Delegate Function DrawImageAbort (pv As LongPtr) As BOOL
+    Public Delegate Function GetThumbnailImageAbort (pv As LongPtr) As BOOL
+    
+    ' Callback for EnumerateMetafile methods.  The parameters are:
+    '
+    '      recordType      WMF, EMF, or EMF+ record Type
+    '      flags           (always 0 for WMF/EMF records)
+    '      dataSize        size of the record data (in bytes), or 0 if no data
+    '      data            pointer to the record data, or NULL if no data
+    '      callbackData    pointer to callbackData, if any
+    '
+    ' This method can then call Metafile::PlayRecord to play the
+    ' record that was just enumerated.  If this method  returns
+    ' FALSE, the enumeration process is aborted.  Otherwise, it continues.
+
+    ' typedef BOOL (CALLBACK * EnumerateMetafileProc)(EmfPlusRecordType,UINT,UINT,const BYTE*,VOID*);
+    Public Delegate Function EnumerateMetafileProc (ByVal nType As EmfPlusRecordType, ByVal dwFlags As Long, ByVal cbData As Long, ByVal data As LongPtr, ByVal callbackData As LongPtr)
+    
+    Public Const REAL_MAX = 3.402823466E+38!
+    Public Const REAL_MIN = 1.175494351E-38!
+    Public Const REAL_TOLERANCE = (REAL_MIN * 100!)
+    Public Const REAL_EPSILON! = 1.192092896E-07! ' FLT_EPSILON
+    
+    '--------------------------------------------------------------------------
+    ' Status return values from GDI+ methods
+    '--------------------------------------------------------------------------
+    Public Enum GpStatus
+        Ok = 0
+        GenericError = 1
+        InvalidParameter = 2
+        OutOfMemory = 3
+        ObjectBusy = 4
+        InsufficientBuffer = 5
+        NotImplemented = 6
+        Win32Error = 7
+        WrongState = 8
+        Aborted = 9
+        FileNotFound = 10
+        ValueOverflow = 11
+        AccessDenied = 12
+        UnknownImageFormat = 13
+        FontFamilyNotFound = 14
+        FontStyleNotFound = 15
+        NotTrueTypeFont = 16
+        UnsupportedGdiplusVersion = 17
+        GdiplusNotInitialized = 18
+        PropertyNotFound = 19
+        PropertyNotSupported = 20
+        '#if (GDIPVER >= 0x0110)        
+        ProfileNotFound = 21
+        '#endif //(GDIPVER >= 0x0110)
+    End Enum
+    
+    [Description("Represents a dimension in a 2D coordinate system (floating-point coordinates)")]
+    Type GpSizeF
+        Width!
+        Height!
+        
+        Function Add(sz As GpSizeF) As GpSizeF
+            Add.Width = Me.Width + sz.Width
+            Add.Height = Me.Height + sz.Height
+        End Function
+        
+        Function Sub(sz As GpSizeF) As GpSizeF
+            Sub.Width = Me.Width - sz.Width
+            Sub.Height = Me.Height - sz.Height
+        End Function
+        
+        Function Equals(sz As GpSizeF) As Boolean
+            Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
+        End Function
+        
+        Function Empty() As Boolean
+            Return Me.Width = 0.0! AndAlso Me.Height = 0.0!
+        End Function
+    End Type
+    
+    Function GpSizeF() As GpSizeF
+        GpSizeF.Width = 0
+        GpSizeF.Height = 0
+    End Function
+    
+    Function GpSizeF(size As GpSizeF) As GpSizeF
+        GpSizeF = size
+    End Function
+    
+    Function GpSizeF(ByVal width!, ByVal height!) As GpSizeF
+        GpSizeF.Width = width
+        GpSizeF.Height = height
+    End Function
+
+    [Description("Represents a dimension in a 2D coordinate system (integer coordinates)")]
+    Type GpSize
+        Width&
+        Height&
+        
+        Function Add(sz As GpSize) As GpSize
+            Add.Width = Me.Width + sz.Width
+            Add.Height = Me.Height + sz.Height
+        End Function
+        
+        Function Sub(sz As GpSize) As GpSize
+            Sub.Width = Me.Width - sz.Width
+            Sub.Height = Me.Height - sz.Height
+        End Function
+        
+        Function Equals(sz As GpSize) As Boolean
+            Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
+        End Function
+        
+        Function Empty() As Boolean
+            Return Me.Width = 0 AndAlso Me.Height = 0
+        End Function
+    End Type
+    
+    Function GpSize() As GpSize
+        GpSize.Width = 0
+        GpSize.Height = 0
+    End Function
+    
+    Function GpSize(size As GpSize) As GpSize
+        GpSize = size
+    End Function
+    
+    Function GpSize(ByVal width&, ByVal height&) As GpSize
+        GpSize.Width = width
+        GpSize.Height = height
+    End Function
+    
+    [Description("Represents a location in a 2D coordinate system (floating-point coordinates)")]
+    Type GpPointF
+        X!
+        Y!
+        
+        Function Add(pt As GpPointF) As GpPointF
+            Add.X = Me.X + pt.X
+            Add.Y = Me.Y + pt.Y
+        End Function
+        
+        Function Sub(pt As GpPointF) As GpPointF
+            Sub.X = Me.X - pt.X
+            Sub.Y = Me.Y - pt.Y
+        End Function
+        
+        Function Equals(pt As GpPointF) As Boolean
+            Return Me.X = pt.X AndAlso Me.Y = pt.Y
+        End Function
+    End Type
+    
+    Function GpPointF() As GpPointF
+        GpPointF.X = 0
+        GpPointF.Y = 0
+    End Function
+    
+    Function GpPointF(point As GpPointF) As GpPointF
+        GpPointF = point
+    End Function
+    
+    Function GpPointFFrom(size As GpSizeF) As GpPointF
+        GpPointF.X = size.Width
+        GpPointF.Y = size.Height
+    End Function
+    
+    Function GpPointF(ByVal x!, ByVal y!) As GpPointF
+        GpPointF.X = x
+        GpPointF.Y = y
+    End Function
+    
+    [Description("Represents a location in a 2D coordinate system (integer coordinates)")]
+    Type GpPoint
+        X&
+        Y&
+        
+        Function Add(pt As GpPoint) As GpPoint
+            Add.X = Me.X + pt.X
+            Add.Y = Me.Y + pt.Y
+        End Function
+        
+        Function Sub(pt As GpPoint) As GpPoint
+            Sub.X = Me.X - pt.X
+            Sub.Y = Me.Y - pt.Y
+        End Function
+        
+        Function Equals(pt As GpPoint) As Boolean
+            Return Me.X = pt.X AndAlso Me.Y = pt.Y
+        End Function
+    End Type
+    
+    Function GpPoint() As GpPoint
+        GpPoint.X = 0
+        GpPoint.Y = 0
+    End Function
+    
+    Function GpPoint(point As GpPoint) As GpPoint
+        GpPoint = point
+    End Function
+    
+    Function GpPointFrom(size As GpSize) As GpPoint
+        GpPoint.X = size.Width
+        GpPoint.Y = size.Height
+    End Function
+    
+    Function GpPoint(ByVal x&, ByVal y&) As GpPoint
+        GpPoint.X = x
+        GpPoint.Y = y
+    End Function
+    
+    [Description("Represents a rectangle in a 2D coordinate system (floating-point coordinates)")]
+    Type GpRectF
+        X!
+        Y!
+        Width!
+        Height!
+        
+        Property Get Location() As GpPointF
+            Location.X = Me.X
+            Location.Y = Me.Y
+        End Property
+        
+        Sub GetLocation(point As GpPointF)
+            point.X = Me.X
+            point.Y = Me.Y
+        End Sub
+        
+        Property Get Size() As GpSizeF
+            Size.Width = Me.Width
+            Size.Height = Me.Height
+        End Property
+        
+        Sub GetSize(size As GpSizeF)
+            size.Width = Me.Width
+            size.Height = Me.Height
+        End Sub
+        
+        Property Get Bounds() As GpRectF
+            Return Me
+        End Property
+        
+        Sub GetBounds(bounds As GpRectF)
+            bounds = Me
+        End Sub
+        
+        Property Get Left!()
+            Return Me.X
+        End Property
+        
+        Property Get Top!()
+            Return Me.Y
+        End Property
+        
+        Property Get Right!()
+            Return Me.X + Me.Width
+        End Property
+        
+        Property Get Bottom!()
+            Return Me.Y + Me.Height
+        End Property
+        
+        Function GetLeft!()
+            Return Me.X
+        End Function
+        
+        Function GetTop!()
+            Return Me.Y
+        End Function
+        
+        Function GetRight!()
+            Return Me.X + Me.Width
+        End Function
+        
+        Function GetBottom!()
+            Return Me.Y + Me.Height
+        End Function
+        
+        Function IsEmptyArea() As Boolean
+            Return (Me.Width <= REAL_EPSILON) OrElse (Me.Height <= REAL_EPSILON)
+        End Function
+        
+        Function Equals(rect As GpRectF) As Boolean
+            Return Me.X = rect.X AndAlso _
+                    Me.Y = rect.Y AndAlso _
+                    Me.Width = rect.Width AndAlso _
+                    Me.Height = rect.Height
+        End Function
+        
+        Function Contains(ByVal x!, ByVal y!) As Boolean
+            Return x >= Me.X AndAlso x < Me.X + Me.Width AndAlso _
+                   y >= Me.Y AndAlso y < Me.Y + Me.Height
+        End Function
+        
+        Function Contains(pt As GpPointF) As Boolean
+            'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
+            Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
+                   pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
+        End Function
+        
+        Function Contains(rect As GpRectF) As Boolean
+            Return (Me.X <= rect.X) AndAlso (rect.Right <= Me.Right) AndAlso _
+                   (Me.Y <= rect.Y) AndAlso (rect.Bottom <= Me.Bottom)
+        End Function
+        
+        Sub Inflate(ByVal dx!, ByVal dy!)
+            Me.X -= dx
+            Me.Y -= dy
+            Me.Width += 2 * dx
+            Me.Height += 2 * dy
+        End Sub
+        
+        Sub Inflate(point As GpPointF)
+            'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
+            Me.X -= point.X
+            Me.Y -= point.Y
+            Me.Width += 2 * point.X
+            Me.Height += 2 * point.Y
+        End Sub
+        
+        Function Intersect(rect As GpRectF) As Boolean
+            Return Intersect(Me, Me, rect)
+        End Function
+        
+        Function IntersectsWith(rect As GpRectF) As Boolean
+            Return Me.Left < rect.Right AndAlso _
+                    Me.Top < rect.Bottom AndAlso _ 
+                    Me.Right > rect.Left AndAlso _
+                    Me.Bottom > rect.Top
+        End Function
+        
+        Sub Offset(point As POINTF)
+            Me.X += point.x
+            Me.Y += point.y
+        End Sub
+        
+        Sub Offset(ByVal dx!, ByVal dy!)
+            Me.X += dx
+            Me.Y += dy
+        End Sub
+    End Type
+    
+    Function GpRectF() As GpRectF
+        GpRectF.X = 0
+        GpRectF.Y = 0
+        GpRectF.Width = 0
+        GpRectF.Height = 0
+    End Function
+
+    Function GpRectF(x!, y!, width!, height!) As GpRectF
+        GpRectF.X = x
+        GpRectF.Y = y
+        GpRectF.Width = width
+        GpRectF.Height = height
+    End Function
+    
+    Function GpRectF(location As GpPointF, size As GpSizeF) As GpRectF
+        GpRectF.X = location.X
+        GpRectF.Y = location.Y
+        GpRectF.Width = size.Width
+        GpRectF.Height = size.Height
+    End Function
+    
+    Private Function Intersect(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
+        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
+        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
+        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
+        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
+
+        c.X = left
+        c.Y = top
+        c.Width = right - left
+        c.Height = bottom - top
+        Return Not c.IsEmptyArea
+    End Function
+    
+    Private Function Union(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
+        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
+        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
+        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
+        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
+
+        c.X = left
+        c.Y = top
+        c.Width = right - left
+        c.Height = bottom - top
+        Return Not c.IsEmptyArea
+    End Function
+    
+    [Description("Represents a rectangle in a 2D coordinate system (integer coordinates)")]
+    Type GpRect
+        X&
+        Y&
+        Width&
+        Height&
+        
+        Property Get Location() As GpPoint
+            Location.X = Me.X
+            Location.Y = Me.Y
+        End Property
+        
+        Sub GetLocation(point As GpPoint)
+            point.X = Me.X
+            point.Y = Me.Y
+        End Sub
+        
+        Property Get Size() As GpSize
+            Size.Width = Me.Width
+            Size.Height = Me.Height
+        End Property
+        
+        Sub GetSize(size As GpSize)
+            size.Width = Me.Width
+            size.Height = Me.Height
+        End Sub
+        
+        Property Get Bounds() As GpRect
+            Return Me
+        End Property
+        
+        Sub GetBounds(bounds As GpRect)
+            bounds = Me
+        End Sub
+        
+        Property Get Left&()
+            Return Me.X
+        End Property
+        
+        Property Get Top&()
+            Return Me.Y
+        End Property
+        
+        Property Get Right&()
+            Return Me.X + Me.Width
+        End Property
+        
+        Property Get Bottom&()
+            Return Me.Y + Me.Height
+        End Property
+        
+        Function GetLeft&()
+            Return Me.X
+        End Function
+        
+        Function GetTop&()
+            Return Me.Y
+        End Function
+        
+        Function GetRight&()
+            Return Me.X + Me.Width
+        End Function
+        
+        Function GetBottom&()
+            Return Me.Y + Me.Height
+        End Function
+        
+        Function IsEmptyArea() As Boolean
+            Return (Me.Width <= 0) OrElse (Me.Height <= 0)
+        End Function
+        
+        Function Equals(rect As GpRect) As Boolean
+            Return Me.X = rect.X AndAlso _
+                    Me.Y = rect.Y AndAlso _
+                    Me.Width = rect.Width AndAlso _
+                    Me.Height = rect.Height
+        End Function
+        
+        Function Contains(ByVal x&, ByVal y&) As Boolean
+            Return x >= Me.X AndAlso x < Me.X + Me.Width AndAlso _
+                   y >= Me.Y AndAlso y < Me.Y + Me.Height
+        End Function
+        
+        Function Contains(pt As GpPoint) As Boolean
+            'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
+            Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
+                   pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
+        End Function
+        
+        Function Contains(rect As GpRect) As Boolean
+            Return (Me.X <= rect.X) AndAlso (rect.Right <= Me.Right) AndAlso _
+                   (Me.Y <= rect.Y) AndAlso (rect.Bottom <= Me.Bottom)
+        End Function
+        
+        Sub Inflate(ByVal dx&, ByVal dy&)
+            Me.X -= dx
+            Me.Y -= dy
+            Me.Width += 2 * dx
+            Me.Height += 2 * dy
+        End Sub
+        
+        Sub Inflate(point As GpPoint)
+            'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
+            Me.X -= point.X
+            Me.Y -= point.Y
+            Me.Width += 2 * point.X
+            Me.Height += 2 * point.Y
+        End Sub
+        
+        Function Intersect(rect As GpRect) As Boolean
+            Return Intersect(Me, Me, rect)
+        End Function
+        
+        Function IntersectsWith(rect As GpRect) As Boolean
+            Return Me.Left < rect.Right AndAlso _
+                    Me.Top < rect.Bottom AndAlso _ 
+                    Me.Right > rect.Left AndAlso _
+                    Me.Bottom > rect.Top
+        End Function
+        
+        Sub Offset(point As GpPoint)
+            Me.X += point.X
+            Me.Y += point.Y
+        End Sub
+        
+        Sub Offset(ByVal dx&, ByVal dy&)
+            Me.X += dx
+            Me.Y += dy
+        End Sub
+    End Type
+    
+    Function GpRect() As GpRect
+        GpRect.X = 0
+        GpRect.Y = 0
+        GpRect.Width = 0
+        GpRect.Height = 0
+    End Function
+
+    Function GpRect(x&, y&, width&, height&) As GpRect
+        GpRect.X = x
+        GpRect.Y = y
+        GpRect.Width = width
+        GpRect.Height = height
+    End Function
+    
+    Function GpRect(location As GpPoint, size As GpSize) As GpRect
+        GpRect.X = location.X
+        GpRect.Y = location.Y
+        GpRect.Width = size.Width
+        GpRect.Height = size.Height
+    End Function
+    
+    Function Intersect(c As GpRect, a As GpRect, b As GpRect) As Boolean
+        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
+        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
+        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
+        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
+
+        c.X = left
+        c.Y = top
+        c.Width = right - left
+        c.Height = bottom - top
+        Return Not c.IsEmptyArea
+    End Function
+    
+    Function Union(c As GpRect, a As GpRect, b As GpRect) As Boolean
+        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
+        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
+        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
+        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
+
+        c.X = left
+        c.Y = top
+        c.Width = right - left
+        c.Height = bottom - top
+        Return Not c.IsEmptyArea
+    End Function
+    
+    '--------------------------------------------------------------------------
+    ' Assorted Types
+    '--------------------------------------------------------------------------
+    Type PathData
+        Count&
+        Points As LongPtr ' GpPointF*
+        Types As LongPtr  ' BYTE*
+    End Type
+    
+    Function PathData() As PathData
+        PathData.Count = 0
+        PathData.Points = 0
+        PathData.Types = 0
+    End Function
+    
+    Sub Free(pathData As PathData)
+        GdipFree(pathData.Points)
+        GdipFree(pathData.Types)
+    End Sub
+    
+    Type CharacterRange
+        First&
+        Length&
+    End Type
+    
+    Function CharacterRange() As CharacterRange
+        CharacterRange.First = 0
+        CharacterRange.Length = 0
+    End Function
+    
+    Function CharacterRange(ByVal first&, ByVal length&) As CharacterRange
+        CharacterRange.First = first&
+        CharacterRange.Length = length
+    End Function
+End Module

@@ -15,13 +15,9 @@ Class InstalledFontCollection
     Dim fc As GpInstalledFontCollection
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpInstalledFontCollection
+    Protected Property Get Native() As GpInstalledFontCollection
         Return fc
     End Property
-    
-    Public Static Function GetNative(obj As InstalledFontCollection) As GpInstalledFontCollection
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
         LastResult = Ok

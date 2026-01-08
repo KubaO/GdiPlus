@@ -14,13 +14,9 @@ Class Region
     Dim rg As GpRegion
     Dim LastResult As GpStatus
     
-    Property Get Native() As GpRegion
+    Protected Property Get Native() As GpRegion
         Return rg
     End Property
-    
-    Public Static Function GetNative(region As Region) As GpRegion
-        If region IsNot Nothing Then GetNative = region.Native
-    End Function
     
     Protected Sub New(ByVal nativeRegion As GpRegion)
         LastResult = Ok

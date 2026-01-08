@@ -14,13 +14,9 @@ Class CustomLineCap
     Dim lc As GpCustomLineCap
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpCustomLineCap
+    Protected Property Get Native() As GpCustomLineCap
         Return lc
     End Property
-    
-    Public Static Function GetNative(obj As CustomLineCap) As GpCustomLineCap
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeLineCap As GpCustomLineCap)
         LastResult = Ok

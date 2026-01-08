@@ -15,13 +15,9 @@ Class SolidFill
     Dim sf As GpSolidFill
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpSolidFill
+    Protected Property Get Native() As GpSolidFill
         Return sf
     End Property
-    
-    Public Static Function GetNative(obj As SolidFill) As GpSolidFill
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeFill As GpSolidFill)
         LastResult = Ok

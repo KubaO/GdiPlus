@@ -1,578 +1,4 @@
-[COMCreatable(False)]
-Class GdiPlusBase
-    Static Function Alloc(size As LongPtr) As LongPtr
-        Return GdipAlloc(size)
-    End Function
-    
-    Static Sub Free(ptr As LongPtr)
-        GdipFree(ptr)
-    End Sub
-End Class
-
-Alias ARGB As Long
-Alias UINT As Long
-
-Module GdiPlus
-    Const REAL_EPSILON! = 1.192092896E-07! ' FLT_EPSILON
-    
-    Function GDIPLUS_MIN!(ByVal a!, ByVal b!)
-        Return If(a < b, a, b)
-    End Function
-
-    Function GDIPLUS_MIN&(ByVal a&, ByVal b&)
-        Return If(a < b, a, b)
-    End Function
-    
-    Function GDIPLUS_MAX!(ByVal a!, ByVal b!)
-        Return If(a > b, a, b)
-    End Function
-    
-    Function GDIPLUS_MAX&(ByVal a&, ByVal b&)
-        Return If(a > b, a, b)
-    End Function
-    
-    [Description("Represents a dimension in a 2D coordinate system (floating-point coordinates)")]
-    Type GpSizeF
-        Width!
-        Height!
-        
-        Function Add(sz As GpSizeF) As GpSizeF
-            Add.Width = Me.Width + sz.Width
-            Add.Height = Me.Height + sz.Height
-        End Function
-        
-        Function Sub(sz As GpSizeF) As GpSizeF
-            Sub.Width = Me.Width - sz.Width
-            Sub.Height = Me.Height - sz.Height
-        End Function
-        
-        Function Equals(sz As GpSizeF) As Boolean
-            Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
-        End Function
-        
-        Function Empty() As Boolean
-            Return Me.Width = 0.0! AndAlso Me.Height = 0.0!
-        End Function
-    End Type
-    
-    Function GpSizeF() As GpSizeF
-        GpSizeF.Width = 0
-        GpSizeF.Height = 0
-    End Function
-    
-    Function GpSizeF(size As GpSizeF) As GpSizeF
-        GpSizeF = size
-    End Function
-    
-    Function GpSizeF(ByVal width!, ByVal height!) As GpSizeF
-        GpSizeF.Width = width
-        GpSizeF.Height = height
-    End Function
-    
-    [Description("Represents a dimension in a 2D coordinate system (integer coordinates)")]
-    Type GpSize
-        Width&
-        Height&
-        
-        Function Add(sz As GpSize) As GpSize
-            Add.Width = Me.Width + sz.Width
-            Add.Height = Me.Height + sz.Height
-        End Function
-        
-        Function Sub(sz As GpSize) As GpSize
-            Sub.Width = Me.Width - sz.Width
-            Sub.Height = Me.Height - sz.Height
-        End Function
-        
-        Function Equals(sz As GpSize) As Boolean
-            Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
-        End Function
-        
-        Function Empty() As Boolean
-            Return Me.Width = 0 AndAlso Me.Height = 0
-        End Function
-    End Type
-    
-    Function GpSize() As GpSize
-        GpSize.Width = 0
-        GpSize.Height = 0
-    End Function
-    
-    Function GpSize(size As GpSize) As GpSize
-        GpSize = size
-    End Function
-    
-    Function GpSize(ByVal width&, ByVal height&) As GpSize
-        GpSize.Width = width
-        GpSize.Height = height
-    End Function
-    
-    [Description("Represents a location in a 2D coordinate system (floating-point coordinates)")]
-    Type GpPointF
-        X!
-        Y!
-        
-        Function Add(pt As GpPointF) As GpPointF
-            Add.X = Me.X + pt.X
-            Add.Y = Me.Y + pt.Y
-        End Function
-        
-        Function Sub(pt As GpPointF) As GpPointF
-            Sub.X = Me.X - pt.X
-            Sub.Y = Me.Y - pt.Y
-        End Function
-        
-        Function Equals(pt As GpPointF) As Boolean
-            Return Me.X = pt.X AndAlso Me.Y = pt.Y
-        End Function
-    End Type
-    
-    Function GpPointF() As GpPointF
-        GpPointF.X = 0
-        GpPointF.Y = 0
-    End Function
-    
-    Function GpPointF(point As GpPointF) As GpPointF
-        GpPointF = point
-    End Function
-    
-    Function GpPointFFrom(size As GpSizeF) As GpPointF
-        GpPointF.X = size.Width
-        GpPointF.Y = size.Height
-    End Function
-    
-    Function GpPointF(ByVal x!, ByVal y!) As GpPointF
-        GpPointF.X = x
-        GpPointF.Y = y
-    End Function
-    
-    [Description("Represents a location in a 2D coordinate system (integer coordinates)")]
-    Type GpPoint
-        X&
-        Y&
-        
-        Function Add(pt As GpPoint) As GpPoint
-            Add.X = Me.X + pt.X
-            Add.Y = Me.Y + pt.Y
-        End Function
-        
-        Function Sub(pt As GpPoint) As GpPoint
-            Sub.X = Me.X - pt.X
-            Sub.Y = Me.Y - pt.Y
-        End Function
-        
-        Function Equals(pt As GpPoint) As Boolean
-            Return Me.X = pt.X AndAlso Me.Y = pt.Y
-        End Function
-    End Type
-    
-    Function GpPoint() As GpPoint
-        GpPoint.X = 0
-        GpPoint.Y = 0
-    End Function
-    
-    Function GpPoint(point As GpPoint) As GpPoint
-        GpPoint = point
-    End Function
-    
-    Function GpPointFrom(size As GpSize) As GpPoint
-        GpPoint.X = size.Width
-        GpPoint.Y = size.Height
-    End Function
-    
-    Function GpPoint(ByVal x&, ByVal y&) As GpPoint
-        GpPoint.X = x
-        GpPoint.Y = y
-    End Function
-    
-    [Description("Represents a rectangle in a 2D coordinate system (floating-point coordinates)")]
-    Type GpRectF
-        X!
-        Y!
-        Width!
-        Height!
-        
-        Property Get Location() As GpPointF
-            Location.X = Me.X
-            Location.Y = Me.Y
-        End Property
-        
-        Sub GetLocation(point As GpPointF)
-            point.X = Me.X
-            point.Y = Me.Y
-        End Sub
-        
-        Property Get Size() As GpSizeF
-            Size.Width = Me.Width
-            Size.Height = Me.Height
-        End Property
-        
-        Sub GetSize(size As GpSizeF)
-            size.Width = Me.Width
-            size.Height = Me.Height
-        End Sub
-        
-        Property Get Bounds() As GpRectF
-            Return Me
-        End Property
-        
-        Sub GetBounds(bounds As GpRectF)
-            bounds = Me
-        End Sub
-        
-        Property Get Left!()
-            Return Me.X
-        End Property
-        
-        Property Get Top!()
-            Return Me.Y
-        End Property
-        
-        Property Get Right!()
-            Return Me.X + Me.Width
-        End Property
-        
-        Property Get Bottom!()
-            Return Me.Y + Me.Height
-        End Property
-        
-        Function GetLeft!()
-            Return Me.X
-        End Function
-        
-        Function GetTop!()
-            Return Me.Y
-        End Function
-        
-        Function GetRight!()
-            Return Me.X + Me.Width
-        End Function
-        
-        Function GetBottom!()
-            Return Me.Y + Me.Height
-        End Function
-        
-        Function IsEmptyArea() As Boolean
-            Return (Me.Width <= REAL_EPSILON) OrElse (Me.Height <= REAL_EPSILON)
-        End Function
-        
-        Function Equals(rect As GpRectF) As Boolean
-            Return Me.X = rect.X AndAlso _
-                    Me.Y = rect.Y AndAlso _
-                    Me.Width = rect.Width AndAlso _
-                    Me.Height = rect.Height
-        End Function
-        
-        Function Contains(ByVal x!, ByVal y!) As Boolean
-            Return x >= Me.X AndAlso x < Me.X + Me.Width AndAlso _
-                   y >= Me.Y AndAlso y < Me.Y + Me.Height
-        End Function
-        
-        Function Contains(pt As GpPointF) As Boolean
-            'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
-            Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
-                   pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
-        End Function
-        
-        Function Contains(rect As GpRectF) As Boolean
-            Return (Me.X <= rect.X) AndAlso (rect.Right <= Me.Right) AndAlso _
-                   (Me.Y <= rect.Y) AndAlso (rect.Bottom <= Me.Bottom)
-        End Function
-        
-        Sub Inflate(ByVal dx!, ByVal dy!)
-            Me.X -= dx
-            Me.Y -= dy
-            Me.Width += 2 * dx
-            Me.Height += 2 * dy
-        End Sub
-        
-        Sub Inflate(point As GpPointF)
-            'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
-            Me.X -= point.X
-            Me.Y -= point.Y
-            Me.Width += 2 * point.X
-            Me.Height += 2 * point.Y
-        End Sub
-        
-        Function Intersect(rect As GpRectF) As Boolean
-            Return Intersect(Me, Me, rect)
-        End Function
-        
-        Function IntersectsWith(rect As GpRectF) As Boolean
-            Return Me.Left < rect.Right AndAlso _
-                    Me.Top < rect.Bottom AndAlso _ 
-                    Me.Right > rect.Left AndAlso _
-                    Me.Bottom > rect.Top
-        End Function
-        
-        Sub Offset(point As POINTF)
-            Me.X += point.x
-            Me.Y += point.y
-        End Sub
-        
-        Sub Offset(ByVal dx!, ByVal dy!)
-            Me.X += dx
-            Me.Y += dy
-        End Sub
-    End Type
-    
-    Function GpRectF() As GpRectF
-        GpRectF.X = 0
-        GpRectF.Y = 0
-        GpRectF.Width = 0
-        GpRectF.Height = 0
-    End Function
-
-    Function GpRectF(x!, y!, width!, height!) As GpRectF
-        GpRectF.X = x
-        GpRectF.Y = y
-        GpRectF.Width = width
-        GpRectF.Height = height
-    End Function
-    
-    Function GpRectF(location As POINTF, size As GpSizeF) As GpRectF ' FIXME: PointF
-        GpRectF.X = location.x
-        GpRectF.Y = location.y
-        GpRectF.Width = size.Width
-        GpRectF.Height = size.Height
-    End Function
-    
-    Function Intersect(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
-
-        c.X = left
-        c.Y = top
-        c.Width = right - left
-        c.Height = bottom - top
-        Return Not c.IsEmptyArea
-    End Function
-    
-    Function Union(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
-
-        c.X = left
-        c.Y = top
-        c.Width = right - left
-        c.Height = bottom - top
-        Return Not c.IsEmptyArea
-    End Function
-    
-    [Description("Represents a rectangle in a 2D coordinate system (integer coordinates)")]
-    Type GpRect
-        X&
-        Y&
-        Width&
-        Height&
-        
-        Property Get Location() As GpPoint
-            Location.X = Me.X
-            Location.Y = Me.Y
-        End Property
-        
-        Sub GetLocation(point As GpPoint)
-            point.X = Me.X
-            point.Y = Me.Y
-        End Sub
-        
-        Property Get Size() As GpSize
-            Size.Width = Me.Width
-            Size.Height = Me.Height
-        End Property
-        
-        Sub GetSize(size As GpSize)
-            size.Width = Me.Width
-            size.Height = Me.Height
-        End Sub
-        
-        Property Get Bounds() As GpRect
-            Return Me
-        End Property
-        
-        Sub GetBounds(bounds As GpRect)
-            bounds = Me
-        End Sub
-        
-        Property Get Left&()
-            Return Me.X
-        End Property
-        
-        Property Get Top&()
-            Return Me.Y
-        End Property
-        
-        Property Get Right&()
-            Return Me.X + Me.Width
-        End Property
-        
-        Property Get Bottom&()
-            Return Me.Y + Me.Height
-        End Property
-        
-        Function GetLeft&()
-            Return Me.X
-        End Function
-        
-        Function GetTop&()
-            Return Me.Y
-        End Function
-        
-        Function GetRight&()
-            Return Me.X + Me.Width
-        End Function
-        
-        Function GetBottom&()
-            Return Me.Y + Me.Height
-        End Function
-        
-        Function IsEmptyArea() As Boolean
-            Return (Me.Width <= 0) OrElse (Me.Height <= 0)
-        End Function
-        
-        Function Equals(rect As GpRect) As Boolean
-            Return Me.X = rect.X AndAlso _
-                    Me.Y = rect.Y AndAlso _
-                    Me.Width = rect.Width AndAlso _
-                    Me.Height = rect.Height
-        End Function
-        
-        Function Contains(ByVal x&, ByVal y&) As Boolean
-            Return x >= Me.X AndAlso x < Me.X + Me.Width AndAlso _
-                   y >= Me.Y AndAlso y < Me.Y + Me.Height
-        End Function
-        
-        Function Contains(pt As GpPoint) As Boolean
-            'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
-            Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
-                   pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
-        End Function
-        
-        Function Contains(rect As GpRect) As Boolean
-            Return (Me.X <= rect.X) AndAlso (rect.Right <= Me.Right) AndAlso _
-                   (Me.Y <= rect.Y) AndAlso (rect.Bottom <= Me.Bottom)
-        End Function
-        
-        Sub Inflate(ByVal dx&, ByVal dy&)
-            Me.X -= dx
-            Me.Y -= dy
-            Me.Width += 2 * dx
-            Me.Height += 2 * dy
-        End Sub
-        
-        Sub Inflate(point As GpPoint)
-            'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
-            Me.X -= point.X
-            Me.Y -= point.Y
-            Me.Width += 2 * point.X
-            Me.Height += 2 * point.Y
-        End Sub
-        
-        Function Intersect(rect As GpRect) As Boolean
-            Return Intersect(Me, Me, rect)
-        End Function
-        
-        Function IntersectsWith(rect As GpRect) As Boolean
-            Return Me.Left < rect.Right AndAlso _
-                    Me.Top < rect.Bottom AndAlso _ 
-                    Me.Right > rect.Left AndAlso _
-                    Me.Bottom > rect.Top
-        End Function
-        
-        Sub Offset(point As GpPoint)
-            Me.X += point.X
-            Me.Y += point.Y
-        End Sub
-        
-        Sub Offset(ByVal dx&, ByVal dy&)
-            Me.X += dx
-            Me.Y += dy
-        End Sub
-    End Type
-    
-    Function GpRect() As GpRect
-        GpRect.X = 0
-        GpRect.Y = 0
-        GpRect.Width = 0
-        GpRect.Height = 0
-    End Function
-
-    Function GpRect(x&, y&, width&, height&) As GpRect
-        GpRect.X = x
-        GpRect.Y = y
-        GpRect.Width = width
-        GpRect.Height = height
-    End Function
-    
-    Function GpRect(location As GpPoint, size As GpSize) As GpRect
-        GpRect.X = location.X
-        GpRect.Y = location.Y
-        GpRect.Width = size.Width
-        GpRect.Height = size.Height
-    End Function
-    
-    Function Intersect(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
-
-        c.X = left
-        c.Y = top
-        c.Width = right - left
-        c.Height = bottom - top
-        Return Not c.IsEmptyArea
-    End Function
-    
-    Function Union(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
-
-        c.X = left
-        c.Y = top
-        c.Width = right - left
-        c.Height = bottom - top
-        Return Not c.IsEmptyArea
-    End Function
-    
-    Type PathData
-        Count&
-        Points As LongPtr ' GpPointF*
-        Types As LongPtr  ' BYTE*
-    End Type
-    
-    Function PathData() As PathData
-        PathData.Count = 0
-        PathData.Points = 0
-        PathData.Types = 0
-    End Function
-    
-    Sub Free(pathData As PathData)
-        LocalFree(pathData.Points)   ' TODO: should it be GdiPFree?
-        LocalFree(pathData.Types)
-    End Sub
-    
-    Type CharacterRange
-        First&
-        Length&
-    End Type
-    
-    Function CharacterRange() As CharacterRange
-        CharacterRange.First = 0
-        CharacterRange.Length = 0
-    End Function
-    
-    Function CharacterRange(ByVal first&, ByVal length&) As CharacterRange
-        CharacterRange.First = first&
-        CharacterRange.Length = length
-    End Function
-    
+Module GraphicsModule
     Type GpGraphics
         Native As LongPtr
         
@@ -779,7 +205,7 @@ Module GdiPlus
         
         Public Declare PtrSafe Function Comment Lib "gdiplus" Alias "GdipComment" (ByVal Me As GpGraphics, ByVal sizeData&, data As Byte) As GpStatus
     End Type
-
+    
     Public Declare PtrSafe Function GdipCreateHalftonePalette Lib "gdiplus" () As LongPtr
 End Module
 
@@ -794,14 +220,10 @@ Class Graphics
         SetNativeGraphics(graphics)
     End Sub
     
-    Property Get Native() As GpGraphics
+    Protected Property Get Native() As GpGraphics
         Return gr
     End Property
-    
-    Public Static Function GetNative(graphics As Graphics) As GpGraphics
-        If graphics IsNot Nothing Then GetNative = graphics.Native
-    End Function
-    
+        
     Protected Function GetNativeGraphics() As GpGraphics
         Return gr
     End Function
@@ -851,7 +273,7 @@ Class Graphics
     
     Sub New(image As Image)
         If image IsNot Nothing Then
-            LastResult = image.Native.GetImageGraphicsContext(gr)
+            LastResult = UnprotectedAccess(image).Native.GetImageGraphicsContext(gr)
         End If
     End Sub
 
@@ -959,7 +381,7 @@ Class Graphics
     '------------------------------------------------------------------------
 
     Function SetTransform(matrix As Matrix) As GpStatus
-        Return SetStatus(gr.SetWorldTransform(matrix.Native))
+        Return SetStatus(gr.SetWorldTransform(GetNative(matrix)))
     End Function
     
     Function ResetTransform() As GpStatus
@@ -967,7 +389,7 @@ Class Graphics
     End Function
     
     Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(gr.MultiplyWorldTransform(matrix.Native, order))
+        Return SetStatus(gr.MultiplyWorldTransform(GetNative(matrix), order))
     End Function
     
     Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
@@ -983,7 +405,7 @@ Class Graphics
     End Function
     
     Function GetTransform(matrix As Matrix) As GpStatus
-        Return SetStatus(gr.GetWorldTransform(matrix.Native))
+        Return SetStatus(gr.GetWorldTransform(GetNative(matrix)))
     End Function
     
     Function SetPageUnit(ByVal unit As GpUnit) As GpStatus
@@ -1045,7 +467,7 @@ Class Graphics
     End Function
     
     Function DrawLine(pen As Pen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!) As GpStatus
-        Return SetStatus(gr.DrawLine(pen.Native, x1, y1, x2, y2))
+        Return SetStatus(gr.DrawLine(GetNative(pen), x1, y1, x2, y2))
     End Function
     
     Function DrawLine(pen As Pen, pt1 As GpPointF, pt2 As GpPointF) As GpStatus
@@ -1053,11 +475,11 @@ Class Graphics
     End Function
     
     Function DrawLines(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawLines(pen.Native, points, count))
+        Return SetStatus(gr.DrawLines(GetNative(pen), points, count))
     End Function
     
     Function DrawLine(pen As Pen, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&) As GpStatus
-        Return SetStatus(gr.DrawLineI(pen.Native, x1, y1, x2, y2))
+        Return SetStatus(gr.DrawLineI(GetNative(pen), x1, y1, x2, y2))
     End Function
     
     Function DrawLine(pen As Pen, pt1 As GpPoint, pt2 As GpPoint) As GpStatus
@@ -1065,11 +487,11 @@ Class Graphics
     End Function
 
     Function DrawLines(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawLinesI(pen.Native, points, count))
+        Return SetStatus(gr.DrawLinesI(GetNative(pen), points, count))
     End Function
     
     Function DrawArc(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.DrawArc(pen.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.DrawArc(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
 
     Function DrawArc(pen As Pen, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1077,7 +499,7 @@ Class Graphics
     End Function
 
     Function DrawArc(pen As Pen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.DrawArcI(pen.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.DrawArcI(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
     
     Function DrawArc(pen As Pen, rect As GpRect, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1085,7 +507,7 @@ Class Graphics
     End Function
     
     Function DrawBezier(pen As Pen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
-        Return SetStatus(gr.DrawBezier(pen.Native, x1, y1, x2, y2, x3, y3, x4, y4))
+        Return SetStatus(gr.DrawBezier(GetNative(pen), x1, y1, x2, y2, x3, y3, x4, y4))
     End Function
 
     Function DrawBezier(pen As Pen, pt1 As GpPointF, pt2 As GpPointF, pt3 As GpPointF, pt4 As GpPointF) As GpStatus
@@ -1093,11 +515,11 @@ Class Graphics
     End Function
     
     Function DrawBeziers(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawBeziers(pen.Native, points, count))
+        Return SetStatus(gr.DrawBeziers(GetNative(pen), points, count))
     End Function
     
     Function DrawBezier(pen As Pen, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
-        Return SetStatus(gr.DrawBezierI(pen.Native, x1, y1, x2, y2, x3, y3, x4, y4))
+        Return SetStatus(gr.DrawBezierI(GetNative(pen), x1, y1, x2, y2, x3, y3, x4, y4))
     End Function
     
     Function DrawBezier(pen As Pen, pt1 As GpPoint, pt2 As GpPoint, pt3 As GpPoint, pt4 As GpPoint) As GpStatus
@@ -1105,7 +527,7 @@ Class Graphics
     End Function
     
     Function DrawBeziers(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawBeziersI(pen.Native, points, count))
+        Return SetStatus(gr.DrawBeziersI(GetNative(pen), points, count))
     End Function
     
     Function DrawRectangle(pen As Pen, rect As GpRectF) As GpStatus
@@ -1113,11 +535,11 @@ Class Graphics
     End Function
     
     Function DrawRectangle(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
-        Return SetStatus(gr.DrawRectangle(pen.Native, x, y, width, height))
+        Return SetStatus(gr.DrawRectangle(GetNative(pen), x, y, width, height))
     End Function
     
     Function DrawRectangles(pen As Pen, rects As GpRectF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawRectangles(pen.Native, rects, count))
+        Return SetStatus(gr.DrawRectangles(GetNative(pen), rects, count))
     End Function
     
     Function DrawRectangle(pen As Pen, rect As GpRect) As GpStatus
@@ -1125,11 +547,11 @@ Class Graphics
     End Function
     
     Function DrawRectangle(pen As Pen, ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
-        Return SetStatus(gr.DrawRectangleI(pen.Native, x, y, width, height))
+        Return SetStatus(gr.DrawRectangleI(GetNative(pen), x, y, width, height))
     End Function
     
     Function DrawRectangles(pen As Pen, rects As GpRect, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawRectanglesI(pen.Native, rects, count))
+        Return SetStatus(gr.DrawRectanglesI(GetNative(pen), rects, count))
     End Function
     
     Function DrawEllipse(pen As Pen, rect As GpRectF) As GpStatus
@@ -1137,7 +559,7 @@ Class Graphics
     End Function
     
     Function DrawEllipse(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
-        Return SetStatus(gr.DrawEllipse(pen.Native, x, y, width, height))
+        Return SetStatus(gr.DrawEllipse(GetNative(pen), x, y, width, height))
     End Function
     
     Function DrawEllipse(pen As Pen, rect As GpRect) As GpStatus
@@ -1145,7 +567,7 @@ Class Graphics
     End Function
     
     Function DrawEllipse(pen As Pen, ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
-        Return SetStatus(gr.DrawEllipseI(pen.Native, x, y, width, height))
+        Return SetStatus(gr.DrawEllipseI(GetNative(pen), x, y, width, height))
     End Function
     
     Function DrawPie(pen As Pen, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1153,7 +575,7 @@ Class Graphics
     End Function
     
     Function DrawPie(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.DrawPie(pen.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.DrawPie(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
     
     Function DrawPie(pen As Pen, rect As GpRect, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1161,59 +583,59 @@ Class Graphics
     End Function
     
     Function DrawPie(pen As Pen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.DrawPieI(pen.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.DrawPieI(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
     
     Function DrawPolygon(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawPolygon(pen.Native, points, count))
+        Return SetStatus(gr.DrawPolygon(GetNative(pen), points, count))
     End Function
     
     Function DrawPolygon(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawPolygonI(pen.Native, points, count))
+        Return SetStatus(gr.DrawPolygonI(GetNative(pen), points, count))
     End Function
     
     Function DrawPath(Optional pen As Pen = Nothing, Optional path As GraphicsPath = Nothing) As GpStatus
-        Return SetStatus(gr.DrawPath(pen.GetNative(pen), path.GetNative(path)))
+        Return SetStatus(gr.DrawPath(GetNative(pen), GetNative(path)))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawCurve(pen.Native, points, count))
+        Return SetStatus(gr.DrawCurve(GetNative(pen), points, count))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
-        Return SetStatus(gr.DrawCurve2(pen.Native, points, count, tension))
+        Return SetStatus(gr.DrawCurve2(GetNative(pen), points, count, tension))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension! = 0.5) As GpStatus
-        Return SetStatus(gr.DrawCurve3(pen.Native, points, count, offset, numberOfSegments, tension))
+        Return SetStatus(gr.DrawCurve3(GetNative(pen), points, count, offset, numberOfSegments, tension))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawCurveI(pen.Native, points, count))
+        Return SetStatus(gr.DrawCurveI(GetNative(pen), points, count))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
-        Return SetStatus(gr.DrawCurve2I(pen.Native, points, count, tension))
+        Return SetStatus(gr.DrawCurve2I(GetNative(pen), points, count, tension))
     End Function
     
     Function DrawCurve(pen As Pen, points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension! = 0.5) As GpStatus
-        Return SetStatus(gr.DrawCurve3I(pen.Native, points, count, offset, numberOfSegments, tension))
+        Return SetStatus(gr.DrawCurve3I(GetNative(pen), points, count, offset, numberOfSegments, tension))
     End Function
     
     Function DrawClosedCurve(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawClosedCurve(pen.Native, points, count))
+        Return SetStatus(gr.DrawClosedCurve(GetNative(pen), points, count))
     End Function
     
     Function DrawClosedCurve(pen As Pen, points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
-        Return SetStatus(gr.DrawClosedCurve2(pen.Native, points, count, tension))
+        Return SetStatus(gr.DrawClosedCurve2(GetNative(pen), points, count, tension))
     End Function
     
     Function DrawClosedCurve(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.DrawClosedCurveI(pen.Native, points, count))
+        Return SetStatus(gr.DrawClosedCurveI(GetNative(pen), points, count))
     End Function
     
     Function DrawClosedCurve(pen As Pen, points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
-        Return SetStatus(gr.DrawClosedCurve2I(pen.Native, points, count, tension))
+        Return SetStatus(gr.DrawClosedCurve2I(GetNative(pen), points, count, tension))
     End Function
     
     Function Clear(color As Color) As GpStatus
@@ -1225,11 +647,11 @@ Class Graphics
     End Function
     
     Function FillRectangle(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
-        Return SetStatus(gr.FillRectangle(brush.Native, x, y, width, height))
+        Return SetStatus(gr.FillRectangle(GetNative(brush), x, y, width, height))
     End Function
     
     Function FillRectangles(brush As Brush, rects As GpRectF, ByVal count&) As GpStatus
-        Return SetStatus(gr.FillRectangles(brush.Native, rects, count))
+        Return SetStatus(gr.FillRectangles(GetNative(brush), rects, count))
     End Function
     
     Function FillRectangle(brush As Brush, rect As GpRect) As GpStatus
@@ -1237,19 +659,19 @@ Class Graphics
     End Function
     
     Function FillRectangle(brush As Brush, ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
-        Return SetStatus(gr.FillRectangleI(brush.Native, x, y, width, height))
+        Return SetStatus(gr.FillRectangleI(GetNative(brush), x, y, width, height))
     End Function
     
     Function FillRectangles(brush As Brush, rects As GpRect, ByVal count&) As GpStatus
-        Return SetStatus(gr.FillRectanglesI(brush.Native, rects, count))
+        Return SetStatus(gr.FillRectanglesI(GetNative(brush), rects, count))
     End Function
     
     Function FillPolygon(brush As Brush, points As GpPointF, ByVal count&, ByVal fillMode As GpFillMode = FillModeAlternate) As GpStatus
-        Return SetStatus(gr.FillPolygon(brush.Native, points, count, fillMode))
+        Return SetStatus(gr.FillPolygon(GetNative(brush), points, count, fillMode))
     End Function
       
     Function FillPolygon(brush As Brush, points As GpPoint, ByVal count&, ByVal fillMode As GpFillMode = FillModeAlternate) As GpStatus
-        Return SetStatus(gr.FillPolygonI(brush.Native, points, count, fillMode))
+        Return SetStatus(gr.FillPolygonI(GetNative(brush), points, count, fillMode))
     End Function
     
     Function FillEllipse(brush As Brush, rect As GpRectF) As GpStatus
@@ -1257,7 +679,7 @@ Class Graphics
     End Function
     
     Function FillEllipse(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
-        Return SetStatus(gr.FillEllipse(brush.GetNative(brush), x, y, width, height))
+        Return SetStatus(gr.FillEllipse(GetNative(brush), x, y, width, height))
     End Function
     
     Function FillEllipse(brush As Brush, rect As GpRect) As GpStatus
@@ -1265,7 +687,7 @@ Class Graphics
     End Function
     
     Function FillEllipse(brush As Brush, ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
-        Return SetStatus(gr.FillEllipseI(brush.Native, x, y, width, height))
+        Return SetStatus(gr.FillEllipseI(GetNative(brush), x, y, width, height))
     End Function
     
     Function FillPie(brush As Brush, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1273,7 +695,7 @@ Class Graphics
     End Function
     
     Function FillPie(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.FillPie(brush.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.FillPie(GetNative(brush), x, y, width, height, startAngle, sweepAngle))
     End Function
     
     Function FillPie(brush As Brush, rect As GpRect, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -1281,37 +703,37 @@ Class Graphics
     End Function
     
     Function FillPie(brush As Brush, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.FillPieI(brush.Native, x, y, width, height, startAngle, sweepAngle))
+        Return SetStatus(gr.FillPieI(GetNative(brush), x, y, width, height, startAngle, sweepAngle))
     End Function
     
     Function FillPath(brush As Brush, path As GraphicsPath) As GpStatus
-        Return SetStatus(gr.FillPath(brush.Native, path.Native))
+        Return SetStatus(gr.FillPath(GetNative(brush), GetNative(path)))
     End Function
         
     Function FillClosedCurve(brush As Brush, points As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(gr.FillClosedCurve(brush.Native, points, count))
+        Return SetStatus(gr.FillClosedCurve(GetNative(brush), points, count))
     End Function
     
     Function FillClosedCurve(brush As Brush, points As GpPointF, ByVal count&, ByVal fillMode As GpFillMode, ByVal tension! = 0.5) As GpStatus
-        Return SetStatus(gr.FillClosedCurve2(brush.Native, points, count, tension, fillMode))
+        Return SetStatus(gr.FillClosedCurve2(GetNative(brush), points, count, tension, fillMode))
     End Function
     
     Function FillClosedCurve(brush As Brush, points As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(gr.FillClosedCurveI(brush.Native, points, count))
+        Return SetStatus(gr.FillClosedCurveI(GetNative(brush), points, count))
     End Function
     
     Function FillClosedCurve(brush As Brush, points As GpPoint, ByVal count&, ByVal fillMode As GpFillMode, ByVal tension! = 0.5) As GpStatus
-        Return SetStatus(gr.FillClosedCurve2I(brush.Native, points, count, tension, fillMode))
+        Return SetStatus(gr.FillClosedCurve2I(GetNative(brush), points, count, tension, fillMode))
     End Function
 
     Function FillRegion(brush As Brush, region As Region) As GpStatus
-        Return SetStatus(gr.FillRegion(brush.Native, region.Native))
+        Return SetStatus(gr.FillRegion(GetNative(brush), GetNative(region)))
     End Function
     
     Function DrawString(ByVal string As String, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, brush As Brush) As GpStatus
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            layoutRect, stringFormat.GetNative(stringFormat), brush.GetNative(brush)))
+            StrPtr(string), Len(string), GetNative(font), _
+            layoutRect, GetNative(stringFormat), GetNative(brush)))
     End Function
     
     Function DrawString(ByVal string As String, font As Font, origin As GpPointF, brush As Brush) As GpStatus
@@ -1322,8 +744,8 @@ Class Graphics
         rect.Height = 0.0!
 
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            rect, GpStringFormat(), brush.GetNative(brush)))
+            StrPtr(string), Len(string), GetNative(font), _
+            rect, GpStringFormat(), GetNative(brush)))
     End Function
     
     Function DrawString(ByVal string As String, font As Font, origin As GpPointF, stringFormat As StringFormat, brush As Brush) As GpStatus
@@ -1334,15 +756,15 @@ Class Graphics
         rect.Height = 0.0!
 
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            rect, stringFormat.GetNative(stringFormat), brush.GetNative(brush)))
+            StrPtr(string), Len(string), GetNative(font), _
+            rect, GetNative(stringFormat), GetNative(brush)))
     End Function
     
     ' FIXME: codepointsFitted and linesFilled can reference Nothing (i.e. be unbound)
     Function MeasureString(ByVal string As String, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, boundingBox As GpRectF, codepointsFitted&, linesFilled&) As GpStatus
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            layoutRect, stringFormat.GetNative(stringFormat), _
+            StrPtr(string), Len(string), GetNative(font), _
+            layoutRect, GetNative(stringFormat), _
             boundingBox, codepointsFitted, linesFilled))
     End Function
     
@@ -1355,8 +777,8 @@ Class Graphics
         End If
         
         status = SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            layoutRect, stringFormat.GetNative(stringFormat), boundingBox, _
+            StrPtr(string), Len(string), GetNative(font), _
+            layoutRect, GetNative(stringFormat), boundingBox, _
             codepointsFitted, linesFilled))
         
         If status = Ok Then
@@ -1369,14 +791,14 @@ Class Graphics
     Function MeasureString(ByVal string As String, font As Font, origin As GpPointF, stringFormat As StringFormat, boundingBox As GpRectF) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            rect, stringFormat.GetNative(stringFormat), boundingBox, _
+            StrPtr(string), Len(string), GetNative(font), _
+            rect, GetNative(stringFormat), boundingBox, _
             vbNullPtr, vbNullPtr))
     End Function
 
     Function MeasureString(ByVal string As String, font As Font, layoutRect As GpRectF, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
+            StrPtr(string), Len(string), GetNative(font), _
             layoutRect, GpStringFormat(), boundingBox, _
             vbNullPtr, vbNullPtr))
     End Function
@@ -1384,7 +806,7 @@ Class Graphics
     Function MeasureString(ByVal string As String, font As Font, origin As GpPointF, boundingBox As GpRectF) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), font.GetNative(font), _
+            StrPtr(string), Len(string), GetNative(font), _
             rect, GpStringFormat(), boundingBox, _
             vbNullPtr, vbNullPtr))
     End Function
@@ -1398,11 +820,11 @@ Class Graphics
         
         ReDim nativeRegions(1 To Len(regions))
         For i As Integer = 1 To Len(regions)
-            nativeRegions(i) = regions(i).Native
+            nativeRegions(i) = GetNative(regions(i))
         Next
         status = SetStatus(gr.MeasureCharacterRanges( _
-            StrPtr(string), Len(string), font.GetNative(font), _
-            layoutRect, stringFormat.GetNative(stringFormat), _
+            StrPtr(string), Len(string), GetNative(font), _
+            layoutRect, GetNative(stringFormat), _
             Len(regions), nativeRegions(1)))
         Erase nativeRegions
         Return status
@@ -1410,14 +832,14 @@ Class Graphics
     
     Function DrawDriverString(text As String, font As Font, brush As Brush, positions As GpPointF, ByVal flags&, matrix As Matrix) As GpStatus
         Return SetStatus(gr.DrawDriverString( _
-            StrPtr(text), Len(text), font.GetNative(font), _
-            brush.GetNative(brush), positions, flags, matrix.GetNative(matrix)))
+            StrPtr(text), Len(text), GetNative(font), _
+            GetNative(brush), positions, flags, GetNative(matrix)))
     End Function
     
     Function MeasureDriverString(text As String, font As Font, positions As GpPointF, ByVal flags&, matrix As Matrix, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureDriverString( _
-            StrPtr(text), Len(text), font.GetNative(font), _
-            positions, flags, matrix.GetNative(matrix), boundingBox))
+            StrPtr(text), Len(text), GetNative(font), _
+            positions, flags, GetNative(matrix), boundingBox))
     End Function
     
     ' Draw a cached bitmap on this graphics destination offset by
@@ -1435,7 +857,7 @@ Class Graphics
     End Function
     
     Function DrawImage(image As Image, ByVal x!, ByVal y!) As GpStatus
-        Return SetStatus(gr.DrawImage(image.GetNative(image), x, y))
+        Return SetStatus(gr.DrawImage(GetNative(image), x, y))
     End Function
     
     Function DrawImage(image As Image, rect As GpRectF) As GpStatus
@@ -1443,7 +865,7 @@ Class Graphics
     End Function
     
     Function DrawImage(image As Image, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
-        Return SetStatus(gr.DrawImageRect(image.GetNative(image), x, y, width, height))
+        Return SetStatus(gr.DrawImageRect(GetNative(image), x, y, width, height))
     End Function
     
     Function DrawImage(image As Image, ByVal point As GpPoint) As GpStatus
@@ -1451,7 +873,7 @@ Class Graphics
     End Function
     
     Function DrawImage(image As Image, ByVal x&, ByVal y&) As GpStatus
-        Return SetStatus(gr.DrawImageI(image.GetNative(image), x, y))
+        Return SetStatus(gr.DrawImageI(GetNative(image), x, y))
     End Function
     
     Function DrawImage(image As Image, rect As GpRect) As GpStatus
@@ -1459,7 +881,7 @@ Class Graphics
     End Function
     
     Function DrawImage(image As Image, ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
-        Return SetStatus(gr.DrawImageRectI(image.GetNative(image), x, y, width, height))
+        Return SetStatus(gr.DrawImageRectI(GetNative(image), x, y, width, height))
     End Function
     
     Function DrawImage(image As Image, destPoints() As GpPointF) As GpStatus
@@ -1471,7 +893,7 @@ Class Graphics
             Return SetStatus(InvalidParameter)
         End If
         
-        Return SetStatus(gr.DrawImagePoints(image.GetNative(image), destPoints, count))
+        Return SetStatus(gr.DrawImagePoints(GetNative(image), destPoints, count))
     End Function
 
     Function DrawImage(image As Image, destPoints() As GpPoint) As GpStatus
@@ -1483,11 +905,11 @@ Class Graphics
             Return SetStatus(InvalidParameter)
         End If
         
-        Return SetStatus(gr.DrawImagePointsI(image.GetNative(image), destPoints, count))
+        Return SetStatus(gr.DrawImagePointsI(GetNative(image), destPoints, count))
     End Function
     
     Function DrawImage(image As Image, ByVal x!, ByVal y!, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit) As GpStatus
-        Return SetStatus(gr.DrawImagePointRect(image.GetNative(image), x, y, srcx, srcy, srcwidth, srcheight, srcUnit))
+        Return SetStatus(gr.DrawImagePointRect(GetNative(image), x, y, srcx, srcy, srcwidth, srcheight, srcUnit))
     End Function
     
     Function DrawImage(image As Image, destRect As GpRectF, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit, _
@@ -1495,11 +917,11 @@ Class Graphics
                         Optional ByVal callback As LongPtr = vbNullPtr, _
                         Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
         Return SetStatus(gr.DrawImageRectRect( _
-            image.GetNative(image), _
+            GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
             srcx, srcy, srcwidth, srcheight, _
             srcUnit, _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(imageAttributes), _
             callback, callbackData))
     End Function
     
@@ -1519,16 +941,16 @@ Class Graphics
                         Optional ByVal callback As LongPtr = vbNullPtr, _
                         Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
         Return SetStatus(gr.DrawImagePointsRect( _
-            image.GetNative(image), _
+            GetNative(image), _
             destPoints, count, _
             srcx, srcy, srcwidth, srcheight, srcUnit, _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(imageAttributes), _
             callback, callbackData))
     End Function
     
     Function DrawImage(image As Image, ByVal x&, ByVal y&, ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit) As GpStatus
         Return SetStatus(gr.DrawImagePointRectI( _
-            image.GetNative(image), _
+            GetNative(image), _
             x, y, srcx, srcy, srcwidth, srcheight, srcUnit))
     End Function
     
@@ -1537,11 +959,11 @@ Class Graphics
                         Optional ByVal callback As LongPtr = vbNullPtr, _
                         Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
         Return SetStatus(gr.DrawImageRectRectI( _
-            image.GetNative(image), _
+            GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
             srcx, srcy, srcwidth, srcheight, _
             srcUnit, _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(imageAttributes), _
             callback, callbackData))
     End Function
     
@@ -1561,10 +983,10 @@ Class Graphics
                         Optional ByVal callback As LongPtr = vbNullPtr, _
                         Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
         Return SetStatus(gr.DrawImagePointsRectI( _
-            image.GetNative(image), _
+            GetNative(image), _
             destPoints, count, _
             srcx, srcy, srcwidth, srcheight, srcUnit, _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(imageAttributes), _
             callback, callbackData))
     End Function
     
@@ -1572,20 +994,20 @@ Class Graphics
     Function DrawImage(image As Image, destRect As GpRectF, sourceRect As GpRectF, srcUnit As GpUnit, _
             Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.DrawImageRectRect( _
-            image.GetNative(image), _
+            GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
             sourceRect.X, sourceRect.Y, sourceRect.Width, sourceRect.Height, _
             srcUnit, _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(imageAttributes), _
             vbNullPtr, vbNullPtr))
     End Function
 
     Function DrawImage(image As Image, sourceRect As GpRectF, xForm As Matrix, effect As Effect, imageAttributes As ImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
         Return SetStatus(gr.DrawImageFX( _
-            image.GetNative(image), sourceRect, _
-            xForm.GetNative(xForm), _
-            effect.GetNative(effect), _
-            imageAttributes.GetNative(imageAttributes), _
+            GetNative(image), sourceRect, _
+            GetNative(xForm), _
+            GetNative(effect), _
+            GetNative(imageAttributes), _
             srcUnit))
     End Function
 '#endif (GDIPVER >= 0x0110)
@@ -1599,33 +1021,33 @@ Class Graphics
     Function EnumerateMetaFile(metafile As Metafile, destPoint As GpPointF, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestPoint( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoint, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destPoint As GpPoint, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestPointI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoint, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destRect As GpRectF, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestRect( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destRect, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destRect As GpRect, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestRectI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destRect, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
 
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPointF, _
@@ -1637,9 +1059,9 @@ Class Graphics
     Function EnumerateMetaFile(metafile As Metafile, destPoints As GpPointF, ByVal count&, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestPoints( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoints, count, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPoint, _
@@ -1651,45 +1073,45 @@ Class Graphics
     Function EnumerateMetaFile(metafile As Metafile, destPoints As GpPoint, ByVal count&, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileDestPointsI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoints, count, callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destPoint As GpPointF, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestPoint( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoint, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destPoint As GpPoint, srcRect As GpRect, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestPointI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoint, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destRect As GpRectF, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestRect( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destRect, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destRect As GpRect, srcRect As GpRect, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestRectI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destRect, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPointF, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
@@ -1701,10 +1123,10 @@ Class Graphics
     Function EnumerateMetaFile(metafile As Metafile, destPoints As GpPointF, ByVal count&, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestPoints( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoints, count, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
 
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPoint, srcRect As GpRect, ByVal srcUnit As GpUnit, _
@@ -1716,14 +1138,14 @@ Class Graphics
     Function EnumerateMetaFile(metafile As Metafile, destPoints As GpPoint, ByVal count&, srcRect As GpRect, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr = vbnullptr, Optional imageAttributes As ImageAttributes = Nothing) As GpStatus
         Return SetStatus(gr.EnumerateMetafileSrcRectDestPointsI( _
-            metafile.GetNative(metafile), _
+            GetNative(metafile), _
             destPoints, count, srcRect, srcUnit, _
             callback, callBackData, _
-            imageAttributes.GetNative(imageAttributes)))
+            GetNative(imageAttributes)))
     End Function
     
     Function SetClip(g As Graphics, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
-        Return SetStatus(gr.SetClipGraphics(g.Native, combineMode))
+        Return SetStatus(gr.SetClipGraphics(GetNative(g), combineMode))
     End Function
     
     Function SetClip(rect As GpRectF, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
@@ -1735,11 +1157,11 @@ Class Graphics
     End Function
     
     Function SetClip(path As GraphicsPath, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
-        Return SetStatus(gr.SetClipPath(path.GetNative(path), combineMode))
+        Return SetStatus(gr.SetClipPath(GetNative(path), combineMode))
     End Function
 
     Function SetClip(region As Region, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
-        Return SetStatus(gr.SetClipRegion(region.GetNative(region), combineMode))
+        Return SetStatus(gr.SetClipRegion(GetNative(region), combineMode))
     End Function
     
     ' This is different than the other SetClip methods because it assumes
@@ -1759,7 +1181,7 @@ Class Graphics
     End Function
     
     Function IntersectClip(region As Region) As GpStatus
-        Return SetStatus(gr.SetClipRegion(region.GetNative(region), CombineModeIntersect))
+        Return SetStatus(gr.SetClipRegion(GetNative(region), CombineModeIntersect))
     End Function
     
     Function ExcludeClip(rect As GpRectF) As GpStatus
@@ -1771,7 +1193,7 @@ Class Graphics
     End Function
     
     Function ExcludeClip(region As Region) As GpStatus
-        Return SetStatus(gr.SetClipRegion(region.GetNative(region), CombineModeExclude))
+        Return SetStatus(gr.SetClipRegion(GetNative(region), CombineModeExclude))
     End Function
     
     Function ResetClip() As GpStatus
@@ -1787,7 +1209,7 @@ Class Graphics
     End Function
     
     Function GetClip(region As Region) As GpStatus
-        Return SetStatus(gr.GetClip(region.GetNative(region)))
+        Return SetStatus(gr.GetClip(GetNative(region)))
     End Function
     
     Function GetClipBounds(rect As GpRectF) As GpStatus
@@ -1867,29 +1289,23 @@ Class Graphics
     End Function
     
     Function Save() As GraphicsState
-        SetStatus(gr.SaveGraphics(Save.Native.Native))
+        SetStatus(gr.SaveGraphics(Save))
     End Function
     
     Function Restore(ByVal gstate As GraphicsState) As GpStatus
-        Return SetStatus(gr.RestoreGraphics(gstate.Native.Native))
+        Return SetStatus(gr.RestoreGraphics(gstate))
     End Function
     
     Function BeginContainer(dstRect As GpRectF, srcRect As GpRectF, ByVal unit As GpUnit) As GraphicsContainer
-        Dim state As New GraphicsContainer
-        SetStatus(gr.BeginContainer(dstRect, srcRect, unit, state.Native.Native))
-        Return state
+        SetStatus(gr.BeginContainer(dstRect, srcRect, unit, BeginContainer))
     End Function
 
     Function BeginContainer(dstRect As GpRect, srcRect As GpRect, ByVal unit As GpUnit) As GraphicsContainer
-        Dim state As New GraphicsContainer
-        SetStatus(gr.BeginContainerI(dstRect, srcRect, unit, state.Native.Native))
-        Return state
+        SetStatus(gr.BeginContainerI(dstRect, srcRect, unit, BeginContainer))
     End Function
     
     Function BeginContainer() As GraphicsContainer
-        Dim state As New GraphicsContainer
-        SetStatus(gr.BeginContainer2(state.Native.Native))
-        Return state
+        SetStatus(gr.BeginContainer2(BeginContainer))
     End Function
     
     Function EndContainer(state As GraphicsContainer) As GpStatus
@@ -1910,9 +1326,5 @@ Class Graphics
         Dim lastStatus As GpStatus = LastResult
         LastResult = Ok
         Return lastStatus
-    End Function
-    
-    Protected Function GetNativePen(pen As Pen) As GpPen
-        Return pen.Native
     End Function
 End Class

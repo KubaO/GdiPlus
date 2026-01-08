@@ -1,40 +1,448 @@
 Module EffectsModule
     Type GpEffect
         Native As LongPtr
+        
+        Public Declare PtrSafe Function DeleteEffect Lib "gdiplus" Alias "GdipDeleteEffect" (ByVal Me As GpEffect) As GpStatus
+        Public Declare PtrSafe Function GetEffectParameterSize Lib "gdiplus" Alias "GdipGetEffectParameterSize" (ByVal Me As GpEffect, size As Long) As GpStatus
+        Public Declare PtrSafe Function SetEffectParameters Lib "gdiplus" Alias "GdipSetEffectParameters" (ByVal Me As GpEffect, params As Any, ByVal size As Long) As GpStatus
+        Public Declare PtrSafe Function GetEffectParameters Lib "gdiplus" Alias "GdipGetEffectParameters" (ByVal Me As GpEffect, size As Long, params As Any) As GpStatus
     End Type
+    Public Declare PtrSafe Function GdipCreateEffect Lib "gdiplus" (ByVal guid As UUID, effect As GpEffect) As GpStatus
     
     Function GpEffect() As GpEffect
         GpEffect.Native = 0
+    End Function
+
+    Type SharpenParams
+        radius!
+        amount!
+    End Type
+    
+    Type BlurParams
+        radius!
+        expandEdge As BOOL
+    End Type
+    
+    Type BrightnessContrastParams
+        brightnessLevel&
+        contrastLevel&
+    End Type
+    
+    Type RedEyeCorrectionParams
+        numberOfAreas As UINT
+        areas As LongPtr ' Pointer to RECT
+    End Type
+    
+    Type HueSaturationLightnessParams
+        hueLevel&
+        saturationLevel&
+        lightnessLevel&
+    End Type
+    
+    Type TintParams
+        hue&
+        amount&
+    End Type
+    
+    Type LevelsParams
+        highight&
+        midtone&
+        shadow&
+    End Type
+    
+    Type ColorBalanceParams
+        cyanRed&
+        magentaGreen&
+        yellowBlue&
+    End Type
+    
+    Type ColorLUTParams
+        lutB As ColorChannelLUT
+        lutG As ColorChannelLUT
+        lutR As ColorChannelLUT
+        lutA As ColorChannelLUT
+    End Type
+    
+    Enum CurveAdjustments
+        AdjustExposure
+        AdjustDensity
+        AdjustContrast
+        AdjustHighlight
+        AdjustShadow
+        AdjustMidtone
+        AdjustWhiteSaturation
+        AdjustBlackSaturation
+    End Enum
+    
+    Enum CurveChannel
+        CurveChannelAll
+        CurveChannelRed
+        CurveChannelGreen
+        CurveChannelBlue
+    End Enum
+    
+    Type ColorCurveParams
+        adjustment As CurveAdjustments
+        channel As CurveChannel
+        adjustValue&
+    End Type
+    
+    '-----------------------------------------------------------------------------
+    ' GDI+ effect GUIDs
+    '-----------------------------------------------------------------------------
+    
+    Public Function BlurEffectGuid() As UUID
+    '{633C80A4-1843-482b-9EF2-BE2834C5FDD4}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H633C80A4, CInt(&H1843), CInt(&H482b), &H9E, &HF2, &HBE, &H28, &H34, &HC5, &HFD, &HD4)
+     BlurEffectGuid = iid
+    End Function
+    Public Function SharpenEffectGuid() As UUID
+    '{63CBF3EE-C526-402c-8F71-62C540BF5142}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H63CBF3EE, CInt(&HC526), CInt(&H402c), &H8F, &H71, &H62, &HC5, &H40, &HBF, &H51, &H42)
+     SharpenEffectGuid = iid
+    End Function
+    Public Function ColorMatrixEffectGuid() As UUID
+    '{718F2615-7933-40e3-A511-5F68FE14DD74}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H718F2615, CInt(&H7933), CInt(&H40e3), &HA5, &H11, &H5F, &H68, &HFE, &H14, &HDD, &H74)
+     ColorMatrixEffectGuid = iid
+    End Function
+    Public Function ColorLUTEffectGuid() As UUID
+    '{A7CE72A9-0F7F-40d7-B3CC-D0C02D5C3212}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &HA7CE72A9, CInt(&H0F7F), CInt(&H40d7), &HB3, &HCC, &HD0, &HC0, &H2D, &H5C, &H32, &H12)
+     ColorLUTEffectGuid = iid
+    End Function
+    Public Function BrightnessContrastEffectGuid() As UUID
+    '{D3A1DBE1-8EC4-4c17-9F4C-EA97AD1C343D}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &HD3A1DBE1, CInt(&H8EC4), CInt(&H4c17), &H9F, &H4C, &HEA, &H97, &HAD, &H1C, &H34, &H3D)
+     BrightnessContrastEffectGuid = iid
+    End Function
+    Public Function HueSaturationLightnessEffectGuid() As UUID
+    '{8B2DD6C3-EB07-4d87-A5F0-7108E26A9C5F}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H8B2DD6C3, CInt(&HEB07), CInt(&H4d87), &HA5, &HF0, &H71, &H08, &HE2, &H6A, &H9C, &H5F)
+     HueSaturationLightnessEffectGuid = iid
+    End Function
+    Public Function LevelsEffectGuid() As UUID
+    '{99C354EC-2A31-4f3a-8C34-17A803B33A25}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H99C354EC, CInt(&H2A31), CInt(&H4f3a), &H8C, &H34, &H17, &HA8, &H03, &HB3, &H3A, &H25)
+     LevelsEffectGuid = iid
+    End Function
+    Public Function TintEffectGuid() As UUID
+    '{1077AF00-2848-4441-9489-44AD4C2D7A2C}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H1077AF00, CInt(&H2848), CInt(&H4441), &H94, &H89, &H44, &HAD, &H4C, &H2D, &H7A, &H2C)
+     TintEffectGuid = iid
+    End Function
+    Public Function ColorBalanceEffectGuid() As UUID
+    '{537E597D-251E-48da-9664-29CA496B70F8}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H537E597D, CInt(&H251E), CInt(&H48da), &H96, &H64, &H29, &HCA, &H49, &H6B, &H70, &HF8)
+     ColorBalanceEffectGuid = iid
+    End Function
+    Public Function RedEyeCorrectionEffectGuid() As UUID
+    '{74D29D05-69A4-4266-9549-3CC52836B632}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &H74D29D05, CInt(&H69A4), CInt(&H4266), &H95, &H49, &H3C, &HC5, &H28, &H36, &HB6, &H32)
+     RedEyeCorrectionEffectGuid = iid
+    End Function
+    Public Function ColorCurveEffectGuid() As UUID
+    '{DD6A0022-58E4-4a67-9D9B-D48EB881A53D}
+    Static iid As UUID
+     If (iid.Data1 = 0) Then Call DEFINE_UUID(iid, &HDD6A0022, CInt(&H58E4), CInt(&H4a67), &H9D, &H9B, &HD4, &H8E, &HB8, &H81, &HA5, &H3D)
+     ColorCurveEffectGuid = iid
     End Function
 End Module
 
 [COMCreatable(False)]
 Class Effect
     Inherits GdiPlusBase
-    Dim fx As GpEffect
-    Dim LastResult As GpStatus
+    Protected fx As GpEffect
+    Protected PropAuxDataSize&
+    Protected PropAuxData As LongPtr
+    Protected PropUseAuxData As BOOL
+    
+    Sub New()
+        fx.Native = Null
+        PropAuxDataSize = 0
+        PropAuxData = Null
+        PropUseAuxData = False
+    End Sub
 
-    Property Get Native() As GpEffect
-        Return fx
+    Protected Property Get Native() As GpEffect
+        If VarPtr(Me) <> 0 Then Native = Me.fx
     End Property
-    
-    Public Static Function GetNative(effect As Effect) As GpEffect
-        If effect IsNot Nothing Then GetNative = effect.Native
-    End Function
-    
+        
     Protected Sub New(ByVal nativeEffect As GpEffect)
-        LastResult = Ok
-        SetNativeMatrix(nativeEffect)
+        SetNativeEffect(nativeEffect)
     End Sub
     
-    Protected Sub SetNativeMatrix(ByVal nativeEffect As GpEffect)
+    Protected Sub SetNativeEffect(ByVal nativeEffect As GpEffect)
         fx = nativeEffect
     End Sub
 
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
+    Protected Static Function SetStatus(ByVal status As GpStatus) As GpStatus
+        Return status
+    End Function
+    
+    Sub Class_Terminate()
+        ' pvData Is allocated by ApplyEffect. Return the pointer so that
+        ' it can be freed by the appropriate memory manager.
+        GdipFree(AuxData)
+        
+        ' Release the native Effect.
+        fx.DeleteEffect()
+    End Sub
+    
+    Property Get AuxDataSize&()
+        Return PropAuxDataSize
+    End Property
+    
+    Function GetAuxDataSize&()
+        Return PropAuxDataSize
+    End Function
+        
+    Property Get AuxData() As LongPtr
+        Return PropAuxData
+    End Property
+    
+    Function GetAuxData() As LongPtr
+        Return PropAuxData
+    End Function
+    
+    Property Set UseAuxData(ByVal useAuxDataFlag As Boolean)
+        PropUseAuxData = useAuxDataFlag
+    End Property
+    
+    Sub SetAuxData(ByVal useAuxDataFlag As Boolean)
+        PropUseAuxData = useAuxDataFlag
+    End Sub
+    
+    Function GetParameterSize(size As UINT) As GpStatus
+        Return SetStatus(fx.GetEffectParameterSize(size))
+    End Function
+        
+    Protected Function SetParameters(ByVal params As LongPtr, ByVal size As UINT) As GpStatus
+        Return SetStatus(fx.SetEffectParameters(params, size))
+    End Function
+    
+    Protected Function GetParameters(size As UINT, params As LongPtr) As GpStatus
+        Return SetStatus(fx.GetEffectParameters(size, params))
+    End Function
+    
+    Protected Function EffectSetParameters(ByVal params As LongPtr, ByVal size As UINT) As GpStatus
+        Return SetStatus(fx.SetEffectParameters(params, size))
+    End Function
+    
+    Protected Function EffectGetParameters(size As UINT, params As LongPtr) As GpStatus
+        Return SetStatus(fx.GetEffectParameters(size, params))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class Blur
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(BlurEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As BlurParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As BlurParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class Sharpen
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(SharpenEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As SharpenParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As SharpenParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class RedEyeCorrection
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(RedEyeCorrectionEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As RedEyeCorrectionParams) As GpStatus
+        Dim status As GpStatus = InvalidParameter
+        If VarPtr(parameters) <> vbNullPtr Then
+            Dim dummyrect As RECT
+            Dim size& = LenB(parameters) + parameters.numberOfAreas * LenB(dummyrect)
+            status = EffectSetParameters(VarPtr(parameters), size)
         End If
         Return status
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As RedEyeCorrectionParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class BrightnessContrast
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(BrightnessContrastEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As BrightnessContrastParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As BrightnessContrastParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class HueSaturationLightness
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(HueSaturationLightnessEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As HueSaturationLightnessParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As HueSaturationLightnessParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class Levels
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(LevelsEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As LevelsParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As LevelsParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class Tint
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(TintEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As TintParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As TintParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class ColorBalance
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(ColorBalanceEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As ColorBalanceParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As ColorBalanceParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class ColorMatrixEffect
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(ColorMatrixEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As ColorMatrix) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As ColorMatrix) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class ColorLUT
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(ColorLUTEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As ColorLUTParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As ColorLUTParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
+    End Function
+End Class
+
+[COMCreatable(False)]
+Class ColorCurve
+    Inherits Effect
+    
+    Sub New()
+        GdipCreateEffect(ColorLUTEffectGuid, fx)
+    End Sub
+    
+    Function SetParameters(parameters As ColorCurveParams) As GpStatus
+        Dim size& = LenB(parameters)
+        Return EffectSetParameters(VarPtr(parameters), size)
+    End Function
+    
+    Function GetParameters(size As UINT, parameters As ColorCurveParams) As GpStatus
+        Return EffectGetParameters(size, VarPtr(parameters))
     End Function
 End Class

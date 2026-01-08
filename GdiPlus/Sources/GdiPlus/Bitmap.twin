@@ -15,13 +15,9 @@ Class Bitmap
     Dim bm As GpBitmap
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpBitmap
+    Protected Property Get Native() As GpBitmap
         Return bm
     End Property
-    
-    Public Static Function GetNative(obj As Bitmap) As GpBitmap
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeBitmap As GpBitmap)
         LastResult = Ok

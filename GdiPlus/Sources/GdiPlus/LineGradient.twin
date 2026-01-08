@@ -15,13 +15,9 @@ Class LineGradient
     Dim lg As GpLineGradient
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpLineGradient
+    Protected Property Get Native() As GpLineGradient
         Return lg
     End Property
-    
-    Public Static Function GetNative(obj As LineGradient) As GpLineGradient
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeGradient As GpLineGradient)
         LastResult = Ok

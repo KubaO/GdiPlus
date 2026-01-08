@@ -86,13 +86,9 @@ Class GraphicsPath
     Dim pa As GpPath
     Protected LastResult As GpStatus
     
-    Public Property Get Native() As GpPath
+    Protected Property Get Native() As GpPath
         Return pa
     End Property
-    
-    Public Static Function GetNative(path As GraphicsPath) As GpPath
-        If path IsNot Nothing Then GetNative = path.Native
-    End Function
             
     Sub New(ByVal fillMode As FillMode = FillModeAlternate)
         pa.Native = vbNullPtr
@@ -450,46 +446,36 @@ Class GraphicsPath
     End Function
     
     Function AddPath(addingPath As GraphicsPath, ByVal connect As Boolean) As GpStatus
-        Dim nativePath2 As GpPath
-        If addingPath IsNot Nothing Then
-            nativePath2 = addingPath.Native
-        End If
-        Return SetStatus(pa.AddPathPath(nativePath2, connect))
+        Return SetStatus(pa.AddPathPath(GetNative(addingPath), connect))
     End Function
     
     Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPointF, format As StringFormat) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(pa.AddPathString(StrPtr(string), Len(string), _
-            family.GetNative(family), _
+            GetNative(family), _
             style, emSize, rect, _
-            format.GetNative(format)))
+            GetNative(format)))
     End Function
     
     Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRectF, format As StringFormat) As GpStatus
         Return SetStatus(pa.AddPathString(StrPtr(string), Len(string), _
-            family.GetNative(family), _
-            style, emSize, layoutRect, _
-            format.GetNative(format)))
+            GetNative(family), style, emSize, layoutRect, GetNative(format)))
     End Function
 
     Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPoint, format As StringFormat) As GpStatus
         Dim rect As GpRect = GpRect(origin.X, origin.Y, 0, 0)
         Return SetStatus(pa.AddPathStringI(StrPtr(string), Len(string), _
-            family.GetNative(family), _
-            style, emSize, rect, _
-            format.GetNative(format)))
+            GetNative(family), style, emSize, rect, GetNative(format)))
     End Function
     
     Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRect, format As StringFormat) As GpStatus
         Return SetStatus(pa.AddPathStringI(StrPtr(string), Len(string), _
-            family.GetNative(family), _
-            style, emSize, layoutRect, _
-            format.GetNative(format)))
+            GetNative(family), style, emSize, layoutRect, GetNative(format)))
     End Function
     
     Function Transform(matrix As Matrix) As GpStatus
         If matrix IsNot Nothing Then
-            Return SetStatus(pa.TransformPath(matrix.Native))
+            Return SetStatus(pa.TransformPath(GetNative(matrix)))
         Else
             Return Ok
         End If
@@ -498,11 +484,11 @@ Class GraphicsPath
     'The GetBounds rectangle may not be the tightest bounds.
     
     Function GetBounds(bounds As GpRectF, matrix As Matrix, pen As Pen) As GpStatus
-        Return SetStatus(pa.GetPathWorldBounds(bounds, matrix.GetNative(matrix), pen.GetNative(pen)))
+        Return SetStatus(pa.GetPathWorldBounds(bounds, GetNative(matrix), GetNative(pen)))
     End Function
     
     Function GetBounds(bounds As GpRect, matrix As Matrix, pen As Pen) As GpStatus
-        Return SetStatus(pa.GetPathWorldBoundsI(bounds, matrix.GetNative(matrix), pen.GetNative(pen)))
+        Return SetStatus(pa.GetPathWorldBoundsI(bounds, GetNative(matrix), GetNative(pen)))
     End Function
 
     ' Once flattened, the resultant path is made of line segments and
@@ -510,15 +496,15 @@ Class GraphicsPath
     ' identity matrix is assumed.
     
     Function Flatten(Optional matrix As Matrix, Optional flatness! = FlatnessDefault) As GpStatus
-        Return SetStatus(pa.FlattenPath(matrix.GetNative(matrix), flatness))
+        Return SetStatus(pa.FlattenPath(GetNative(matrix), flatness))
     End Function
     
     Function Widen(pen As Pen, Optional matrix As Matrix, Optional flatness! = FlatnessDefault) As GpStatus
-        Return SetStatus(pa.WidenPath(pen.Native, matrix.GetNative(matrix), flatness))
+        Return SetStatus(pa.WidenPath(GetNative(pen), GetNative(matrix), flatness))
     End Function
     
     Function Outline(Optional matrix As Matrix, Optional flatness! = FlatnessDefault) As GpStatus
-        Return SetStatus(pa.WindingModeOutline(matrix.GetNative(matrix), flatness))
+        Return SetStatus(pa.WindingModeOutline(GetNative(matrix), flatness))
     End Function
     
     ' Once this is called, the resultant path is made of line segments and
@@ -527,7 +513,7 @@ Class GraphicsPath
     
     Function Warp(destPoints As GpPointF, ByVal count&, srcRect As GpRectF, Optional matrix As Matrix, _
             Optional warpMode As WarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
-        Return SetStatus(pa.WarpPath(matrix.GetNative(matrix), destPoints, count, _
+        Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints, count, _
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     
@@ -582,7 +568,7 @@ Class GraphicsPath
     
     Function IsVisible(ByVal x!, ByVal y!, g As Graphics) As Boolean
         Dim booln As BOOL = False
-        SetStatus(pa.IsVisiblePathPoint(x, y, g.GetNative(g), booln))
+        SetStatus(pa.IsVisiblePathPoint(x, y, GetNative(g), booln))
         Return booln
     End Function
     
@@ -592,7 +578,7 @@ Class GraphicsPath
     
     Function IsVisible(ByVal x&, ByVal y&, g As Graphics) As Boolean
         Dim booln As BOOL = False
-        SetStatus(pa.IsVisiblePathPointI(x, y, g.GetNative(g), booln))
+        SetStatus(pa.IsVisiblePathPointI(x, y, GetNative(g), booln))
         Return booln
     End Function
     
@@ -602,7 +588,7 @@ Class GraphicsPath
     
     Function IsOutlineVisible(ByVal x!, ByVal y!, pen As Pen, g As Graphics) As Boolean
         Dim booln As BOOL = False
-        SetStatus(pa.IsOutlineVisiblePathPoint(x, y, pen.GetNative(pen), g.GetNative(g), booln))
+        SetStatus(pa.IsOutlineVisiblePathPoint(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
     
@@ -612,7 +598,7 @@ Class GraphicsPath
     
     Function IsOutlineVisible(ByVal x&, ByVal y&, pen As Pen, g As Graphics) As Boolean
         Dim booln As BOOL = False
-        SetStatus(pa.IsOutlineVisiblePathPointI(x, y, pen.GetNative(pen), g.GetNative(g), booln))
+        SetStatus(pa.IsOutlineVisiblePathPointI(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
     

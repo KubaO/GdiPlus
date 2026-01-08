@@ -15,13 +15,9 @@ Class Hatch
     Dim ha As GpHatch
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpHatch
+    Protected Property Get Native() As GpHatch
         Return ha
     End Property
-    
-    Public Static Function GetNative(obj As Hatch) As GpHatch
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeHatch As GpHatch)
         LastResult = Ok

@@ -14,13 +14,9 @@ Class PathIterator
     Dim pi As GpPathIterator
     Dim LastResult As GpStatus
     
-    Public Property Get Native() As GpPathIterator
+    Protected Property Get Native() As GpPathIterator
         Return pi
     End Property
-    
-    Public Static Function GetNative(obj As PathIterator) As GpPathIterator
-        If obj IsNot Nothing Then GetNative = obj.Native
-    End Function
     
     Protected Sub New(ByVal nativeIterator As GpPathIterator)
         LastResult = Ok

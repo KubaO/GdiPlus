@@ -17,11 +17,7 @@ Class Image
     Public im As GpImage
     Dim LastResult As GpStatus
 
-    Property Get Native() As GpImage
+    Protected Property Get Native() As GpImage
         Return im
     End Property
-
-    Public Static Function GetNative(image As Image) As GpImage
-        If image IsNot Nothing Then GetNative = image.Native
-    End Function
 End Class

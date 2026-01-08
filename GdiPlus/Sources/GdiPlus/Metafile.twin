@@ -14,13 +14,9 @@ Class Metafile
     Dim mf As GpMetafile
     Dim LastResult As GpStatus
     
-    Property Get Native() As GpMetafile
+    Protected Property Get Native() As GpMetafile
         Return mf
     End Property
-    
-    Public Static Function GetNative(metafile As Metafile) As GpMetafile
-        If metafile IsNot Nothing Then GetNative = metafile.Native
-    End Function
     
     Protected Sub New(ByVal nativeMetafile As GpMetafile)
         LastResult = Ok

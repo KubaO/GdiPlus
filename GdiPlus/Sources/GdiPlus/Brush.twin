@@ -14,13 +14,9 @@ Class Brush
     Dim br As GpBrush
     Dim LastResult As GpStatus
     
-    Property Get Native() As GpBrush
+    Protected Property Get Native() As GpBrush
         Return br
     End Property
-    
-    Public Static Function GetNative(brush As Brush) As GpBrush
-        If brush IsNot Nothing Then GetNative = brush.Native
-    End Function
     
     Protected Sub New(ByVal nativeBrush As GpBrush)
         LastResult = Ok

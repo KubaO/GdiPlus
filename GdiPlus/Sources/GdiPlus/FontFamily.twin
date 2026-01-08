@@ -14,13 +14,9 @@ Class FontFamily
     Dim ff As GpFontFamily
     Dim LastResult As GpStatus
         
-    Property Get Native() As GpFontFamily
+    Protected Property Get Native() As GpFontFamily
         Return ff
     End Property
-    
-    Public Static Function GetNative(fontFamily As FontFamily) As GpFontFamily
-        If fontFamily IsNot Nothing Then GetNative = fontFamily.Native
-    End Function
     
     Protected Sub New(ByVal nativeFamily As GpFontFamily)
         LastResult = Ok

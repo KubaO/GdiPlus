@@ -14,13 +14,9 @@ Class ImageAttributes
     Dim ia As GpImageAttributes
     Dim LastResult As GpStatus
     
-    Property Get Native() As GpImageAttributes
+    Protected Property Get Native() As GpImageAttributes
         Return ia
     End Property
-    
-    Public Static Function GetNative(attributes As ImageAttributes) As GpImageAttributes
-        If attributes IsNot Nothing Then GetNative = attributes.Native
-    End Function
     
     Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
         LastResult = Ok
