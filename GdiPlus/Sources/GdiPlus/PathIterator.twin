@@ -34,3 +34,184 @@ Class PathIterator
         Return status
     End Function
 End Class
+
+#If 0 Then
+class GraphicsPathIterator : public GdiplusBase
+{
+public:
+
+    GraphicsPathIterator(IN const GraphicsPath* path)
+    {
+        GpPath* nativePath = NULL;
+        if(path)
+            nativePath = path->nativePath;
+
+        GpPathIterator *iter = NULL;
+        lastResult = DllExports::GdipCreatePathIter(&iter, nativePath);
+        SetNativeIterator(iter);
+    }
+
+    ~GraphicsPathIterator()
+    {
+        DllExports::GdipDeletePathIter(nativeIterator);
+    }
+
+
+    INT NextSubpath(OUT INT* startIndex,
+                    OUT INT* endIndex,
+                    OUT BOOL* isClosed)
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterNextSubpath(nativeIterator,
+            &resultCount, startIndex, endIndex, isClosed));
+
+        return resultCount;
+    }
+
+
+    INT NextSubpath(OUT const GraphicsPath* path, 
+                    OUT BOOL* isClosed)
+    {
+        GpPath* nativePath = NULL;
+
+        INT resultCount;
+
+        if(path)
+            nativePath= path->nativePath;
+
+        SetStatus(DllExports::GdipPathIterNextSubpathPath(nativeIterator,
+            &resultCount, nativePath, isClosed));
+
+        return resultCount;
+    }
+
+    INT NextPathType(_Out_ BYTE* pathType, 
+                     _Out_ INT* startIndex, 
+                     _Out_ INT* endIndex)
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterNextPathType(nativeIterator,
+            &resultCount, pathType, startIndex, endIndex));
+
+        return resultCount;
+    }
+
+    INT NextMarker(OUT INT* startIndex, 
+                   OUT INT* endIndex)
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterNextMarker(nativeIterator,
+            &resultCount, startIndex, endIndex));
+
+        return resultCount;
+    }
+
+
+    INT NextMarker(OUT const GraphicsPath* path)
+    {
+        GpPath* nativePath = NULL;
+
+        INT resultCount;
+
+        if(path)
+            nativePath= path->nativePath;
+
+        SetStatus(DllExports::GdipPathIterNextMarkerPath(nativeIterator,
+            &resultCount, nativePath));
+
+        return resultCount;
+    }
+
+    INT GetCount() const
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterGetCount(nativeIterator, 
+                                                   &resultCount));
+
+        return resultCount;
+    }
+
+    INT GetSubpathCount() const
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterGetSubpathCount(nativeIterator, 
+                                                          &resultCount));
+
+        return resultCount;
+    }
+
+    BOOL HasCurve() const
+    {
+        BOOL hasCurve;
+
+        SetStatus(DllExports::GdipPathIterHasCurve(nativeIterator, &hasCurve));
+
+        return hasCurve;
+    }
+
+    VOID Rewind()
+    {
+        SetStatus(DllExports::GdipPathIterRewind(nativeIterator));
+    }
+
+    INT Enumerate(_Out_writes_to_(count, return) PointF *points,
+                  _Out_writes_to_(count, return) BYTE *types, 
+                  _In_ INT count)
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterEnumerate(nativeIterator,
+            &resultCount, points, types, count));
+
+        return resultCount;
+    }
+
+    INT CopyData(_Out_writes_to_(endIndex-startIndex+1, return) PointF* points, 
+                 _Out_writes_to_(endIndex-startIndex+1, return) BYTE* types,
+                 _In_ INT startIndex, 
+                 _In_ INT endIndex)
+    {
+        INT resultCount;
+
+        SetStatus(DllExports::GdipPathIterCopyData(nativeIterator,
+            &resultCount, points, types, startIndex, endIndex));
+
+        return resultCount;
+    }
+
+    Status GetLastStatus() const
+    {
+        Status lastStatus = lastResult;
+        lastResult = Ok;
+
+        return lastStatus;
+    }
+
+private:
+    GraphicsPathIterator(const GraphicsPathIterator &);
+    GraphicsPathIterator& operator=(const GraphicsPathIterator &);
+
+protected:
+    VOID SetNativeIterator(GpPathIterator *nativeIteratorArg)
+    {
+        this->nativeIterator = nativeIteratorArg;
+    }
+
+    Status SetStatus(Status status) const
+    {
+        if (status != Ok)
+            return (lastResult = status);
+        else
+            return status;
+    }
+
+protected:
+    GpPathIterator* nativeIterator;
+    mutable Status lastResult;
+};
+#End If

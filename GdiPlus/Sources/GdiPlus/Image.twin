@@ -1,4 +1,20 @@
+Module ImageModule
+    Type GpImage
+        Native As LongPtr
+        
+        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
+        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
+        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
+        Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
+    End Type
+    
+    Function GpImage() As GpImage
+        GpImage.Native = 0
+    End Function
+End Module
+
 [COMCreatable(False)]
+[Description("Abstract base class for Image and Metafile")]
 Class Image
     Inherits GdiPlusBase
     Public im As GpImage
@@ -14,18 +30,127 @@ Class Image
     Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
     End Sub
 End Class
+#If 0 Then
+class Image : public GdiplusBase
+{
+public:
+    friend class Brush;
+    friend class TextureBrush;
+    friend class Graphics;
 
-Module ImageModule
-    Type GpImage
-        Native As LongPtr
-        
-        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
-        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
-        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
-    End Type
-    
-    Function GpImage() As GpImage
-        GpImage.Native = 0
-    End Function
-End Module
+    Image(
+        IN const WCHAR* filename,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    Image(
+        IN IStream* stream,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    static Image* FromFile(
+        IN const WCHAR* filename,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    static Image* FromStream(
+        IN IStream* stream,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    virtual ~Image();
+    virtual Image* Clone();
+
+    Status Save(IN const WCHAR* filename,
+                IN const CLSID* clsidEncoder,
+                IN const EncoderParameters *encoderParams = NULL);
+    Status Save(IN IStream* stream,
+                IN const CLSID* clsidEncoder,
+                IN const EncoderParameters *encoderParams = NULL);
+    Status SaveAdd(IN const EncoderParameters* encoderParams);
+    Status SaveAdd(IN Image* newImage,
+                   IN const EncoderParameters* encoderParams);
+
+    ImageType GetType() const;
+    Status GetPhysicalDimension(OUT SizeF* size);
+    Status GetBounds(OUT RectF* srcRect,
+                     OUT Unit* srcUnit);
+
+    UINT GetWidth();
+    UINT GetHeight();
+    REAL GetHorizontalResolution();
+    REAL GetVerticalResolution();
+    UINT GetFlags();
+    Status GetRawFormat(OUT GUID *format);
+    PixelFormat GetPixelFormat();
+
+    INT GetPaletteSize();
+    Status GetPalette(OUT ColorPalette* palette,
+                      IN INT size);
+    Status SetPalette(IN const ColorPalette* palette);
+
+    Image* GetThumbnailImage(IN UINT thumbWidth,
+                             IN UINT thumbHeight,
+                             IN GetThumbnailImageAbort callback = NULL,
+                             IN VOID* callbackData = NULL);
+    UINT GetFrameDimensionsCount();
+    Status GetFrameDimensionsList(OUT GUID* dimensionIDs,
+                                  IN UINT count);
+    UINT GetFrameCount(IN const GUID* dimensionID);
+    Status SelectActiveFrame(IN const GUID* dimensionID,
+                             IN UINT frameIndex);
+    Status RotateFlip(IN RotateFlipType rotateFlipType);
+    UINT GetPropertyCount();
+    Status GetPropertyIdList(IN UINT numOfProperty,
+                             OUT PROPID* list);
+    UINT GetPropertyItemSize(IN PROPID propId);
+    Status GetPropertyItem(IN PROPID propId,
+                           IN UINT propSize,
+                           OUT PropertyItem* buffer);
+    Status GetPropertySize(OUT UINT* totalBufferSize,
+                           OUT UINT* numProperties);
+    Status GetAllPropertyItems(IN UINT totalBufferSize,
+                               IN UINT numProperties,
+                               OUT PropertyItem* allItems);
+    Status RemovePropertyItem(IN PROPID propId);
+    Status SetPropertyItem(IN const PropertyItem* item);
+
+    UINT  GetEncoderParameterListSize(IN const CLSID* clsidEncoder);
+    Status GetEncoderParameterList(IN const CLSID* clsidEncoder,
+                                   IN UINT size,
+                                   OUT EncoderParameters* buffer);
+'#if (GDIPVER >= 0x0110)
+    Status FindFirstItem(IN ImageItemData *item);
+    Status FindNextItem(IN ImageItemData *item);
+    Status GetItemData(IN ImageItemData *item);
+    Status SetAbort(GdiplusAbort *pIAbort);
+'#endif //(GDIPVER >= 0x0110)
+
+    Status GetLastStatus() const;
+
+protected:
+
+    Image() {}
+
+    Image(GpImage *nativeImage, Status status);
+
+    VOID SetNativeImage(GpImage* nativeImage);
+
+    _Post_equal_to_(status)
+    Status SetStatus(Status status) const
+    {
+        if (status != Ok)
+            return (lastResult = status);
+        else
+            return status;
+    }
+
+    GpImage* nativeImage;
+    mutable Status lastResult;
+    mutable Status loadStatus;
+
+private:
+    Image(IN const Image& C);
+    Image& operator=(IN const Image& C);
+};
+#End If

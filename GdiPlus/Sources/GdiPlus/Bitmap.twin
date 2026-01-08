@@ -35,3 +35,149 @@ Class Bitmap
         Return status
     End Function
 End Class
+
+#If 0 Then
+class Bitmap : public Image
+{
+public:
+    friend class Image;
+    friend class CachedBitmap;
+
+    Bitmap(
+        IN const WCHAR *filename,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    Bitmap(
+        IN IStream *stream,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    static Bitmap* FromFile(
+        IN const WCHAR *filename,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    static Bitmap* FromStream(
+        IN IStream *stream,
+        IN BOOL useEmbeddedColorManagement = FALSE
+    );
+
+    Bitmap(_In_ INT width,
+           _In_ INT height,
+           _In_ INT stride,
+           _In_ PixelFormat format,
+           _In_reads_opt_(_Inexpressible_("height * stride")) BYTE* scan0);
+    Bitmap(IN INT width,
+           IN INT height,
+           IN PixelFormat format = PixelFormat32bppARGB);
+    Bitmap(IN INT width,
+           IN INT height,
+           IN  Graphics* target);
+
+    Bitmap* Clone(IN const Rect& rect,
+                  IN PixelFormat format);
+    Bitmap* Clone(IN INT x,
+                  IN INT y,
+                  IN INT width,
+                  IN INT height,
+                  IN PixelFormat format);
+    Bitmap* Clone(IN const RectF& rect,
+                  IN PixelFormat format);
+    Bitmap* Clone(IN REAL x,
+                  IN REAL y,
+                  IN REAL width,
+                  IN REAL height,
+                  IN PixelFormat format);
+
+    Status LockBits(IN const Rect* rect,
+                    IN UINT flags,
+                    IN PixelFormat format,
+                    OUT BitmapData* lockedBitmapData);
+    Status UnlockBits(IN BitmapData* lockedBitmapData);
+    Status GetPixel(IN INT x,
+                    IN INT y,
+                    OUT Color *color);
+    Status SetPixel(IN INT x,
+                    IN INT y,
+                    IN const Color &color);
+    
+'#if (GDIPVER >= 0x0110)
+    Status ConvertFormat(
+        PixelFormat format,
+        DitherType dithertype,
+        PaletteType palettetype,
+        ColorPalette *palette,
+        REAL alphaThresholdPercent
+        );
+    
+    // The palette must be allocated and count must be set to the number of
+    // entries in the palette. If there are not enough, the API will fail.
+    
+    static Status InitializePalette(
+        IN OUT ColorPalette *palette,  // Palette to initialize.
+        PaletteType palettetype,       // palette enumeration type.
+        INT optimalColors,             // how many optimal colors
+        BOOL useTransparentColor,      // add a transparent color to the palette.
+        Bitmap *bitmap                 // optional bitmap for median cut.
+        );
+        
+    Status ApplyEffect(Effect *effect, RECT *ROI);
+    
+    static Status 
+    ApplyEffect(
+        IN  Bitmap **inputs,
+        IN  INT numInputs,
+        IN  Effect *effect, 
+        IN  RECT *ROI,           // optional parameter.
+        OUT RECT *outputRect,    // optional parameter.
+        OUT Bitmap **output
+    );
+    
+    Status GetHistogram(
+        IN HistogramFormat format,
+        IN UINT NumberOfEntries,
+        _Out_writes_bytes_(sizeof(UINT)*256) UINT *channel0,
+        _Out_writes_bytes_(sizeof(UINT)*256) UINT *channel1,
+        _Out_writes_bytes_(sizeof(UINT)*256) UINT *channel2,
+        _Out_writes_bytes_(sizeof(UINT)*256) UINT *channel3
+    );
+    
+    static Status GetHistogramSize(
+        IN HistogramFormat format,
+        OUT UINT *NumberOfEntries
+    );
+'#endif //(GDIPVER >= 0x0110)
+    
+    Status SetResolution(IN REAL xdpi,
+                         IN REAL ydpi);
+
+    Bitmap(IN IDirectDrawSurface7* surface);
+    Bitmap(IN const BITMAPINFO* gdiBitmapInfo,
+           IN VOID* gdiBitmapData);
+    Bitmap(IN HBITMAP hbm,
+           IN HPALETTE hpal);
+    Bitmap(IN HICON hicon);
+    Bitmap(IN HINSTANCE hInstance,
+           IN const WCHAR * bitmapName);
+    static Bitmap* FromDirectDrawSurface7(IN IDirectDrawSurface7* surface);
+    static Bitmap* FromBITMAPINFO(IN const BITMAPINFO* gdiBitmapInfo,
+                                  IN VOID* gdiBitmapData);
+    static Bitmap* FromHBITMAP(IN HBITMAP hbm,
+                               IN HPALETTE hpal);
+    static Bitmap* FromHICON(IN HICON hicon);
+    static Bitmap* FromResource(IN HINSTANCE hInstance,
+                                IN const WCHAR * bitmapName);
+
+    Status GetHBITMAP(IN const Color& colorBackground,
+                      OUT HBITMAP *hbmReturn);
+    Status GetHICON(HICON *hicon);
+
+private:
+    Bitmap(const Bitmap &);
+    Bitmap& operator=(const Bitmap &);
+
+protected:
+    Bitmap(GpBitmap *nativeBitmap);
+};
+#End If

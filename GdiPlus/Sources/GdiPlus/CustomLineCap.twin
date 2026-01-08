@@ -34,3 +34,227 @@ Class CustomLineCap
         Return status
     End Function
 End Class
+
+#If 0 Then
+class CustomLineCap : public GdiplusBase
+{
+public:
+    friend class Pen;
+
+    CustomLineCap(
+        IN const GraphicsPath* fillPath,
+        IN const GraphicsPath* strokePath,
+        IN LineCap baseCap = LineCapFlat,
+        IN REAL baseInset = 0
+        );
+    virtual ~CustomLineCap();
+
+    CustomLineCap* Clone() const;
+
+    // This changes both the start and end cap.
+
+    Status SetStrokeCap(IN LineCap strokeCap)
+    {
+        return SetStrokeCaps(strokeCap, strokeCap);
+    }
+
+    Status SetStrokeCaps(IN LineCap startCap,
+                         IN LineCap endCap);
+    Status GetStrokeCaps(OUT LineCap* startCap,
+                         OUT LineCap* endCap) const;
+    Status SetStrokeJoin(IN LineJoin lineJoin);
+    LineJoin GetStrokeJoin() const;
+    Status SetBaseCap(IN LineCap baseCap);
+    LineCap GetBaseCap() const;
+    Status SetBaseInset(IN REAL inset);
+    REAL GetBaseInset() const;
+    Status SetWidthScale(IN REAL widthScale);
+    REAL GetWidthScale() const;
+    Status GetLastStatus() const;
+
+protected:
+    CustomLineCap();
+
+private:
+    CustomLineCap(const CustomLineCap &);
+    CustomLineCap& operator=(const CustomLineCap &);
+
+protected:
+    CustomLineCap(GpCustomLineCap* nativeCapArg, Status status)
+    {
+        lastResult = status;
+        SetNativeCap(nativeCapArg);
+    }
+
+    VOID SetNativeCap(GpCustomLineCap* nativeCapArg)
+    {
+        this->nativeCap = nativeCapArg;
+    }
+
+    _Post_equal_to_(status)
+    Status SetStatus(Status status) const
+    {
+        if (status != Ok)
+            return (lastResult = status);
+        else
+            return status;
+    }
+
+protected:
+    GpCustomLineCap* nativeCap;
+    mutable Status lastResult;
+};
+
+inline 
+CustomLineCap::CustomLineCap(
+    IN const GraphicsPath* fillPath,
+    IN const GraphicsPath* strokePath,
+    IN LineCap baseCap,
+    IN REAL baseInset
+    )
+{
+    nativeCap = NULL;
+    GpPath* nativeFillPath = NULL;
+    GpPath* nativeStrokePath = NULL;
+
+    if(fillPath)
+        nativeFillPath = fillPath->nativePath;
+    if(strokePath)
+        nativeStrokePath = strokePath->nativePath;
+
+    lastResult = DllExports::GdipCreateCustomLineCap(
+                    nativeFillPath, nativeStrokePath,
+                    baseCap, baseInset, &nativeCap);
+}
+
+inline 
+CustomLineCap::CustomLineCap()
+{
+    nativeCap = NULL;
+    lastResult = Ok;
+}
+
+inline 
+CustomLineCap::~CustomLineCap()
+{
+    DllExports::GdipDeleteCustomLineCap(nativeCap);
+}
+
+inline Status 
+CustomLineCap::SetStrokeCaps(
+    IN LineCap startCap, 
+    IN LineCap endCap)
+{
+    return SetStatus(DllExports::GdipSetCustomLineCapStrokeCaps(nativeCap,
+                startCap, endCap));
+}
+
+inline Status 
+CustomLineCap::GetStrokeCaps(
+    OUT LineCap* startCap, 
+    OUT LineCap* endCap) const
+{
+    return SetStatus(DllExports::GdipGetCustomLineCapStrokeCaps(nativeCap,
+                 startCap, endCap));
+}
+
+inline Status 
+CustomLineCap::SetStrokeJoin(
+    IN LineJoin lineJoin)
+{
+    return SetStatus(DllExports::GdipSetCustomLineCapStrokeJoin(nativeCap, 
+                                                                lineJoin));
+}
+
+inline LineJoin 
+CustomLineCap::GetStrokeJoin() const
+{
+    LineJoin lineJoin;
+
+    SetStatus(DllExports::GdipGetCustomLineCapStrokeJoin(nativeCap, 
+                                                         &lineJoin));
+
+    return lineJoin;
+}
+
+inline Status 
+CustomLineCap::SetBaseCap(IN LineCap baseCap)
+{
+    return SetStatus(DllExports::GdipSetCustomLineCapBaseCap(nativeCap, 
+                                                             baseCap));
+}
+
+inline LineCap 
+CustomLineCap::GetBaseCap() const
+{
+    LineCap baseCap;
+    SetStatus(DllExports::GdipGetCustomLineCapBaseCap(nativeCap, &baseCap));
+
+    return baseCap;
+}
+
+inline Status 
+CustomLineCap::SetBaseInset(IN REAL inset)
+{
+    return SetStatus(DllExports::GdipSetCustomLineCapBaseInset(nativeCap, 
+                                                               inset));
+}
+
+inline REAL 
+CustomLineCap::GetBaseInset() const
+{
+    REAL inset;
+    SetStatus(DllExports::GdipGetCustomLineCapBaseInset(nativeCap, &inset));
+
+    return inset;
+}
+
+
+inline Status 
+CustomLineCap::SetWidthScale(IN REAL widthScale)
+{
+    return SetStatus(DllExports::GdipSetCustomLineCapWidthScale(nativeCap, 
+                                                                widthScale));
+}
+
+inline REAL 
+CustomLineCap::GetWidthScale() const
+{
+    REAL widthScale;
+    SetStatus(DllExports::GdipGetCustomLineCapWidthScale(nativeCap, 
+                                                         &widthScale));
+
+    return widthScale;
+}
+
+inline CustomLineCap* 
+CustomLineCap::Clone() const
+{
+    GpCustomLineCap *newNativeLineCap = NULL;
+    
+    SetStatus(DllExports::GdipCloneCustomLineCap(nativeCap, 
+                                                 &newNativeLineCap));
+
+    if (lastResult == Ok) 
+    {
+        CustomLineCap *newLineCap = new CustomLineCap(newNativeLineCap, 
+                                                      lastResult);
+        if (newLineCap == NULL) 
+        {
+            SetStatus(DllExports::GdipDeleteCustomLineCap(newNativeLineCap));
+        }
+
+        return newLineCap;
+    }
+
+    return NULL;
+}
+
+inline Status 
+CustomLineCap::GetLastStatus() const 
+{
+    Status lastStatus = lastResult;
+    lastResult = Ok;    
+    return (lastStatus);
+}
+#End If

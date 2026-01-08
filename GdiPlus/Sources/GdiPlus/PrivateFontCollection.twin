@@ -35,3 +35,20 @@ Class PrivateFontCollection
         Return status
     End Function
 End Class
+
+#If 0 Then
+class PrivateFontCollection : public FontCollection
+{
+public:
+    PrivateFontCollection();
+    ~PrivateFontCollection();
+
+    Status AddFontFile(IN const WCHAR* filename);
+    Status AddMemoryFont(IN const VOID* memory,
+                         IN INT length);
+
+private:
+    PrivateFontCollection(const PrivateFontCollection &);
+    PrivateFontCollection& operator=(const PrivateFontCollection &);
+};
+#End If

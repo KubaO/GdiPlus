@@ -35,3 +35,95 @@ Class AdjustableArrowCap
         Return status
     End Function
 End Class
+
+#If 0 Then
+class AdjustableArrowCap : public CustomLineCap
+{
+public:
+
+    AdjustableArrowCap(
+        IN REAL height,
+        IN REAL width,
+        IN BOOL isFilled = TRUE
+        )
+    {
+        GpAdjustableArrowCap* cap = NULL;
+
+        lastResult = DllExports::GdipCreateAdjustableArrowCap(
+                        height, width, isFilled, &cap);
+        SetNativeCap(cap);
+    }
+
+    Status SetHeight(IN REAL height)
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        return SetStatus(DllExports::GdipSetAdjustableArrowCapHeight(
+                            cap, height));
+    }
+
+    REAL GetHeight() const
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        REAL height;
+        SetStatus(DllExports::GdipGetAdjustableArrowCapHeight(
+                            cap, &height));
+
+        return height;
+    }
+
+    Status SetWidth(IN REAL width)
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        return SetStatus(DllExports::GdipSetAdjustableArrowCapWidth(
+                            cap, width));
+    }
+
+    REAL GetWidth() const
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        REAL width;
+        SetStatus(DllExports::GdipGetAdjustableArrowCapWidth(
+                            cap, &width));
+
+        return width;
+    }
+
+    Status SetMiddleInset(IN REAL middleInset)
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        return SetStatus(DllExports::GdipSetAdjustableArrowCapMiddleInset(
+                            cap, middleInset));
+    }
+
+    REAL GetMiddleInset() const
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        REAL middleInset;
+        SetStatus(DllExports::GdipGetAdjustableArrowCapMiddleInset(
+                            cap, &middleInset));
+
+        return middleInset;
+    }
+
+    Status SetFillState(IN BOOL isFilled)
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        return SetStatus(DllExports::GdipSetAdjustableArrowCapFillState(
+                            cap, isFilled));
+    }
+
+    BOOL IsFilled() const
+    {
+        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
+        BOOL isFilled;
+        SetStatus(DllExports::GdipGetAdjustableArrowCapFillState(
+                            cap, &isFilled));
+
+        return isFilled;
+    }
+
+private:
+    AdjustableArrowCap(const AdjustableArrowCap &);
+    AdjustableArrowCap& operator=(const AdjustableArrowCap &);
+};
+#End If

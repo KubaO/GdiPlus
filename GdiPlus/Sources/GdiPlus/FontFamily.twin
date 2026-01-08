@@ -34,3 +34,74 @@ Class FontFamily
         Return status
     End Function
 End Class
+
+#If 0 Then
+//--------------------------------------------------------------------------
+// FontFamily
+//--------------------------------------------------------------------------
+
+class FontFamily : public GdiplusBase
+{
+public:
+    friend class Font;
+    friend class Graphics;
+    friend class GraphicsPath;
+    friend class FontCollection;
+
+    FontFamily();
+
+    FontFamily(
+        IN const WCHAR          *name,
+        IN const FontCollection *fontCollection = NULL
+    );
+
+    ~FontFamily();
+
+    static const FontFamily *GenericSansSerif();
+    static const FontFamily *GenericSerif();
+    static const FontFamily *GenericMonospace();
+
+    Status GetFamilyName(
+        _Out_writes_(LF_FACESIZE) LPWSTR    name,
+        IN LANGID                           language = 0
+    ) const;
+
+    FontFamily * Clone() const;
+
+    BOOL    IsAvailable() const
+    {
+        return (nativeFamily != NULL);
+    };
+
+    BOOL    IsStyleAvailable(IN INT style) const;
+
+    UINT16  GetEmHeight     (IN INT style) const;
+    UINT16  GetCellAscent   (IN INT style) const;
+    UINT16  GetCellDescent  (IN INT style) const;
+    UINT16  GetLineSpacing  (IN INT style) const;
+    
+    Status GetLastStatus() const;
+
+private:
+    FontFamily(const FontFamily &);
+    FontFamily& operator=(const FontFamily &);
+
+protected:
+    _Post_equal_to_(status) Status SetStatus(Status status) const;
+
+    FontFamily(GpFontFamily * nativeFamily, Status status);
+
+protected:
+
+    GpFontFamily    *nativeFamily;
+    mutable Status   lastResult;
+};
+
+static FontFamily *GenericSansSerifFontFamily = NULL;
+static FontFamily *GenericSerifFontFamily     = NULL;
+static FontFamily *GenericMonospaceFontFamily = NULL;
+
+static BYTE GenericSansSerifFontFamilyBuffer[sizeof(FontFamily)] = {0};
+static BYTE GenericSerifFontFamilyBuffer    [sizeof(FontFamily)] = {0};
+static BYTE GenericMonospaceFontFamilyBuffer[sizeof(FontFamily)] = {0};
+#End If

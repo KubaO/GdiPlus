@@ -35,3 +35,19 @@ Class InstalledFontCollection
         Return status
     End Function
 End Class
+
+#If 0 Then
+class InstalledFontCollection : public FontCollection
+{
+public:
+    InstalledFontCollection();
+    ~InstalledFontCollection();
+
+private:
+    InstalledFontCollection(const InstalledFontCollection &);
+    InstalledFontCollection& operator=(const InstalledFontCollection &);
+
+protected:
+    _Post_equal_to_(status) Status SetStatus(Status status) const ;
+};
+#End If

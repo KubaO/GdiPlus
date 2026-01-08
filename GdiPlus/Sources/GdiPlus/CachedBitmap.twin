@@ -21,3 +21,25 @@ Class CachedBitmap
         If bitmap IsNot Nothing Then GetNative = bitmap.Native
     End Function
 End Class
+
+#If 0 Then
+class CachedBitmap : public GdiplusBase
+{
+    friend Graphics;
+
+public:
+    CachedBitmap(IN Bitmap *bitmap,
+                 IN Graphics *graphics);
+    virtual ~CachedBitmap();
+
+    Status GetLastStatus() const;
+
+private:
+    CachedBitmap(const CachedBitmap &);
+    CachedBitmap& operator=(const CachedBitmap &);
+
+protected:
+    GpCachedBitmap *nativeCachedBitmap;
+    mutable Status lastResult;
+};
+#End If

@@ -34,3 +34,153 @@ Class Region
         Return status
     End Function
 End Class
+
+#If 0 Then
+class Region : public GdiplusBase
+{
+public:
+    friend class Graphics;
+
+    Region();
+    Region(IN const RectF& rect);
+    Region(IN const Rect& rect);
+    Region(IN const GraphicsPath* path);
+    Region(IN const BYTE* regionData, IN INT size);
+    Region(IN HRGN hRgn);
+    static Region* FromHRGN(IN HRGN hRgn);
+
+    ~Region();
+    Region* Clone() const;
+
+    Status MakeInfinite();
+    Status MakeEmpty();
+
+    UINT GetDataSize() const;
+
+    // buffer     - where to put the data
+    // bufferSize - how big the buffer is (should be at least as big as GetDataSize())
+    // sizeFilled - if not NULL, this is an OUT param that says how many bytes
+    //              of data were written to the buffer.
+
+    Status GetData(_Out_writes_bytes_to_(bufferSize, *sizeFilled) BYTE* buffer,
+                   _In_ UINT bufferSize,
+                   _Out_opt_ UINT* sizeFilled = NULL) const;
+
+    Status Intersect(IN const Rect& rect);
+    Status Intersect(IN const RectF& rect);
+    Status Intersect(IN const GraphicsPath* path);
+    Status Intersect(IN const Region* region);
+    Status Union(IN const Rect& rect);
+    Status Union(IN const RectF& rect);
+    Status Union(IN const GraphicsPath* path);
+    Status Union(IN const Region* region);
+    Status Xor(IN const Rect& rect);
+    Status Xor(IN const RectF& rect);
+    Status Xor(IN const GraphicsPath* path);
+    Status Xor(IN const Region* region);
+    Status Exclude(IN const Rect& rect);
+    Status Exclude(IN const RectF& rect);
+    Status Exclude(IN const GraphicsPath* path);
+    Status Exclude(IN const Region* region);
+    Status Complement(IN const Rect& rect);
+    Status Complement(IN const RectF& rect);
+    Status Complement(IN const GraphicsPath* path);
+    Status Complement(IN const Region* region);
+    Status Translate(IN REAL dx,
+                     IN REAL dy);
+    Status Translate(IN INT dx,
+                     IN INT dy);
+    Status Transform(IN const Matrix* matrix);
+
+    Status GetBounds(OUT Rect* rect,
+                     IN const Graphics* g) const;
+
+    Status GetBounds(OUT RectF* rect,
+                     IN const Graphics* g) const;
+
+    HRGN   GetHRGN  (IN const Graphics * g) const;
+
+    BOOL IsEmpty(IN const Graphics *g) const;
+    BOOL IsInfinite(IN const Graphics *g) const;
+
+    BOOL IsVisible(IN INT x,
+                   IN INT y,
+                   IN const Graphics* g = NULL) const
+    {
+        return IsVisible(Point(x, y), g);
+    }
+
+    BOOL IsVisible(IN const Point& point,
+                   IN const Graphics* g = NULL) const;
+
+    BOOL IsVisible(IN REAL x,
+                   IN REAL y,
+                   IN const Graphics* g = NULL) const
+    {
+        return IsVisible(PointF(x, y), g);
+    }
+
+    BOOL IsVisible(IN const PointF& point,
+                   IN const Graphics* g = NULL) const;
+
+    BOOL IsVisible(IN INT x,
+                   IN INT y,
+                   IN INT width,
+                   IN INT height,
+                   IN const Graphics* g) const
+    {
+        return IsVisible(Rect(x, y, width, height), g);
+    }
+
+    BOOL IsVisible(IN const Rect& rect,
+                   IN const Graphics* g = NULL) const;
+
+    BOOL IsVisible(IN REAL x,
+                   IN REAL y,
+                   IN REAL width,
+                   IN REAL height,
+                   IN const Graphics* g = NULL) const
+    {
+        return IsVisible(RectF(x, y, width, height), g);
+    }
+
+    BOOL IsVisible(IN const RectF& rect,
+                   IN const Graphics* g = NULL) const;
+
+    BOOL Equals(IN const Region* region,
+                IN const Graphics* g) const;
+
+    UINT GetRegionScansCount(IN const Matrix* matrix) const;
+    Status GetRegionScans(IN const Matrix* matrix,
+                          OUT RectF* rects,
+                          OUT INT* count) const;
+    Status GetRegionScans(IN const Matrix* matrix,
+                          OUT Rect*  rects,
+                          OUT INT* count) const;
+    Status GetLastStatus() const;
+
+protected:
+
+private:
+    Region(const Region &region);
+    Region& operator=(const Region &region);
+protected:
+
+    _Post_equal_to_(status)
+    Status SetStatus(Status status) const
+    {
+        if (status != Ok)
+            return (lastResult = status);
+        else
+            return status;
+    }
+
+    Region(GpRegion* nativeRegion);
+
+    VOID SetNativeRegion(GpRegion* nativeRegion);
+
+protected:
+    GpRegion* nativeRegion;
+    mutable Status lastResult;
+};
+#End If

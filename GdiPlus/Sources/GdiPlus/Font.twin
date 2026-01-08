@@ -34,3 +34,69 @@ Class Font
         Return status
     End Function
 End Class
+
+#If 0 Then
+//--------------------------------------------------------------------------
+// Font
+//--------------------------------------------------------------------------
+
+class Font : public GdiplusBase
+{
+public:
+    friend class Graphics;
+
+    Font(IN HDC hdc);
+    Font(IN HDC hdc,
+         IN const LOGFONTA* logfont);
+    Font(IN HDC hdc,
+         IN const LOGFONTW* logfont);
+    Font(IN HDC hdc,
+         IN const HFONT hfont);
+    Font(
+        IN const FontFamily * family,
+        IN REAL         emSize,
+        IN INT          style   = FontStyleRegular,
+        IN Unit         unit    = UnitPoint
+    );
+
+    Font(
+        IN const WCHAR *           familyName,
+        IN REAL                    emSize,
+        IN INT                     style   = FontStyleRegular,
+        IN Unit                    unit    = UnitPoint,
+        IN const FontCollection *  fontCollection = NULL
+    );
+
+    Status GetLogFontA(IN const Graphics* g,
+                       OUT  LOGFONTA * logfontA) const;
+    Status GetLogFontW(IN const Graphics* g,
+                       OUT LOGFONTW * logfontW) const;
+
+    Font* Clone() const;
+    ~Font();
+    BOOL        IsAvailable()   const;
+    INT         GetStyle()      const;
+    REAL        GetSize()       const;
+    Unit        GetUnit()       const;
+    Status      GetLastStatus() const;
+    REAL        GetHeight(IN const Graphics *graphics) const;
+    REAL        GetHeight(IN REAL dpi) const;
+
+    Status GetFamily(OUT FontFamily *family) const;
+
+private:
+    Font(const Font &);
+    Font& operator=(const Font &);
+
+protected:
+    Font(GpFont* font, Status status);
+    VOID SetNativeFont(GpFont *Font);
+    _Post_equal_to_(status) Status SetStatus(Status status) const;
+
+protected:
+
+    GpFont* nativeFont;
+    mutable Status lastResult;
+};
+
+#End If

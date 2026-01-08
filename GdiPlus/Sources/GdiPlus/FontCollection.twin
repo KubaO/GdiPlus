@@ -34,3 +34,38 @@ Class FontCollection
         Return status
     End Function
 End Class
+
+#If 0 Then
+//--------------------------------------------------------------------------
+// Font Collection
+//--------------------------------------------------------------------------
+
+class FontCollection : public GdiplusBase
+{
+public:
+    friend class FontFamily;
+
+    FontCollection();
+    virtual ~FontCollection();
+
+    INT GetFamilyCount() const;
+
+    Status GetFamilies(
+        _In_                                  INT          numSought,
+        _Out_writes_to_(numSought, *numFound) FontFamily * gpfamilies,
+        _Out_                                 INT        * numFound
+    ) const;
+
+    Status GetLastStatus() const;
+
+private:
+    FontCollection(const FontCollection &);
+    FontCollection& operator=(const FontCollection &);
+
+protected:
+    _Post_equal_to_(status) Status SetStatus(Status status) const ;
+
+    GpFontCollection *nativeFontCollection;
+    mutable Status    lastResult;
+};
+#End If
