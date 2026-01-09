@@ -74,7 +74,7 @@ End Module
 [Description("Abstract base class for Image and Metafile")]
 Class Image
     Inherits GdiPlusBase
-    Public im As GpImage
+    Protected im As GpImage
     Protected LastResult As GpStatus
     Protected LoadStatus As GpStatus
 
