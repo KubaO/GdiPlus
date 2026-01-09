@@ -2,12 +2,12 @@
 Class FontFamily
     Inherits GdiPlusBase
     Dim ff As GpFontFamily = vbNullPtr
-    Dim LastResult As GpStatus = Ok
+    Public LastResult As GpStatus = Ok
         
     Protected Property Get Native() As GpFontFamily
         Return ff
     End Property
-    
+        
     Sub New()
     End Sub
     
@@ -71,7 +71,7 @@ Class FontFamily
         LastResult = Ok
     End Function
 
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+    Function SetStatus(ByVal status As GpStatus) As GpStatus
         If status <> Ok Then
             LastResult = status
         End If
