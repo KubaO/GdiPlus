@@ -1,13 +1,3 @@
-Module MatrixModule
-    Type GpMatrix
-        Native As LongPtr
-    End Type
-    
-    Function GpMatrix() As GpMatrix
-        GpMatrix.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class Matrix
     Inherits GdiPlusBase
@@ -33,300 +23,200 @@ Class Matrix
         End If
         Return status
     End Function
+    
+    [Description("Become an identity matrix by default.")]
+    Sub New()
+        Dim nativeMatrix As GpMatrix
+        LastResult = GdipCreateMatrix(nativeMatrix)
+        SetNativeMatrix(nativeMatrix)
+    End Sub
+    
+    Sub New(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!)
+        Dim nativeMatrix As GpMatrix
+        LastResult = GdipCreateMatrix2(m11, m12, m21, m22, dx, dy, nativeMatrix)
+        SetNativeMatrix(nativeMatrix)
+    End Sub
+    
+    Sub New(rect As GpRectF, dstplg As GpPointF)
+        Dim nativeMatrix As GpMatrix
+        LastResult = GdipCreateMatrix3(rect, dstplg, nativeMatrix)
+        SetNativeMatrix(nativeMatrix)
+    End Sub
+
+    Sub New(rect As GpRect, dstplg As GpPoint)
+        Dim nativeMatrix As GpMatrix
+        LastResult = GdipCreateMatrix3I(rect, dstplg, nativeMatrix)
+        SetNativeMatrix(nativeMatrix)
+    End Sub
+
+    Sub Class_Terminate()
+        GdipDeleteMatrix(mx)
+    End Sub
+    
+    Function Clone() As Matrix
+        Dim nativeClone As GpMatrix
+        SetStatus(GdipCloneMatrix(mx, nativeClone))
+        If LastResult = Ok Then Set Clone = New Matrix(nativeClone)
+    End Function
+    
+    Function GetElements(m!) As GpStatus
+        Return SetStatus(GdipGetMatrixElements(mx, m))
+    End Function
+    
+    Function GetElements() As Single()
+        ReDim GetElements(1 To 9)
+        SetStatus(GdipGetMatrixElements(mx, GetElements(1)))
+        Return GetElements
+    End Function
+    
+    Function SetElements(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!) As GpStatus
+        Return SetStatus(GdipSetMatrixElements(mx, m11, m12, m21, m22, dx, dy))
+    End Function
+    
+    Property Get OffsetX!()
+        Dim elements!(1 To 6)
+        If GetElements(elements(1)) = Ok Then
+            Return elements(5)
+        Else
+            Return 0.0!
+        End If
+    End Property
+    
+    Property Get OffsetY!()
+        Dim elements!(1 To 6)
+        If GetElements(elements(1)) = Ok Then
+            Return elements(6)
+        Else
+            Return 0.0!
+        End If
+    End Property
+    
+    [Description("Set to identity matrix")]
+    Function Reset() As GpStatus
+        Return SetStatus(GdipSetMatrixElements(mx, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
+    End Function
+    
+    Function Multiply(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipMultiplyMatrix(mx, GetNative(matrix), order))
+    End Function
+    
+    Function Translate(ByVal offsetX!, ByVal offsety!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipTranslateMatrix(mx, offsetX, offsety, order))
+    End Function
+    
+    Function Scale(ByVal scaleX!, ByVal scaleY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipScaleMatrix(mx, scaleX, scaleY, order))
+    End Function
+        
+    Function Rotate(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipRotateMatrix(mx, angle, order))
+    End Function
+    
+    Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        If order = MatrixOrderPrepend Then
+            SetStatus(GdipTranslateMatrix(mx, center.X, center.Y, order))
+            SetStatus(GdipRotateMatrix(mx, angle, order))
+            Return SetStatus(GdipTranslateMatrix(mx, -center.X, -center.Y, order))
+        Else
+            SetStatus(GdipTranslateMatrix(mx, -center.X, -center.Y, order))
+            SetStatus(GdipRotateMatrix(mx, angle, order))
+            Return SetStatus(GdipTranslateMatrix(mx, center.X, center.Y, order))
+        End If
+    End Function
+    
+    Function Shear(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipShearMatrix(mx, shearX, shearY, order))
+    End Function
+    
+    Function Invert() As GpStatus
+        Return SetStatus(GdipInvertMatrix(mx))
+    End Function
+    
+    Function TransformPoints(pts() As GpPointF) As GpStatus
+        Return SetStatus(GdipTransformMatrixPoints(mx, pts(LBound(pts)), Len(pts)))
+    End Function
+
+    Function TransformPoints(pts() As GpPoint) As GpStatus
+        Return SetStatus(GdipTransformMatrixPointsI(mx, pts(LBound(pts)), Len(pts)))
+    End Function
+    
+    Function TransformPoints(pts As GpPointF, ByVal count& = 1) As GpStatus
+        Return SetStatus(GdipTransformMatrixPoints(mx, pts, count))
+    End Function
+    
+    Function TransformPoints(pts As GpPoint, ByVal count& = 1) As GpStatus
+        Return SetStatus(GdipTransformMatrixPointsI(mx, pts, count))
+    End Function
+    
+    Function TransformVectors(pts() As GpPointF) As GpStatus
+        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts(LBound(pts)), Len(pts)))
+    End Function
+
+    Function TransformVectors(pts() As GpPoint) As GpStatus
+        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts(LBound(pts)), Len(pts)))
+    End Function
+    
+    Function TransformVectors(pts As GpPointF, ByVal count& = 1) As GpStatus
+        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts, count))
+    End Function
+    
+    Function TransformVectors(pts As GpPoint, ByVal count& = 1) As GpStatus
+        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts, count))
+    End Function
+    
+    Property Get IsInvertible() As Boolean
+        Dim result As BOOL = False
+        SetStatus(GdipIsMatrixInvertible(mx, result))
+        Return result
+    End Property
+    
+    Property Get IsIdentity() As Boolean
+        Dim result As BOOL = False
+        SetStatus(GdipIsMatrixIdentity(mx, result))
+        Return result
+    End Property
+
+    Function Equals(matrix As Matrix) As Boolean
+        Dim result As BOOL = False
+        SetStatus(GdipIsMatrixEqual(mx, GetNative(matrix), result))
+        Return result
+    End Function
+    
+    Function GetLastStatus() As Boolean
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
 End Class
 
-#If 0 Then
-class Matrix : public GdiplusBase
-{
-public:
-    friend class Graphics;
-    friend class GraphicsPath;
-    friend class TextureBrush;
-    friend class LinearGradientBrush;
-    friend class PathGradientBrush;
-    friend class Pen;
-    friend class Region;
+Module MatrixModule
+    Type GpMatrix
+        Native As LongPtr
+    End Type
     
-    // Default constructor is set to identity matrix.
-
-    Matrix()
-    {
-        GpMatrix *matrix = NULL;
-
-        lastResult = DllExports::GdipCreateMatrix(&matrix);
+    Function GpMatrix() As GpMatrix
+        GpMatrix.Native = 0
+    End Function
     
-        SetNativeMatrix(matrix);
-    }
-
-    Matrix(IN REAL m11, 
-           IN REAL m12,
-           IN REAL m21, 
-           IN REAL m22,
-           IN REAL dx, 
-           IN REAL dy)
-    {
-        GpMatrix *matrix = NULL;
-
-        lastResult = DllExports::GdipCreateMatrix2(m11, m12, m21, m22, 
-                                                      dx, dy, &matrix);
+    Public Declare PtrSafe Function GdipCreateMatrix Lib "gdiplus" (matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMatrix2 Lib "gdiplus" (ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single, matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMatrix3 Lib "gdiplus" (rect As RECTF, dstplg As POINTF, matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMatrix3I Lib "gdiplus" (rect As RECT, dstplg As POINT, matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipInvertMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipSetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, matrixOut As Single) As GpStatus
+    Public Declare PtrSafe Function GdipCloneMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, cloneMatrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipMultiplyMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipTranslateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipRotateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipScaleMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipShearMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixInvertible Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixIdentity Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixEqual Lib "gdiplus" (ByVal matrix1 As GpMatrix, ByVal matrix2 As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
     
-        SetNativeMatrix(matrix);
-    }
-    
-    Matrix(IN const RectF& rect, 
-           IN const PointF* dstplg)
-    {
-        GpMatrix *matrix = NULL;
-
-        lastResult = DllExports::GdipCreateMatrix3(&rect, 
-                                                   dstplg,
-                                                   &matrix);
-
-        SetNativeMatrix(matrix);
-    }
-
-    Matrix(IN const Rect& rect, 
-           IN const Point* dstplg)
-    {
-        GpMatrix *matrix = NULL;
-
-        lastResult = DllExports::GdipCreateMatrix3I(&rect, 
-                                                    dstplg,
-                                                    &matrix);
-
-        SetNativeMatrix(matrix);
-    }
-
-    ~Matrix()
-    {
-        DllExports::GdipDeleteMatrix(nativeMatrix);
-    }
-
-    Matrix *Clone() const
-    {
-        GpMatrix *cloneMatrix = NULL;
-
-        SetStatus(DllExports::GdipCloneMatrix(nativeMatrix,
-                                                  &cloneMatrix));
-
-        if (lastResult != Ok)
-            return NULL;
-
-        return new Matrix(cloneMatrix);
-    }
-
-    Status GetElements(OUT REAL *m) const 
-    {
-        return SetStatus(DllExports::GdipGetMatrixElements(nativeMatrix, m));
-    }
-    
-    Status SetElements(IN REAL m11, 
-                       IN REAL m12, 
-                       IN REAL m21, 
-                       IN REAL m22, 
-                       IN REAL dx, 
-                       IN REAL dy)
-    {
-        return SetStatus(DllExports::GdipSetMatrixElements(nativeMatrix,
-                            m11, m12, m21, m22, dx, dy));
-    }
-
-    REAL OffsetX() const
-    {
-        REAL elements[6];
-
-        if (GetElements(&elements[0]) == Ok)
-            return elements[4];
-        else 
-            return 0.0f;
-    }
-
-    REAL OffsetY() const
-    {
-       REAL elements[6];
-
-       if (GetElements(&elements[0]) == Ok)
-           return elements[5];
-       else 
-           return 0.0f;
-    }
-
-    Status Reset()
-    {
-        // set identity matrix elements 
-        return SetStatus(DllExports::GdipSetMatrixElements(nativeMatrix,
-                                             1.0, 0.0, 0.0, 1.0, 0.0, 0.0));
-    }
-
-    Status Multiply(IN const Matrix *matrix, 
-                    IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        return SetStatus(DllExports::GdipMultiplyMatrix(nativeMatrix, 
-                                          matrix->nativeMatrix,
-                                          order));
-    }
-
-    Status Translate(IN REAL offsetX, 
-                     IN REAL offsetY, 
-                     IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        return SetStatus(DllExports::GdipTranslateMatrix(nativeMatrix, offsetX,
-                                                         offsetY, order));
-    }
-
-    Status Scale(IN REAL scaleX, 
-                 IN REAL scaleY, 
-                 IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        return SetStatus(DllExports::GdipScaleMatrix(nativeMatrix, scaleX, 
-                                                     scaleY, order));
-    }
-
-    Status Rotate(IN REAL angle, 
-                  IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        return SetStatus(DllExports::GdipRotateMatrix(nativeMatrix, angle, 
-                                                      order));
-    }
-    
-    Status RotateAt(IN REAL angle, 
-                    IN const PointF& center, 
-                    IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        if(order == MatrixOrderPrepend)
-        {
-            SetStatus(DllExports::GdipTranslateMatrix(nativeMatrix, center.X,
-                                                      center.Y, order));
-            SetStatus(DllExports::GdipRotateMatrix(nativeMatrix, angle, 
-                                                   order));
-            return SetStatus(DllExports::GdipTranslateMatrix(nativeMatrix,
-                                                             -center.X, 
-                                                             -center.Y, 
-                                                             order));
-        }
-        else
-        {
-            SetStatus(DllExports::GdipTranslateMatrix(nativeMatrix, 
-                                                      - center.X, 
-                                                      - center.Y, 
-                                                      order));
-            SetStatus(DllExports::GdipRotateMatrix(nativeMatrix, angle, 
-                                                   order));
-            return SetStatus(DllExports::GdipTranslateMatrix(nativeMatrix, 
-                                                             center.X, 
-                                                             center.Y, 
-                                                             order));
-        }
-    }
-
-    Status Shear(IN REAL shearX, 
-                 IN REAL shearY,
-                 IN MatrixOrder order = MatrixOrderPrepend)
-    {
-        return SetStatus(DllExports::GdipShearMatrix(nativeMatrix, shearX, 
-                                                     shearY, order));
-    }
-
-    Status Invert()
-    {
-        return SetStatus(DllExports::GdipInvertMatrix(nativeMatrix));
-    }
-
-    // float version
-    Status TransformPoints(IN OUT PointF* pts, 
-                           IN INT count = 1) const
-    {
-        return SetStatus(DllExports::GdipTransformMatrixPoints(nativeMatrix, 
-                                                               pts, count));
-    }
-    
-    Status TransformPoints(IN OUT Point* pts, 
-                           IN INT count = 1) const
-    {
-        return SetStatus(DllExports::GdipTransformMatrixPointsI(nativeMatrix, 
-                                                                pts, 
-                                                                count));
-    }
-
-    Status TransformVectors(IN OUT PointF* pts, 
-                            IN INT count = 1) const
-    { 
-        return SetStatus(DllExports::GdipVectorTransformMatrixPoints(
-                                        nativeMatrix, pts, count));
-    }
-
-    Status TransformVectors(IN OUT Point* pts, 
-                            IN INT count = 1) const
-    { 
-       return SetStatus(DllExports::GdipVectorTransformMatrixPointsI(
-                                        nativeMatrix, 
-                                        pts, 
-                                        count));
-    }
-    
-    BOOL IsInvertible() const
-    {
-        BOOL result = FALSE;
-
-        SetStatus(DllExports::GdipIsMatrixInvertible(nativeMatrix, &result));
-    
-        return result;
-    }
-
-    BOOL IsIdentity() const
-    {
-       BOOL result = FALSE;
-
-       SetStatus(DllExports::GdipIsMatrixIdentity(nativeMatrix, &result));
-    
-       return result;
-    }
-
-    BOOL Equals(IN const Matrix *matrix) const
-    {
-       BOOL result = FALSE;
-
-       SetStatus(DllExports::GdipIsMatrixEqual(nativeMatrix,
-                                               matrix->nativeMatrix, 
-                                               &result));
-   
-       return result;
-    }
-    
-    Status GetLastStatus() const
-    {
-        Status lastStatus = lastResult;
-        lastResult = Ok;
- 
-        return lastStatus;
-    }
-
-private:
-    Matrix(const Matrix &);
-    Matrix& operator=(const Matrix &);
-
-protected:
-    Matrix(GpMatrix *nativeMatrixArg)
-    {
-        lastResult = Ok;
-        SetNativeMatrix(nativeMatrixArg);
-    }
-    
-    VOID SetNativeMatrix(GpMatrix * nativeMatrixArg)
-    {
-        this->nativeMatrix = nativeMatrixArg;
-    }
-
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else
-            return status;
-    }
-
-protected:
-    GpMatrix *nativeMatrix;
-    mutable Status lastResult;
-};
-#End If
+    Public Declare PtrSafe Function GdipTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipVectorTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipVectorTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
+End Module

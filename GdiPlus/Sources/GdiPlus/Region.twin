@@ -1,13 +1,3 @@
-Module RegionModule
-    Type GpRegion
-        Native As LongPtr
-    End Type
-    
-    Function GpRegion() As GpRegion
-        GpRegion.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class Region
     Inherits GdiPlusBase
@@ -18,7 +8,7 @@ Class Region
         Return rg
     End Property
     
-    Protected Sub New(ByVal nativeRegion As GpRegion)
+    Sub New(ByVal nativeRegion As GpRegion)
         LastResult = Ok
         SetNativeRegion(nativeRegion)
     End Sub
@@ -33,154 +23,318 @@ Class Region
         End If
         Return status
     End Function
+    
+    Sub New()
+        Dim region As GpRegion
+        LastResult = GdipCreateRegion(region)
+        SetNativeRegion(region)
+    End Sub
+    
+    Sub New(rect As GpRectF)
+        Dim region As GpRegion
+        LastResult = GdipCreateRegionRect(rect, region)
+        SetNativeRegion(region)
+    End Sub
+
+    Sub New(rect As GpRect)
+        Dim region As GpRegion
+        LastResult = GdipCreateRegionRectI(rect, region)
+        SetNativeRegion(region)
+    End Sub
+
+    Sub New(path As GraphicsPath)
+        Dim region As GpRegion
+        LastResult = GdipCreateRegionPath(GetNative(path), region)
+        SetNativeRegion(region)
+    End Sub
+    
+    Sub New(regionData As Byte, ByVal size&)
+        Dim region As GpRegion
+        LastResult = GdipCreateRegionRgnData(regionData, size, region)
+        SetNativeRegion(region)
+    End Sub
+    
+    Sub New(ByVal hRgn As LongPtr)
+        Dim region As GpRegion
+        LastResult = GdipCreateRegionHrgn(hRgn, region)
+        SetNativeRegion(region)
+    End Sub
+
+    Sub Class_Terminate()
+        GdipDeleteRegion(rg)
+    End Sub
+    
+    Function Clone() As Region
+        Dim nativeClone As GpRegion
+        SetStatus(GdipCloneRegion(rg, nativeClone))
+        If LastResult = Ok Then Set Clone = New Region(nativeClone)
+    End Function
+    
+    Function MakeInfinite() As GpStatus
+        Return SetStatus(GdipSetInfinite(rg))
+    End Function
+
+    Function MakeEmpty() As GpStatus
+        Return SetStatus(GdipSetEmpty(rg))
+    End Function
+    
+    Function GetDataSize() As UINT
+        SetStatus(GdipGetRegionDataSize(rg, GetDataSize))
+    End Function
+    
+    ' buffer     - where to put the data
+    ' bufferSize - how big the buffer is (should be at least as big as GetDataSize())
+    ' sizeFilled - if not NULL, this is an OUT param that says how many bytes
+    '              of data were written to the buffer.    
+    Function GetData(buffer As Byte, ByVal bufferSize As UINT, Optional sizeFilled&) As GpStatus
+        Return SetStatus(GdipGetRegionData(rg, buffer, bufferSize, sizeFilled))
+    End Function
+    
+    Function Intersect(rect As GpRect) As GpStatus
+        Return SetStatus(GdipCombineRegionRectI(rg, rect, CombineModeIntersect))
+    End Function
+    
+    Function Intersect(rect As GpRectF) As GpStatus
+        Return SetStatus(GdipCombineRegionRect(rg, rect, CombineModeIntersect))
+    End Function
+    
+    Function Intersect(path As GraphicsPath) As GpStatus
+        Return SetStatus(GdipCombineRegionPath(rg, GetNative(path), CombineModeIntersect))
+    End Function
+    
+    Function Intersect(region As Region) As GpStatus
+        Return SetStatus(GdipCombineRegionRegion(rg, GetNative(region), CombineModeIntersect))
+    End Function
+    
+    Function Union(rect As GpRect) As GpStatus
+        Return SetStatus(GdipCombineRegionRectI(rg, rect, CombineModeUnion))
+    End Function
+    
+    Function Union(rect As GpRectF) As GpStatus
+        Return SetStatus(GdipCombineRegionRect(rg, rect, CombineModeUnion))
+    End Function
+    
+    Function Union(path As GraphicsPath) As GpStatus
+        Return SetStatus(GdipCombineRegionPath(rg, GetNative(path), CombineModeUnion))
+    End Function
+    
+    Function Union(region As Region) As GpStatus
+        Return SetStatus(GdipCombineRegionRegion(rg, GetNative(region), CombineModeUnion))
+    End Function
+    
+    Function Xor(rect As GpRect) As GpStatus
+        Return SetStatus(GdipCombineRegionRectI(rg, rect, CombineModeXor))
+    End Function
+    
+    Function Xor(rect As GpRectF) As GpStatus
+        Return SetStatus(GdipCombineRegionRect(rg, rect, CombineModeXor))
+    End Function
+    
+    Function Xor(path As GraphicsPath) As GpStatus
+        Return SetStatus(GdipCombineRegionPath(rg, GetNative(path), CombineModeXor))
+    End Function
+    
+    Function Xor(region As Region) As GpStatus
+        Return SetStatus(GdipCombineRegionRegion(rg, GetNative(region), CombineModeXor))
+    End Function
+    
+    Function Exclude(rect As GpRect) As GpStatus
+        Return SetStatus(GdipCombineRegionRectI(rg, rect, CombineModeExclude))
+    End Function
+    
+    Function Exclude(rect As GpRectF) As GpStatus
+        Return SetStatus(GdipCombineRegionRect(rg, rect, CombineModeExclude))
+    End Function
+    
+    Function Exclude(path As GraphicsPath) As GpStatus
+        Return SetStatus(GdipCombineRegionPath(rg, GetNative(path), CombineModeExclude))
+    End Function
+    
+    Function Exclude(region As Region) As GpStatus
+        Return SetStatus(GdipCombineRegionRegion(rg, GetNative(region), CombineModeExclude))
+    End Function
+    
+    Function Complement(rect As GpRect) As GpStatus
+        Return SetStatus(GdipCombineRegionRectI(rg, rect, CombineModeComplement))
+    End Function
+    
+    Function Complement(rect As GpRectF) As GpStatus
+        Return SetStatus(GdipCombineRegionRect(rg, rect, CombineModeComplement))
+    End Function
+    
+    Function Complement(path As GraphicsPath) As GpStatus
+        Return SetStatus(GdipCombineRegionPath(rg, GetNative(path), CombineModeComplement))
+    End Function
+    
+    Function Complement(region As Region) As GpStatus
+        Return SetStatus(GdipCombineRegionRegion(rg, GetNative(region), CombineModeComplement))
+    End Function
+    
+    Function Translate(ByVal dx!, ByVal dy!) As GpStatus
+        Return SetStatus(GdipTranslateRegion(rg, dx, dy))
+    End Function
+
+    Function Translate(ByVal dx&, ByVal dy&) As GpStatus
+        Return SetStatus(GdipTranslateRegionI(rg, dx, dy))
+    End Function
+
+    Function Transform(matrix As Matrix) As GpStatus
+        Return SetStatus(GdipTransformRegion(rg, GetNative(matrix)))
+    End Function
+    
+    Property Get BoundsI(g As Graphics) As GpRect
+        GetBounds(BoundsI, g)
+    End Property
+    
+    Property Get Bounds(g As Graphics) As GpRectF
+        GetBounds(Bounds, g)
+    End Property
+    
+    Function GetBounds(rect As GpRect, g As Graphics) As GpStatus
+        Return SetStatus(GdipGetRegionBoundsI(rg, GetNative(g), rect))
+    End Function
+    
+    Function GetBounds(rect As GpRectF, g As Graphics) As GpStatus
+        Return SetStatus(GdipGetRegionBounds(rg, GetNative(g), rect))
+    End Function
+    
+    Function GetHRGN(g As Graphics) As LongPtr
+        SetStatus(GdipGetRegionHRgn(rg, GetNative(g), GetHRGN))
+    End Function
+    
+    Function IsEmpty(g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsEmptyRegion(rg, GetNative(g), booln))
+        Return booln
+    End Function
+    
+    Function IsInfinite(g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsInfiniteRegion(rg, GetNative(g), booln))
+        Return booln
+    End Function
+
+    Function IsVisible(ByVal x&, ByVal y&, g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsVisibleRegionPointI(rg, x, y, GetNative(g), booln))
+        Return booln
+    End Function
+
+    Function IsVisible(point As GpPoint, g As Graphics) As Boolean
+        Return IsVisible(point.X, point.Y, g)
+    End Function
+
+    Function IsVisible(ByVal x!, ByVal y!, g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsVisibleRegionPoint(rg, x, y, GetNative(g), booln))
+        Return booln
+    End Function
+
+    Function IsVisible(point As GpPointF, g As Graphics) As Boolean
+        Return IsVisible(point.X, point.Y, g)
+    End Function
+        
+    Function IsVisible(ByVal x&, ByVal y&, ByVal width&, ByVal height&, g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsVisibleRegionRect(rg, x, y, width, height, GetNative(g), booln))
+        Return booln
+    End Function
+    
+    Function IsVisible(rect As GpRect, g As Graphics) As Boolean
+        Return IsVisible(rect.X, rect.Y, rect.Width, rect.Height, g)
+    End Function
+        
+    Function IsVisible(ByVal x!, ByVal y!, ByVal width!, ByVal height!, g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsVisibleRegionRectI(rg, x, y, width, height, GetNative(g), booln))
+        Return booln
+    End Function
+    
+    Function IsVisible(rect As GpRectF, g As Graphics) As Boolean
+        Return IsVisible(rect.X, rect.Y, rect.Width, rect.Height, g)
+    End Function
+    
+    Function Equals(region As Region, g As Graphics) As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipIsEqualRegion(rg, GetNative(region), GetNative(g), booln))
+        Return booln
+    End Function
+    
+    Function GetRegionScansCount(matrix As Matrix) As UINT
+        SetStatus(GdipGetRegionScansCount(rg, GetRegionScansCount, GetNative(matrix)))
+    End Function
+    
+    ' If rects is NULL, return the count of rects in the region.
+    ' Otherwise, assume rects is big enough to hold all the region rects
+    ' and fill them in and return the number of rects filled in.
+    ' The rects are returned in the units specified by the matrix
+    ' (which is typically a world-to-device transform).
+    ' Note that the number of rects returned can vary, depending on the
+    ' matrix that is used.
+    Function GetRegionScans(matrix As Matrix, rects As GpRectF, count&) As GpStatus
+        Return SetStatus(GdipGetRegionScans(rg, rects, count, GetNative(matrix)))
+    End Function
+    
+    Function GetRegionScans(matrix As Matrix, rects As GpRect, count&) As GpStatus
+        Return SetStatus(GdipGetRegionScansI(rg, rects, count, GetNative(matrix)))
+        End Function
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
 End Class
 
-#If 0 Then
-class Region : public GdiplusBase
-{
-public:
-    friend class Graphics;
-
-    Region();
-    Region(IN const RectF& rect);
-    Region(IN const Rect& rect);
-    Region(IN const GraphicsPath* path);
-    Region(IN const BYTE* regionData, IN INT size);
-    Region(IN HRGN hRgn);
-    static Region* FromHRGN(IN HRGN hRgn);
-
-    ~Region();
-    Region* Clone() const;
-
-    Status MakeInfinite();
-    Status MakeEmpty();
-
-    UINT GetDataSize() const;
-
-    // buffer     - where to put the data
-    // bufferSize - how big the buffer is (should be at least as big as GetDataSize())
-    // sizeFilled - if not NULL, this is an OUT param that says how many bytes
-    //              of data were written to the buffer.
-
-    Status GetData(_Out_writes_bytes_to_(bufferSize, *sizeFilled) BYTE* buffer,
-                   _In_ UINT bufferSize,
-                   _Out_opt_ UINT* sizeFilled = NULL) const;
-
-    Status Intersect(IN const Rect& rect);
-    Status Intersect(IN const RectF& rect);
-    Status Intersect(IN const GraphicsPath* path);
-    Status Intersect(IN const Region* region);
-    Status Union(IN const Rect& rect);
-    Status Union(IN const RectF& rect);
-    Status Union(IN const GraphicsPath* path);
-    Status Union(IN const Region* region);
-    Status Xor(IN const Rect& rect);
-    Status Xor(IN const RectF& rect);
-    Status Xor(IN const GraphicsPath* path);
-    Status Xor(IN const Region* region);
-    Status Exclude(IN const Rect& rect);
-    Status Exclude(IN const RectF& rect);
-    Status Exclude(IN const GraphicsPath* path);
-    Status Exclude(IN const Region* region);
-    Status Complement(IN const Rect& rect);
-    Status Complement(IN const RectF& rect);
-    Status Complement(IN const GraphicsPath* path);
-    Status Complement(IN const Region* region);
-    Status Translate(IN REAL dx,
-                     IN REAL dy);
-    Status Translate(IN INT dx,
-                     IN INT dy);
-    Status Transform(IN const Matrix* matrix);
-
-    Status GetBounds(OUT Rect* rect,
-                     IN const Graphics* g) const;
-
-    Status GetBounds(OUT RectF* rect,
-                     IN const Graphics* g) const;
-
-    HRGN   GetHRGN  (IN const Graphics * g) const;
-
-    BOOL IsEmpty(IN const Graphics *g) const;
-    BOOL IsInfinite(IN const Graphics *g) const;
-
-    BOOL IsVisible(IN INT x,
-                   IN INT y,
-                   IN const Graphics* g = NULL) const
-    {
-        return IsVisible(Point(x, y), g);
-    }
-
-    BOOL IsVisible(IN const Point& point,
-                   IN const Graphics* g = NULL) const;
-
-    BOOL IsVisible(IN REAL x,
-                   IN REAL y,
-                   IN const Graphics* g = NULL) const
-    {
-        return IsVisible(PointF(x, y), g);
-    }
-
-    BOOL IsVisible(IN const PointF& point,
-                   IN const Graphics* g = NULL) const;
-
-    BOOL IsVisible(IN INT x,
-                   IN INT y,
-                   IN INT width,
-                   IN INT height,
-                   IN const Graphics* g) const
-    {
-        return IsVisible(Rect(x, y, width, height), g);
-    }
-
-    BOOL IsVisible(IN const Rect& rect,
-                   IN const Graphics* g = NULL) const;
-
-    BOOL IsVisible(IN REAL x,
-                   IN REAL y,
-                   IN REAL width,
-                   IN REAL height,
-                   IN const Graphics* g = NULL) const
-    {
-        return IsVisible(RectF(x, y, width, height), g);
-    }
-
-    BOOL IsVisible(IN const RectF& rect,
-                   IN const Graphics* g = NULL) const;
-
-    BOOL Equals(IN const Region* region,
-                IN const Graphics* g) const;
-
-    UINT GetRegionScansCount(IN const Matrix* matrix) const;
-    Status GetRegionScans(IN const Matrix* matrix,
-                          OUT RectF* rects,
-                          OUT INT* count) const;
-    Status GetRegionScans(IN const Matrix* matrix,
-                          OUT Rect*  rects,
-                          OUT INT* count) const;
-    Status GetLastStatus() const;
-
-protected:
-
-private:
-    Region(const Region &region);
-    Region& operator=(const Region &region);
-protected:
-
-    _Post_equal_to_(status)
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else
-            return status;
-    }
-
-    Region(GpRegion* nativeRegion);
-
-    VOID SetNativeRegion(GpRegion* nativeRegion);
-
-protected:
-    GpRegion* nativeRegion;
-    mutable Status lastResult;
-};
-#End If
+Module RegionModule
+    Type GpRegion
+        Native As LongPtr
+    End Type
+    
+    Function GpRegion() As GpRegion
+        GpRegion.Native = 0
+    End Function
+    
+    Function FromHRGN(ByVal hRgn As LongPtr) As Region
+        Dim newRegion As Region
+        Set newRegion = New Region(GpRegion())
+        If newRegion IsNot Nothing And GdipCreateRegionHrgn(hRgn, UnprotectedAccess(newRegion).rg) <> Ok Then
+            Set newRegion = Nothing
+        End If
+        Return newRegion
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateRegion Lib "gdiplus" (Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCreateRegionRect Lib "gdiplus" (Rect As GpRectF, Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCreateRegionRectI Lib "gdiplus" (Rect As GpRect, Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCloneRegion Lib "gdiplus" (ByVal Region As GpRegion, cloneRegion As GpRegion) As GpStatus
+    
+    Public Declare PtrSafe Function GdipSetEmpty Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipTranslateRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal dx As Single, ByVal dy As Single) As GpStatus
+    Public Declare PtrSafe Function GdipTranslateRegionI Lib "gdiplus" (ByVal Region As GpRegion, ByVal dx As Long, ByVal dy As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetInfinite Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionScansCount Lib "gdiplus" (ByVal Region As GpRegion, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionScans Lib "gdiplus" (ByVal Region As GpRegion, rects As GpRectF, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionScansI Lib "gdiplus" (ByVal Region As GpRegion, rects As GpRect, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionDataSize Lib "gdiplus" (ByVal Region As GpRegion, bufferSize As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionData Lib "gdiplus" (ByVal Region As GpRegion, buffer As Byte, ByVal bufferSize As Long, sizeFilled As Long) As GpStatus
+    
+    Public Declare PtrSafe Function GdipCombineRegionRect Lib "gdiplus" (ByVal Region As GpRegion, Rect As RECTF, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, Rect As RECT, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionHRgn Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, hRgn As LongPtr) As GpStatus
+    Public Declare PtrSafe Function GdipIsEmptyRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsInfiniteRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsEqualRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteRegion Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionPath Lib "gdiplus" (ByVal Region As GpRegion, ByVal Path As GpPath, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCreateRegionPath Lib "gdiplus" (ByVal Path As GpPath, Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCreateRegionRgnData Lib "gdiplus" (regionData As Byte, ByVal size As Long, Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipCreateRegionHrgn Lib "gdiplus" (ByVal hRgn As LongPtr, Region As GpRegion) As GpStatus
+    Public Declare PtrSafe Function GdipTransformRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionBoundsI Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, Rect As GpRect) As GpStatus
+    Public Declare PtrSafe Function GdipGetRegionBounds Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, Rect As GpRectF) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionPoint Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionPointI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionRect Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+End Module
