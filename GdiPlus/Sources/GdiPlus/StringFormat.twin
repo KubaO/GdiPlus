@@ -1,13 +1,3 @@
-Module StringFormatModule
-    Type GpStringFormat
-        Native As LongPtr
-    End Type
-    
-    Function GpStringFormat() As GpStringFormat
-        GpStringFormat.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class StringFormat
     Inherits GdiPlusBase
@@ -18,13 +8,13 @@ Class StringFormat
         Return sf
     End Property
     
-    Protected Sub New(ByVal nativeFormat As GpStringFormat)
+    Protected Sub New(ByVal sf As GpStringFormat)
         LastResult = Ok
-        SetNativeStringFormat(nativeFormat)
+        SetNativeStringFormat(sf)
     End Sub
     
-    Protected Sub SetNativeStringFormat(ByVal nativeFormat As GpStringFormat)
-        sf = nativeFormat
+    Protected Sub SetNativeStringFormat(ByVal sf As GpStringFormat)
+        sf = sf
     End Sub
 
     Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
@@ -33,321 +23,169 @@ Class StringFormat
         End If
         Return status
     End Function
+    
+    Sub New(ByVal formatFlags& = 0, ByVal language As LANGID = lang_neutral)
+        LastResult = GdipCreateStringFormat(formatFlags, language, sf)
+    End Sub
+    
+    Sub New(format As StringFormat)
+        LastResult = GdipCloneStringFormat(GetNative(format), sf)
+    End Sub
+    
+    Function Clone() As StringFormat
+        Dim nativeClone As GpStringFormat
+        LastResult = GdipCloneStringFormat(sf, nativeClone)
+        If LastResult = Ok Then Set Clone = New StringFormat(nativeClone, LastResult)
+    End Function
+    
+    Sub Class_Terminate()
+        GdipDeleteStringFormat(sf)
+    End Sub
+    
+    Property Let FormatFlags(ByVal flags&)
+        SetStatus(GdipSetStringFormatFlags(sf, flags))
+    End Property
+    
+    Property Get FormatFlags() As Long
+        SetStatus(GdipGetStringFormatFlags(sf, FormatFlags))
+    End Property
+    
+    Property Let Alignment(ByVal align As StringAlignment)
+        SetStatus(GdipSetStringFormatAlign(sf, align))
+    End Property
+    
+    Property Get Alignment() As StringAlignment
+        SetStatus(GdipGetStringFormatAlign(sf, Alignment))
+    End Property
+        
+    Property Let LineAlignment(ByVal align As StringAlignment)
+        SetStatus(GdipSetStringFormatLineAlign(sf, align))
+    End Property
+    
+    Property Get LineAlignment() As StringAlignment
+        SetStatus(GdipGetStringFormatLineAlign(sf, LineAlignment))
+    End Property
+    
+    Property Let HotkeyPrefix(ByVal hotkeyPrefix As HotkeyPrefix)
+        SetStatus(GdipSetStringFormatHotkeyPrefix(sf, hotkeyPrefix))
+    End Property
+    
+    Property Get HotkeyPrefix() As HotkeyPrefix
+        SetStatus(GdipSetStringFormatHotkeyPrefix(sf, HotkeyPrefix))
+    End Property
+
+    Function SetTabStops(ByVal firstTabOffset!, tabStops!()) As GpStatus
+        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, Len(tabStops), tabStops(LBound(tabStops))))
+    End Function
+    
+    Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
+        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, count, tabStops))
+    End Function
+    
+    Property Get TabStopCount&()
+        SetStatus(GdipGetStringFormatTabStopCount(sf, TabStopCount))
+    End Property
+
+    Function GetTabStops(firstTabOffset!) As Single()
+        Dim tabStops!()
+        ReDim tabStops(1 To TabStopCount)
+        SetStatus(GdipGetStringFormatTabStops(sf, Len(tabStops), firstTabOffset, tabStops(1)))
+        Return tabStops
+    End Function
+    
+    Function GetTabStops(ByVal count&, firstTabOffset!, tabStops!) As GpStatus
+        Return SetStatus(GdipGetStringFormatTabStops(sf, count, firstTabOffset, tabStops))
+    End Function
+    
+    Function SetDigitSubstitution(ByVal language As LANGID, ByVal substitute As StringDigitSubstitute) As GpStatus
+        Return SetStatus(GdipSetStringFormatDigitSubstitution(sf, language, substitute))
+    End Function
+    
+    Property Get DigitSubstitutionLanguage() As LANGID
+        SetStatus(GdipGetStringFormatDigitSubstitution(sf, DigitSubstitutionLanguage, vbNullPtr))
+    End Property
+    
+    Property Get DigitSubstitutionMethod() As StringDigitSubstitute
+        SetStatus(GdipGetStringFormatDigitSubstitution(sf, vbNullPtr, DigitSubstitutionMethod))
+    End Property
+    
+    Property Let Trimming(ByVal trimming As StringTrimming)
+        SetStatus(GdipSetStringFormatTrimming(sf, trimming))
+    End Property
+        
+    Property Get Trimming() As HotkeyPrefix
+        SetStatus(GdipGetStringFormatTrimming(sf, Trimming))
+    End Property
+    
+    Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
+        Return SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, rangeCount, ranges))
+    End Function
+    
+    Property Get MeasurableCharacterRangeCount&()
+        SetStatus(GdipGetStringFormatMeasurableCharacterRangeCount(sf, MeasurableCharacterRangeCount&))
+    End Property
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
+    
+    Protected Sub Assign(source As StringFormat)
+        GdipDeleteStringFormat(sf)
+        LastResult = GdipCloneStringFormat(GetNative(source), sf)
+    End Sub
+    
+    Protected Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
+        LastResult = status
+        sf = clonedStringFormat
+    End Sub
 End Class
 
-#If 0 Then
-class StringFormat : public GdiplusBase
-{
-public:
-    friend class Graphics;
-    friend class GraphicsPath;
-
-
-    StringFormat(
-        IN INT     formatFlags = 0,
-        IN LANGID  language = LANG_NEUTRAL
-    )
-    {
-        nativeFormat = NULL;
-        lastError = DllExports::GdipCreateStringFormat(
-            formatFlags,
-            language,
-            &nativeFormat
-        );
-    }
-
-    static const StringFormat *GenericDefault();
-    static const StringFormat *GenericTypographic();
-
-    StringFormat(
-        IN const StringFormat *format
-    )
-    {
-        nativeFormat = NULL;
-        lastError = DllExports::GdipCloneStringFormat(
-            format ? format->nativeFormat : NULL,
-            &nativeFormat
-        );
-    }
-
-    StringFormat *Clone() const
-    {
-        GpStringFormat *clonedStringFormat = NULL;
-
-        lastError = DllExports::GdipCloneStringFormat(
-            nativeFormat,
-            &clonedStringFormat
-        );
-
-        if (lastError == Ok)
-            return new StringFormat(clonedStringFormat, lastError);
-        else
-            return NULL;
-    }
-
-    ~StringFormat()
-    {
-        DllExports::GdipDeleteStringFormat(nativeFormat);
-    }
-
-    Status SetFormatFlags(IN INT flags)
-    {
-        return SetStatus(DllExports::GdipSetStringFormatFlags(
-            nativeFormat,
-            flags
-        ));
-    }
-
-    INT GetFormatFlags() const
-    {
-        INT flags;
-        SetStatus(DllExports::GdipGetStringFormatFlags(nativeFormat, &flags));
-        return flags;
-    }
-
-    Status SetAlignment(IN StringAlignment align)
-    {
-        return SetStatus(DllExports::GdipSetStringFormatAlign(
-            nativeFormat,
-            align
-        ));
-    }
-
-    StringAlignment GetAlignment() const
-    {
-        StringAlignment alignment;
-        SetStatus(DllExports::GdipGetStringFormatAlign(
-            nativeFormat,
-            &alignment
-        ));
-        return alignment;
-    }
-
-    Status SetLineAlignment(IN StringAlignment align)
-    {
-        return SetStatus(DllExports::GdipSetStringFormatLineAlign(
-            nativeFormat,
-            align
-        ));
-    }
-
-    StringAlignment GetLineAlignment() const
-    {
-        StringAlignment alignment;
-        SetStatus(DllExports::GdipGetStringFormatLineAlign(
-            nativeFormat,
-            &alignment
-        ));
-        return alignment;
-    }
-
-    Status SetHotkeyPrefix(IN HotkeyPrefix hotkeyPrefix)
-    {
-        return SetStatus(DllExports::GdipSetStringFormatHotkeyPrefix(
-            nativeFormat,
-            (INT)hotkeyPrefix
-        ));
-    }
-
-    HotkeyPrefix GetHotkeyPrefix() const
-    {
-        HotkeyPrefix hotkeyPrefix;
-        SetStatus(DllExports::GdipGetStringFormatHotkeyPrefix(
-            nativeFormat,
-            (INT*)&hotkeyPrefix
-        ));
-        return hotkeyPrefix;
-    }
-
-    Status SetTabStops(
-        IN REAL    firstTabOffset,
-        IN INT     count,
-        IN const REAL    *tabStops
-    )
-    {
-        return SetStatus(DllExports::GdipSetStringFormatTabStops(
-            nativeFormat,
-            firstTabOffset,
-            count,
-            tabStops
-        ));
-    }
-
-    INT GetTabStopCount() const
-    {
-        INT count;
-        SetStatus(DllExports::GdipGetStringFormatTabStopCount(nativeFormat, &count));
-        return count;
-    }
-
-    Status GetTabStops(
-        IN INT     count,
-        OUT REAL   *firstTabOffset,
-        OUT REAL   *tabStops
-    ) const
-    {
-        return SetStatus(DllExports::GdipGetStringFormatTabStops(
-            nativeFormat,
-            count,
-            firstTabOffset,
-            tabStops
-        ));
-    }
-
-    Status SetDigitSubstitution(
-        IN LANGID                language,
-        IN StringDigitSubstitute substitute
-    )
-    {
-        return SetStatus(DllExports::GdipSetStringFormatDigitSubstitution(
-            nativeFormat,
-            language,
-            substitute
-        ));
-    }
-
-    LANGID GetDigitSubstitutionLanguage(
-    ) const
-    {
-        LANGID language;
-        SetStatus(DllExports::GdipGetStringFormatDigitSubstitution(
-            nativeFormat,
-            &language,
-            NULL
-        ));
-        return language;
-    }
-
-    StringDigitSubstitute GetDigitSubstitutionMethod(
-    ) const
-    {
-        StringDigitSubstitute substitute;
-        SetStatus(DllExports::GdipGetStringFormatDigitSubstitution(
-            nativeFormat,
-            NULL,
-            &substitute
-        ));
-        return substitute;
-    }
-
-    Status SetTrimming(IN StringTrimming trimming)
-    {
-        return SetStatus(DllExports::GdipSetStringFormatTrimming(
-            nativeFormat,
-            trimming
-        ));
-    }
-
-    StringTrimming GetTrimming() const
-    {
-        StringTrimming trimming;
-        SetStatus(DllExports::GdipGetStringFormatTrimming(
-            nativeFormat,
-            &trimming
-        ));
-        return trimming;
-    }
-
-    Status SetMeasurableCharacterRanges(
-        IN INT                  rangeCount,
-        IN const CharacterRange *ranges
-    )
-    {
-        return SetStatus(DllExports::GdipSetStringFormatMeasurableCharacterRanges(
-            nativeFormat,
-            rangeCount,
-            ranges
-        ));
-    }
-
-    INT GetMeasurableCharacterRangeCount()
-    {
-        INT count;
-        SetStatus(DllExports::GdipGetStringFormatMeasurableCharacterRangeCount(
-            nativeFormat,
-            &count
-        ));
-        return count;
-    }
-
-    Status GetLastStatus() const
-    {
-        Status lastStatus = lastError;
-        lastError = Ok;
-
-        return lastStatus;
-    }
-
-protected:
-
-    Status SetStatus(GpStatus newStatus) const
-    {
-        if (newStatus == Ok)
-        {
-            return Ok;
-        }
-        else
-        {
-            return lastError = newStatus;
-        }
-    }
-
-    StringFormat(const StringFormat &source)
-    {
-        nativeFormat = NULL;
-        lastError = DllExports::GdipCloneStringFormat(
-            source.nativeFormat,
-            &nativeFormat
-        );
-    }
-
-    StringFormat& operator=(const StringFormat &source)
-    {
-        DllExports::GdipDeleteStringFormat(nativeFormat);
-        lastError = DllExports::GdipCloneStringFormat(
-            source.nativeFormat,
-            &nativeFormat
-        );
-        return *this;
-    }
-
-    StringFormat(GpStringFormat * clonedStringFormat, Status status)
-    {
-        lastError = status;
-        nativeFormat = clonedStringFormat;
-
-    }
-
-    GpStringFormat *nativeFormat;
-    mutable Status  lastError;
-};
-
-static BYTE GenericTypographicStringFormatBuffer[sizeof(StringFormat)] = {0};
-static BYTE GenericDefaultStringFormatBuffer[sizeof(StringFormat)] = {0};
-
-inline const StringFormat *StringFormat::GenericDefault()
-{
-    StringFormat * genericDefaultStringFormat =
-        (StringFormat*)GenericDefaultStringFormatBuffer;
-
-    genericDefaultStringFormat->lastError =
-        DllExports::GdipStringFormatGetGenericDefault(
-            &(genericDefaultStringFormat->nativeFormat)
-        );
-
-    return genericDefaultStringFormat;
-}
-
-inline const StringFormat *StringFormat::GenericTypographic()
-{
-    StringFormat * genericTypographicStringFormat =
-        (StringFormat*)GenericTypographicStringFormatBuffer;
-
-    genericTypographicStringFormat->lastError =
-        DllExports::GdipStringFormatGetGenericTypographic(
-            &genericTypographicStringFormat->nativeFormat
-        );
-
-    return genericTypographicStringFormat;
-}
-#End If
+Module StringFormatModule
+    Type GpStringFormat
+        Native As LongPtr
+    End Type
+    
+    Function GpStringFormat() As GpStringFormat
+        GpStringFormat.Native = 0
+    End Function
+    
+    Function GenericDefault() As StringFormat
+        Static sf As StringFormat
+        If sf Is Nothing Then Set sf = New StringFormat
+        sf.Class_Terminate()
+        UnprotectedAccess(sf).SetStatus(GdipStringFormatGetGenericDefault(UnprotectedAccess(sf).sf))
+        Return sf
+    End Function
+    
+    Function GenericTypographic() As StringFormat
+        Static sf As StringFormat
+        If sf Is Nothing Then Set sf = New StringFormat
+        sf.Class_Terminate()
+        UnprotectedAccess(sf).SetStatus(GdipStringFormatGetGenericTypographic(UnprotectedAccess(sf).sf))
+        Return sf
+    End Function
+    
+    Public Declare PtrSafe Function GdipStringFormatGetGenericDefault Lib "gdiplus" (format As GpStringFormat) As GpStatus
+    Public Declare PtrSafe Function GdipStringFormatGetGenericTypographic Lib "gdiplus" (format As GpStringFormat) As GpStatus
+    Public Declare PtrSafe Function GdipCreateStringFormat Lib "gdiplus" (ByVal formatAttributes As Long, ByVal language As Integer, format As GpStringFormat) As GpStatus
+    Public Declare PtrSafe Function GdipCloneStringFormat Lib "gdiplus" (ByVal format As GpStringFormat, newFormat As GpStringFormat) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteStringFormat Lib "gdiplus" (ByVal format As GpStringFormat) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, ByVal flags As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, flags As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As StringAlignment) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As StringAlignment) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As StringAlignment) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, align As StringAlignment) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, ByVal trimming As StringTrimming) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, trimming As StringTrimming) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, ByVal hotkeyPrefix As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, hotkeyPrefix As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatTabStopCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, ByVal language As Integer, ByVal substitute As StringDigitSubstitute) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, language As Integer, substitute As StringDigitSubstitute) As GpStatus
+    Public Declare PtrSafe Function GdipGetStringFormatMeasurableCharacterRangeCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetStringFormatMeasurableCharacterRanges Lib "gdiplus" (ByVal format As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
+End Module
