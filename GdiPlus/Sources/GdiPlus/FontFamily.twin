@@ -1,23 +1,24 @@
-Module FontFamilyModule
-    Type GpFontFamily
-        Native As LongPtr
-    End Type
-    
-    Function GpFontFamily() As GpFontFamily
-        GpFontFamily.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class FontFamily
     Inherits GdiPlusBase
-    Dim ff As GpFontFamily
-    Dim LastResult As GpStatus
+    Dim ff As GpFontFamily = vbNullPtr
+    Dim LastResult As GpStatus = Ok
         
     Protected Property Get Native() As GpFontFamily
         Return ff
     End Property
     
+    Sub New()
+    End Sub
+    
+    Sub New(ByVal name As String, Optional fontCollection As FontCollection)
+        LastResult = GdipCreateFontFamilyFromName(StrPtr(name), GetNative(fontCollection), ff)
+    End Sub
+        
+    Sub Class_Terminate()
+        GdipDeleteFontFamily(ff)
+    End Sub
+        
     Protected Sub New(ByVal nativeFamily As GpFontFamily)
         LastResult = Ok
         SetNativeFontFamily(nativeFamily)
@@ -26,6 +27,49 @@ Class FontFamily
     Protected Sub SetNativeFontFamily(ByVal nativeFamily As GpFontFamily)
         ff = nativeFamily
     End Sub
+    
+    Function GetFamilyName(name As String, ByVal language As LANGID = 0) As GpStatus
+        Return SetStatus(GdipGetFamilyName(ff, StrPtr(name), language))
+    End Function
+        
+    Function Clone() As FontFamily
+        Dim clonedFamily As GpFontFamily
+        SetStatus(GdipCloneFontFamily(ff, clonedFamily))
+        Return New FontFamily(clonedFamily, LastResult)
+    End Function
+    
+    Function IsAvailable() As Boolean
+        Return ff.Native <> vbNullPtr
+    End Function
+    
+    Function IsStyleAvailable(ByVal style&) As Boolean
+        Dim styleAvailable As BOOL
+        Dim status As GpStatus
+        status = SetStatus(GdipIsStyleAvailable(ff, style, styleAvailable))
+        If status <> Ok Then styleAvailable = False
+        Return styleAvailable
+    End Function
+    
+    Property Get EmHeight(ByVal style&) As Integer
+        SetStatus(GdipGetEmHeight(ff, style, EmHeight))
+    End Property
+    
+    Property Get CellAscent(ByVal style&) As Integer
+        SetStatus(GdipGetCellAscent(ff, style, CellAscent))
+    End Property
+        
+    Property Get CellDescent(ByVal style&) As Integer
+        SetStatus(GdipGetCellDescent(ff, style, CellDescent))
+    End Property
+
+    Property Get LineSpacing(ByVal style&) As Integer
+        SetStatus(GdipGetLineSpacing(ff, style, LineSpacing))
+    End Property
+    
+    Function GetLastResult() As GpStatus
+        GetLastResult = LastResult
+        LastResult = Ok
+    End Function
 
     Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
         If status <> Ok Then
@@ -33,75 +77,65 @@ Class FontFamily
         End If
         Return status
     End Function
+    
+    Protected Sub New(ByVal nativeFamily As GpFontFamily, ByVal status As GpStatus)
+        LastResult = status
+        ff = nativeFamily
+    End Sub
 End Class
 
-#If 0 Then
-//--------------------------------------------------------------------------
-// FontFamily
-//--------------------------------------------------------------------------
+Alias WORD As Integer
+Alias LANGID As Integer  ' WORD
 
-class FontFamily : public GdiplusBase
-{
-public:
-    friend class Font;
-    friend class Graphics;
-    friend class GraphicsPath;
-    friend class FontCollection;
-
-    FontFamily();
-
-    FontFamily(
-        IN const WCHAR          *name,
-        IN const FontCollection *fontCollection = NULL
-    );
-
-    ~FontFamily();
-
-    static const FontFamily *GenericSansSerif();
-    static const FontFamily *GenericSerif();
-    static const FontFamily *GenericMonospace();
-
-    Status GetFamilyName(
-        _Out_writes_(LF_FACESIZE) LPWSTR    name,
-        IN LANGID                           language = 0
-    ) const;
-
-    FontFamily * Clone() const;
-
-    BOOL    IsAvailable() const
-    {
-        return (nativeFamily != NULL);
-    };
-
-    BOOL    IsStyleAvailable(IN INT style) const;
-
-    UINT16  GetEmHeight     (IN INT style) const;
-    UINT16  GetCellAscent   (IN INT style) const;
-    UINT16  GetCellDescent  (IN INT style) const;
-    UINT16  GetLineSpacing  (IN INT style) const;
+Module FontFamilyModule
+    Type GpFontFamily
+        Native As LongPtr
+    End Type
     
-    Status GetLastStatus() const;
+    Function GpFontFamily() As GpFontFamily
+        GpFontFamily.Native = 0
+    End Function
+    
+    Function GenericSansSerif() As FontFamily
+        If GenericSansSerifFontFamily IsNot Nothing Then Return GenericSansSerifFontFamily
+        Set GenericSansSerifFontFamily = New FontFamily
+        UnprotectedAccess(GenericSansSerifFontFamily).LastResult = _
+                GdipGetGenericFontFamilySansSerif(GetNative(GenericSansSerifFontFamily))
+    End Function
+    
+    Function GenericSerif() As FontFamily
+        If GenericSerifFontFamily IsNot Nothing Then Return GenericSerifFontFamily
+        Set GenericSerifFontFamily = New FontFamily
+        UnprotectedAccess(GenericSerifFontFamily).LastResult = _
+                GdipGetGenericFontFamilySerif(GetNative(GenericSerifFontFamily))
+    End Function
+    
+    Function GenericMonospace() As FontFamily
+        If GenericMonospaceFontFamily IsNot Nothing Then Return GenericMonospaceFontFamily
+        Set GenericMonospaceFontFamily = New FontFamily
+        UnprotectedAccess(GenericMonospaceFontFamily).LastResult = _
+                GdipGetGenericFontFamilyMonospace(GetNative(GenericMonospaceFontFamily))
+    End Function
+        
+    Dim GenericSansSerifFontFamily As FontFamily
+    Dim GenericSerifFontFamily As FontFamily
+    Dim GenericMonospaceFontFamily As FontFamily
 
-private:
-    FontFamily(const FontFamily &);
-    FontFamily& operator=(const FontFamily &);
+    'Static BYTE GenericSansSerifFontFamilyBuffer[sizeof(FontFamily)] = {0};
+    'Static BYTE GenericSerifFontFamilyBuffer    [sizeof(FontFamily)] = {0};
+    'Static BYTE GenericMonospaceFontFamilyBuffer[sizeof(FontFamily)] = {0};
+    
+    Public Declare PtrSafe Function GdipGetGenericFontFamilySerif Lib "gdiplus" (nativeFamily As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipGetGenericFontFamilySansSerif Lib "gdiplus" (nativeFamily As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipGetGenericFontFamilyMonospace Lib "gdiplus" (nativeFamily As GpFontFamily) As GpStatus
 
-protected:
-    _Post_equal_to_(status) Status SetStatus(Status status) const;
-
-    FontFamily(GpFontFamily * nativeFamily, Status status);
-
-protected:
-
-    GpFontFamily    *nativeFamily;
-    mutable Status   lastResult;
-};
-
-static FontFamily *GenericSansSerifFontFamily = NULL;
-static FontFamily *GenericSerifFontFamily     = NULL;
-static FontFamily *GenericMonospaceFontFamily = NULL;
-
-static BYTE GenericSansSerifFontFamilyBuffer[sizeof(FontFamily)] = {0};
-static BYTE GenericSerifFontFamilyBuffer    [sizeof(FontFamily)] = {0};
-static BYTE GenericMonospaceFontFamilyBuffer[sizeof(FontFamily)] = {0};
-#End If
+    Public Declare PtrSafe Function GdipGetFamilyName Lib "gdiplus" (ByVal family As GpFontFamily, ByVal Name As LongPtr, ByVal language As Integer) As GpStatus
+    Public Declare PtrSafe Function GdipCreateFontFamilyFromName Lib "gdiplus" (ByVal Name As LongPtr, ByVal fontCollection As GpFontCollection, fontFamily As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteFontFamily Lib "gdiplus" (ByVal fontFamily As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipCloneFontFamily Lib "gdiplus" (ByVal fontFamily As GpFontFamily, clonedFontFamily As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipIsStyleAvailable Lib "gdiplus" (ByVal family As GpFontFamily, ByVal style As Long, IsStyleAvailable As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetEmHeight Lib "gdiplus" (ByVal family As GpFontFamily, ByVal style As Long, EmHeight As Integer) As GpStatus
+    Public Declare PtrSafe Function GdipGetCellAscent Lib "gdiplus" (ByVal family As GpFontFamily, ByVal style As Long, CellAscent As Integer) As GpStatus
+    Public Declare PtrSafe Function GdipGetCellDescent Lib "gdiplus" (ByVal family As GpFontFamily, ByVal style As Long, CellDescent As Integer) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineSpacing Lib "gdiplus" (ByVal family As GpFontFamily, ByVal style As Long, LineSpacing As Integer) As GpStatus
+End Module

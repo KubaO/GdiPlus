@@ -1,13 +1,4 @@
-Module CachedBitmapModule
-    Type GpCachedBitmap
-        Native As LongPtr
-    End Type
-    
-    Function GpCachedBitmap() As GpCachedBitmap
-        GpCachedBitmap.Native = 0
-    End Function
-End Module
-
+[COMCreatable(False)]
 Class CachedBitmap
     Inherits GdiPlusBase
     Public cb As GpCachedBitmap
@@ -16,30 +7,30 @@ Class CachedBitmap
     Property Get Native() As GpCachedBitmap
         Return cb
     End Property
-
-    Public Static Function GetNative(bitmap As CachedBitmap) As GpCachedBitmap
-        If bitmap IsNot Nothing Then GetNative = bitmap.Native
+    
+    Sub New(bitmap As Bitmap, graphics As Graphics)
+        LastResult = GdipCreateCachedBitmap(GetNative(bitmap), GetNative(graphics), cb)
+    End Sub
+    
+    Sub Class_Terminate()
+        GdipDeleteCachedBitmap(cb)
+    End Sub
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
     End Function
 End Class
 
-#If 0 Then
-class CachedBitmap : public GdiplusBase
-{
-    friend Graphics;
-
-public:
-    CachedBitmap(IN Bitmap *bitmap,
-                 IN Graphics *graphics);
-    virtual ~CachedBitmap();
-
-    Status GetLastStatus() const;
-
-private:
-    CachedBitmap(const CachedBitmap &);
-    CachedBitmap& operator=(const CachedBitmap &);
-
-protected:
-    GpCachedBitmap *nativeCachedBitmap;
-    mutable Status lastResult;
-};
-#End If
+Module CachedBitmapModule
+    Type GpCachedBitmap
+        Native As LongPtr
+    End Type
+    
+    Function GpCachedBitmap() As GpCachedBitmap
+        GpCachedBitmap.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateCachedBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal Graphics As GpGraphics, cachedBitmap As GpCachedBitmap) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteCachedBitmap Lib "gdiplus" (ByVal cachedBitmap As GpCachedBitmap) As GpStatus
+End Module

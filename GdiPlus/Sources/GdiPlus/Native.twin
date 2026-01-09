@@ -98,4 +98,8 @@ Module Native
     Public Function GetNative(for As Pen) As GpPen
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
+    
+    Public Function GetNative(for As CachedBitmap) As GpCachedBitmap
+        If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
+    End Function
 End Module

@@ -118,7 +118,7 @@ Class TextureBrush
         Dim img As GpImage
         SetStatus(GdipGetTextureImage(br, img))
         Set GetImage = New Image(img, LastResult)
-        If GetImage Is Nothing Then img.DisposeImage()
+        If GetImage Is Nothing Then GdipDisposeImage(img)
     End Function
     
     Protected Sub New()

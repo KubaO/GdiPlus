@@ -1,16 +1,73 @@
+Alias PROPID As DWORD
+
 Module ImageModule
     Type GpImage
         Native As LongPtr
-        
-        Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
-        [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
-        Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
     End Type
     
     Function GpImage() As GpImage
         GpImage.Native = 0
     End Function
+    
+    Function FromFile(ByVal filename$, useEmbeddedColorManagement As Boolean = False) As Image
+        Return New Image(filename, useEmbeddedColorManagement)
+    End Function
+    
+    Function FromFile(ByVal stream As IStream, useEmbeddedColorManagement As Boolean = False) As Image
+        Return New Image(stream, useEmbeddedColorManagement)
+    End Function
+
+    Public Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
+    [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
+    Public Declare PtrSafe Function ImageSetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
+    Public Declare PtrSafe Function DisposeImage Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpImage) As GpStatus
+    
+    Public Declare PtrSafe Function GdipLoadImageFromFile Lib "gdiplus" (ByVal FileName As LongPtr, ByRef Image As GpImage) As GpStatus
+    Public Declare PtrSafe Function GdipLoadImageFromFileICM Lib "gdiplus" (ByVal FileName As LongPtr, ByRef Image As GpImage) As GpStatus
+    Public Declare PtrSafe Function GdipLoadImageFromStream Lib "gdiplus" (ByVal stream As IStream, ByRef Image As GpImage) As GpStatus
+    Public Declare PtrSafe Function GdipLoadImageFromStreamICM Lib "gdiplus" (ByVal stream As IStream, ByRef Image As GpImage) As GpStatus
+    Public Declare PtrSafe Function GdipCloneImage Lib "gdiplus" (ByVal Image As GpImage, cloneImage As GpImage) As GpStatus
+    Public DeclareWide PtrSafe Function GdipSaveImageToFile Lib "gdiplus" (ByVal Image As GpImage, ByVal FileName As String, clsidEncoder As UUID, encoderParams As Any) As GpStatus
+    Public Declare PtrSafe Function GdipSaveImageToStream Lib "gdiplus" (ByVal Image As GpImage, ByVal stream As IStream, clsidEncoder As UUID, encoderParams As Any) As GpStatus
+    Public Declare PtrSafe Function GdipDisposeImage Lib "gdiplus" (ByVal Image As GpImage) As GpStatus
+    Public Declare PtrSafe Function GdipSaveAdd Lib "gdiplus" (ByVal Image As GpImage, encoderParams As Any) As GpStatus
+    Public Declare PtrSafe Function GdipSaveAddImage Lib "gdiplus" (ByVal Image As GpImage, ByVal newImage As GpImage, encoderParams As Any) As GpStatus
+    
+    Public Declare PtrSafe Function GdipGetImageBounds Lib "gdiplus" (ByVal Image As GpImage, srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageDimension Lib "gdiplus" (ByVal Image As GpImage, ByRef Width As Single, ByRef Height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageType Lib "gdiplus" (ByVal Image As GpImage, type As ImageType) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageHeight Lib "gdiplus" (ByVal Image As GpImage, Height As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageWidth Lib "gdiplus" (ByVal Image As GpImage, Width As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageHorizontalResolution Lib "gdiplus" (ByVal Image As GpImage, resolution As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageVerticalResolution Lib "gdiplus" (ByVal Image As GpImage, resolution As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageFlags Lib "gdiplus" (ByVal Image As GpImage, flags As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageRawFormat Lib "gdiplus" (ByVal Image As GpImage, Format As UUID) As GpStatus
+    Public Declare PtrSafe Function GdipGetImagePixelFormat Lib "gdiplus" (ByVal Image As GpImage, format As PixelFormat) As GpStatus
+    
+    Public Declare PtrSafe Function GdipGetImagePalette Lib "gdiplus" (ByVal Image As GpImage, palette As ColorPalette, ByVal size As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetImagePalette Lib "gdiplus" (ByVal Image As GpImage, palette As ColorPalette) As GpStatus
+    Public Declare PtrSafe Function GdipGetImagePaletteSize Lib "gdiplus" (ByVal Image As GpImage, size As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageThumbnail Lib "gdiplus" (ByVal Image As GpImage, ByVal thumbWidth As Long, ByVal thumbHeight As Long, thumbImage As GpImage, ByVal callback As LongPtr, callbackData As Any) As GpStatus
+    Public Declare PtrSafe Function GdipImageGetFrameDimensionsCount Lib "gdiplus" (ByVal Image As GpImage, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipImageGetFrameDimensionsList Lib "gdiplus" (ByVal Image As GpImage, dimensionIDs As UUID, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipImageGetFrameCount Lib "gdiplus" (ByVal Image As GpImage, dimensionID As UUID, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipImageSelectActiveFrame Lib "gdiplus" (ByVal Image As GpImage, ByRef dimensionID As UUID, ByVal frameIndex As Long) As GpStatus
+    Public Declare PtrSafe Function GdipImageRotateFlip Lib "gdiplus" (ByVal Image As GpImage, ByVal rfType As RotateFlipType) As GpStatus
+    
+    Public Declare PtrSafe Function GdipGetPropertyCount Lib "gdiplus" (ByVal Image As GpImage, numOfProperty As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetPropertyIdList Lib "gdiplus" (ByVal Image As GpImage, ByVal numOfProperty As Long, list As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetPropertyItemSize Lib "gdiplus" (ByVal Image As GpImage, ByVal propId As Long, ByRef Size As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetPropertyItem Lib "gdiplus" (ByVal Image As GpImage, ByVal propId As Long, ByVal propSize As Long, ByRef buffer As Any) As GpStatus
+    Public Declare PtrSafe Function GdipGetPropertySize Lib "gdiplus" (ByVal Image As GpImage, totalBufferSize As Long, numProperties As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetAllPropertyItems Lib "gdiplus" (ByVal Image As GpImage, ByVal totalBufferSize As Long, ByVal numProperties As Long, allItems As Any) As GpStatus
+    Public Declare PtrSafe Function GdipRemovePropertyItem Lib "gdiplus" (ByVal Image As GpImage, ByVal propId As PROPID) As GpStatus
+    Public Declare PtrSafe Function GdipSetPropertyItem Lib "gdiplus" (ByVal nImage As GpImage, item As PropertyItem) As GpStatus
+    Public Declare PtrSafe Function GdipGetEncoderParameterListSize Lib "gdiplus" (ByVal Image As GpImage, clsidEncoder As UUID, size As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetEncoderParameterList Lib "gdiplus" (ByVal Image As GpImage, clsidEncoder As UUID, ByVal size As Long, buffer As Any) As GpStatus
+    
+    Public Declare PtrSafe Function GdipFindFirstImageItem Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
+    Public Declare PtrSafe Function GdipFindNextImageItem Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageItemData Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
 End Module
 
 [COMCreatable(False)]
@@ -18,139 +75,221 @@ End Module
 Class Image
     Inherits GdiPlusBase
     Public im As GpImage
-    Dim LastResult As GpStatus
+    Protected LastResult As GpStatus
+    Protected LoadStatus As GpStatus
 
     Protected Property Get Native() As GpImage
         Return im
     End Property
     
+    Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
+        If useEmbeddedColorManagement Then
+            LastResult = GdipLoadImageFromFileICM(StrPtr(filename), im)
+        Else
+            LastResult = GdipLoadImageFromFile(StrPtr(filename), im)
+        End If
+    End Sub
+
+    Sub New(stream As IStream, useEmbeddedColorManagement As Boolean = False)
+        If useEmbeddedColorManagement Then
+            LastResult = GdipLoadImageFromStreamICM(stream, im)
+        Else
+            LastResult = GdipLoadImageFromStream(stream, im)
+        End If
+    End Sub
+        
+    Function Clone() As Image
+        Dim cloneImage As GpImage
+        SetStatus(GdipCloneImage(im, cloneImage))
+        Return New Image(cloneImage, LastResult)
+    End Function
+        
+    Sub Class_Terminate()
+        GdipDisposeImage(im)
+    End Sub
+    
+    Function Save(ByVal filename$, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveImageToFile(im, filename, clsidEncoder, encoderParams))
+    End Function
+    
+    Function Save(ByVal stream As IStream, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveImageToStream(im, stream, clsidEncoder, encoderParams))
+    End Function
+
+    Function SaveAdd(encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveAdd(im, encoderParams))
+    End Function
+
+    Function SaveAdd(newImage As Image, encoderParams As EncoderParameters) As GpStatus
+        If newImage Is Nothing Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipSaveAddImage(im, GetNative(newImage), encoderParams))
+    End Function
+
+    Property Get Type() As ImageType
+        Type = ImageTypeUnknown
+        SetStatus(GdipGetImageType(im, Type))
+    End Property
+    
+    Property Get PhysicalDimension() As GpSizeF
+        SetStatus(GdipGetImageDimension(im, PhysicalDimension.Width, PhysicalDimension.Height))
+    End Property
+    
+    Function GetBounds(srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
+        Return SetStatus(GdipGetImageBounds(im, srcRect, srcUnit))
+    End Function
+    
+    Property Get Width() As UINT
+        SetStatus(GdipGetImageWidth(im, Width))
+    End Property
+    
+    Property Get Height() As UINT
+        SetStatus(GdipGetImageHeight(im, Height))
+    End Property
+    
+    Property Get HorizontalResolution!()
+        SetStatus(GdipGetImageHorizontalResolution(im, HorizontalResolution))
+    End Property
+    
+    Property Get VerticalResolution!()
+        SetStatus(GdipGetImageVerticalResolution(im, VerticalResolution))
+    End Property
+    
+    Property Get Flags() As UINT
+        SetStatus(GdipGetImageFlags(im, Flags))
+    End Property
+    
+    Function GetRawFormat(format As UUID) As GpStatus ' or GUID
+        Return SetStatus(GdipGetImageRawFormat(im, format))
+    End Function
+
+    Property Get PixelFormat() As PixelFormat
+        SetStatus(GdipGetImagePixelFormat(im, PixelFormat))
+    End Property
+    
+    Property Get PaletteSize&()
+        SetStatus(GdipGetImagePaletteSize(im, PaletteSize&))
+    End Property
+    
+    Property Get Palette() As ColorPalette()
+        ReDim Palette(1 To PaletteSize)
+        SetStatus(GdipGetImagePalette(im, Palette(1), PaletteSize))
+    End Property
+    
+    Property Let Palette(palette() As ColorPalette)
+        SetStatus(GdipGetImagePalette(im, palette(LBound(palette)), Len(palette)))
+    End Property
+    
+    Function GetPalette(palette As ColorPalette, ByVal count&) As GpStatus
+        Return SetStatus(GdipGetImagePalette(im, palette, count))
+    End Function
+    
+    Function GetThumbnailImage(ByVal thumbWidth&, ByVal thumbHeight&, Optional callback As GetThumbnailImageAbort, callbackData As LongPtr = 0) As Image
+        Dim thumbImage As GpImage
+        SetStatus(GdipGetImageThumbnail(im, thumbWidth, thumbHeight, thumbImage, callback, callbackData))
+        Set GetThumbnailImage = New Image(thumbImage, LastResult)
+        If GetThumbnailImage Is Nothing Then GdipDisposeImage(thumbImage)
+    End Function
+
+    Property Get FrameDimensionsCount&()
+        SetStatus(GdipImageGetFrameDimensionsCount(im, FrameDimensionsCount))
+    End Property
+    
+    Function GetFrameDimensionsList(dimensionIDs As UUID, ByVal count&) As GpStatus
+        Return SetStatus(GdipImageGetFrameDimensionsList(im, dimensionIDs, count))
+    End Function
+    
+    Property Get FrameCount(dimensionID As UUID) As UINT
+        SetStatus(GdipImageGetFrameCount(im, dimensionID, FrameCount))
+    End Property
+
+    Function SelectActiveFrame(dimensionID As UUID, ByVal frameIndex As UINT) As GpStatus
+        Return SetStatus(GdipImageSelectActiveFrame(im, dimensionID, frameIndex))
+    End Function
+
+    Function RotateFlip(ByVal rotateFlipTyp As RotateFlipType) As GpStatus
+        Return SetStatus(GdipImageRotateFlip(im, RotateFlipType))
+    End Function
+
+    Property Get PropertyCount() As UINT
+        SetStatus(GdipGetPropertyCount(im, PropertyCount))
+    End Property
+    
+    Function GetPropertyIdList(ByVal numOfProperty As UINT, list As PROPID) As GpStatus
+        Return SetStatus(GdipGetPropertyIdList(im, numOfProperty, list))
+    End Function
+    
+    Property Get PropertyItemSize(ByVal propId As PROPID) As UINT
+        SetStatus(GdipGetPropertyItemSize(im, propId, PropertyItemSize))
+    End Property
+    
+    Function GetPropertyItem(ByVal propId As PROPID, ByVal propSize As UINT, buffer As PropertyItem) As GpStatus
+        Return SetStatus(GdipGetPropertyItem(im, propId, propSize, buffer))
+    End Function
+    
+    Function GetPropertySize(totalBufferSize As UINT, numProperties As UINT) As GpStatus
+        Return SetStatus(GdipGetPropertySize(im, totalBufferSize, numProperties))
+    End Function
+    
+    Function GetAllPropertyItems(totalBufferSize As UINT, numProperties As UINT, allItems As PropertyItem) As GpStatus
+        If VarPtr(allItems) = vbNullPtr Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipGetAllPropertyItems(im, totalBufferSize, numProperties, allItems))
+    End Function
+    
+    Function RemovePropertyItem(ByVal propId As PROPID) As GpStatus
+        Return SetStatus(GdipRemovePropertyItem(im, propId))
+    End Function
+    
+    Function SetPropertyItem(item As PropertyItem) As GpStatus
+        Return SetStatus(GdipSetPropertyItem(im, item))
+    End Function
+    
+    Property Get EncoderParameterListSize(clsidEncoder As CLSID) As UINT
+        SetStatus(GdipGetEncoderParameterListSize(im, clsidEncoder, EncoderParameterListSize))
+    End Property
+    
+    Function GetEncoderParameterList(clsidEncoder As CLSID, ByVal size As UINT, buffer As EncoderParameters) As GpStatus
+        Return SetStatus(GdipGetEncoderParameterList(im, clsidEncoder, size, buffer))
+    End Function
+
+    '#if (GDIPVER >= 0x0110)
+    Function FindFirstItem(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipFindFirstImageItem(im, item))
+    End Function
+    
+    Function FindNextItem(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipFindNextImageItem(im, item))
+    End Function
+    
+    Function GetItemData(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipGetImageItemData(im, item))
+    End Function
+    
+    Function SetAbort(pIAbort As GdiPlusAbort) As GpStatus
+        Return SetStatus(NotImplemented)
+    End Function
+    '#endif //(GDIPVER >= 0x0110)
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
+    
     Protected Sub New()
     End Sub
-
+    
     Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
+        SetNativeImage(nativeImage)
+        LastResult = status
     End Sub
+    
+    Protected Sub SetNativeImage(ByVal nativeImage As GpImage)
+        im = nativeImage
+    End Sub
+    
+    Protected Function SetStatus(status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
 End Class
-#If 0 Then
-class Image : public GdiplusBase
-{
-public:
-    friend class Brush;
-    friend class TextureBrush;
-    friend class Graphics;
-
-    Image(
-        IN const WCHAR* filename,
-        IN BOOL useEmbeddedColorManagement = FALSE
-    );
-
-    Image(
-        IN IStream* stream,
-        IN BOOL useEmbeddedColorManagement = FALSE
-    );
-
-    static Image* FromFile(
-        IN const WCHAR* filename,
-        IN BOOL useEmbeddedColorManagement = FALSE
-    );
-
-    static Image* FromStream(
-        IN IStream* stream,
-        IN BOOL useEmbeddedColorManagement = FALSE
-    );
-
-    virtual ~Image();
-    virtual Image* Clone();
-
-    Status Save(IN const WCHAR* filename,
-                IN const CLSID* clsidEncoder,
-                IN const EncoderParameters *encoderParams = NULL);
-    Status Save(IN IStream* stream,
-                IN const CLSID* clsidEncoder,
-                IN const EncoderParameters *encoderParams = NULL);
-    Status SaveAdd(IN const EncoderParameters* encoderParams);
-    Status SaveAdd(IN Image* newImage,
-                   IN const EncoderParameters* encoderParams);
-
-    ImageType GetType() const;
-    Status GetPhysicalDimension(OUT SizeF* size);
-    Status GetBounds(OUT RectF* srcRect,
-                     OUT Unit* srcUnit);
-
-    UINT GetWidth();
-    UINT GetHeight();
-    REAL GetHorizontalResolution();
-    REAL GetVerticalResolution();
-    UINT GetFlags();
-    Status GetRawFormat(OUT GUID *format);
-    PixelFormat GetPixelFormat();
-
-    INT GetPaletteSize();
-    Status GetPalette(OUT ColorPalette* palette,
-                      IN INT size);
-    Status SetPalette(IN const ColorPalette* palette);
-
-    Image* GetThumbnailImage(IN UINT thumbWidth,
-                             IN UINT thumbHeight,
-                             IN GetThumbnailImageAbort callback = NULL,
-                             IN VOID* callbackData = NULL);
-    UINT GetFrameDimensionsCount();
-    Status GetFrameDimensionsList(OUT GUID* dimensionIDs,
-                                  IN UINT count);
-    UINT GetFrameCount(IN const GUID* dimensionID);
-    Status SelectActiveFrame(IN const GUID* dimensionID,
-                             IN UINT frameIndex);
-    Status RotateFlip(IN RotateFlipType rotateFlipType);
-    UINT GetPropertyCount();
-    Status GetPropertyIdList(IN UINT numOfProperty,
-                             OUT PROPID* list);
-    UINT GetPropertyItemSize(IN PROPID propId);
-    Status GetPropertyItem(IN PROPID propId,
-                           IN UINT propSize,
-                           OUT PropertyItem* buffer);
-    Status GetPropertySize(OUT UINT* totalBufferSize,
-                           OUT UINT* numProperties);
-    Status GetAllPropertyItems(IN UINT totalBufferSize,
-                               IN UINT numProperties,
-                               OUT PropertyItem* allItems);
-    Status RemovePropertyItem(IN PROPID propId);
-    Status SetPropertyItem(IN const PropertyItem* item);
-
-    UINT  GetEncoderParameterListSize(IN const CLSID* clsidEncoder);
-    Status GetEncoderParameterList(IN const CLSID* clsidEncoder,
-                                   IN UINT size,
-                                   OUT EncoderParameters* buffer);
-'#if (GDIPVER >= 0x0110)
-    Status FindFirstItem(IN ImageItemData *item);
-    Status FindNextItem(IN ImageItemData *item);
-    Status GetItemData(IN ImageItemData *item);
-    Status SetAbort(GdiplusAbort *pIAbort);
-'#endif //(GDIPVER >= 0x0110)
-
-    Status GetLastStatus() const;
-
-protected:
-
-    Image() {}
-
-    Image(GpImage *nativeImage, Status status);
-
-    VOID SetNativeImage(GpImage* nativeImage);
-
-    _Post_equal_to_(status)
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else
-            return status;
-    }
-
-    GpImage* nativeImage;
-    mutable Status lastResult;
-    mutable Status loadStatus;
-
-private:
-    Image(IN const Image& C);
-    Image& operator=(IN const Image& C);
-};
-#End If

@@ -62,7 +62,7 @@ Class Graphics
     
     Sub New(image As Image)
         If image IsNot Nothing Then
-            LastResult = UnprotectedAccess(image).Native.GetImageGraphicsContext(gr)
+            LastResult = GdipGetImageGraphicsContext(UnprotectedAccess(image).Native, gr)
         End If
     End Sub
 
@@ -638,7 +638,7 @@ Class Graphics
         "x, y. Note this will fail with WrongState if the CachedBitmap" & vbCrLf & _
         "native format differs from this Graphics.")]
     Function DrawCachedBitmap(cb As CachedBitmap, ByVal x&, ByVal y&) As GpStatus
-        Return SetStatus(gr.DrawCachedBitmap(cb.GetNative(cb), x, y))
+        Return SetStatus(gr.DrawCachedBitmap(GetNative(cb), x, y))
     End Function
     
     Function DrawImage(image As Image, ByVal point As GpPointF) As GpStatus
@@ -1327,4 +1327,5 @@ Module GraphicsModule
     End Type
     
     Public Declare PtrSafe Function GdipCreateHalftonePalette Lib "gdiplus" () As LongPtr
+    Public Declare PtrSafe Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal Image As GpImage, Graphics As GpGraphics) As GpStatus
 End Module
