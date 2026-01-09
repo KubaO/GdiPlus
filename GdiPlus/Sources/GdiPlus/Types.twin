@@ -638,4 +638,9 @@ Module Types
         CharacterRange.First = first&
         CharacterRange.Length = length
     End Function
+    
+    Public Type ColorMap
+        oldColor As Long
+        newColor As Long
+    End Type
 End Module

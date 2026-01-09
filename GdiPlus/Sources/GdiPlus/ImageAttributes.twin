@@ -1,13 +1,7 @@
 /**************************************************************************\
 *
 * Copyright (c) 1998-2001, Microsoft Corp.  All Rights Reserved.
-*
-* Module Name:
-*
-*   Image Attributes
-*
-* Abstract:
-*
+
 *   GDI+ Image Attributes used with Graphics.DrawImage
 *
 * There are 5 possible sets of color adjustments:
@@ -30,16 +24,6 @@
 *
 \**************************************************************************/
 
-Module ImageAttributesModule
-    Type GpImageAttributes
-        Native As LongPtr
-    End Type
-    
-    Function GpImageAttributes() As GpImageAttributes
-        GpImageAttributes.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class ImageAttributes
     Inherits GdiPlusBase
@@ -52,10 +36,10 @@ Class ImageAttributes
     
     Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
         LastResult = Ok
-        SetNativeImageAttributes(nativeAttributes)
+        SetNativeAttributes(nativeAttributes)
     End Sub
     
-    Protected Sub SetNativeImageAttributes(ByVal nativeAttributes As GpImageAttributes)
+    Protected Sub SetNativeAttributes(ByVal nativeAttributes As GpImageAttributes)
         ia = nativeAttributes
     End Sub
 
@@ -65,345 +49,164 @@ Class ImageAttributes
         End If
         Return status
     End Function
+    
+    Sub New()
+        LastResult = GdipCreateImageAttributes(ia)
+    End Sub
+    
+    Sub Class_Terminate()
+        GdipDisposeImageAttributes(ia)
+    End Sub
+    
+    Function Clone() As ImageAttributes
+        Dim nativeClone As GpImageAttributes
+        SetStatus(GdipCloneImageAttributes(ia, nativeClone))
+        If LastResult = Ok Then Set Clone = New ImageAttributes(nativeClone)
+    End Function
+    
+    Function SetToIdentity(ByVal type As ColorAdjustType = coloradjusttypedefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesToIdentity(ia, type))
+    End Function
+    
+    Function Reset(ByVal type As ColorAdjustType = coloradjusttypedefault) As GpStatus
+        Return SetStatus(GdipResetImageAttributes(ia, type))
+    End Function
+
+    Function SetColorMatrix(colorMatrix As ColorMatrix, _
+            ByVal mode As ColorMatrixFlags = colormatrixflagsdefault, _
+            ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Dim nullMatrix As ColorMatrix ' should be a null reference
+        Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, True, colorMatrix, nullMatrix, mode))
+    End Function
+    
+    Function ClearColorMatrix(type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Dim nullMatrix As ColorMatrix ' should be a null reference
+        Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, False, nullMatrix, nullMatrix, ColorMatrixFlagsDefault))
+    End Function
+    
+    Function SetColorMatrices(colorMatrix As ColorMatrix, grayMatrix As ColorMatrix, _
+            ByVal mode As ColorMatrixFlags = ColorMatrixFlagsDefault, _
+            ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, True, colorMatrix, grayMatrix, mode))
+    End Function
+
+    Function ClearColorMatrices(type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Dim nullMatrix As ColorMatrix ' should be a null reference
+        Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, False, nullMatrix, nullMatrix, ColorMatrixFlagsDefault))
+    End Function
+    
+    Function SetThreshold(ByVal threshold!, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesThreshold(ia, type, True, threshold))
+    End Function
+
+    Function ClearThreshold(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesThreshold(ia, type, False, 0.0!))
+    End Function
+    
+    Function SetGamma(ByVal gamma!, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesGamma(ia, type, True, gamma))
+    End Function
+
+    Function ClearGamma(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesGamma(ia, type, False, 0.0!))
+    End Function
+    
+    Function SetNoOp(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesNoOp(ia, type, True))
+    End Function
+
+    Function ClearNoOp(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesNoOp(ia, type, False))
+    End Function
+
+    Function SetColorKey(ByVal colorLow As Color, ByVal colorHigh As Color, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesColorKeys(ia, type, True, colorLow, colorHigh))
+    End Function
+
+    Function ClearColorKey(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesColorKeys(ia, type, False, Color(), Color()))
+    End Function
+
+    Function SetOutputChannel(ByVal channelFlags As ColorChannelFlags, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesOutputChannel(ia, type, True, channelFlags))
+    End Function
+
+    Function ClearOutputChannel(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesOutputChannel(ia, type, False, ColorChannelFlagsLast))
+    End Function
+    
+    Function SetOutputChannelColorProfile(ByVal colorProfileFilename As String, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesOutputChannelColorProfile(ia, type, True, StrPtr(colorProfileFilename)))
+    End Function
+
+    Function SetOutputChannelColorProfile(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesOutputChannelColorProfile(ia, type, False, vbNullPtr))
+    End Function
+
+    Function SetRemapTable(map() As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesRemapTable(ia, type, True, Len(map), map(LBound(map))))
+    End Function
+
+    Function SetRemapTable(ByVal mapSize&, map As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesRemapTable(ia, type, True, mapSize, map))
+    End Function
+
+    Function ClearRemapTable(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesRemapTable2(ia, type, False, 0, vbNullPtr))
+    End Function
+    
+    Function SetBrushRemapTable(ByVal mapSize&, map As ColorMap) As GpStatus
+        Return SetRemapTable(mapSize, map, ColorAdjustTypeBrush)
+    End Function
+
+    Function ClearBrushRemapTable(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return ClearRemapTable(ColorAdjustTypeBrush)
+    End Function
+    
+    Function SetWrapMode(ByVal wrap As GpWrapMode, ByVal color As Color, ByVal clamp As Boolean = False) As GpStatus
+        Return SetStatus(GdipSetImageAttributesWrapMode(ia, wrap, color, clamp))
+    End Function
+    
+    ' The flags of the palette are ignored.
+    Function GetAdjustedPalette(colorPalette As ColorPalette, ByVal colorAdjustType As ColorAdjustType) As GpStatus
+        Return SetStatus(GdipGetImageAttributesAdjustedPalette(ia, colorPalette, colorAdjustType))
+    End Function
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
+    
+    Protected Sub New(ByVal imageAttr As GpImageAttributes, ByVal status As GpStatus)
+        SetNativeAttributes(imageAttr)
+        LastResult = status
+    End Sub
 End Class
 
-#If 0 Then
-class ImageAttributes : public GdiplusBase
-{
-    friend class Graphics;
-    friend class TextureBrush;
-
-public:
-
-    ImageAttributes()
-    {
-        nativeImageAttr = NULL;
-        lastResult = DllExports::GdipCreateImageAttributes(&nativeImageAttr);
-    }
-
-    ~ImageAttributes()
-    {
-        DllExports::GdipDisposeImageAttributes(nativeImageAttr);
-    }
-
-    ImageAttributes* Clone() const
-    {
-        GpImageAttributes* clone;
-
-        SetStatus(DllExports::GdipCloneImageAttributes(
-                                            nativeImageAttr,
-                                            &clone));
-
-        return new ImageAttributes(clone, lastResult);
-    }
-
-    Status
-    SetToIdentity(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesToIdentity(
-                                            nativeImageAttr,
-                                            type));
-    }
-
-    Status
-    Reset(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipResetImageAttributes(
-                                            nativeImageAttr,
-                                            type));
-    }
-
-    Status
-    SetColorMatrix(
-        IN const ColorMatrix *colorMatrix,
-        IN ColorMatrixFlags mode = ColorMatrixFlagsDefault,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorMatrix(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            colorMatrix,
-                                            NULL,
-                                            mode));
-    }
-
-    Status ClearColorMatrix(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorMatrix(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            NULL,
-                                            NULL,
-                                            ColorMatrixFlagsDefault));
-    }
-
-    Status
-    SetColorMatrices(
-        IN const ColorMatrix *colorMatrix,
-        IN const ColorMatrix *grayMatrix,
-        IN ColorMatrixFlags mode = ColorMatrixFlagsDefault,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorMatrix(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            colorMatrix,
-                                            grayMatrix,
-                                            mode));
-    }
-
-    Status ClearColorMatrices(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorMatrix(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            NULL,
-                                            NULL,
-                                            ColorMatrixFlagsDefault));
-    }
-
-    Status SetThreshold(
-        IN REAL threshold,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesThreshold(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            threshold));
-    }
-
-    Status ClearThreshold(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesThreshold(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            0.0));
-    }
-
-    Status SetGamma(
-        IN REAL gamma,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesGamma(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            gamma));
-    }
-
-    Status ClearGamma(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesGamma(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            0.0));
-    }
-
-    Status SetNoOp(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesNoOp(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE));
-    }
-
-    Status ClearNoOp(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesNoOp(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE));
-    }
-
-    Status SetColorKey(
-        IN const Color& colorLow, 
-        IN const Color& colorHigh,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorKeys(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            colorLow.GetValue(),
-                                            colorHigh.GetValue()));
-    }
-
-    Status ClearColorKey(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesColorKeys(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            NULL,
-                                            NULL));
-    }
-
-    Status SetOutputChannel(
-        IN ColorChannelFlags channelFlags,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesOutputChannel(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            channelFlags));
-    }
+Module ImageAttributesModule
+    Type GpImageAttributes
+        Native As LongPtr
+    End Type
     
-    Status ClearOutputChannel(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesOutputChannel(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            ColorChannelFlagsLast));
-    }
-
-    Status SetOutputChannelColorProfile(
-        IN const WCHAR *colorProfileFilename,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesOutputChannelColorProfile(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            colorProfileFilename));
-    }
+    Function GpImageAttributes() As GpImageAttributes
+        GpImageAttributes.Native = 0
+    End Function
     
-    Status ClearOutputChannelColorProfile(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesOutputChannelColorProfile(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            NULL));
-    }
-    
-    Status SetRemapTable(
-        IN UINT mapSize, 
-        IN const ColorMap *map,
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesRemapTable(
-                                            nativeImageAttr,
-                                            type,
-                                            TRUE,
-                                            mapSize,
-                                            map));
-    }
-
-    Status ClearRemapTable(
-        IN ColorAdjustType type = ColorAdjustTypeDefault
-        )
-    {
-        return SetStatus(DllExports::GdipSetImageAttributesRemapTable(
-                                            nativeImageAttr,
-                                            type,
-                                            FALSE,
-                                            0,
-                                            NULL));
-    }
-
-    Status SetBrushRemapTable(IN UINT mapSize, 
-                              IN const ColorMap *map)
-    {
-        return this->SetRemapTable(mapSize, map, ColorAdjustTypeBrush);
-    }
-
-    Status ClearBrushRemapTable()
-    {
-        return this->ClearRemapTable(ColorAdjustTypeBrush);
-    }
-
-    Status SetWrapMode(IN WrapMode wrap, 
-                       IN const Color& color = Color(), 
-                       IN BOOL clamp = FALSE) 
-    {
-        ARGB argb = color.GetValue();
-
-        return SetStatus(DllExports::GdipSetImageAttributesWrapMode(
-                           nativeImageAttr, wrap, argb, clamp));
-    }
-
-    // The flags of the palette are ignored.
-
-    Status GetAdjustedPalette(IN OUT ColorPalette* colorPalette,
-                              IN ColorAdjustType colorAdjustType) const 
-    {
-        return SetStatus(DllExports::GdipGetImageAttributesAdjustedPalette(
-                           nativeImageAttr, colorPalette, colorAdjustType));
-    }
-
-    Status GetLastStatus() const
-    {
-        Status lastStatus = lastResult;
-        lastResult = Ok;
-    
-        return lastStatus;
-    }
-    
-private:
-    ImageAttributes(const ImageAttributes &);
-    ImageAttributes& operator=(const ImageAttributes &);
-
-protected:
-    ImageAttributes(GpImageAttributes* imageAttr, Status status)
-    {
-        SetNativeImageAttr(imageAttr);
-        lastResult = status;
-    }
-
-    VOID SetNativeImageAttr(GpImageAttributes* nativeImageAttrArg)
-    {
-        this->nativeImageAttr = nativeImageAttrArg;
-    }
-    
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else 
-            return status;
-    }
-
-protected:
-    GpImageAttributes* nativeImageAttr;
-    mutable Status lastResult;
-};
-#End If
+    Public Declare PtrSafe Function GdipCreateImageAttributes Lib "gdiplus" (imageattr As GpImageAttributes) As GpStatus
+    Public Declare PtrSafe Function GdipCloneImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes, cloneImageattr As GpImageAttributes) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesColorMatrix Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, colourMatrix As ColorMatrix, grayMatrix As ColorMatrix, ByVal flags As ColorMatrixFlags) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesToIdentity Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType) As GpStatus
+    Public Declare PtrSafe Function GdipDisposeImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesThreshold Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal threshold As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesGamma Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal gamma As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesNoOp Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesColorKeys Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal colorLow As Color, ByVal colorHigh As Color) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesOutputChannel Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal channelFlags As ColorChannelFlags) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesOutputChannelColorProfile Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal colorProfileFilename As LongPtr) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesRemapTable Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal mapSize As Long, map As ColorMap) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesRemapTable2 Lib "gdiplus" Alias "GdipSetImageAttributesRemapTable" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal mapSize As Long, ByVal map As LongPtr) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesWrapMode Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal wrap As GpWrapMode, ByVal color As Color, ByVal bClamp As Long) As GpStatus
+    Public Declare PtrSafe Function GdipSetImageAttributesICMMode Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal on As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageAttributesAdjustedPalette Lib "gdiplus" (ByVal imageattr As GpImageAttributes, colorPalette As ColorPalette, ByVal colorAdjustType As ColorAdjustType) As GpStatus
+    Public Declare PtrSafe Function GdipResetImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType) As GpStatus
+End Module
