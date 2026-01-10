@@ -1,13 +1,3 @@
-Module PathIteratorModule
-    Type GpPathIterator
-        Native As LongPtr
-    End Type
-    
-    Function GpPathIterator() As GpPathIterator
-        GpPathIterator.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class PathIterator
     Inherits GdiPlusBase
@@ -20,10 +10,10 @@ Class PathIterator
     
     Protected Sub New(ByVal nativeIterator As GpPathIterator)
         LastResult = Ok
-        SetNativePathIterator(nativeIterator)
+        SetNativeIterator(nativeIterator)
     End Sub
     
-    Protected Sub SetNativePathIterator(ByVal nativeIterator As GpPathIterator)
+    Protected Sub SetNativeIterator(ByVal nativeIterator As GpPathIterator)
         pi = nativeIterator
     End Sub
 
@@ -33,185 +23,94 @@ Class PathIterator
         End If
         Return status
     End Function
+    
+    Sub New(path As GraphicsPath)
+        Dim iter As GpPathIterator
+        LastResult = GdipCreatePathIter(iter, GetNative(path))
+        SetNativeIterator(iter)
+    End Sub
+    
+    Sub Class_Terminate()
+        GdipDeletePathIter(pi)
+    End Sub
+    
+    Function NextSubpath&(startIndex&, endIndex&, isClosed As Boolean)
+        Dim booln As BOOL
+        SetStatus(GdipPathIterNextSubpath(pi, NextSubpath, startIndex, endIndex, booln))
+        isClosed = booln
+    End Function
+    
+    Function NextSubPath&(path As GraphicsPath, isClosed As Boolean)
+        Dim booln As BOOL
+        SetStatus(GdipPathIterNextSubpathPath(pi, NextSubPath, GetNative(path), booln))
+        isClosed = booln
+    End Function
+    
+    Function NextPathType&(pathType As Byte, startIndex&, endIndex&)
+        SetStatus(GdipPathIterNextPathType(pi, NextPathType, pathType, startIndex, endIndex))
+    End Function
+    
+    Function NextMarker&(startIndex&, endIndex&)
+        SetStatus(GdipPathIterNextMarker(pi, NextMarker, startIndex, endIndex))
+    End Function
+    
+    Function NextMarker&(path As GraphicsPath)
+        SetStatus(GdipPathIterNextMarkerPath(pi, NextMarker, GetNative(path)))
+    End Function
+    
+    Property Get Count&()
+        SetStatus(GdipPathIterGetCount(pi, Count))
+    End Property
+    
+    Property Get SubpathCount&()
+        SetStatus(GdipPathIterGetSubpathCount(pi, SubpathCount))
+    End Property
+    
+    Property Get HasCurve() As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipPathIterHasCurve(pi, booln))
+        Return booln
+    End Property
+    
+    Sub Rewind()
+        SetStatus(GdipPathIterRewind(pi))
+    End Sub
+    
+    Function Enumerate&(points As GpPointF, types As Byte, ByVal count&)
+        SetStatus(GdipPathIterEnumerate(pi, Enumerate, points, types, count))
+    End Function
+    
+    Function CopyData&(points As GpPointF, types As Byte, ByVal startIndex&, ByVal endIndex&)
+        SetStatus(GdipPathIterCopyData(pi, CopyData&, points, types, startIndex, endIndex))
+    End Function
+    
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
 End Class
 
-#If 0 Then
-class GraphicsPathIterator : public GdiplusBase
-{
-public:
-
-    GraphicsPathIterator(IN const GraphicsPath* path)
-    {
-        GpPath* nativePath = NULL;
-        if(path)
-            nativePath = path->nativePath;
-
-        GpPathIterator *iter = NULL;
-        lastResult = DllExports::GdipCreatePathIter(&iter, nativePath);
-        SetNativeIterator(iter);
-    }
-
-    ~GraphicsPathIterator()
-    {
-        DllExports::GdipDeletePathIter(nativeIterator);
-    }
-
-
-    INT NextSubpath(OUT INT* startIndex,
-                    OUT INT* endIndex,
-                    OUT BOOL* isClosed)
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterNextSubpath(nativeIterator,
-            &resultCount, startIndex, endIndex, isClosed));
-
-        return resultCount;
-    }
-
-
-    INT NextSubpath(OUT const GraphicsPath* path, 
-                    OUT BOOL* isClosed)
-    {
-        GpPath* nativePath = NULL;
-
-        INT resultCount;
-
-        if(path)
-            nativePath= path->nativePath;
-
-        SetStatus(DllExports::GdipPathIterNextSubpathPath(nativeIterator,
-            &resultCount, nativePath, isClosed));
-
-        return resultCount;
-    }
-
-    INT NextPathType(_Out_ BYTE* pathType, 
-                     _Out_ INT* startIndex, 
-                     _Out_ INT* endIndex)
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterNextPathType(nativeIterator,
-            &resultCount, pathType, startIndex, endIndex));
-
-        return resultCount;
-    }
-
-    INT NextMarker(OUT INT* startIndex, 
-                   OUT INT* endIndex)
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterNextMarker(nativeIterator,
-            &resultCount, startIndex, endIndex));
-
-        return resultCount;
-    }
-
-
-    INT NextMarker(OUT const GraphicsPath* path)
-    {
-        GpPath* nativePath = NULL;
-
-        INT resultCount;
-
-        if(path)
-            nativePath= path->nativePath;
-
-        SetStatus(DllExports::GdipPathIterNextMarkerPath(nativeIterator,
-            &resultCount, nativePath));
-
-        return resultCount;
-    }
-
-    INT GetCount() const
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterGetCount(nativeIterator, 
-                                                   &resultCount));
-
-        return resultCount;
-    }
-
-    INT GetSubpathCount() const
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterGetSubpathCount(nativeIterator, 
-                                                          &resultCount));
-
-        return resultCount;
-    }
-
-    BOOL HasCurve() const
-    {
-        BOOL hasCurve;
-
-        SetStatus(DllExports::GdipPathIterHasCurve(nativeIterator, &hasCurve));
-
-        return hasCurve;
-    }
-
-    VOID Rewind()
-    {
-        SetStatus(DllExports::GdipPathIterRewind(nativeIterator));
-    }
-
-    INT Enumerate(_Out_writes_to_(count, return) PointF *points,
-                  _Out_writes_to_(count, return) BYTE *types, 
-                  _In_ INT count)
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterEnumerate(nativeIterator,
-            &resultCount, points, types, count));
-
-        return resultCount;
-    }
-
-    INT CopyData(_Out_writes_to_(endIndex-startIndex+1, return) PointF* points, 
-                 _Out_writes_to_(endIndex-startIndex+1, return) BYTE* types,
-                 _In_ INT startIndex, 
-                 _In_ INT endIndex)
-    {
-        INT resultCount;
-
-        SetStatus(DllExports::GdipPathIterCopyData(nativeIterator,
-            &resultCount, points, types, startIndex, endIndex));
-
-        return resultCount;
-    }
-
-    Status GetLastStatus() const
-    {
-        Status lastStatus = lastResult;
-        lastResult = Ok;
-
-        return lastStatus;
-    }
-
-private:
-    GraphicsPathIterator(const GraphicsPathIterator &);
-    GraphicsPathIterator& operator=(const GraphicsPathIterator &);
-
-protected:
-    VOID SetNativeIterator(GpPathIterator *nativeIteratorArg)
-    {
-        this->nativeIterator = nativeIteratorArg;
-    }
-
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else
-            return status;
-    }
-
-protected:
-    GpPathIterator* nativeIterator;
-    mutable Status lastResult;
-};
-#End If
+Module PathIteratorModule
+    Type GpPathIterator
+        Native As LongPtr
+    End Type
+    
+    Function GpPathIterator() As GpPathIterator
+        GpPathIterator.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreatePathIter Lib "gdiplus" (iterator As GpPathIterator, ByVal Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipDeletePathIter Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterNextSubpath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long, isClosed As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterNextSubpathPath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, ByVal path As GpPath, isClosed As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterNextPathType Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, pathType As Byte, startIndex As Long, endIndex As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterNextMarker Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterNextMarkerPath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, ByVal path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterGetCount Lib "gdiplus" (ByVal iterator As GpPathIterator, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterGetSubpathCount Lib "gdiplus" (ByVal iterator As GpPathIterator, count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterIsValid Lib "gdiplus" (ByVal iterator As GpPathIterator, valid As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterHasCurve Lib "gdiplus" (ByVal iterator As GpPathIterator, hasCurve As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterRewind Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterEnumerate Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As POINTF, types As Byte, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterCopyData Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As POINTF, types As Byte, ByVal startIndex As Long, ByVal endIndex As Long) As GpStatus
+End Module
