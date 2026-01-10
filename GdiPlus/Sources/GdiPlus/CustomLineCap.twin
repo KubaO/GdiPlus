@@ -1,13 +1,3 @@
-Module CustomLineCapModule
-    Type GpCustomLineCap
-        Native As LongPtr
-    End Type
-    
-    Function GpCustomLineCap() As GpCustomLineCap
-        GpCustomLineCap.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class CustomLineCap
     Inherits GdiPlusBase
@@ -33,228 +23,109 @@ Class CustomLineCap
         End If
         Return status
     End Function
+    
+    Sub New(fillPath As GraphicsPath, strokepath As GraphicsPath, ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0)
+        Dim nativeCap As GpCustomLineCap
+        LastResult = GdipCreateCustomLineCap(GetNative(fillPath), GetNative(strokepath), baseCap, baseInset, nativeCap)
+        SetNativeLineCap(nativeCap)
+    End Sub
+    
+    Sub Class_Terminate()
+        GdipDeleteCustomLineCap(lc)
+    End Sub
+    
+    Function Clone() As CustomLineCap
+        Dim newNativeLineCap As GpCustomLineCap
+        SetStatus(GdipCloneCustomLineCap(lc, newNativeLineCap))
+        If LastResult = Ok Then Set Clone = New CustomLineCap(newNativeLineCap, LastResult)
+    End Function
+    
+    ' This changes both the start and end cap.
+    Property Let StrokeCap(strokeCap As GpLineCap)
+        SetStrokeCaps(strokeCap, strokeCap)
+    End Property
+    
+    Function SetStrokeCap(ByVal strokeCap As GpLineCap) As GpStatus
+        Return SetStrokeCaps(strokeCap, strokeCap)
+    End Function
+    
+    Function SetStrokeCaps(ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+        Return SetStatus(GdipSetCustomLineCapStrokeCaps(lc, startCap, endCap))
+    End Function
+    
+    Function GetStrokeCaps(startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+        Return SetStatus(GdipGetCustomLineCapStrokeCaps(lc, startCap, endCap))
+    End Function
+
+    Property Let StrokeJoin(ByVal lineJoin As GpLineJoin)
+        SetStatus(GdipSetCustomLineCapStrokeJoin(lc, lineJoin))
+    End Property
+    
+    Property Get StrokeJoin() As GpLineJoin
+        SetStatus(GdipGetCustomLineCapStrokeJoin(lc, StrokeJoin))
+    End Property
+    
+    Property Let BaseCap(ByVal baseCap As GpLineCap)
+        SetStatus(GdipSetCustomLineCapBaseCap(lc, baseCap))
+    End Property
+    
+    Property Get BaseCap() As GpLineCap
+        SetStatus(GdipGetCustomLineCapBaseCap(lc, BaseCap))
+    End Property
+        
+    Property Let BaseInset(ByVal inset!)
+        SetStatus(GdipSetCustomLineCapBaseInset(lc, inset))
+    End Property
+    
+    Property Get BaseInset!()
+        Return SetStatus(GdipSetCustomLineCapBaseInset(lc, BaseInset))
+    End Property
+        
+    Property Let WidthScale(ByVal widthScale!)
+        SetStatus(GdipSetCustomLineCapWidthScale(lc, widthScale))
+    End Property
+    
+    Property Get WidthScale!()
+        SetStatus(GdipGetCustomLineCapWidthScale(lc, WidthScale))
+    End Property
+
+    Function GetLastStatus() As GpStatus
+        GetLastStatus = LastResult
+        LastResult = Ok
+    End Function
+    
+    Protected Sub New()
+        lc.Native = vbNullPtr
+        LastResult = Ok
+    End Sub
+    
+    Protected Sub New(nativeCapArg As GpCustomLineCap, status As GpStatus)
+        LastResult = status
+        SetNativeLineCap(nativeCapArg)
+    End Sub
 End Class
 
-#If 0 Then
-class CustomLineCap : public GdiplusBase
-{
-public:
-    friend class Pen;
-
-    CustomLineCap(
-        IN const GraphicsPath* fillPath,
-        IN const GraphicsPath* strokePath,
-        IN LineCap baseCap = LineCapFlat,
-        IN REAL baseInset = 0
-        );
-    virtual ~CustomLineCap();
-
-    CustomLineCap* Clone() const;
-
-    // This changes both the start and end cap.
-
-    Status SetStrokeCap(IN LineCap strokeCap)
-    {
-        return SetStrokeCaps(strokeCap, strokeCap);
-    }
-
-    Status SetStrokeCaps(IN LineCap startCap,
-                         IN LineCap endCap);
-    Status GetStrokeCaps(OUT LineCap* startCap,
-                         OUT LineCap* endCap) const;
-    Status SetStrokeJoin(IN LineJoin lineJoin);
-    LineJoin GetStrokeJoin() const;
-    Status SetBaseCap(IN LineCap baseCap);
-    LineCap GetBaseCap() const;
-    Status SetBaseInset(IN REAL inset);
-    REAL GetBaseInset() const;
-    Status SetWidthScale(IN REAL widthScale);
-    REAL GetWidthScale() const;
-    Status GetLastStatus() const;
-
-protected:
-    CustomLineCap();
-
-private:
-    CustomLineCap(const CustomLineCap &);
-    CustomLineCap& operator=(const CustomLineCap &);
-
-protected:
-    CustomLineCap(GpCustomLineCap* nativeCapArg, Status status)
-    {
-        lastResult = status;
-        SetNativeCap(nativeCapArg);
-    }
-
-    VOID SetNativeCap(GpCustomLineCap* nativeCapArg)
-    {
-        this->nativeCap = nativeCapArg;
-    }
-
-    _Post_equal_to_(status)
-    Status SetStatus(Status status) const
-    {
-        if (status != Ok)
-            return (lastResult = status);
-        else
-            return status;
-    }
-
-protected:
-    GpCustomLineCap* nativeCap;
-    mutable Status lastResult;
-};
-
-inline 
-CustomLineCap::CustomLineCap(
-    IN const GraphicsPath* fillPath,
-    IN const GraphicsPath* strokePath,
-    IN LineCap baseCap,
-    IN REAL baseInset
-    )
-{
-    nativeCap = NULL;
-    GpPath* nativeFillPath = NULL;
-    GpPath* nativeStrokePath = NULL;
-
-    if(fillPath)
-        nativeFillPath = fillPath->nativePath;
-    if(strokePath)
-        nativeStrokePath = strokePath->nativePath;
-
-    lastResult = DllExports::GdipCreateCustomLineCap(
-                    nativeFillPath, nativeStrokePath,
-                    baseCap, baseInset, &nativeCap);
-}
-
-inline 
-CustomLineCap::CustomLineCap()
-{
-    nativeCap = NULL;
-    lastResult = Ok;
-}
-
-inline 
-CustomLineCap::~CustomLineCap()
-{
-    DllExports::GdipDeleteCustomLineCap(nativeCap);
-}
-
-inline Status 
-CustomLineCap::SetStrokeCaps(
-    IN LineCap startCap, 
-    IN LineCap endCap)
-{
-    return SetStatus(DllExports::GdipSetCustomLineCapStrokeCaps(nativeCap,
-                startCap, endCap));
-}
-
-inline Status 
-CustomLineCap::GetStrokeCaps(
-    OUT LineCap* startCap, 
-    OUT LineCap* endCap) const
-{
-    return SetStatus(DllExports::GdipGetCustomLineCapStrokeCaps(nativeCap,
-                 startCap, endCap));
-}
-
-inline Status 
-CustomLineCap::SetStrokeJoin(
-    IN LineJoin lineJoin)
-{
-    return SetStatus(DllExports::GdipSetCustomLineCapStrokeJoin(nativeCap, 
-                                                                lineJoin));
-}
-
-inline LineJoin 
-CustomLineCap::GetStrokeJoin() const
-{
-    LineJoin lineJoin;
-
-    SetStatus(DllExports::GdipGetCustomLineCapStrokeJoin(nativeCap, 
-                                                         &lineJoin));
-
-    return lineJoin;
-}
-
-inline Status 
-CustomLineCap::SetBaseCap(IN LineCap baseCap)
-{
-    return SetStatus(DllExports::GdipSetCustomLineCapBaseCap(nativeCap, 
-                                                             baseCap));
-}
-
-inline LineCap 
-CustomLineCap::GetBaseCap() const
-{
-    LineCap baseCap;
-    SetStatus(DllExports::GdipGetCustomLineCapBaseCap(nativeCap, &baseCap));
-
-    return baseCap;
-}
-
-inline Status 
-CustomLineCap::SetBaseInset(IN REAL inset)
-{
-    return SetStatus(DllExports::GdipSetCustomLineCapBaseInset(nativeCap, 
-                                                               inset));
-}
-
-inline REAL 
-CustomLineCap::GetBaseInset() const
-{
-    REAL inset;
-    SetStatus(DllExports::GdipGetCustomLineCapBaseInset(nativeCap, &inset));
-
-    return inset;
-}
-
-
-inline Status 
-CustomLineCap::SetWidthScale(IN REAL widthScale)
-{
-    return SetStatus(DllExports::GdipSetCustomLineCapWidthScale(nativeCap, 
-                                                                widthScale));
-}
-
-inline REAL 
-CustomLineCap::GetWidthScale() const
-{
-    REAL widthScale;
-    SetStatus(DllExports::GdipGetCustomLineCapWidthScale(nativeCap, 
-                                                         &widthScale));
-
-    return widthScale;
-}
-
-inline CustomLineCap* 
-CustomLineCap::Clone() const
-{
-    GpCustomLineCap *newNativeLineCap = NULL;
+Module CustomLineCapModule
+    Type GpCustomLineCap
+        Native As LongPtr
+    End Type
     
-    SetStatus(DllExports::GdipCloneCustomLineCap(nativeCap, 
-                                                 &newNativeLineCap));
-
-    if (lastResult == Ok) 
-    {
-        CustomLineCap *newLineCap = new CustomLineCap(newNativeLineCap, 
-                                                      lastResult);
-        if (newLineCap == NULL) 
-        {
-            SetStatus(DllExports::GdipDeleteCustomLineCap(newNativeLineCap));
-        }
-
-        return newLineCap;
-    }
-
-    return NULL;
-}
-
-inline Status 
-CustomLineCap::GetLastStatus() const 
-{
-    Status lastStatus = lastResult;
-    lastResult = Ok;    
-    return (lastStatus);
-}
-#End If
+    Function GpCustomLineCap() As GpCustomLineCap
+        GpCustomLineCap.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipCreateCustomLineCap Lib "gdiplus" (ByVal fillPath As GpPath, ByVal strokePath As GpPath, ByVal baseCap As GpLineCap, ByVal baseInset As Single, customCap As GpCustomLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteCustomLineCap Lib "gdiplus" (ByVal customCap As GpCustomLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipCloneCustomLineCap Lib "gdiplus" (ByVal customCap As GpCustomLineCap, clonedCap As GpCustomLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapType Lib "gdiplus" (ByVal customCap As GpCustomLineCap, capType As CustomLineCapType) As GpStatus
+    Public Declare PtrSafe Function GdipSetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal customCap As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal customCap As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipSetCustomLineCapStrokeJoin Lib "gdiplus" (ByVal customCap As GpCustomLineCap, ByVal lineJoin As GpLineJoin) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapStrokeJoin Lib "gdiplus" (ByVal customCap As GpCustomLineCap, lineJoin As GpLineJoin) As GpStatus
+    Public Declare PtrSafe Function GdipSetCustomLineCapBaseCap Lib "gdiplus" (ByVal customCap As GpCustomLineCap, ByVal baseCap As GpLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapBaseCap Lib "gdiplus" (ByVal customCap As GpCustomLineCap, baseCap As GpLineCap) As GpStatus
+    Public Declare PtrSafe Function GdipSetCustomLineCapBaseInset Lib "gdiplus" (ByVal customCap As GpCustomLineCap, ByVal inset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapBaseInset Lib "gdiplus" (ByVal customCap As GpCustomLineCap, inset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetCustomLineCapWidthScale Lib "gdiplus" (ByVal customCap As GpCustomLineCap, ByVal widthScale As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapWidthScale Lib "gdiplus" (ByVal customCap As GpCustomLineCap, widthScale As Single) As GpStatus
+End Module
