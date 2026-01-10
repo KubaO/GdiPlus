@@ -68,6 +68,7 @@ Module ImageModule
     Public Declare PtrSafe Function GdipFindFirstImageItem Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
     Public Declare PtrSafe Function GdipFindNextImageItem Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
     Public Declare PtrSafe Function GdipGetImageItemData Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
+    Public Declare PtrSafe Function GdipImageSetAbort Lib "gdiplus" (ByVal image As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
 End Module
 
 [COMCreatable(False)]
@@ -265,7 +266,7 @@ Class Image
     End Function
     
     Function SetAbort(pIAbort As GdiPlusAbort) As GpStatus
-        Return SetStatus(NotImplemented)
+        Return SetStatus(GdipImageSetAbort(im, pIAbort))
     End Function
     '#endif //(GDIPVER >= 0x0110)
     

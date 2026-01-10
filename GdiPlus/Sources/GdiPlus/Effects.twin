@@ -13,7 +13,7 @@ Class Effect
         PropUseAuxData = False
     End Sub
 
-    Protected Property Get Native() As GpEffect
+    Property Get Native() As GpEffect
         If VarPtr(Me) <> 0 Then Native = Me.fx
     End Property
         
@@ -50,11 +50,17 @@ Class Effect
         Return PropAuxData
     End Property
     
-    Function GetAuxData() As LongPtr
-        Return PropAuxData
-    End Function
+    Sub SetAuxData(ByVal auxData As LongPtr, ByVal auxDataSize&)
+        If PropAuxData <> 0 Then GdipFree(auxData)
+        PropAuxData = auxData
+        PropAuxDataSize = auxDataSize&
+    End Sub
     
-    Property Set UseAuxData(ByVal useAuxDataFlag As Boolean)
+    Property Get UseAuxData() As BOOL
+        Return PropUseAuxData
+    End Property
+    
+    Property Let UseAuxData(ByVal useAuxDataFlag As Boolean)
         PropUseAuxData = useAuxDataFlag
     End Property
     
