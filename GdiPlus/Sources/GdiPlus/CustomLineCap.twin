@@ -1,8 +1,8 @@
 [COMCreatable(False)]
 Class CustomLineCap
     Inherits GdiPlusBase
-    Dim lc As GpCustomLineCap
-    Dim LastResult As GpStatus
+    Protected lc As GpCustomLineCap
+    Protected LastResult As GpStatus
     
     Protected Property Get Native() As GpCustomLineCap
         Return lc

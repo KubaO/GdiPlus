@@ -1,3 +1,68 @@
+[COMCreatable(False)]
+Class AdjustableArrowCap
+    Inherits CustomLineCap
+    
+    Protected Property Get Native() As GpAdjustableArrowCap
+        Native.Native = lc.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        LastResult = Ok
+        SetNativeArrowCap(nativeArrowCap)
+    End Sub
+    
+    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        Native.Native = nativeArrowCap.Native
+    End Sub
+
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastResult = status
+        End If
+        Return status
+    End Function
+    
+    Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
+        Dim cap  As GpAdjustableArrowCap
+        LastResult = GdipCreateAdjustableArrowCap(height, width, isFilled, cap)
+        SetNativeArrowCap(cap)
+    End Sub
+    
+    Property Let Height(ByVal height!)
+        SetStatus(GdipSetAdjustableArrowCapHeight(Native, height))
+    End Property
+    
+    Property Get Height!()
+        SetStatus(GdipGetAdjustableArrowCapHeight(Native, Height))
+    End Property
+
+    Property Let Width(ByVal width!)
+        SetStatus(GdipSetAdjustableArrowCapWidth(Native, width))
+    End Property
+    
+    Property Get Width!()
+        SetStatus(GdipGetAdjustableArrowCapWidth(Native, Width))
+    End Property
+    
+    Property Let MiddleInset(ByVal middleInset!)
+        SetStatus(GdipSetAdjustableArrowCapMiddleInset(Native, middleInset))
+    End Property
+    
+    Property Get MiddleInset!()
+        SetStatus(GdipGetAdjustableArrowCapMiddleInset(Native, Width))
+    End Property
+    
+    Property Let FillState(ByVal isFilled As Boolean)
+        SetStatus(GdipSetAdjustableArrowCapMiddleInset(Native, isFilled))
+    End Property
+    
+    Property Get IsFilled() As Boolean
+        Dim booln As BOOL
+        SetStatus(GdipGetAdjustableArrowCapFillState(Native, booln))
+        Return booln
+    End Property
+End Class
+
 Module AdjustableArrowCapModule
     Type GpAdjustableArrowCap
         ' Inherits GpCustomLineCap
@@ -7,123 +72,14 @@ Module AdjustableArrowCapModule
     Function GpAdjustableArrowCap() As GpAdjustableArrowCap
         GpAdjustableArrowCap.Native = 0
     End Function
+    
+    Public Declare PtrSafe Function GdipCreateAdjustableArrowCap Lib "gdiplus" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpAdjustableArrowCap) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapHeight Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapHeight Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapWidth Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal width As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapWidth Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, width As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal middleInset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, middleInset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal fillState As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, fillState As BOOL) As GpStatus
 End Module
-
-[COMCreatable(False)]
-Class AdjustableArrowCap
-    Inherits GdiPlusBase
-    Dim ac As GpAdjustableArrowCap
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpAdjustableArrowCap
-        Return ac
-    End Property
-    
-    Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
-        LastResult = Ok
-        SetNativeArrowCap(nativeArrowCap)
-    End Sub
-    
-    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpAdjustableArrowCap)
-        ac = nativeArrowCap
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-End Class
-
-#If 0 Then
-class AdjustableArrowCap : public CustomLineCap
-{
-public:
-
-    AdjustableArrowCap(
-        IN REAL height,
-        IN REAL width,
-        IN BOOL isFilled = TRUE
-        )
-    {
-        GpAdjustableArrowCap* cap = NULL;
-
-        lastResult = DllExports::GdipCreateAdjustableArrowCap(
-                        height, width, isFilled, &cap);
-        SetNativeCap(cap);
-    }
-
-    Status SetHeight(IN REAL height)
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        return SetStatus(DllExports::GdipSetAdjustableArrowCapHeight(
-                            cap, height));
-    }
-
-    REAL GetHeight() const
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        REAL height;
-        SetStatus(DllExports::GdipGetAdjustableArrowCapHeight(
-                            cap, &height));
-
-        return height;
-    }
-
-    Status SetWidth(IN REAL width)
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        return SetStatus(DllExports::GdipSetAdjustableArrowCapWidth(
-                            cap, width));
-    }
-
-    REAL GetWidth() const
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        REAL width;
-        SetStatus(DllExports::GdipGetAdjustableArrowCapWidth(
-                            cap, &width));
-
-        return width;
-    }
-
-    Status SetMiddleInset(IN REAL middleInset)
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        return SetStatus(DllExports::GdipSetAdjustableArrowCapMiddleInset(
-                            cap, middleInset));
-    }
-
-    REAL GetMiddleInset() const
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        REAL middleInset;
-        SetStatus(DllExports::GdipGetAdjustableArrowCapMiddleInset(
-                            cap, &middleInset));
-
-        return middleInset;
-    }
-
-    Status SetFillState(IN BOOL isFilled)
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        return SetStatus(DllExports::GdipSetAdjustableArrowCapFillState(
-                            cap, isFilled));
-    }
-
-    BOOL IsFilled() const
-    {
-        GpAdjustableArrowCap* cap = (GpAdjustableArrowCap*) nativeCap;
-        BOOL isFilled;
-        SetStatus(DllExports::GdipGetAdjustableArrowCapFillState(
-                            cap, &isFilled));
-
-        return isFilled;
-    }
-
-private:
-    AdjustableArrowCap(const AdjustableArrowCap &);
-    AdjustableArrowCap& operator=(const AdjustableArrowCap &);
-};
-#End If
