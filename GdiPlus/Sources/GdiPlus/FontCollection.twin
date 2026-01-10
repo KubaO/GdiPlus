@@ -1,18 +1,8 @@
-Module FontCollectionModule
-    Type GpFontCollection
-        Native As LongPtr
-    End Type
-    
-    Function GpFontCollection() As GpFontCollection
-        GpFontCollection.Native = 0
-    End Function
-End Module
-
 [COMCreatable(False)]
 Class FontCollection
     Inherits GdiPlusBase
-    Dim fc As GpFontCollection
-    Dim LastResult As GpStatus
+    Protected fc As GpFontCollection
+    Protected LastResult As GpStatus
     
     Protected Property Get Native() As GpFontCollection
         Return fc
@@ -26,46 +16,57 @@ Class FontCollection
     Protected Sub SetNativeFontCollection(ByVal nativeCollection As GpFontCollection)
         fc = nativeCollection
     End Sub
-
+    
     Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
         If status <> Ok Then
             LastResult = status
         End If
         Return status
     End Function
+    
+    Sub New()
+        ' empty by design
+    End Sub
+    
+    Overridable Sub Class_Terminate()
+        ' empty by design
+    End Sub
+    
+    Property Get FamilyCount&()
+        GdipGetFontCollectionFamilyCount(fc, FamilyCount&)
+    End Property
+    
+    Function Families() As FontFamily()
+        Dim result() As FontFamily
+        Dim numSought& = FamilyCount
+        Dim numFound& = 0
+        Dim nativeFamilies() As GpFontFamily
+        ReDim nativeFamilies(1 To numSought)
+        Dim status As GpStatus = GdipGetFontCollectionFamilyList( _
+            fc, numSought, nativeFamilies(1), numFound)
+        If status = Ok Then
+            ReDim result(1 To numFound)
+            For i As Integer = 1 To numFound
+                Set result(i) = New FontFamily(nativeFamilies(i))
+            Next
+        End If
+        Return result
+    End Function
+    
+    Function GetLastStatus() As GpStatus
+        Return LastResult ' TODO FIXME this is not like in the other classes
+    End Function
 End Class
 
-#If 0 Then
-//--------------------------------------------------------------------------
-// Font Collection
-//--------------------------------------------------------------------------
-
-class FontCollection : public GdiplusBase
-{
-public:
-    friend class FontFamily;
-
-    FontCollection();
-    virtual ~FontCollection();
-
-    INT GetFamilyCount() const;
-
-    Status GetFamilies(
-        _In_                                  INT          numSought,
-        _Out_writes_to_(numSought, *numFound) FontFamily * gpfamilies,
-        _Out_                                 INT        * numFound
-    ) const;
-
-    Status GetLastStatus() const;
-
-private:
-    FontCollection(const FontCollection &);
-    FontCollection& operator=(const FontCollection &);
-
-protected:
-    _Post_equal_to_(status) Status SetStatus(Status status) const ;
-
-    GpFontCollection *nativeFontCollection;
-    mutable Status    lastResult;
-};
-#End If
+Module FontCollectionModule
+    Type GpFontCollection
+        Native As LongPtr
+    End Type
+    
+    Function GpFontCollection() As GpFontCollection
+        GpFontCollection.Native = 0
+    End Function
+    
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal fontCollection As GpFontCollection, numFound As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal fontCollection As GpFontCollection, ByVal numSought As Long, gpfamilies As GpFontFamily, numFound As Long) As GpStatus
+End Module

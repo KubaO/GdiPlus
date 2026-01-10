@@ -1,3 +1,32 @@
+[COMCreatable(False)]
+Class InstalledFontCollection
+    Inherits FontCollection
+    
+    Protected Property Get Native() As GpInstalledFontCollection
+        Debug.Assert TypeOf (Me) Is InstalledFontCollection
+        Native.Native = fc.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
+        LastResult = Ok
+        SetNativeInatalledFontCollection(nativeCollection)
+    End Sub
+    
+    Protected Sub SetNativeInatalledFontCollection(ByVal nativeCollection As GpInstalledFontCollection)
+        Dim nativeBase As GpFontCollection
+        nativeBase.Native = nativeCollection.Native
+        SetNativeFontCollection(nativeBase)
+    End Sub
+
+    Sub New()
+        LastResult = GdipNewInstalledFontCollection(fc)
+    End Sub
+    
+    Sub Class_Terminate()
+        ' empty
+    End Sub
+End Class
+
 Module InstalledFontCollectionModule
     Type GpInstalledFontCollection
         ' Inherits GpFontCollection
@@ -7,47 +36,6 @@ Module InstalledFontCollectionModule
     Function GpInstalledFontCollection() As GpInstalledFontCollection
         GpInstalledFontCollection.Native = 0
     End Function
+    
+    Public Declare PtrSafe Function GdipNewInstalledFontCollection Lib "gdiplus" (fontCollection As GpInstalledFontCollection) As GpStatus
 End Module
-
-[COMCreatable(False)]
-Class InstalledFontCollection
-    Inherits GdiPlusBase
-    Dim fc As GpInstalledFontCollection
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpInstalledFontCollection
-        Return fc
-    End Property
-    
-    Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
-        LastResult = Ok
-        SetNativeInatalledFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativeInatalledFontCollection(ByVal nativeCollection As GpInstalledFontCollection)
-        fc = nativeCollection
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-End Class
-
-#If 0 Then
-class InstalledFontCollection : public FontCollection
-{
-public:
-    InstalledFontCollection();
-    ~InstalledFontCollection();
-
-private:
-    InstalledFontCollection(const InstalledFontCollection &);
-    InstalledFontCollection& operator=(const InstalledFontCollection &);
-
-protected:
-    _Post_equal_to_(status) Status SetStatus(Status status) const ;
-};
-#End If

@@ -2,7 +2,7 @@
 Class Bitmap
     Inherits Image
     
-    Protected Property Get Native() As GpBitmap
+    Property Get Native() As GpBitmap
         Native.Native = im.Native
     End Property
     
@@ -232,25 +232,24 @@ Module BitmapModule
     
     Function ApplyEffect( _
             inputs() As Bitmap, effect As Effect, _
-            ROI As RECT, /* optional */ _
-            outputRect As RECT, /* optional */ _
             output As Bitmap _
         ) As GpStatus
-        ApplyEffect(inputs(LBound(inputs)), Len(inputs), effect, ROI, outputRect, output)
+        Return ApplyEffect(inputs, effect, ByVal CLngPtr(0), ByVal CLngPtr(0), output)
     End Function
     
     Function ApplyEffect( _
-            inputs As Bitmap, ByVal numInputs&, effect As Effect, _
+            inputs() As Bitmap, effect As Effect, _
             ROI As RECT, /* optional */ _
             outputRect As RECT, /* optional */ _
             output As Bitmap _
         ) As GpStatus
-        If numInputs < 0 Then Return InvalidParameter
         Dim outputNative As GpBitmap
         Dim nativeInputs() As GpBitmap
-        ReDim nativeInputs(1 To numInputs)
-        For i As Integer = 0 To numInputs
-            'nativeInputs(i) = inputs[i].Native   TODO/FIXME
+        ReDim nativeInputs(1 To Len(inputs))
+        Dim j As Integer = 1
+        For i As Integer = LBound(inputs) To UBound(inputs)
+            nativeInputs(j) = inputs(i).Native
+            j += 1
         Next
     
         If effect.AuxData <> 0 Then effect.SetAuxData(vbNullPtr, 0)
@@ -258,7 +257,7 @@ Module BitmapModule
         Dim auxData As LongPtr
         Dim auxDataSize&
         Dim status As GpStatus = GdipBitmapCreateApplyEffect( _
-            nativeInputs, numInputs, effect.Native, _
+            nativeInputs(1), Len(nativeInputs), effect.Native, _
             ROI, _
             outputRect, _
             outputNative, _
@@ -267,8 +266,10 @@ Module BitmapModule
         )
     
         If status = Ok And outputNative.Native <> 0 Then
+            effect.SetAuxData(auxData, auxDataSize)
             Set output = New Bitmap(outputNative)
         Else
+            If auxData <> 0 And auxDataSize > 0 Then GdipFree(auxData)
             Set output = Nothing
         End If
         

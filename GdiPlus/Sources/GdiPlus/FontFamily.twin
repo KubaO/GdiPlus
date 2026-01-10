@@ -19,7 +19,7 @@ Class FontFamily
         GdipDeleteFontFamily(ff)
     End Sub
         
-    Protected Sub New(ByVal nativeFamily As GpFontFamily)
+    Sub New(ByVal nativeFamily As GpFontFamily)
         LastResult = Ok
         SetNativeFontFamily(nativeFamily)
     End Sub

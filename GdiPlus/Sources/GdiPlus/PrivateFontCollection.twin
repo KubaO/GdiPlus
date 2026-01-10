@@ -1,3 +1,40 @@
+[COMCreatable(False)]
+Class PrivateFontCollection
+    Inherits FontCollection
+    
+    Protected Property Get Native() As GpPrivateFontCollection
+        Debug.Assert TypeOf (Me) Is PrivateFontCollection
+        Native.Native = fc.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection)
+        LastResult = Ok
+        SetNativePrivateFontCollection(nativeCollection)
+    End Sub
+    
+    Protected Sub SetNativePrivateFontCollection(ByVal nativeCollection As GpPrivateFontCollection)
+        Dim nativeBase As GpFontCollection
+        nativeBase.Native = nativeCollection.Native
+        SetNativeFontCollection(nativeBase)
+    End Sub
+
+    Sub New()
+        LastResult = GdipNewPrivateFontCollection(fc)
+    End Sub
+    
+    Sub Class_Terminate()
+        GdipDeletePrivateFontCollection(Native)
+    End Sub
+    
+    Function AddFontFile(ByVal filename As String) As GpStatus
+        Return SetStatus(GdipPrivateAddFontFile(Native, StrPtr(filename)))
+    End Function
+    
+    Function AddMemoryFont(ByVal memAddress As LongPtr, ByVal length&) As GpStatus
+        Return SetStatus(GdipPrivateAddMemoryFont(Native, memAddress, length))
+    End Function
+End Class
+
 Module PrivateFontCollectionModule
     Type GpPrivateFontCollection
         ' Inherits GpFontCollection
@@ -7,48 +44,9 @@ Module PrivateFontCollectionModule
     Function GpPrivateFontCollection() As GpPrivateFontCollection
         GpPrivateFontCollection.Native = 0
     End Function
+    
+    Public Declare PtrSafe Function GdipNewPrivateFontCollection Lib "gdiplus" (fontCollection As GpPrivateFontCollection) As GpStatus
+    Public Declare PtrSafe Function GdipDeletePrivateFontCollection Lib "gdiplus" (fontCollection As GpPrivateFontCollection) As GpStatus
+    Public Declare PtrSafe Function GdipPrivateAddFontFile Lib "gdiplus" (ByVal fontCollection As GpPrivateFontCollection, ByVal FileName As LongPtr) As GpStatus
+    Public Declare PtrSafe Function GdipPrivateAddMemoryFont Lib "gdiplus" (ByVal fontCollection As GpPrivateFontCollection, memory As Any, ByVal length As Long) As GpStatus
 End Module
-
-[COMCreatable(False)]
-Class PrivateFontCollection
-    Inherits GdiPlusBase
-    Dim fc As GpPrivateFontCollection
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpPrivateFontCollection
-        Return fc
-    End Property
-    
-    Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection)
-        LastResult = Ok
-        SetNativePrivateFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativePrivateFontCollection(ByVal nativeCollection As GpPrivateFontCollection)
-        fc = nativeCollection
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-End Class
-
-#If 0 Then
-class PrivateFontCollection : public FontCollection
-{
-public:
-    PrivateFontCollection();
-    ~PrivateFontCollection();
-
-    Status AddFontFile(IN const WCHAR* filename);
-    Status AddMemoryFont(IN const VOID* memory,
-                         IN INT length);
-
-private:
-    PrivateFontCollection(const PrivateFontCollection &);
-    PrivateFontCollection& operator=(const PrivateFontCollection &);
-};
-#End If
