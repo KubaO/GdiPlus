@@ -1,3 +1,4 @@
+' Reviewed 2026-01-11
 Module ColorModule
     '----------------------------------------------------------------------------
     ' Color mode
@@ -24,8 +25,10 @@ Module ColorModule
     ' Color
     '----------------------------------------------------------------------------
     
+    Private Const Black = &H000000
+    
     Function Color() As Color
-        Color.argb = D2D1_COLORS.Black
+        Color.argb = Black
     End Function
     
     ' Construct an opaque Color object with
@@ -52,65 +55,33 @@ Module ColorModule
             Return CByte(Me.argb >> AlphaShift)
         End Property
         
-        Function GetAlpha() As Byte
-            Return Me.Alpha
-        End Function
-        
         Property Get A() As Byte
             Return Me.Alpha
         End Property
-        
-        Function GetA() As Byte
-            Return Me.Alpha
-        End Function
 
         Property Get Red() As Byte
             Return CByte(Me.argb >> RedShift)
         End Property
         
-        Function GetRed() As Byte
-            Return Me.Red
-        End Function
-        
         Property Get R() As Byte
             Return Me.Red
         End Property
-        
-        Function GetR() As Byte
-            Return Me.Red
-        End Function
             
         Property Get Green() As Byte
             Return CByte(Me.argb >> GreenShift)
         End Property
         
-        Function GetGreen() As Byte
-            Return Me.Green
-        End Function
-        
         Property Get G() As Byte
             Return Me.Green
         End Property
-        
-        Function GetG() As Byte
-            Return Me.Green
-        End Function
         
         Property Get Blue() As Byte
             Return CByte(Me.argb >> BlueShift)
         End Property
         
-        Function GetBlue() As Byte
-            Return Me.Blue
-        End Function
-        
         Property Get B() As Byte
             Return Me.Blue
         End Property
-        
-        Function GetB() As Byte
-            Return Me.Blue
-        End Function
         
         Property Get Value() As ARGB
             Return Me.argb
@@ -120,14 +91,6 @@ Module ColorModule
             Me.argb = argb
         End Property
         
-        Function GetValue() As ARGB
-            Return Me.argb
-        End Function
-        
-        Sub SetValue(ByVal argb As ARGB)
-            Me.argb = argb
-        End Sub
-        
         Sub SetFromCOLORREF(ByVal rgb As Long)
             Me.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
         End Sub
@@ -136,4 +99,8 @@ Module ColorModule
             Return RGB(Me.Red, Me.Green, Me.Blue)
         End Function
     End Type
+    
+    Function FromCOLORREF(ByVal rgb As Long) As Color
+        FromCOLORREF.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
+    End Function
 End Module

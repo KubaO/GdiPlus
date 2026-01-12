@@ -1,76 +1,40 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class Graphics
     Inherits GdiPlusBase
     Dim gr As GpGraphics
-    Dim LastResult As GpStatus
-
-    Protected Sub New(ByVal graphics As GpGraphics)
-        LastResult = Ok
-        SetNativeGraphics(graphics)
-    End Sub
-    
-    Protected Property Get Native() As GpGraphics
-        Return gr
-    End Property
-        
-    Protected Function GetNativeGraphics() As GpGraphics
-        Return gr
-    End Function
-    
-    Sub SetNativeGraphics(ByVal graphics As GpGraphics)
-        gr = graphics
-    End Sub
-    
-    Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-                
-    Static Function FromHDC(ByVal hdc As LongPtr) As Graphics
-        Return New Graphics(hdc)
-    End Function
-
-    Static Function FromHDC(ByVal hdc As LongPtr, ByVal hdevice As LongPtr) As Graphics
-        Return New Graphics(hdc, hdevice)
-    End Function
-
-    Static Function FromHWND(ByVal hwnd As LongPtr, ByVal icm As Boolean = False) As Graphics
-        Return New Graphics(hwnd, icm)
-    End Function
-    
-    Static Function FromImage(image As Image) As Graphics
-        Return New Graphics(image)
-    End Function
-    
+                  
     Sub New(ByVal hdc As LongPtr)
-        LastResult = GdipCreateFromHDC(hdc, gr.Native)
+        LastStatus = GdipCreateFromHDC(hdc, gr)
     End Sub
 
     Sub New(ByVal hdc As LongPtr, ByVal hdevice As LongPtr)
-        LastResult = GdipCreateFromHDC2(hdc, hdevice, gr.Native)
+        LastStatus = GdipCreateFromHDC2(hdc, hdevice, gr)
     End Sub
 
     Sub New(ByVal hwnd As LongPtr, ByVal icm As Boolean)
         If icm Then
-            LastResult = GdipCreateFromHWNDICM(hwnd, gr.Native)
+            LastStatus = GdipCreateFromHWNDICM(hwnd, gr)
         Else
-            LastResult = GdipCreateFromHWND(hwnd, gr.Native)
+            LastStatus = GdipCreateFromHWND(hwnd, gr)
         End If
     End Sub
     
     Sub New(image As Image)
         If image IsNot Nothing Then
-            LastResult = GdipGetImageGraphicsContext(UnprotectedAccess(image).Native, gr)
+            LastStatus = GdipGetImageGraphicsContext(GetNative(image), gr)
         End If
     End Sub
 
     Sub Class_Terminate()
-        gr.DeleteGraphics()
+        GdipDeleteGraphics(gr)
     End Sub
 
-    
+'#if (GDIPVER >= 0x0110)
+    Function SetAbort(ByVal pIAbort As LongPtr) As GpStatus  ' GdiplusAbort
+        Return SetStatus(gr.GraphicsSetAbort(pIAbort))
+    End Function
+'#endif
     '------------------------------------------------------------------------
     ' GDI Interop methods
     '------------------------------------------------------------------------
@@ -89,6 +53,14 @@ Class Graphics
     ' Rendering modes
     '------------------------------------------------------------------------
     
+    Property Let RenderingOrigin(origin As GpPoint)
+        SetStatus(gr.SetRenderingOrigin(origin.X, origin.Y))
+    End Property
+    
+    Property Get RenderingOrigin() As GpPoint
+        SetStatus(gr.GetRenderingOrigin(RenderingOrigin.X, RenderingOrigin.Y))
+    End Property
+    
     Function SetRenderingOrigin(ByVal x&, ByVal y&) As GpStatus
         Return SetStatus(gr.SetRenderingOrigin(x, y))
     End Function
@@ -97,81 +69,75 @@ Class Graphics
         Return SetStatus(gr.GetRenderingOrigin(x, y))
     End Function
 
-    Function SetCompositingMode(ByVal compositingMode As CompositingMode) As GpStatus
-        Return SetStatus(gr.SetCompositingMode(compositingMode))
-    End Function
+    Property Let CompositingMode(ByVal compositingMode As CompositingMode)
+        SetStatus(gr.SetCompositingMode(compositingMode))
+    End Property
     
-    Function GetCompositingMode() As CompositingMode
-        Dim mode As CompositingMode
-        SetStatus(gr.GetCompositingMode(mode))
-        Return mode
-    End Function
+    Property Get CompositingMode() As CompositingMode
+        SetStatus(gr.GetCompositingMode(CompositingMode))
+    End Property
     
-    Function SetCompositingQuality(ByVal compositingQuality As CompositingQuality) As GpStatus
-        Return SetStatus(gr.SetCompositingQuality(compositingQuality))
-    End Function
+    Property Let CompositingQuality(ByVal compositingQuality As CompositingQuality)
+        SetStatus(gr.SetCompositingQuality(compositingQuality))
+    End Property
 
-    Function GetCompositingQuality() As CompositingQuality
-        Dim quality As CompositingQuality
-        SetStatus(gr.GetCompositingQuality(quality))
-        Return quality
-    End Function
+    Property Get CompositingQuality() As CompositingQuality
+        SetStatus(gr.GetCompositingQuality(CompositingQuality))
+    End Property
     
-    Function SetTextRenderingHint(ByVal newMode As TextRenderingHint) As GpStatus
-        Return SetStatus(gr.SetTextRenderingHint(newMode))
-    End Function
+    Property Let TextRenderingHint(ByVal newMode As TextRenderingHint)
+        SetStatus(gr.SetTextRenderingHint(newMode))
+    End Property
     
-    Function GetTextRenderingHint() As TextRenderingHint
-        Dim hint As TextRenderingHint
-        SetStatus(gr.GetTextRenderingHint(hint))
-        Return hint
-    End Function
+    Property Get TextRenderingHint() As TextRenderingHint
+        SetStatus(gr.GetTextRenderingHint(TextRenderingHint))
+    End Property
     
-    Function SetTextContrast(ByVal contrast As UINT) As GpStatus
-        Return SetStatus(gr.SetTextContrast(contrast))
-    End Function
+    Property Let TextContrast(ByVal contrast As UINT)
+        SetStatus(gr.SetTextContrast(contrast))
+    End Property
     
-    Function GetTextContrast() As UINT
-        SetStatus(gr.GetTextContrast(GetTextContrast))
-    End Function
+    Property Get TextContrast() As UINT
+        SetStatus(gr.GetTextContrast(TextContrast))
+    End Property
     
-    Function GetInterpolationMode() As InterpolationMode
-        SetStatus(gr.GetInterpolationMode(GetInterpolationMode))
-    End Function
+    Property Get InterpolationMode() As InterpolationMode
+        SetStatus(gr.GetInterpolationMode(InterpolationMode))
+    End Property
     
-    Function SetInterpolationMode(ByVal interpolationMode As InterpolationMode) As GpStatus
-        Return SetStatus(gr.SetInterpolationMode(interpolationMode))
-    End Function
-    
-'#if (GDIPVER >= 0x0110)
-    Function SetAbort(ByVal pIAbort As LongPtr) As GpStatus  ' GdiplusAbort
-        Return SetStatus(gr.GraphicsSetAbort(pIAbort))
-    End Function
-'#endif
+    Property Let InterpolationMode(ByVal interpolationMode As InterpolationMode)
+        SetStatus(gr.SetInterpolationMode(interpolationMode))
+    End Property
 
-    Function GetSmoothingMode() As SmoothingMode
-        SetStatus(gr.GetSmoothingMode(GetSmoothingMode))
-    End Function
+    Property Get SmoothingMode() As SmoothingMode
+        SetStatus(gr.GetSmoothingMode(SmoothingMode))
+    End Property
 
-    Function SetSmoothingMode(ByVal smoothingMode As SmoothingMode) As GpStatus
-        Return SetStatus(gr.SetSmoothingMode(smoothingMode))
-    End Function
+    Property Let SmoothingMode(ByVal smoothingMode As SmoothingMode)
+        SetStatus(gr.SetSmoothingMode(smoothingMode))
+    End Property
     
-    Function GetPixelOffsetMode() As PixelOffsetMode
-        SetStatus(gr.GetPixelOffsetMode(GetPixelOffsetMode))
-    End Function
+    Property Get PixelOffsetMode() As PixelOffsetMode
+        SetStatus(gr.GetPixelOffsetMode(PixelOffsetMode))
+    End Property
     
-    Function SetPixelOffsetMode(ByVal pixelOffsetMode As PixelOffsetMode) As GpStatus
-        Return SetStatus(gr.SetPixelOffsetMode(pixelOffsetMode))
-    End Function
+    Property Let PixelOffsetMode(ByVal pixelOffsetMode As PixelOffsetMode)
+        SetStatus(gr.SetPixelOffsetMode(pixelOffsetMode))
+    End Property
 
     '------------------------------------------------------------------------
     ' Manipulate current world transform
     '------------------------------------------------------------------------
 
-    Function SetTransform(matrix As Matrix) As GpStatus
-        Return SetStatus(gr.SetWorldTransform(GetNative(matrix)))
-    End Function
+    Property Let Transform(matrix As Matrix)
+        SetStatus(gr.SetWorldTransform(GetNative(matrix)))
+    End Property
+    
+    Property Get Transform() As Matrix
+        Dim nativeMatrix As GpMatrix
+        SetStatus(gr.GetWorldTransform(nativeMatrix))
+        If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
+    End Property
     
     Function ResetTransform() As GpStatus
         Return SetStatus(gr.ResetWorldTransform())
@@ -193,50 +159,42 @@ Class Graphics
         Return SetStatus(gr.RotateWorldTransform(angle, order))
     End Function
     
-    Function GetTransform(matrix As Matrix) As GpStatus
-        Return SetStatus(gr.GetWorldTransform(GetNative(matrix)))
-    End Function
+    Property Let PageUnit(ByVal unit As GpUnit)
+        SetStatus(gr.SetPageUnit(unit))
+    End Property
     
-    Function SetPageUnit(ByVal unit As GpUnit) As GpStatus
-        Return SetStatus(gr.SetPageUnit(unit))
-    End Function
+    Property Get PageUnit() As GpUnit
+        SetStatus(gr.GetPageUnit(PageUnit))
+    End Property
     
-    Function SetPageScale(ByVal scale!) As GpStatus
-        Return SetStatus(gr.SetPageScale(scale))
-    End Function
+    Property Let PageScale(ByVal scale!)
+        SetStatus(gr.SetPageScale(scale))
+    End Property
     
-    Function GetPageUnit() As GpUnit
-        Dim unit As GpUnit
-        SetStatus(gr.GetPageUnit(unit))
-        Return unit
-    End Function
-    
-    Function GetPageScale!()
-        SetStatus(gr.GetPageScale(GetPageScale))
-    End Function
+    Property Get PageScale!()
+        SetStatus(gr.GetPageScale(PageScale))
+    End Property
     
     Property Get DpiX!()
         SetStatus(gr.GetDpiX(DpiX))
     End Property
-    
-    Function GetDpiX!()
-        SetStatus(gr.GetDpiX(GetDpiX))
-    End Function
 
     Property Get DpiY!()
         SetStatus(gr.GetDpiY(DpiY))
     End Property
-        
-    Function GetDpiY!()
-        SetStatus(gr.GetDpiY(GetDpiY))
+            
+    Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPointF()) As GpStatus
+        Return SetStatus(gr.TransformPoints(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), Len(pts)))
     End Function
     
-    ' TODO should take an array too
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPointF, ByVal count&) As GpStatus
         Return SetStatus(gr.TransformPoints(destSpace, srcSpace, pts, count))
     End Function
 
-    ' TODO should take an array too
+    Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPoint()) As GpStatus
+        Return SetStatus(gr.TransformPointsI(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), Len(pts)))
+    End Function
+    
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPoint, ByVal count&) As GpStatus
         Return SetStatus(gr.TransformPointsI(destSpace, srcSpace, pts, count))
     End Function
@@ -246,21 +204,28 @@ Class Graphics
     '------------------------------------------------------------------------
     
     Function GetNearestColor(color As Color) As GpStatus
-        If VarPtr(color) = vbNullPtr Then
-            Return SetStatus(InvalidParameter)
-        End If
-        Dim argb As ARGB = color.GetValue()
-        Dim status As Any = gr.GetNearestColor(argb)
-        color.SetValue(argb)
-        Return status
+        Return gr.GetNearestColor(color)
     End Function
     
+    Function GetNearestColorTo(ByVal color As Color) As Color
+        GetNearestColorTo = color
+        gr.GetNearestColor(GetNearestColorTo)
+    End Function
+    
+    '-----------------------------------------------------------------------
+    ' Drawing primitives
+    '------------------------------------------------------------------------
+
     Function DrawLine(pen As Pen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!) As GpStatus
         Return SetStatus(gr.DrawLine(GetNative(pen), x1, y1, x2, y2))
     End Function
     
     Function DrawLine(pen As Pen, pt1 As GpPointF, pt2 As GpPointF) As GpStatus
-        Return DrawLine(pen, pt1.X, pt1.Y, pt2.X, pt2.Y)
+        Return SetStatus(gr.DrawLine(GetNative(pen), pt1.X, pt1.Y, pt2.X, pt2.Y))
+    End Function
+    
+    Function DrawLines(pen As Pen, points As GpPointF()) As GpStatus
+        Return SetStatus(gr.DrawLines(GetNative(pen), points(LBound(points)), Len(points)))
     End Function
     
     Function DrawLines(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
@@ -272,9 +237,13 @@ Class Graphics
     End Function
     
     Function DrawLine(pen As Pen, pt1 As GpPoint, pt2 As GpPoint) As GpStatus
-        Return DrawLine(pen, pt1.X, pt1.Y, pt2.X, pt2.Y)
+        Return SetStatus(gr.DrawLineI(GetNative(pen), pt1.X, pt1.Y, pt2.X, pt2.Y))
     End Function
 
+    Function DrawLines(pen As Pen, points As GpPoint()) As GpStatus
+        Return SetStatus(gr.DrawLinesI(GetNative(pen), points(LBound(points)), Len(points)))
+    End Function
+    
     Function DrawLines(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
         Return SetStatus(gr.DrawLinesI(GetNative(pen), points, count))
     End Function
@@ -284,7 +253,7 @@ Class Graphics
     End Function
 
     Function DrawArc(pen As Pen, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return DrawArc(pen, rect.Left, rect.Top, rect.Width, rect.Height, startAngle, sweepAngle)
+        Return SetStatus(gr.DrawArc(GetNative(pen), rect.X, rect.Y, rect.Width, rect.Height, startAngle, sweepAngle))
     End Function
 
     Function DrawArc(pen As Pen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
@@ -292,7 +261,7 @@ Class Graphics
     End Function
     
     Function DrawArc(pen As Pen, rect As GpRect, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return DrawArc(pen, rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top, startAngle, sweepAngle)
+        Return SetStatus(gr.DrawArcI(GetNative(pen), rect.X, rect.Y, rect.Width, rect.Height, startAngle, sweepAngle))
     End Function
     
     Function DrawBezier(pen As Pen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
@@ -428,7 +397,7 @@ Class Graphics
     End Function
     
     Function Clear(color As Color) As GpStatus
-        Return SetStatus(gr.GraphicsClear(color.GetValue()))
+        Return SetStatus(gr.GraphicsClear(color))
     End Function
     
     Function FillRectangle(brush As Brush, rect As GpRectF) As GpStatus
@@ -560,21 +529,20 @@ Class Graphics
     Function MeasureString(ByVal string As String, font As Font, layoutRectSize As GpSizeF, stringFormat As StringFormat, ByRef size As GpSizeF, codepointsFitted&, linesFilled&) As GpStatus
         Dim layoutRect As GpRectF = GpRectF(0, 0, layoutRectSize.Width, layoutRectSize.Height)
         Dim boundingBox As GpRectF
-        Dim status As GpStatus
         If VarPtr(size) = 0 Then
             Return SetStatus(InvalidParameter)
         End If
         
-        status = SetStatus(gr.MeasureString( _
+        SetStatus(gr.MeasureString( _
             StrPtr(string), Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), boundingBox, _
             codepointsFitted, linesFilled))
         
-        If status = Ok Then
+        If LastResult = Ok Then
             size.Width = boundingBox.Width
             size.Height = boundingBox.Height
         End If
-        Return status
+        Return LastResult
     End Function
     
     Function MeasureString(ByVal string As String, font As Font, origin As GpPointF, stringFormat As StringFormat, boundingBox As GpRectF) As GpStatus
@@ -631,9 +599,6 @@ Class Graphics
             positions, flags, GetNative(matrix), boundingBox))
     End Function
     
-    ' Draw a cached bitmap on this graphics destination offset by
-    ' x, y. Note this will fail with WrongState if the CachedBitmap
-    ' native format differs from this Graphics.
     [Description("Draw a cached bitmap on this graphics destination offset by" & vbCrLf & _
         "x, y. Note this will fail with WrongState if the CachedBitmap" & vbCrLf & _
         "native format differs from this Graphics.")]
@@ -681,7 +646,6 @@ Class Graphics
         If count <> 3 AndAlso count <> 4 Then
             Return SetStatus(InvalidParameter)
         End If
-        
         Return SetStatus(gr.DrawImagePoints(GetNative(image), destPoints, count))
     End Function
 
@@ -693,7 +657,6 @@ Class Graphics
         If count <> 3 AndAlso count <> 4 Then
             Return SetStatus(InvalidParameter)
         End If
-        
         Return SetStatus(gr.DrawImagePointsI(GetNative(image), destPoints, count))
     End Function
     
@@ -708,10 +671,8 @@ Class Graphics
         Return SetStatus(gr.DrawImageRectRect( _
             GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
-            srcx, srcy, srcwidth, srcheight, _
-            srcUnit, _
-            GetNative(imageAttributes), _
-            callback, callbackData))
+            srcx, srcy, srcwidth, srcheight, srcUnit, _
+            GetNative(imageAttributes), callback, callbackData))
     End Function
     
     Function DrawImage(image As Image, destPoints() As GpPointF, _
@@ -733,8 +694,7 @@ Class Graphics
             GetNative(image), _
             destPoints, count, _
             srcx, srcy, srcwidth, srcheight, srcUnit, _
-            GetNative(imageAttributes), _
-            callback, callbackData))
+            GetNative(imageAttributes), callback, callbackData))
     End Function
     
     Function DrawImage(image As Image, ByVal x&, ByVal y&, ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit) As GpStatus
@@ -750,10 +710,8 @@ Class Graphics
         Return SetStatus(gr.DrawImageRectRectI( _
             GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
-            srcx, srcy, srcwidth, srcheight, _
-            srcUnit, _
-            GetNative(imageAttributes), _
-            callback, callbackData))
+            srcx, srcy, srcwidth, srcheight, srcUnit, _
+            GetNative(imageAttributes), callback, callbackData))
     End Function
     
     Function DrawImage(image As Image, destPoints() As GpPoint, _
@@ -775,8 +733,7 @@ Class Graphics
             GetNative(image), _
             destPoints, count, _
             srcx, srcy, srcwidth, srcheight, srcUnit, _
-            GetNative(imageAttributes), _
-            callback, callbackData))
+            GetNative(imageAttributes), callback, callbackData))
     End Function
     
 '#if GDIPVER >= 0x0110 then
@@ -785,10 +742,8 @@ Class Graphics
         Return SetStatus(gr.DrawImageRectRect( _
             GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
-            sourceRect.X, sourceRect.Y, sourceRect.Width, sourceRect.Height, _
-            srcUnit, _
-            GetNative(imageAttributes), _
-            vbNullPtr, vbNullPtr))
+            sourceRect.X, sourceRect.Y, sourceRect.Width, sourceRect.Height, srcUnit, _
+            GetNative(imageAttributes), vbNullPtr, vbNullPtr))
     End Function
 
     Function DrawImage(image As Image, sourceRect As GpRectF, xForm As Matrix, effect As Effect, imageAttributes As ImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
@@ -997,37 +952,39 @@ Class Graphics
         Return SetStatus(gr.TranslateClipI(dx, dy))
     End Function
     
-    Function GetClip(region As Region) As GpStatus
-        Return SetStatus(gr.GetClip(GetNative(region)))
-    End Function
+    Property Get Clip() As Region
+        Dim nativeRegion As GpRegion
+        SetStatus(gr.GetClip(nativeRegion))
+        If LastResult = Ok Then Set Clip = New Region(nativeRegion)
+    End Property
     
-    Function GetClipBounds(rect As GpRectF) As GpStatus
-        Return SetStatus(gr.GetClipBounds(rect))
-    End Function
+    Property Get ClipBounds() As GpRectF
+        SetStatus(gr.GetClipBounds(ClipBounds))
+    End Property
 
-    Function GetClipBounds(rect As GpRect) As GpStatus
-        Return SetStatus(gr.GetClipBoundsI(rect))
-    End Function
+    Property Get ClipBoundsI() As GpRect
+        SetStatus(gr.GetClipBoundsI(ClipBoundsI))
+    End Property
     
-    Function IsClipEmpty() As Boolean
+    Property Get IsClipEmpty() As Boolean
         Dim booln As BOOL = False
         SetStatus(gr.IsClipEmpty(booln))
         Return booln
-    End Function
+    End Property
     
-    Function GetVisibleClipBounds(rect As GpRectF) As GpStatus
-        Return SetStatus(gr.GetVisibleClipBounds(rect))
-    End Function
+    Property Get VisibleClipBounds() As GpRectF
+        SetStatus(gr.GetVisibleClipBounds(VisibleClipBounds))
+    End Property
 
-    Function GetVisibleClipBounds(rect As GpRect) As GpStatus
-        Return SetStatus(gr.GetVisibleClipBoundsI(rect))
-    End Function
+    Property Get VisibleClipBoundsI() As GpRect
+        SetStatus(gr.GetVisibleClipBoundsI(VisibleClipBoundsI))
+    End Property
     
-    Function IsVisibleClipEmpty() As Boolean
+    Property Get IsVisibleClipEmpty() As Boolean
         Dim booln As BOOL = False
         SetStatus(gr.IsVisibleClipEmpty(booln))
         Return booln
-    End Function
+    End Property
     
     Function IsVisible(ByVal x&, ByVal y&) As Boolean
         Dim booln As BOOL = False
@@ -1110,19 +1067,45 @@ Class Graphics
     Function GetHalftonePalette() As LongPtr  ' HPALETTE
         Return GdipCreateHalftonePalette()
     End Function
+       
+    Protected Sub New(ByVal graphics As GpGraphics)
+        LastStatus = Ok
+        SetNativeGraphics(graphics)
+    End Sub
     
-    Function GetLastStatus() As GpStatus
-        Dim lastStatus As GpStatus = LastResult
-        LastResult = Ok
-        Return lastStatus
+    Protected Property Get Native() As GpGraphics
+        Return gr
+    End Property
+        
+    Protected Function GetNativeGraphics() As GpGraphics
+        Return gr
     End Function
+    
+    Protected Sub SetNativeGraphics(ByVal graphics As GpGraphics)
+        gr = graphics
+    End Sub
 End Class
 
 Module GraphicsModule
+    Function GraphicsFromHDC(ByVal hdc As LongPtr) As Graphics
+        Return New Graphics(hdc)
+    End Function
+
+    Function GraphicsFromHDC(ByVal hdc As LongPtr, ByVal hdevice As LongPtr) As Graphics
+        Return New Graphics(hdc, hdevice)
+    End Function
+
+    Function GraphicsFromHWND(ByVal hwnd As LongPtr, ByVal icm As Boolean = False) As Graphics
+        Return New Graphics(hwnd, icm)
+    End Function
+    
+    Function GraphicsFromImage(image As Image) As Graphics
+        Return New Graphics(image)
+    End Function
+    
     Type GpGraphics
         Native As LongPtr
-        
-        Public Declare PtrSafe Function DeleteGraphics Lib "gdiplus" Alias "GdipDeleteGraphics" (ByVal Me As GpGraphics) As GpStatus
+            
         Public Declare PtrSafe Function Flush Lib "gdiplus" Alias "GdipFlush" (ByVal Me As GpGraphics, ByVal intention As GpFlushIntention) As GpStatus
         Public Declare PtrSafe Function GetDC Lib "gdiplus" Alias "GdipGetDC" (ByVal Me As GpGraphics, hDC As LongPtr) As GpStatus
         Public Declare PtrSafe Function ReleaseDC Lib "gdiplus" Alias "GdipReleaseDC" (ByVal Me As GpGraphics, ByVal hDC As LongPtr) As GpStatus
@@ -1162,7 +1145,7 @@ Module GraphicsModule
         Public Declare PtrSafe Function GetDpiY Lib "gdiplus" Alias "GdipGetDpiY" (ByVal Me As GpGraphics, dpi!) As GpStatus
         Public Declare PtrSafe Function TransformPoints Lib "gdiplus" Alias "GdipTransformPoints" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPointF, ByVal count&) As GpStatus
         Public Declare PtrSafe Function TransformPointsI Lib "gdiplus" Alias "GdipTransformPointsI" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPoint, ByVal count&) As GpStatus
-        Public Declare PtrSafe Function GetNearestColor Lib "gdiplus" Alias "GdipGetNearestColor" (ByVal Me As GpGraphics, argb As ARGB) As GpStatus
+        Public Declare PtrSafe Function GetNearestColor Lib "gdiplus" Alias "GdipGetNearestColor" (ByVal Me As GpGraphics, argb As Color) As GpStatus
         
         Public Declare PtrSafe Function DrawLine Lib "gdiplus" Alias "GdipDrawLine" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!) As GpStatus
         Public Declare PtrSafe Function DrawLineI Lib "gdiplus" Alias "GdipDrawLineI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1&, ByVal Y1&, ByVal X2&, ByVal Y2&) As GpStatus
@@ -1202,7 +1185,7 @@ Module GraphicsModule
         Public Declare PtrSafe Function DrawClosedCurve2 Lib "gdiplus" Alias "GdipDrawClosedCurve2" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
         Public Declare PtrSafe Function DrawClosedCurve2I Lib "gdiplus" Alias "GdipDrawClosedCurve2I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
         
-        Public Declare PtrSafe Function GraphicsClear Lib "gdiplus" Alias "GpGraphicsClear" (ByVal Me As GpGraphics, ByVal color&) As GpStatus
+        Public Declare PtrSafe Function GraphicsClear Lib "gdiplus" Alias "GpGraphicsClear" (ByVal Me As GpGraphics, ByVal color As Color) As GpStatus
         
         Public Declare PtrSafe Function FillRectangle Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         Public Declare PtrSafe Function FillRectangles Lib "gdiplus" Alias "GdipFillRectangles" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRectF, ByVal count&) As GpStatus
@@ -1326,6 +1309,12 @@ Module GraphicsModule
         Public Declare PtrSafe Function Comment Lib "gdiplus" Alias "GdipComment" (ByVal Me As GpGraphics, ByVal sizeData&, data As Byte) As GpStatus
     End Type
     
+    Public Declare PtrSafe Function GdipCreateFromHDC Lib "gdiplus" (ByVal hDC As LongPtr, Graphics As GpGraphics) As GpStatus
+    Public Declare PtrSafe Function GdipCreateFromHDC2 Lib "gdiplus" (ByVal hDC As LongPtr, ByVal hDevice As LongPtr, Graphics As GpGraphics) As GpStatus
+    Public Declare PtrSafe Function GdipCreateFromHWND Lib "gdiplus" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
+    Public Declare PtrSafe Function GdipCreateFromHWNDICM Lib "gdiplus" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
+    
+    Public Declare PtrSafe Function GdipDeleteGraphics Lib "gdiplus" (ByVal Me As GpGraphics) As GpStatus
     Public Declare PtrSafe Function GdipCreateHalftonePalette Lib "gdiplus" () As LongPtr
     Public Declare PtrSafe Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal Image As GpImage, Graphics As GpGraphics) As GpStatus
 End Module

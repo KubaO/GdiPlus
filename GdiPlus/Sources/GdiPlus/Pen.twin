@@ -1,36 +1,21 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class Pen
     Inherits GdiPlusBase
     Dim pn As GpPen
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpPen
-        Return pn
-    End Property
-    
-    Protected Sub SetNativePen(ByVal nativePen As GpPen)
-        pn = nativePen
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+        
     Sub New(ByVal color As Color, ByVal width! = 1.0!)
         Dim unit As GpUnit = UnitWorld
-        LastResult = GdipCreatePen1(color, width, unit, pn)
+        LastStatus = GdipCreatePen1(color, width, unit, pn)
     End Sub
     
     Sub New(brush As Brush, ByVal width! = 1.0!)
         Dim unit As GpUnit = UnitWorld
-        LastResult = GdipCreatePen2(GetNative(brush), width, unit, pn)
+        LastStatus = GdipCreatePen2(GetNative(brush), width, unit, pn)
     End Sub
     
     Sub New(ByVal nativePen As GpPen, status As GpStatus = Ok)
-        LastResult = status
+        LastStatus = status
         SetNativePen(nativePen)
     End Sub
     
@@ -40,8 +25,8 @@ Class Pen
     
     Function Clone() As Pen
         Dim clonePen As GpPen
-        LastResult = GdipClonePen(pn, clonePen)
-        Return New Pen(clonePen, LastResult)
+        SetStatus(GdipClonePen(pn, clonePen))
+        If LastStatus = Ok Then Return New Pen(clonePen, LastResult)
     End Function
     
     Property Let Width(ByVal width!)
@@ -51,14 +36,6 @@ Class Pen
     Property Get Width!()
         SetStatus(GdipGetPenWidth(pn, Width))
     End Property
-    
-    Function SetWidth(ByVal width!) As GpStatus
-        Return SetStatus(GdipSetPenWidth(pn, width))
-    End Function
-    
-    Function GetWidth!()
-        SetStatus(GdipGetPenWidth(pn, GetWidth))
-    End Function
     
     ' Set/get line caps: start, End, and dash
     ' Line cap and join APIs by using LineCap and LineJoin enums.
@@ -109,11 +86,6 @@ Class Pen
         Return New CustomLineCap(customCap)
     End Property
     
-    Function GetCustomStartCap(customCap As CustomLineCap) As GpStatus
-        If customCap Is Nothing Then Return SetStatus(InvalidParameter)
-        SetStatus(GdipGetPenCustomStartCap(pn, UnprotectedAccess(customCap).lc))
-    End Function
-    
     Property Let CustomEndCap(customCap As CustomLineCap)
         SetStatus(GdipSetPenCustomEndCap(pn, GetNative(customCap)))
     End Property
@@ -123,11 +95,6 @@ Class Pen
         SetStatus(GdipGetPenCustomEndCap(pn, customCap))
         Return New CustomLineCap(customCap)
     End Property
-    
-    Function GetCustomEndCap(customCap As CustomLineCap) As GpStatus
-        If customCap Is Nothing Then Return SetStatus(InvalidParameter)
-        SetStatus(GdipGetPenCustomEndCap(pn, UnprotectedAccess(customCap).lc))
-    End Function
     
     Property Let MiterLimit(ByVal miterLimit!)
         SetStatus(GdipSetPenMiterLimit(pn, miterLimit))
@@ -150,18 +117,11 @@ Class Pen
     End Property
     
     Property Get Transform() As Matrix
-        Dim matrix As New Matrix
-        If matrix Is Nothing Then
-            SetStatus(OutOfMemory)
-        Else
-            SetStatus(GdipGetPenTransform(pn, UnprotectedAccess(matrix).mx))
-        End If
+        Dim nativeMatrix As GpMatrix
+        SetStatus(GdipGetPenTransform(pn, nativeMatrix))
+        If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
     End Property
-    
-    Function GetTransform(matrix As Matrix) As GpStatus
-        SetStatus(GdipGetPenTransform(pn, UnprotectedAccess(matrix).mx))
-    End Function
-    
+        
     Function ResetTransform() As GpStatus
         Return SetStatus(GdipResetPenTransform(pn))
     End Function
@@ -185,14 +145,9 @@ Class Pen
     Property Get PenType() As GpPenType
         SetStatus(GdipGetPenFillType(pn, PenType))
     End Property
-
     
     Property Let Color(ByVal color As Color)
         SetStatus(GdipSetPenColor(pn, color))
-    End Property
-    
-    Property Let Brush(brush As Brush)
-        SetStatus(GdipSetPenBrushFill(pn, UnprotectedAccess(brush).br))
     End Property
     
     Property Get Color() As Color
@@ -201,6 +156,10 @@ Class Pen
             SetStatus(GdipGetPenColor(pn, temp))
             If LastResult = Ok Then Color = temp
         End If
+    End Property
+    
+    Property Let Brush(brush As Brush)
+        SetStatus(GdipSetPenBrushFill(pn, UnprotectedAccess(brush).br))
     End Property
     
     Property Get Brush() As Brush
@@ -219,7 +178,7 @@ Class Pen
             Case PenTypeLinearGradient
                 Set Brush = New LinearGradientBrush(GpLineGradient(nativeBrush), LastResult)
         End Select
-        If Brush Is Nothing Then nativeBrush.DeleteBrush()
+        If Brush Is Nothing Then GdipDeleteBrush(nativeBrush)
     End Property
 
     Property Get DashStyle() As GpDashStyle
@@ -252,21 +211,6 @@ Class Pen
             SetStatus(GdipGetPenDashArray(pn, DashPattern(1), DashPatternCount))
         End If
     End Property
-    
-    Function SetDashPatten(dashArray!, ByVal count&) As GpStatus
-        Return SetStatus(GdipSetPenDashArray(pn, dashArray, count))
-    End Function
-    
-    Function GetDashPattern(dashArray() As Single) As GpStatus
-        Return GetDashPattern(dashArray(LBound(dashArray)), Len(dashArray))
-    End Function
-    
-    Function GetDashPattern(dashArray!, ByVal count&) As GpStatus
-        If VarPtr(dashArray) = 0 Or Not IsArrayInitialized(dashArray) Or Len(dashArray) = 0 Then
-            Return SetStatus(InvalidParameter)
-        End If
-        Return SetStatus(GdipGetPenDashArray(pn, dashArray, count))
-    End Function
 
     Property Get CompoundArrayCount&()
         SetStatus(GdipGetPenCompoundCount(pn, CompoundArrayCount))
@@ -283,25 +227,13 @@ Class Pen
         SetStatus(GdipSetPenCompoundArray(pn, compoundArray(LBound(compoundArray)), Len(compoundArray)))
     End Property
     
-    Function SetCompoundArray(compoundArray!, ByVal count&) As GpStatus
-        Return SetStatus(GdipSetPenCompoundArray(pn, compoundArray, count))
-    End Function
+    Protected Property Get Native() As GpPen
+        Return pn
+    End Property
     
-    Function GetCompoundArray(compoundArray() As Single) As GpStatus
-        Return GetCompoundArray(compoundArray(LBound(compoundArray)), Len(compoundArray))
-    End Function
-    
-    Function GetCompoundArray(compoundArray!, ByVal count&) As GpStatus
-        If VarPtr(compoundArray) = 0 Or Not IsArrayInitialized(compoundArray) Or Len(compoundArray) = 0 Then
-            Return SetStatus(InvalidParameter)
-        End If
-        Return SetStatus(GdipGetPenDashArray(pn, compoundArray, count&))
-    End Function
-    
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
+    Protected Sub SetNativePen(ByVal nativePen As GpPen)
+        pn = nativePen
+    End Sub
 End Class
 
 Module PenModule

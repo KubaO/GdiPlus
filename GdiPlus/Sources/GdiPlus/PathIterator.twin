@@ -1,32 +1,12 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class PathIterator
     Inherits GdiPlusBase
     Dim pi As GpPathIterator
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpPathIterator
-        Return pi
-    End Property
-    
-    Protected Sub New(ByVal nativeIterator As GpPathIterator)
-        LastResult = Ok
-        SetNativeIterator(nativeIterator)
-    End Sub
-    
-    Protected Sub SetNativeIterator(ByVal nativeIterator As GpPathIterator)
-        pi = nativeIterator
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+        
     Sub New(path As GraphicsPath)
         Dim iter As GpPathIterator
-        LastResult = GdipCreatePathIter(iter, GetNative(path))
+        LastStatus = GdipCreatePathIter(iter, GetNative(path))
         SetNativeIterator(iter)
     End Sub
     
@@ -83,11 +63,19 @@ Class PathIterator
     Function CopyData&(points As GpPointF, types As Byte, ByVal startIndex&, ByVal endIndex&)
         SetStatus(GdipPathIterCopyData(pi, CopyData&, points, types, startIndex, endIndex))
     End Function
+        
+    Protected Property Get Native() As GpPathIterator
+        Return pi
+    End Property
     
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
+    Protected Sub New(ByVal nativeIterator As GpPathIterator)
+        LastStatus = Ok
+        SetNativeIterator(nativeIterator)
+    End Sub
+    
+    Protected Sub SetNativeIterator(ByVal nativeIterator As GpPathIterator)
+        pi = nativeIterator
+    End Sub
 End Class
 
 Module PathIteratorModule

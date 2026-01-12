@@ -1,24 +1,17 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 [Description("Texture Brush Fill Object")]
 Class TextureBrush
     Inherits Brush
-    
-    Protected Property Get Native() As GpTexture
-        Native.Native = br.Native
-    End Property
-    
-    Sub New(ByVal nativeTexture As GpTexture, status As GpStatus = Ok)
-        LastResult = status
+        
+    Sub New(ByVal nativeTexture As GpTexture, ByVal status As GpStatus = Ok)
+        LastStatus = status
         SetNativeTexture(nativeTexture)
-    End Sub
-    
-    Protected Sub SetNativeTexture(ByVal nativeTexture As GpTexture)
-        br.Native = nativeTexture.Native
     End Sub
     
     Sub New(image As Image, ByVal wrapMode As GpWrapMode = WrapModeTile)
         Dim texture As GpTexture
-        LastResult = GdipCreateTexture(GetNative(image), wrapMode, texture)
+        LastStatus = GdipCreateTexture(GetNative(image), wrapMode, texture)
         SetNativeTexture(texture)
     End Sub
     
@@ -30,42 +23,42 @@ Class TextureBrush
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstRect As GpRectF)
         Dim texture As GpTexture
-        LastResult = GdipCreateTexture2(GetNative(image), wrapmode, _
+        LastStatus = GdipCreateTexture2(GetNative(image), wrapmode, _
                 dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, dstRect As GpRectF, Optional imageAttributes As ImageAttributes)
         Dim texture As GpTexture
-        LastResult = GdipCreateTextureIA(GetNative(image), GetNative(imageAttributes), _
+        LastStatus = GdipCreateTextureIA(GetNative(image), GetNative(imageAttributes), _
                 dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, dstRect As GpRect, Optional imageAttributes As ImageAttributes)
         Dim texture As GpTexture
-        LastResult = GdipCreateTextureIAI(GetNative(image), GetNative(imageAttributes), _
+        LastStatus = GdipCreateTextureIAI(GetNative(image), GetNative(imageAttributes), _
                 dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
         SetNativeTexture(texture)
     End Sub
     
-    Sub New(image As Image, wrapmode As GpWrapMode, dstRect As GpRect)
+    Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstRect As GpRect)
         Dim texture As GpTexture
-        LastResult = GdipCreateTexture2I(GetNative(image), wrapmode, _
+        LastStatus = GdipCreateTexture2I(GetNative(image), wrapmode, _
                 dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstX!, dstY!, dstWidth!, dstHeight!)
         Dim texture As GpTexture
-        LastResult = GdipCreateTexture2(GetNative(image), wrapmode, _
+        LastStatus = GdipCreateTexture2(GetNative(image), wrapmode, _
                 dstX, dstY, dstWidth, dstHeight, texture)
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstX&, dstY&, dstWidth&, dstHeight&)
         Dim texture As GpTexture
-        LastResult = GdipCreateTexture2I(GetNative(image), wrapmode, _
+        LastStatus = GdipCreateTexture2I(GetNative(image), wrapmode, _
                 dstX, dstY, dstWidth, dstHeight, texture)
         SetNativeTexture(texture)
     End Sub
@@ -82,46 +75,45 @@ Class TextureBrush
         Return SetStatus(GdipResetTextureTransform(br))
     End Function
     
-    Function MultiplyTransform(matrix As Matrix, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipMultiplyTextureTransform(br, GetNative(matrix), order))
     End Function
     
-    Function TranslateTransform(ByVal dx!, ByVal dy!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipTranslateTextureTransform(br, dx, dy, order))
     End Function
     
-    Function ScaleTransform(ByVal sx!, ByVal sy!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipScaleTextureTransform(br, sx, sy, order))
     End Function
     
-    Function RotateTransform(ByVal angle!, Optional order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipRotateTextureTransform(br, angle, order))
     End Function
 
-    Property Set WrapMode(ByVal wrapMode As GpWrapMode)
+    Property Let WrapMode(ByVal wrapMode As GpWrapMode)
         SetStatus(GdipSetTextureWrapMode(br, wrapMode))
     End Property
     
     Property Get WrapMode() As GpWrapMode
         SetStatus(GdipGetTextureWrapMode(br, WrapMode))
     End Property
-    
-    Function SetWrapMode(ByVal wrapMode As GpWrapMode) As GpStatus
-        Return SetStatus(GdipSetTextureWrapMode(br, wrapMode))
-    End Function
-    
-    Function GetWrapMode() As GpWrapMode
-        SetStatus(GdipGetTextureWrapMode(br, GetWrapMode))
-    End Function
-    
+        
     Function GetImage() As Image
         Dim img As GpImage
         SetStatus(GdipGetTextureImage(br, img))
-        Set GetImage = New Image(img, LastResult)
-        If GetImage Is Nothing Then GdipDisposeImage(img)
+        If LastStatus = Ok Then Set GetImage = New Image(img, LastResult)
     End Function
     
     Protected Sub New()
+    End Sub
+    
+    Protected Property Get Native() As GpTexture
+        Native.Native = br.Native
+    End Property
+    
+    Protected Sub SetNativeTexture(ByVal nativeTexture As GpTexture)
+        br.Native = nativeTexture.Native
     End Sub
 End Class
 

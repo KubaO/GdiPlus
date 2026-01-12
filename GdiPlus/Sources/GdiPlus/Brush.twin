@@ -1,45 +1,36 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 [Description("Abstract base class for various brush types")]
 Class Brush
     Inherits GdiPlusBase
     Protected br As GpBrush
-    Protected LastResult As GpStatus
         
     Sub Class_Terminate()
-        br.DeleteBrush()
+        GdipDeleteBrush(br)
     End Sub
     
     Overridable Function Clone() As Brush
-        Dim brush As GpBrush = GpBrush()
-        SetStatus(br.CloneBrush(brush))
-        Dim newBrush As Brush = New Brush(brush, LastResult)
-        If newBrush Is Nothing Then
-            brush.DeleteBrush()
-        End If
-        Return newBrush
+        Dim brush As GpBrush
+        SetStatus(GdipCloneBrush(br, brush))
+        If LastResult = Ok Then Set Clone = New Brush(brush, LastResult)
     End Function
     
     Property Get Type() As GpBrushType
         Type = -1
-        SetStatus(br.GetBrushType(Type))
+        SetStatus(GdipGetBrushType(br, Type))
     End Property
     
-    Function GetType() As GpBrushType
-        GetType = -1
-        SetStatus(br.GetBrushType(GetType))
-    End Function
-    
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
-    
     Protected Sub New()
-        SetStatus(NotImplemented)
+        LastStatus = NotImplemented
     End Sub
     
-    Sub New(ByVal nativeBrush As GpBrush, status As GpStatus)
-        LastResult = status
+    ' Used by Pen
+    Public Sub New(ByVal nativeBrush As GpBrush, ByVal status As GpStatus)
+        LastStatus = status
+        SetNativeBrush(nativeBrush)
+    End Sub
+    
+    Protected Sub New(ByVal nativeBrush As GpBrush)
         SetNativeBrush(nativeBrush)
     End Sub
     
@@ -47,33 +38,21 @@ Class Brush
         Return br
     End Property
     
-    Protected Sub New(ByVal nativeBrush As GpBrush)
-        LastResult = Ok
-        SetNativeBrush(nativeBrush)
-    End Sub
-    
     Protected Sub SetNativeBrush(ByVal nativeBrush As GpBrush)
         br = nativeBrush
     End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
 End Class
 
 Module BrushModule
     Type GpBrush
         Native As LongPtr
-        
-        Public Declare PtrSafe Function DeleteBrush Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpBrush) As GpStatus
-        Public Declare PtrSafe Function CloneBrush Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
-        Public Declare PtrSafe Function GetBrushType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
     End Type
     
     Function GpBrush() As GpBrush
         GpBrush.Native = 0
     End Function
+    
+    Public Declare PtrSafe Function GdipDeleteBrush Lib "gdiplus" (ByVal Me As GpBrush) As GpStatus
+    Public Declare PtrSafe Function GdipCloneBrush Lib "gdiplus" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
+    Public Declare PtrSafe Function GdipGetBrushType Lib "gdiplus" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
 End Module

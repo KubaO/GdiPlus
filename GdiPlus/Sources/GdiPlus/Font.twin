@@ -1,67 +1,47 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class Font
     Inherits GdiPlusBase
     Dim ft As GpFont
-    Dim LastResult As GpStatus
     
-    Protected Property Get Native() As GpFont
-        Return ft
-    End Property
-    
-    Protected Sub New(ByVal nativeFont As GpFont)
-        LastResult = Ok
-        SetNativeFont(nativeFont)
-    End Sub
-    
-    Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
-        ft = nativeFont
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
-    Sub New(hdc As LongPtr)
+    Sub New(ByVal hdc As LongPtr)
         Dim font As GpFont
-        LastResult = GdipCreateFontFromDC(hdc, font)
+        LastStatus = GdipCreateFontFromDC(hdc, font)
         SetNativeFont(font)
     End Sub
 
-    Sub New(hdc As LongPtr, hfont As LongPtr)
+    Sub New(ByVal hdc As LongPtr, ByVal hfont As LongPtr)
         Dim font As GpFont
         If hfont <> 0 Then
-            Dim lf As LOGFONTA
+            Dim lf As LOGFONTW
 
-            If GetObjectA(hfont, LenB(lf), lf) <> 0 Then
-                LastResult = GdipCreateFontFromLogfontA(hdc, lf, font)
+            If GetObjectW(hfont, LenB(Of LOGFONTW), lf) <> 0 Then
+                LastStatus = GdipCreateFontFromLogfontW(hdc, lf, font)
             Else
-                LastResult = GdipCreateFontFromDC(hdc, font)
+                LastStatus = GdipCreateFontFromDC(hdc, font)
             End If
         Else
-            LastResult = GdipCreateFontFromDC(hdc, font)
+            LastStatus = GdipCreateFontFromDC(hdc, font)
         End If
         SetNativeFont(font)
     End Sub
     
-    Sub New(hdc As LongPtr, logfont As LOGFONTA)
+    Sub New(ByVal hdc As LongPtr, logfont As LOGFONTA)
         Dim font As GpFont
         If VarPtr(logfont) <> 0 Then
-            LastResult = GdipCreateFontFromLogfontA(hdc, logfont, font)
+            LastStatus = GdipCreateFontFromLogfontA(hdc, logfont, font)
         Else
-            LastResult = GdipCreateFontFromDC(hdc, font)
+            LastStatus = GdipCreateFontFromDC(hdc, font)
         End If
         SetNativeFont(font)
     End Sub
 
-    Sub New(hdc As LongPtr, logfont As LOGFONTW)
+    Sub New(ByVal hdc As LongPtr, logfont As LOGFONTW)
         Dim font As GpFont
         If VarPtr(logfont) <> 0 Then
-            LastResult = GdipCreateFontFromLogfontW(hdc, logfont, font)
+            LastStatus = GdipCreateFontFromLogfontW(hdc, logfont, font)
         Else
-            LastResult = GdipCreateFontFromDC(hdc, font)
+            LastStatus = GdipCreateFontFromDC(hdc, font)
         End If
         SetNativeFont(font)
     End Sub
@@ -69,9 +49,7 @@ Class Font
     Sub New(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
             ByVal unit As GpUnit = UnitPoint)
         Dim font As GpFont
-
-        LastResult = GdipCreateFont(GetNative(family), emSize, style, unit, font)
-
+        LastStatus = GdipCreateFont(GetNative(family), emSize, style, unit, font)
         SetNativeFont(font)
     End Sub
 
@@ -81,22 +59,22 @@ Class Font
         Dim family As FontFamily = New FontFamily(familyName, fontCollection)
         Dim nativeFamily As GpFontFamily = GetNative(family)
 
-        LastResult = family.GetLastResult()
+        LastStatus = family.GetLastResult()
 
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
-            LastResult = GenericSansSerif().LastResult
+            LastStatus = GenericSansSerif().GetLastResult
             If LastResult <> Ok Then Exit Sub
         End If
 
-        LastResult = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
+        LastStatus = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
 
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
-            LastResult = GenericSansSerif().LastResult
+            LastStatus = GenericSansSerif().GetLastResult
             If LastResult <> Ok Then Exit Sub
 
-            LastResult = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
+            LastStatus = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
         End If
     End Sub
 
@@ -111,7 +89,7 @@ Class Font
     Function Clone() As Font
         Dim cloneFont As GpFont
         SetStatus(GdipCloneFont(ft, cloneFont))
-        Return New Font(cloneFont, LastResult)
+        If LastResult = Ok Then Set Clone = New Font(cloneFont, LastResult)
     End Function
     
     Sub Class_Terminate()
@@ -133,7 +111,13 @@ Class Font
     Property Get Unit() As GpUnit
         SetStatus(GdipGetFontUnit(ft, Unit))
     End Property
-        
+    
+    Property Get PtHeight!()
+        Dim height!
+        SetStatus(GdipGetFontHeightGivenDPI(ft, 1000, height))
+        If LastResult = Ok Then PtHeight = height / (1000.0 / 72.0)
+    End Property
+    
     Function GetHeight!(graphics As Graphics)
         SetStatus(GdipGetFontHeight(ft, GetNative(graphics), GetHeight))
     End Function
@@ -143,30 +127,28 @@ Class Font
     End Function
     
     Property Get Family() As FontFamily
-        Set Family = New FontFamily
-        GetFamily(Family)
+        Dim nativeFamily As GpFontFamily
+        GdipGetFamily(ft, nativeFamily)
+        If LastStatus = Ok Then Set Family = New FontFamily(nativeFamily)
     End Property
-    
-    Function GetFamily(family As FontFamily) As GpStatus
-        If family Is Nothing Then
-            Return SetStatus(InvalidParameter)
-        End If
-
-        Dim status As Any = GdipGetFamily(ft, GetNative(family))
-        family.SetStatus(status)
-
-        Return SetStatus(status)
-    End Function
-    
+        
     Protected Sub New(ByVal font As GpFont, ByVal status As GpStatus)
-        LastResult = status
+        LastStatus = status
         SetNativeFont(font)
     End Sub
     
-    Protected Function GetLastResult() As GpStatus
-        ' FIXME: this doesn't look like the other side-effect-ful GetLastResult methods
-        Return LastResult
-    End Function
+    Protected Property Get Native() As GpFont
+        Return ft
+    End Property
+    
+    Protected Sub New(ByVal nativeFont As GpFont)
+        LastStatus = Ok
+        SetNativeFont(nativeFont)
+    End Sub
+    
+    Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
+        ft = nativeFont
+    End Sub
 End Class
 
 Module FontModule
@@ -182,15 +164,15 @@ Module FontModule
     Public Declare PtrSafe Function GdipCreateFontFromDC Lib "gdiplus" (ByVal hdc As LongPtr, font As GpFont) As GpStatus
     Public Declare PtrSafe Function GdipCreateFontFromLogfontA Lib "gdiplus" (ByVal hdc As LongPtr, logfont As LOGFONTA, font As GpFont) As GpStatus
     Public Declare PtrSafe Function GdipCreateFontFromLogfontW Lib "gdiplus" (ByVal hdc As LongPtr, logfont As LOGFONTW, font As GpFont) As GpStatus
-    Public Declare PtrSafe Function GdipCloneFont Lib "gdiplus" (ByVal font As GpFont, cloneFont As GpFont) As GpStatus
-    Public Declare PtrSafe Function GdipDeleteFont Lib "gdiplus" (ByVal font As GpFont) As GpStatus
-    Public Declare PtrSafe Function GdipGetLogFontA Lib "gdiplus" (ByVal font As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTA) As GpStatus
-    Public Declare PtrSafe Function GdipGetLogFontW Lib "gdiplus" (ByVal font As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTW) As GpStatus
+    Public Declare PtrSafe Function GdipCloneFont Lib "gdiplus" (ByVal Me As GpFont, cloneFont As GpFont) As GpStatus
+    Public Declare PtrSafe Function GdipDeleteFont Lib "gdiplus" (ByVal Me As GpFont) As GpStatus
+    Public Declare PtrSafe Function GdipGetLogFontA Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTA) As GpStatus
+    Public Declare PtrSafe Function GdipGetLogFontW Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTW) As GpStatus
     
-    Public Declare PtrSafe Function GdipGetFamily Lib "gdiplus" (ByVal font As GpFont, family As GpFontFamily) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontStyle Lib "gdiplus" (ByVal font As GpFont, style As Long) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontSize Lib "gdiplus" (ByVal font As GpFont, size As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontUnit Lib "gdiplus" (ByVal font As GpFont, unit As GpUnit) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontHeight Lib "gdiplus" (ByVal font As GpFont, ByVal Graphics As GpGraphics, height As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontHeightGivenDPI Lib "gdiplus" (ByVal font As GpFont, ByVal dpi As Single, height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetFamily Lib "gdiplus" (ByVal Me As GpFont, family As GpFontFamily) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontStyle Lib "gdiplus" (ByVal Me As GpFont, style As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontSize Lib "gdiplus" (ByVal Me As GpFont, size As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontUnit Lib "gdiplus" (ByVal Me As GpFont, unit As GpUnit) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontHeight Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontHeightGivenDPI Lib "gdiplus" (ByVal Me As GpFont, ByVal dpi As Single, height As Single) As GpStatus
 End Module

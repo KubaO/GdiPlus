@@ -1,40 +1,20 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class StringFormat
     Inherits GdiPlusBase
     Dim sf As GpStringFormat
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpStringFormat
-        Return sf
-    End Property
-    
-    Protected Sub New(ByVal sf As GpStringFormat)
-        LastResult = Ok
-        SetNativeStringFormat(sf)
-    End Sub
-    
-    Protected Sub SetNativeStringFormat(ByVal sf As GpStringFormat)
-        sf = sf
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+        
     Sub New(ByVal formatFlags& = 0, ByVal language As LANGID = lang_neutral)
-        LastResult = GdipCreateStringFormat(formatFlags, language, sf)
+        LastStatus = GdipCreateStringFormat(formatFlags, language, sf)
     End Sub
     
     Sub New(format As StringFormat)
-        LastResult = GdipCloneStringFormat(GetNative(format), sf)
+        LastStatus = GdipCloneStringFormat(GetNative(format), sf)
     End Sub
     
     Function Clone() As StringFormat
         Dim nativeClone As GpStringFormat
-        LastResult = GdipCloneStringFormat(sf, nativeClone)
+        LastStatus = GdipCloneStringFormat(sf, nativeClone)
         If LastResult = Ok Then Set Clone = New StringFormat(nativeClone, LastResult)
     End Function
     
@@ -117,6 +97,10 @@ Class StringFormat
         SetStatus(GdipGetStringFormatTrimming(sf, Trimming))
     End Property
     
+    Property Let MeasurableCharacterRanges(ranges() As CharacterRange)
+        SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, Len(ranges), ranges(LBound(ranges))))
+    End Property
+    
     Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
         Return SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, rangeCount, ranges))
     End Function
@@ -124,19 +108,27 @@ Class StringFormat
     Property Get MeasurableCharacterRangeCount&()
         SetStatus(GdipGetStringFormatMeasurableCharacterRangeCount(sf, MeasurableCharacterRangeCount&))
     End Property
+        
+    Protected Property Get Native() As GpStringFormat
+        Return sf
+    End Property
     
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
+    Protected Sub New(ByVal sf As GpStringFormat)
+        LastStatus = Ok
+        SetNativeStringFormat(sf)
+    End Sub
     
+    Protected Sub SetNativeStringFormat(ByVal sf As GpStringFormat)
+        sf = sf
+    End Sub
+        
     Protected Sub Assign(source As StringFormat)
         GdipDeleteStringFormat(sf)
-        LastResult = GdipCloneStringFormat(GetNative(source), sf)
+        LastStatus = GdipCloneStringFormat(GetNative(source), sf)
     End Sub
     
     Protected Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
-        LastResult = status
+        LastStatus = status
         sf = clonedStringFormat
     End Sub
 End Class

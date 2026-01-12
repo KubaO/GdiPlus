@@ -1,36 +1,33 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 [Description("Solid Fill Brush Object")]
 Class SolidBrush
     Inherits Brush
     
+    Sub New(color As Color)
+        LastStatus = GdipCreateSolidFill(color, br)
+    End Sub
+    
+    Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
+        lastStatus = lastStatus
+        SetNativeSolid(nativeBrush)
+    End Sub
+    
+    Property Get Color() As Color
+        SetStatus(GdipGetSolidFillColor(br, Color))
+    End Property
+    
+    Property Let tColor(color As Color)
+        SetStatus(GdipSetSolidFillColor(br, color))
+    End Property
+    
     Protected Property Get Native() As GpSolidFill
         Native.Native = br.Native
     End Property
     
-    Sub New(color As Color)
-        LastResult = GdipCreateSolidFill(color.GetValue(), br)
-    End Sub
-    
-    Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
-        LastResult = lastStatus
-        SetNativeSolid(nativeBrush)
-    End Sub
-    
     Protected Sub SetNativeSolid(ByVal nativeSolid As GpSolidFill)
         br.Native = nativeSolid.Native
     End Sub
-        
-    Function GetColor(acolor As Color) As GpStatus
-        Dim argb As ARGB
-        If VarPtr(Color) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        SetStatus(GdipGetSolidFillColor(br, argb))
-        acolor = Color(argb)
-        Return LastResult
-    End Function
-    
-    Function SetColor(color As Color) As GpStatus
-        Return SetStatus(GdipSetSolidFillColor(br, color.GetValue()))
-    End Function
 End Class
 
 Module SolidBrushModule
@@ -51,7 +48,7 @@ Module SolidBrushModule
         GpSolidFill.Native = nativeBrush.Native
     End Function
     
-    Public Declare PtrSafe Function GdipCreateSolidFill Lib "gdiplus" (ByVal argb As Long, brush As GpSolidFill) As GpStatus
-    Public Declare PtrSafe Function GdipSetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, ByVal color&) As GpStatus
-    Public Declare PtrSafe Function GdipGetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, color&) As GpStatus
+    Public Declare PtrSafe Function GdipCreateSolidFill Lib "gdiplus" (ByVal argb As Color, brush As GpSolidFill) As GpStatus
+    Public Declare PtrSafe Function GdipSetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, ByVal color As Color) As GpStatus
+    Public Declare PtrSafe Function GdipGetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, color As Color) As GpStatus
 End Module

@@ -1,29 +1,9 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class FontCollection
     Inherits GdiPlusBase
     Protected fc As GpFontCollection
-    Protected LastResult As GpStatus
-    
-    Protected Property Get Native() As GpFontCollection
-        Return fc
-    End Property
-    
-    Protected Sub New(ByVal nativeCollection As GpFontCollection)
-        LastResult = Ok
-        SetNativeFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativeFontCollection(ByVal nativeCollection As GpFontCollection)
-        fc = nativeCollection
-    End Sub
-    
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+   
     Sub New()
         ' empty by design
     End Sub
@@ -53,9 +33,17 @@ Class FontCollection
         Return result
     End Function
     
-    Function GetLastStatus() As GpStatus
-        Return LastResult ' TODO FIXME this is not like in the other classes
-    End Function
+    Protected Property Get Native() As GpFontCollection
+        Return fc
+    End Property
+    
+    Protected Sub New(ByVal nativeCollection As GpFontCollection)
+        SetNativeFontCollection(nativeCollection)
+    End Sub
+    
+    Protected Sub SetNativeFontCollection(ByVal nativeCollection As GpFontCollection)
+        fc = nativeCollection
+    End Sub
 End Class
 
 Module FontCollectionModule
@@ -67,6 +55,6 @@ Module FontCollectionModule
         GpFontCollection.Native = 0
     End Function
     
-    Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal fontCollection As GpFontCollection, numFound As Long) As GpStatus
-    Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal fontCollection As GpFontCollection, ByVal numSought As Long, gpfamilies As GpFontFamily, numFound As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal Me As GpFontCollection, numFound As Long) As GpStatus
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal Me As GpFontCollection, ByVal numSought As Long, gpfamilies As GpFontFamily, numFound As Long) As GpStatus
 End Module

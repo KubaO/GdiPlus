@@ -1,3 +1,4 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 [Description("Hatch Brush Object")]
 Class HatchBrush
@@ -8,7 +9,7 @@ Class HatchBrush
     End Property
        
     Sub New(ByVal nativeHatch As GpHatch, status As GpStatus = Ok)
-        LastResult = status
+        LastStatus = status
         SetNativeHatch(nativeHatch)
     End Sub
     
@@ -18,23 +19,21 @@ Class HatchBrush
     
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreColor As Color, ByVal backColor As Color)
         Dim brush As GpHatch
-        LastResult = GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush)
+        LastStatus = GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush)
         SetNativeHatch(brush)
     End Sub
     
-    Function GetHatchStyle() As GpHatchStyle
-        SetStatus(GdipGetHatchStyle(br, GetHatchStyle))
-    End Function
+    Property Get HatchStyle() As GpHatchStyle
+        SetStatus(GdipGetHatchStyle(br, HatchStyle))
+    End Property
     
-    Function GetForegroundColor(color As Color) As GpStatus
-        If VarPtr(color) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipGetHatchForegroundColor(br, color))
-    End Function
+    Property Get ForegroundColor() As Color
+        SetStatus(GdipGetHatchForegroundColor(br, ForegroundColor))
+    End Property
     
-    Function GetBackgroundColor(color As Color) As GpStatus
-        If VarPtr(color) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipGetHatchBackgroundColor(br, color))
-    End Function
+    Property Get BackgroundColor() As Color
+        SetStatus(GdipGetHatchBackgroundColor(br, BackgroundColor))
+    End Property
 End Class
 
 Module HatchModule

@@ -1,48 +1,40 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class GraphicsPath
     Inherits GdiPlusBase
-    Dim pa As GpPath
-    Protected LastResult As GpStatus
-    
-    Protected Property Get Native() As GpPath
-        Return pa
-    End Property
+    Protected pa As GpPath
             
     Sub New(ByVal fillMode As FillMode = FillModeAlternate)
-        pa.Native = vbNullPtr
-        LastResult = GdipCreatePath(fillMode, pa.Native)
+        LastStatus = GdipCreatePath(fillMode, pa)
     End Sub
 
     Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate)
         Debug.Assert Len(points) = Len(types)
-        pa.Native = vbNullPtr
-        LastResult = GdipCreatePath2(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa.Native)
+        LastStatus = GdipCreatePath2(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
     End Sub
     
     Sub New(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate)
-        pa.Native = vbNullPtr
-        LastResult = GdipCreatePath2(points, types, count, fillMode, pa.Native)
+        LastStatus = GdipCreatePath2(points, types, count, fillMode, pa)
     End Sub
 
     Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate)
         Debug.Assert Len(points) = Len(types)
-        pa.Native = vbNullPtr
-        LastResult = GdipCreatePath2I(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa.Native)
+        LastStatus = GdipCreatePath2I(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
     End Sub
     
     Sub New(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate)
         pa.Native = vbNullPtr
-        LastResult = GdipCreatePath2I(points, types, count, fillMode, pa.Native)
+        LastStatus = GdipCreatePath2I(points, types, count, fillMode, pa)
     End Sub
     
     Sub Class_Terminate()
-        GdipDeletePath(pa.Native)
+        GdipDeletePath(pa)
     End Sub
     
     Function Clone() As GraphicsPath
         Dim clonePath As GpPath
         SetStatus(pa.ClonePath(clonePath))
-        Return New GraphicsPath(clonePath)
+        If LastResult = Ok Then Set Clone = New GraphicsPath(clonePath)
     End Function
     
     [Description("Reset the path object to empty (and fill mode to FillModeAlternate)")]
@@ -50,14 +42,6 @@ Class GraphicsPath
         Return SetStatus(pa.ResetPath())
     End Function
     
-    Function GetFillMode() As FillMode
-        SetStatus(pa.GetPathFillMode(GetFillMode))
-    End Function
-    
-    Function SetFillMode(ByVal fillMode As FillMode) As GpStatus
-        Return SetStatus(pa.SetPathFillMode(fillMode))
-    End Function
-
     Property Get FillMode() As FillMode
         SetStatus(pa.GetPathFillMode(FillMode))
     End Property
@@ -66,38 +50,10 @@ Class GraphicsPath
         SetStatus(pa.SetPathFillMode(fillMode))
     End Property
     
-    Function GetPathData(pathData As PathData) As GpStatus
-        If VarPtr(pathData) = vbNullPtr Then
-            Return SetStatus(InvalidParameter)
-        End If
-        Dim count& = GetPointCount()
-        If count <= 0 OrElse (pathData.Count > 0 AndAlso pathData.Count < count) Then
-            pathData.Count = 0
-            If pathData.Points <> 0 Then
-                GdipFree(pathData.Points)
-                pathData.Points = vbNullPtr
-            End If
-            If pathData.Types <> 0 Then
-                GdipFree(pathData.Types)
-                pathData.Types = vbNullPtr
-            End If
-            If count < 0 Then Return Ok
-        End If
-        If pathData.Count = 0 Then
-            pathData.Points = GdipAlloc(LenB(GpPointF) * count)
-            If pathData.Points = vbNullPtr Then
-                Return SetStatus(OutOfMemory)
-            End If
-            pathData.Types = GdipAlloc(1 * count)
-            If pathData.Types = vbNullPtr Then
-                GdipFree(pathData.Points)
-                pathData.Points = vbNullPtr
-                Return SetStatus(OutOfMemory)
-            End If
-            pathData.Count = count
-        End If
-        Return SetStatus(pa.GetPathData(pathData))
-    End Function
+    Property Get PathData() As PathData
+        SetStatus(PathData.Allocate(GetPointCount))
+        SetStatus(pa.GetPathData(PathData))
+    End Property
     
     Function StartFigure() As GpStatus
         Return SetStatus(pa.StartPathFigure())
@@ -123,10 +79,6 @@ Class GraphicsPath
         Return SetStatus(pa.ReversePath())
     End Function
     
-    Function GetLastPoint(lastPoint As GpPointF) As GpStatus
-        SetStatus(pa.GetPathLastPoint(lastPoint))
-    End Function
-
     Property Get LastPoint() As GpPointF
         SetStatus(pa.GetPathLastPoint(LastPoint))
     End Property
@@ -470,21 +422,11 @@ Class GraphicsPath
         Return SetStatus(pa.GetPathPointsI(points, count))
     End Function
         
-    Property Get LastStatus() As GpStatus
-        LastStatus = LastResult
-        LastResult = Ok
-    End Property
-    
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
-    
     Function IsVisible(point As GpPointF, Optional g As Graphics) As Boolean
         Return IsVisible(point.X, point.Y, g)
     End Function
     
-    Function IsVisible(ByVal x!, ByVal y!, g As Graphics) As Boolean
+    Function IsVisible(ByVal x!, ByVal y!, Optional g As Graphics) As Boolean
         Dim booln As BOOL = False
         SetStatus(pa.IsVisiblePathPoint(x, y, GetNative(g), booln))
         Return booln
@@ -494,7 +436,7 @@ Class GraphicsPath
         Return IsVisible(point.X, point.Y, g)
     End Function
     
-    Function IsVisible(ByVal x&, ByVal y&, g As Graphics) As Boolean
+    Function IsVisible(ByVal x&, ByVal y&, Optional g As Graphics) As Boolean
         Dim booln As BOOL = False
         SetStatus(pa.IsVisiblePathPointI(x, y, GetNative(g), booln))
         Return booln
@@ -504,7 +446,7 @@ Class GraphicsPath
         Return IsOutlineVisible(point.X, point.Y, pen, g)
     End Function
     
-    Function IsOutlineVisible(ByVal x!, ByVal y!, pen As Pen, g As Graphics) As Boolean
+    Function IsOutlineVisible(ByVal x!, ByVal y!, pen As Pen, Optional g As Graphics) As Boolean
         Dim booln As BOOL = False
         SetStatus(pa.IsOutlineVisiblePathPoint(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
@@ -514,11 +456,15 @@ Class GraphicsPath
         Return IsOutlineVisible(point.X, point.Y, pen, g)
     End Function
     
-    Function IsOutlineVisible(ByVal x&, ByVal y&, pen As Pen, g As Graphics) As Boolean
+    Function IsOutlineVisible(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
         Dim booln As BOOL = False
         SetStatus(pa.IsOutlineVisiblePathPointI(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
+    
+    Protected Property Get Native() As GpPath
+        Return pa
+    End Property
     
     Protected Sub New(path As GraphicsPath)
         Dim clonepath As GpPath
@@ -526,21 +472,14 @@ Class GraphicsPath
         SetNativePath(clonepath)
     End Sub
     
-    Protected Sub New(ByVal nativePath As GpPath)
-        LastResult = Ok
+    ' Used by PathGradientBrush
+    Public Sub New(ByVal nativePath As GpPath)
         SetNativePath(nativePath)
     End Sub
     
     Protected Sub SetNativePath(ByVal nativePath As GpPath)
         pa = nativePath
     End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
 End Class
 
 Module GraphicsPathModule
@@ -623,4 +562,9 @@ Module GraphicsPathModule
         Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
         Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
     End Type
+    
+    Public Declare PtrSafe Function GdipCreatePath Lib "gdiplus" (ByVal brushmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As POINT, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipDeletePath Lib "gdiplus" (ByVal Path As GpPath) As GpStatus
 End Module

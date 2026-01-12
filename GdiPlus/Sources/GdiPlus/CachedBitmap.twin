@@ -1,25 +1,20 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class CachedBitmap
     Inherits GdiPlusBase
     Public cb As GpCachedBitmap
-    Dim LastResult As GpStatus
 
-    Property Get Native() As GpCachedBitmap
-        Return cb
-    End Property
-    
     Sub New(bitmap As Bitmap, graphics As Graphics)
-        LastResult = GdipCreateCachedBitmap(GetNative(bitmap), GetNative(graphics), cb)
+        LastStatus = GdipCreateCachedBitmap(GetNative(bitmap), GetNative(graphics), cb)
     End Sub
     
     Sub Class_Terminate()
         GdipDeleteCachedBitmap(cb)
     End Sub
     
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
+    Protected Property Get Native() As GpCachedBitmap
+        Return cb
+    End Property
 End Class
 
 Module CachedBitmapModule

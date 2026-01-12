@@ -1,30 +1,11 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class AdjustableArrowCap
     Inherits CustomLineCap
-    
-    Protected Property Get Native() As GpAdjustableArrowCap
-        Native.Native = lc.Native
-    End Property
-    
-    Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
-        LastResult = Ok
-        SetNativeArrowCap(nativeArrowCap)
-    End Sub
-    
-    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpAdjustableArrowCap)
-        Native.Native = nativeArrowCap.Native
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+        
     Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
         Dim cap  As GpAdjustableArrowCap
-        LastResult = GdipCreateAdjustableArrowCap(height, width, isFilled, cap)
+        LastStatus = GdipCreateAdjustableArrowCap(height, width, isFilled, cap)
         SetNativeArrowCap(cap)
     End Sub
     
@@ -61,6 +42,19 @@ Class AdjustableArrowCap
         SetStatus(GdipGetAdjustableArrowCapFillState(Native, booln))
         Return booln
     End Property
+    
+    Protected Property Get Native() As GpAdjustableArrowCap
+        Native.Native = lc.Native
+    End Property
+    
+    Protected Sub New(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        LastStatus = Ok
+        SetNativeArrowCap(nativeArrowCap)
+    End Sub
+    
+    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpAdjustableArrowCap)
+        Native.Native = nativeArrowCap.Native
+    End Sub
 End Class
 
 Module AdjustableArrowCapModule
@@ -74,12 +68,12 @@ Module AdjustableArrowCapModule
     End Function
     
     Public Declare PtrSafe Function GdipCreateAdjustableArrowCap Lib "gdiplus" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpAdjustableArrowCap) As GpStatus
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapHeight Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal height As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapHeight Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, height As Single) As GpStatus
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapWidth Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal width As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapWidth Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, width As Single) As GpStatus
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal middleInset As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, middleInset As Single) As GpStatus
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, ByVal fillState As BOOL) As GpStatus
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal cap As GpAdjustableArrowCap, fillState As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, ByVal height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, height As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, ByVal width As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, width As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, ByVal middleInset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, middleInset As Single) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, ByVal fillState As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpAdjustableArrowCap, fillState As BOOL) As GpStatus
 End Module

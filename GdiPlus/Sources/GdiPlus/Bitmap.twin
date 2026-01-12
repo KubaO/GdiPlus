@@ -1,33 +1,14 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class Bitmap
     Inherits Image
-    
-    Property Get Native() As GpBitmap
-        Native.Native = im.Native
-    End Property
-    
-    Sub New(ByVal nativeBitmap As GpBitmap)
-        LastResult = Ok
-        SetNativeBitmap(nativeBitmap)
-    End Sub
-    
-    Protected Sub SetNativeBitmap(ByVal nativeBitmap As GpBitmap)
-        im.Native = nativeBitmap.Native
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-    
+        
     Sub New(ByVal filename As String, ByVal useEmbeddedColorManagement As Boolean = False)
         Dim nativeBitmap As GpBitmap
         If useEmbeddedColorManagement Then
-            LastResult = GdipCreateBitmapFromFileICM(StrPtr(filename), nativeBitmap)
+            LastStatus = GdipCreateBitmapFromFileICM(filename, nativeBitmap)
         Else
-            LastResult = GdipCreateBitmapFromFile(StrPtr(filename), nativeBitmap)
+            LastStatus = GdipCreateBitmapFromFile(filename, nativeBitmap)
         End If
         SetNativeBitmap(nativeBitmap)
     End Sub
@@ -35,28 +16,28 @@ Class Bitmap
     Sub New(stream As IStream, ByVal useEmbeddedColorManagement As Boolean = False)
         Dim nativeBitmap As GpBitmap
         If useEmbeddedColorManagement Then
-            LastResult = GdipCreateBitmapFromStreamICM(stream, nativeBitmap)
+            LastStatus = GdipCreateBitmapFromStreamICM(stream, nativeBitmap)
         Else
-            LastResult = GdipCreateBitmapFromStream(stream, nativeBitmap)
+            LastStatus = GdipCreateBitmapFromStream(stream, nativeBitmap)
         End If
         SetNativeBitmap(nativeBitmap)
     End Sub
         
     Sub New(ByVal width!, ByVal height!, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromScan0(width, height, stride, format, scan0, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromScan0(width, height, stride, format, scan0, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
     Sub New(ByVal width!, ByVal height!, ByVal format As PixelFormat = PixelFormat32bppARGB)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromScan0(width, height, 0, format, Null, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromScan0(width, height, 0, format, Null, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
         
     Sub New(ByVal width!, ByVal height!, target As Graphics)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromGraphics(width, height, GetNative(target), nativeBitmap)
+        LastStatus = GdipCreateBitmapFromGraphics(width, height, GetNative(target), nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
@@ -97,14 +78,6 @@ Class Bitmap
     Property Let Pixel(ByVal x&, ByVal y&, ByVal color As Color)
         SetStatus(GdipBitmapSetPixel(Native, x, y, color))
     End Property
-    
-    Function GetPixel(ByVal x&, ByVal y&, color As Color) As GpStatus
-        Return SetStatus(GdipBitmapGetPixel(Native, x, y, color))
-    End Function
-    
-    Function SetPixel(ByVal x&, ByVal y&, ByVal color As Color) As GpStatus
-        Return SetStatus(GdipBitmapSetPixel(Native, x, y, color))
-    End Function
 
 '#if (GDIPVER >= 0x0110)
     Function ConvertFormat(ByVal format As PixelFormat, ByVal ditherType As DitherType, ByVal paletteType As PaletteType, _
@@ -142,31 +115,31 @@ Class Bitmap
     
     Sub New(surface As IDirectDrawSurface7)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromDirectDrawSurface(surface, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromDirectDrawSurface(surface, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
     Sub New(gdiBitmapInfo As BITMAPINFO, gdiBitmapData As Byte)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromGdiDib(gdiBitmapInfo, gdiBitmapData, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromGdiDib(gdiBitmapInfo, gdiBitmapData, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
     Sub New(ByVal hbm As LongPtr, ByVal hpal As LongPtr)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromHBITMAP(hbm, hpal, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromHBITMAP(hbm, hpal, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
     Sub New(ByVal hicon As LongPtr)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromHICON(hicon, nativeBitmap)
+        LastStatus = GdipCreateBitmapFromHICON(hicon, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
     Sub New(ByVal hInstance As LongPtr, ByVal bitmapName As String)
         Dim nativeBitmap As GpBitmap
-        LastResult = GdipCreateBitmapFromResource(hInstance, StrPtr(bitmapName), nativeBitmap)
+        LastStatus = GdipCreateBitmapFromResource(hInstance, StrPtr(bitmapName), nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
@@ -177,6 +150,20 @@ Class Bitmap
     Function GetHIcon(hIconReturn As LongPtr) As GpStatus
         Return SetStatus(GdipCreateHICONFromBitmap(Native, hIconReturn))
     End Function
+    
+    Protected Property Get Native() As GpBitmap
+        Native.Native = im.Native
+    End Property
+    
+    ' Used by freestanding ApplyEffect
+    Public Sub New(ByVal nativeBitmap As GpBitmap)
+        LastStatus = Ok
+        SetNativeBitmap(nativeBitmap)
+    End Sub
+    
+    Protected Sub SetNativeBitmap(ByVal nativeBitmap As GpBitmap)
+        im.Native = nativeBitmap.Native
+    End Sub
 End Class
 
 Module BitmapModule
@@ -248,7 +235,7 @@ Module BitmapModule
         ReDim nativeInputs(1 To Len(inputs))
         Dim j As Integer = 1
         For i As Integer = LBound(inputs) To UBound(inputs)
-            nativeInputs(j) = inputs(i).Native
+            nativeInputs(j) = GetNative(inputs(i))
             j += 1
         Next
     
@@ -257,7 +244,7 @@ Module BitmapModule
         Dim auxData As LongPtr
         Dim auxDataSize&
         Dim status As GpStatus = GdipBitmapCreateApplyEffect( _
-            nativeInputs(1), Len(nativeInputs), effect.Native, _
+            nativeInputs(1), Len(nativeInputs), GetNative(effect), _
             ROI, _
             outputRect, _
             outputNative, _
@@ -276,9 +263,7 @@ Module BitmapModule
         Return status
     End Function
     
-    Public Declare PtrSafe Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FileName As LongPtr, ByRef bitmap As GpBitmap) As GpStatus
     Public DeclareWide PtrSafe Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FileName As String, ByRef bitmap As GpBitmap) As GpStatus
-    Public Declare PtrSafe Function GdipCreateBitmapFromFileICM Lib "gdiplus" (ByVal FileName As LongPtr, ByRef bitmap As GpBitmap) As GpStatus
     Public DeclareWide PtrSafe Function GdipCreateBitmapFromFileICM Lib "gdiplus" (ByVal FileName As String, ByRef bitmap As GpBitmap) As GpStatus
     Public Declare PtrSafe Function GdipCreateBitmapFromStream Lib "gdiplus" (ByVal stream As IStream, ByRef bitmap As GpBitmap) As GpStatus
     Public Declare PtrSafe Function GdipCreateBitmapFromStreamICM Lib "gdiplus" (ByVal stream As IStream, ByRef bitmap As GpBitmap) As GpStatus
@@ -292,17 +277,17 @@ Module BitmapModule
     Public Declare PtrSafe Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, ByRef hbmReturn As LongPtr, ByVal Background As Color) As GpStatus
     
     Public Declare PtrSafe Function GdipInitializePalette Lib "gdiplus" (palette As ColorPalette, ByVal paletteType As PaletteType, ByVal optimalColors As Long, ByVal useTransparentColor As BOOL, ByVal bitmap As GpBitmap) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapApplyEffect Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal effect As GpEffect, roi As RECT, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapApplyEffect Lib "gdiplus" (ByVal Me As GpBitmap, ByVal effect As GpEffect, roi As RECT, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
     Public Declare PtrSafe Function GdipBitmapCreateApplyEffect Lib "gdiplus" (inputBitmaps As Any, ByVal numInputs As Long, ByVal effect As GpEffect, roi As RECT, outputRect As RECT, outputBitmap As GpBitmap, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
     Public Declare PtrSafe Function GdipCloneBitmapArea Lib "gdiplus" (ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
     Public Declare PtrSafe Function GdipCloneBitmapAreaI Lib "gdiplus" (ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapLockBits Lib "gdiplus" (ByVal bitmap As GpBitmap, Rect As RECT, ByVal flags As Long, ByVal format As PixelFormat, lockedBitmapData As BitmapData) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapUnlockBits Lib "gdiplus" (ByVal bitmap As GpBitmap, lockedBitmapData As BitmapData) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapGetPixel Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal X As Long, ByVal Y As Long, Color As Color) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapSetPixel Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal X As Long, ByVal Y As Long, ByVal Color As Color) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapLockBits Lib "gdiplus" (ByVal Me As GpBitmap, Rect As RECT, ByVal flags As Long, ByVal format As PixelFormat, lockedBitmapData As BitmapData) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapUnlockBits Lib "gdiplus" (ByVal Me As GpBitmap, lockedBitmapData As BitmapData) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapGetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, Color As Color) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapSetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, ByVal Color As Color) As GpStatus
     Public Declare PtrSafe Function GdipBitmapConvertFormat Lib "gdiplus" (ByVal inputBitmap As GpBitmap, ByVal format As PixelFormat, ByVal dithertype As DitherType, ByVal palettetype As PaletteType, palette As ColorPalette, ByVal alphaThresholdPercent As Single) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapGetHistogram Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal format As HistogramFormat, ByVal NumberOfEntries As Long, channel0 As Long, channel1 As Long, channel2 As Long, channel3 As Long) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapGetHistogram Lib "gdiplus" (ByVal Me As GpBitmap, ByVal format As HistogramFormat, ByVal NumberOfEntries As Long, channel0 As Long, channel1 As Long, channel2 As Long, channel3 As Long) As GpStatus
     Public Declare PtrSafe Function GdipBitmapGetHistogramSize Lib "gdiplus" (ByVal format As HistogramFormat, NumberOfEntries As Long) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapSetResolution Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal xdpi As Single, ByVal ydpi As Single) As GpStatus
-    Public Declare PtrSafe Function GdipCreateHICONFromBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, hbmReturn As LongPtr) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapSetResolution Lib "gdiplus" (ByVal Me As GpBitmap, ByVal xdpi As Single, ByVal ydpi As Single) As GpStatus
+    Public Declare PtrSafe Function GdipCreateHICONFromBitmap Lib "gdiplus" (ByVal Me As GpBitmap, hbmReturn As LongPtr) As GpStatus
 End Module

@@ -1,0 +1,76 @@
+Private Module GdiPlusImpl    
+    Private Sub SetStaticSA(ByRef sa As SAFEARRAY1D, ByVal elementSize&, ByVal data As LongPtr, ByVal count&)
+        sa.cDims = 1
+        sa.fFeatures = CInt(FADF_STATIC + FADF_FIXEDSIZE)
+        sa.cbElements = elementSize&
+        sa.cLocks = 0
+        sa.pvData = data
+        sa.Bounds.cElements = count
+        sa.Bounds.lLbound = 1
+    End Sub
+    
+    [CompilerOptions("+llvm,+optimize")]
+    Private Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
+        Return ((ptr + alignment& - 1) / alignment) * alignment
+    End Function
+    
+    Sub InitStaticTrailingSA(ByVal data As LongPtr, ByVal elementSize&, ByVal count&)
+        Dim alignedSize& = AlignTo(count * elementSize, 8)
+        SetStaticSA(ByVal (data + alignedSize), elementSize, data, count)
+    End Sub
+    
+    Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
+        Dim alignedSize& = AlignTo(count * LenB(Of T), 8)
+        PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
+    End Function
+    
+    [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it.")]
+    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count As LongPtr) As GpStatus
+        Dim alignedSize&
+        
+        If dataPtr <> 0 Then
+            GdipFree(dataPtr)
+            dataPtr = 0
+        End If
+        count = 0
+        If newCount = 0 Then Return Ok
+        alignedSize = AlignTo(newCount * elementSize, 8)
+        dataPtr = GdipAlloc(alignedSize + LenB(Of SAFEARRAY1D))
+        If dataPtr = 0 Then
+            Return OutOfMemory
+        End If
+        InitStaticTrailingSA(dataPtr, elementSize, count)
+        count = newCount
+        Return Ok
+    End Function
+    
+    [Description("Allocates two areas for data, each followed by a trailing static SAFEARRAY describing it.")]
+    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, ByRef count As LongPtr) As GpStatus
+        Dim alignedSize1&, alignedSize2&
+                    
+        If dataPtr1 <> 0 Then
+            GdipFree(dataPtr1)
+            dataPtr1 = 0
+        End If
+        If dataPtr2 <> 0 Then
+            GdipFree(dataPtr2)
+            dataPtr2 = 0
+        End If
+        count = 0
+        If newCount = 0 Then Return Ok
+        alignedSize1 = AlignTo(newCount * elementSize1, 8)
+        dataPtr1 = GdipAlloc(alignedSize1 + LenB(Of SAFEARRAY1D))
+        If dataPtr1 = 0 Then Return OutOfMemory
+        alignedSize2 = AlignTo(newCount * elementSize2, 8)
+        dataPtr2 = GdipAlloc(alignedSize2 + LenB(Of SAFEARRAY1D))
+        If dataPtr2 = 0 Then
+            GdipFree(dataPtr1)
+            dataPtr1 = 0
+            Return OutOfMemory
+        End If
+        InitStaticTrailingSA(dataPtr1, elementSize1, count)
+        InitStaticTrailingSA(dataPtr2, elementSize2, count)
+        count = newCount
+        Return Ok
+    End Function
+End Module

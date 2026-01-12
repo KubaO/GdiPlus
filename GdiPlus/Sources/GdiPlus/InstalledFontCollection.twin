@@ -1,6 +1,15 @@
+' Reviewed 2026-01-11
 [COMCreatable(False)]
 Class InstalledFontCollection
     Inherits FontCollection
+    
+    Sub New()
+        LastStatus = GdipNewInstalledFontCollection(fc)
+    End Sub
+    
+    Sub Class_Terminate()
+        ' empty
+    End Sub
     
     Protected Property Get Native() As GpInstalledFontCollection
         Debug.Assert TypeOf (Me) Is InstalledFontCollection
@@ -8,7 +17,6 @@ Class InstalledFontCollection
     End Property
     
     Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
-        LastResult = Ok
         SetNativeInatalledFontCollection(nativeCollection)
     End Sub
     
@@ -16,14 +24,6 @@ Class InstalledFontCollection
         Dim nativeBase As GpFontCollection
         nativeBase.Native = nativeCollection.Native
         SetNativeFontCollection(nativeBase)
-    End Sub
-
-    Sub New()
-        LastResult = GdipNewInstalledFontCollection(fc)
-    End Sub
-    
-    Sub Class_Terminate()
-        ' empty
     End Sub
 End Class
 

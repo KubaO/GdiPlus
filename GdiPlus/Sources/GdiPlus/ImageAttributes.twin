@@ -1,3 +1,4 @@
+' Reviewed 2026-01-11
 /**************************************************************************\
 *
 * Copyright (c) 1998-2001, Microsoft Corp.  All Rights Reserved.
@@ -28,30 +29,9 @@
 Class ImageAttributes
     Inherits GdiPlusBase
     Dim ia As GpImageAttributes
-    Dim LastResult As GpStatus
-    
-    Protected Property Get Native() As GpImageAttributes
-        Return ia
-    End Property
-    
-    Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
-        LastResult = Ok
-        SetNativeAttributes(nativeAttributes)
-    End Sub
-    
-    Protected Sub SetNativeAttributes(ByVal nativeAttributes As GpImageAttributes)
-        ia = nativeAttributes
-    End Sub
-
-    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
     
     Sub New()
-        LastResult = GdipCreateImageAttributes(ia)
+        LastStatus = GdipCreateImageAttributes(ia)
     End Sub
     
     Sub Class_Terminate()
@@ -79,7 +59,7 @@ Class ImageAttributes
         Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, True, colorMatrix, nullMatrix, mode))
     End Function
     
-    Function ClearColorMatrix(type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+    Function ClearColorMatrix(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
         Dim nullMatrix As ColorMatrix ' should be a null reference
         Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, False, nullMatrix, nullMatrix, ColorMatrixFlagsDefault))
     End Function
@@ -90,7 +70,7 @@ Class ImageAttributes
         Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, True, colorMatrix, grayMatrix, mode))
     End Function
 
-    Function ClearColorMatrices(type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+    Function ClearColorMatrices(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
         Dim nullMatrix As ColorMatrix ' should be a null reference
         Return SetStatus(GdipSetImageAttributesColorMatrix(ia, type, False, nullMatrix, nullMatrix, ColorMatrixFlagsDefault))
     End Function
@@ -172,14 +152,21 @@ Class ImageAttributes
         Return SetStatus(GdipGetImageAttributesAdjustedPalette(ia, colorPalette, colorAdjustType))
     End Function
     
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
+    Protected Property Get Native() As GpImageAttributes
+        Return ia
+    End Property
+    
+    Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
+        SetNativeAttributes(nativeAttributes)
+    End Sub
+    
+    Protected Sub SetNativeAttributes(ByVal nativeAttributes As GpImageAttributes)
+        ia = nativeAttributes
+    End Sub
     
     Protected Sub New(ByVal imageAttr As GpImageAttributes, ByVal status As GpStatus)
+        LastStatus = status
         SetNativeAttributes(imageAttr)
-        LastResult = status
     End Sub
 End Class
 

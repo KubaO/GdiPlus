@@ -1,4 +1,236 @@
-Alias PROPID As DWORD
+' Reviewed 2026-01-11
+[COMCreatable(False)]
+[Description("Abstract base class for Image and Metafile")]
+Class Image
+    Inherits GdiPlusBase
+    Protected im As GpImage
+    Protected LoadStatus As GpStatus
+
+    'Protected Property Get Native() As GpImage
+    '    Return im
+    'End Property
+    
+    Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
+        If useEmbeddedColorManagement Then
+            LastStatus = GdipLoadImageFromFileICM(StrPtr(filename), im)
+        Else
+            LastStatus = GdipLoadImageFromFile(StrPtr(filename), im)
+        End If
+    End Sub
+
+    Sub New(stream As IStream, useEmbeddedColorManagement As Boolean = False)
+        If useEmbeddedColorManagement Then
+            LastStatus = GdipLoadImageFromStreamICM(stream, im)
+        Else
+            LastStatus = GdipLoadImageFromStream(stream, im)
+        End If
+    End Sub
+        
+    Function Clone() As Image
+        Dim cloneImage As GpImage
+        SetStatus(GdipCloneImage(im, cloneImage))
+        Return New Image(cloneImage, LastResult)
+    End Function
+        
+    Sub Class_Terminate()
+        GdipDisposeImage(im)
+    End Sub
+    
+    Function Save(ByVal filename$, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveImageToFile(im, filename, clsidEncoder, encoderParams))
+    End Function
+    
+    Function Save(ByVal stream As IStream, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveImageToStream(im, stream, clsidEncoder, encoderParams))
+    End Function
+
+    Function SaveAdd(encoderParams As EncoderParameters) As GpStatus
+        Return SetStatus(GdipSaveAdd(im, encoderParams))
+    End Function
+
+    Function SaveAdd(newImage As Image, encoderParams As EncoderParameters) As GpStatus
+        If newImage Is Nothing Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipSaveAddImage(im, GetNative(newImage), encoderParams))
+    End Function
+
+    Property Get Type() As ImageType
+        Type = ImageTypeUnknown
+        SetStatus(GdipGetImageType(im, Type))
+    End Property
+    
+    Property Get PhysicalDimension() As GpSizeF
+        SetStatus(GdipGetImageDimension(im, PhysicalDimension.Width, PhysicalDimension.Height))
+    End Property
+    
+    Property Get Bounds(srcUnit As GpUnit) As GpRectF
+        SetStatus(GdipGetImageBounds(im, Bounds, srcUnit))
+    End Property
+    
+    Property Get Width() As UINT
+        SetStatus(GdipGetImageWidth(im, Width))
+    End Property
+    
+    Property Get Height() As UINT
+        SetStatus(GdipGetImageHeight(im, Height))
+    End Property
+    
+    Property Get HorizontalResolution!()
+        SetStatus(GdipGetImageHorizontalResolution(im, HorizontalResolution))
+    End Property
+    
+    Property Get VerticalResolution!()
+        SetStatus(GdipGetImageVerticalResolution(im, VerticalResolution))
+    End Property
+    
+    Property Get Flags() As UINT
+        SetStatus(GdipGetImageFlags(im, Flags))
+    End Property
+    
+    Function GetRawFormat(format As UUID) As GpStatus ' or GUID
+        Return SetStatus(GdipGetImageRawFormat(im, format))
+    End Function
+
+    Property Get PixelFormat() As PixelFormat
+        SetStatus(GdipGetImagePixelFormat(im, PixelFormat))
+    End Property
+    
+    Property Get PaletteSize&()
+        SetStatus(GdipGetImagePaletteSize(im, PaletteSize&))
+    End Property
+    
+    Property Get Palette() As ColorPalette()
+        ReDim Palette(1 To PaletteSize)
+        SetStatus(GdipGetImagePalette(im, Palette(1), PaletteSize))
+    End Property
+    
+    Property Let Palette(palette() As ColorPalette)
+        SetStatus(GdipGetImagePalette(im, palette(LBound(palette)), Len(palette)))
+    End Property
+    
+    Function GetPalette() As ColorPalette()
+        Dim size& = PaletteSize
+        Dim result() As ColorPalette
+        ReDim result(1 To size)
+        SetStatus(GdipGetImagePalette(im, result(1), size))
+        If LastResult = Ok Then GetPalette = result
+    End Function
+    
+    Function GetPalette(palette As ColorPalette, ByVal count&) As GpStatus
+        Return SetStatus(GdipGetImagePalette(im, palette, count))
+    End Function
+    
+    Function GetThumbnailImage(ByVal thumbWidth&, ByVal thumbHeight&, Optional callback As GetThumbnailImageAbort, callbackData As LongPtr = 0) As Image
+        Dim thumbImage As GpImage
+        SetStatus(GdipGetImageThumbnail(im, thumbWidth, thumbHeight, thumbImage, callback, callbackData))
+        Set GetThumbnailImage = New Image(thumbImage, LastResult)
+        If GetThumbnailImage Is Nothing Then GdipDisposeImage(thumbImage)
+    End Function
+
+    Property Get FrameDimensionsCount&()
+        SetStatus(GdipImageGetFrameDimensionsCount(im, FrameDimensionsCount))
+    End Property
+    
+    Function GetFrameDimensionsList() As UUID()
+        Dim count& = FrameDimensionsCount&
+        Dim result() As UUID
+        ReDim result(1 To count&)
+        SetStatus(GdipImageGetFrameDimensionsList(im, result(1), count&))
+        If LastResult = Ok Then GetFrameDimensionsList = result
+    End Function
+    
+    Function GetFrameDimensionsList(dimensionIDs As UUID, ByVal count&) As GpStatus
+        Return SetStatus(GdipImageGetFrameDimensionsList(im, dimensionIDs, count))
+    End Function
+    
+    Property Get FrameCount(dimensionID As UUID) As UINT
+        SetStatus(GdipImageGetFrameCount(im, dimensionID, FrameCount))
+    End Property
+
+    Function SelectActiveFrame(dimensionID As UUID, ByVal frameIndex As UINT) As GpStatus
+        Return SetStatus(GdipImageSelectActiveFrame(im, dimensionID, frameIndex))
+    End Function
+
+    Function RotateFlip(ByVal rotateFlipTyp As RotateFlipType) As GpStatus
+        Return SetStatus(GdipImageRotateFlip(im, RotateFlipType))
+    End Function
+
+    Property Get PropertyCount() As UINT
+        SetStatus(GdipGetPropertyCount(im, PropertyCount))
+    End Property
+    
+    Property Get PropertyIdList(ByVal numOfProperty As UINT) As PROPID
+        SetStatus(GdipGetPropertyIdList(im, numOfProperty, PropertyIdList))
+    End Property
+  
+    Property Get PropertyItemSize(ByVal propId As PROPID) As UINT
+        SetStatus(GdipGetPropertyItemSize(im, propId, PropertyItemSize))
+    End Property
+    
+    Function GetPropertyItem(ByVal propId As PROPID, ByVal propSize As UINT, buffer As PropertyItem) As GpStatus
+        Return SetStatus(GdipGetPropertyItem(im, propId, propSize, buffer))
+    End Function
+    
+    Function GetPropertySize(totalBufferSize As UINT, numProperties As UINT) As GpStatus
+        Return SetStatus(GdipGetPropertySize(im, totalBufferSize, numProperties))
+    End Function
+    
+    Function GetAllPropertyItems(totalBufferSize As UINT, numProperties As UINT, allItems As PropertyItem) As GpStatus
+        If VarPtr(allItems) = vbNullPtr Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipGetAllPropertyItems(im, totalBufferSize, numProperties, allItems))
+    End Function
+    
+    Function RemovePropertyItem(ByVal propId As PROPID) As GpStatus
+        Return SetStatus(GdipRemovePropertyItem(im, propId))
+    End Function
+    
+    Function SetPropertyItem(item As PropertyItem) As GpStatus
+        Return SetStatus(GdipSetPropertyItem(im, item))
+    End Function
+    
+    Property Get EncoderParameterListSize(clsidEncoder As CLSID) As UINT
+        SetStatus(GdipGetEncoderParameterListSize(im, clsidEncoder, EncoderParameterListSize))
+    End Property
+    
+    Function GetEncoderParameterList(clsidEncoder As CLSID, ByVal size As UINT, buffer As EncoderParameters) As GpStatus
+        Return SetStatus(GdipGetEncoderParameterList(im, clsidEncoder, size, buffer))
+    End Function
+
+    '#if (GDIPVER >= 0x0110)
+    Function FindFirstItem(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipFindFirstImageItem(im, item))
+    End Function
+    
+    Function FindNextItem(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipFindNextImageItem(im, item))
+    End Function
+    
+    Function GetItemData(item As ImageItemData) As GpStatus
+        Return SetStatus(GdipGetImageItemData(im, item))
+    End Function
+    
+    Function SetAbort(pIAbort As GdiPlusAbort) As GpStatus
+        Return SetStatus(GdipImageSetAbort(im, pIAbort))
+    End Function
+    '#endif //(GDIPVER >= 0x0110)
+       
+    Protected Sub New()
+    End Sub
+    
+    Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
+        LastStatus = status
+        SetNativeImage(nativeImage)
+    End Sub
+    
+    Protected Property Get Native() As GpImage
+        Return im
+    End Property
+    
+    Protected Sub SetNativeImage(ByVal nativeImage As GpImage)
+        im = nativeImage
+    End Sub
+End Class
+
+Alias PROPID As Long
 
 Module ImageModule
     Type GpImage
@@ -70,227 +302,3 @@ Module ImageModule
     Public Declare PtrSafe Function GdipGetImageItemData Lib "gdiplus" (ByVal Image As GpImage, item As ImageItemData) As GpStatus
     Public Declare PtrSafe Function GdipImageSetAbort Lib "gdiplus" (ByVal image As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
 End Module
-
-[COMCreatable(False)]
-[Description("Abstract base class for Image and Metafile")]
-Class Image
-    Inherits GdiPlusBase
-    Protected im As GpImage
-    Protected LastResult As GpStatus
-    Protected LoadStatus As GpStatus
-
-    Protected Property Get Native() As GpImage
-        Return im
-    End Property
-    
-    Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
-        If useEmbeddedColorManagement Then
-            LastResult = GdipLoadImageFromFileICM(StrPtr(filename), im)
-        Else
-            LastResult = GdipLoadImageFromFile(StrPtr(filename), im)
-        End If
-    End Sub
-
-    Sub New(stream As IStream, useEmbeddedColorManagement As Boolean = False)
-        If useEmbeddedColorManagement Then
-            LastResult = GdipLoadImageFromStreamICM(stream, im)
-        Else
-            LastResult = GdipLoadImageFromStream(stream, im)
-        End If
-    End Sub
-        
-    Function Clone() As Image
-        Dim cloneImage As GpImage
-        SetStatus(GdipCloneImage(im, cloneImage))
-        Return New Image(cloneImage, LastResult)
-    End Function
-        
-    Sub Class_Terminate()
-        GdipDisposeImage(im)
-    End Sub
-    
-    Function Save(ByVal filename$, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
-        Return SetStatus(GdipSaveImageToFile(im, filename, clsidEncoder, encoderParams))
-    End Function
-    
-    Function Save(ByVal stream As IStream, clsidEncoder As CLSID, encoderParams As EncoderParameters) As GpStatus
-        Return SetStatus(GdipSaveImageToStream(im, stream, clsidEncoder, encoderParams))
-    End Function
-
-    Function SaveAdd(encoderParams As EncoderParameters) As GpStatus
-        Return SetStatus(GdipSaveAdd(im, encoderParams))
-    End Function
-
-    Function SaveAdd(newImage As Image, encoderParams As EncoderParameters) As GpStatus
-        If newImage Is Nothing Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipSaveAddImage(im, GetNative(newImage), encoderParams))
-    End Function
-
-    Property Get Type() As ImageType
-        Type = ImageTypeUnknown
-        SetStatus(GdipGetImageType(im, Type))
-    End Property
-    
-    Property Get PhysicalDimension() As GpSizeF
-        SetStatus(GdipGetImageDimension(im, PhysicalDimension.Width, PhysicalDimension.Height))
-    End Property
-    
-    Function GetBounds(srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
-        Return SetStatus(GdipGetImageBounds(im, srcRect, srcUnit))
-    End Function
-    
-    Property Get Width() As UINT
-        SetStatus(GdipGetImageWidth(im, Width))
-    End Property
-    
-    Property Get Height() As UINT
-        SetStatus(GdipGetImageHeight(im, Height))
-    End Property
-    
-    Property Get HorizontalResolution!()
-        SetStatus(GdipGetImageHorizontalResolution(im, HorizontalResolution))
-    End Property
-    
-    Property Get VerticalResolution!()
-        SetStatus(GdipGetImageVerticalResolution(im, VerticalResolution))
-    End Property
-    
-    Property Get Flags() As UINT
-        SetStatus(GdipGetImageFlags(im, Flags))
-    End Property
-    
-    Function GetRawFormat(format As UUID) As GpStatus ' or GUID
-        Return SetStatus(GdipGetImageRawFormat(im, format))
-    End Function
-
-    Property Get PixelFormat() As PixelFormat
-        SetStatus(GdipGetImagePixelFormat(im, PixelFormat))
-    End Property
-    
-    Property Get PaletteSize&()
-        SetStatus(GdipGetImagePaletteSize(im, PaletteSize&))
-    End Property
-    
-    Property Get Palette() As ColorPalette()
-        ReDim Palette(1 To PaletteSize)
-        SetStatus(GdipGetImagePalette(im, Palette(1), PaletteSize))
-    End Property
-    
-    Property Let Palette(palette() As ColorPalette)
-        SetStatus(GdipGetImagePalette(im, palette(LBound(palette)), Len(palette)))
-    End Property
-    
-    Function GetPalette(palette As ColorPalette, ByVal count&) As GpStatus
-        Return SetStatus(GdipGetImagePalette(im, palette, count))
-    End Function
-    
-    Function GetThumbnailImage(ByVal thumbWidth&, ByVal thumbHeight&, Optional callback As GetThumbnailImageAbort, callbackData As LongPtr = 0) As Image
-        Dim thumbImage As GpImage
-        SetStatus(GdipGetImageThumbnail(im, thumbWidth, thumbHeight, thumbImage, callback, callbackData))
-        Set GetThumbnailImage = New Image(thumbImage, LastResult)
-        If GetThumbnailImage Is Nothing Then GdipDisposeImage(thumbImage)
-    End Function
-
-    Property Get FrameDimensionsCount&()
-        SetStatus(GdipImageGetFrameDimensionsCount(im, FrameDimensionsCount))
-    End Property
-    
-    Function GetFrameDimensionsList(dimensionIDs As UUID, ByVal count&) As GpStatus
-        Return SetStatus(GdipImageGetFrameDimensionsList(im, dimensionIDs, count))
-    End Function
-    
-    Property Get FrameCount(dimensionID As UUID) As UINT
-        SetStatus(GdipImageGetFrameCount(im, dimensionID, FrameCount))
-    End Property
-
-    Function SelectActiveFrame(dimensionID As UUID, ByVal frameIndex As UINT) As GpStatus
-        Return SetStatus(GdipImageSelectActiveFrame(im, dimensionID, frameIndex))
-    End Function
-
-    Function RotateFlip(ByVal rotateFlipTyp As RotateFlipType) As GpStatus
-        Return SetStatus(GdipImageRotateFlip(im, RotateFlipType))
-    End Function
-
-    Property Get PropertyCount() As UINT
-        SetStatus(GdipGetPropertyCount(im, PropertyCount))
-    End Property
-    
-    Function GetPropertyIdList(ByVal numOfProperty As UINT, list As PROPID) As GpStatus
-        Return SetStatus(GdipGetPropertyIdList(im, numOfProperty, list))
-    End Function
-    
-    Property Get PropertyItemSize(ByVal propId As PROPID) As UINT
-        SetStatus(GdipGetPropertyItemSize(im, propId, PropertyItemSize))
-    End Property
-    
-    Function GetPropertyItem(ByVal propId As PROPID, ByVal propSize As UINT, buffer As PropertyItem) As GpStatus
-        Return SetStatus(GdipGetPropertyItem(im, propId, propSize, buffer))
-    End Function
-    
-    Function GetPropertySize(totalBufferSize As UINT, numProperties As UINT) As GpStatus
-        Return SetStatus(GdipGetPropertySize(im, totalBufferSize, numProperties))
-    End Function
-    
-    Function GetAllPropertyItems(totalBufferSize As UINT, numProperties As UINT, allItems As PropertyItem) As GpStatus
-        If VarPtr(allItems) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipGetAllPropertyItems(im, totalBufferSize, numProperties, allItems))
-    End Function
-    
-    Function RemovePropertyItem(ByVal propId As PROPID) As GpStatus
-        Return SetStatus(GdipRemovePropertyItem(im, propId))
-    End Function
-    
-    Function SetPropertyItem(item As PropertyItem) As GpStatus
-        Return SetStatus(GdipSetPropertyItem(im, item))
-    End Function
-    
-    Property Get EncoderParameterListSize(clsidEncoder As CLSID) As UINT
-        SetStatus(GdipGetEncoderParameterListSize(im, clsidEncoder, EncoderParameterListSize))
-    End Property
-    
-    Function GetEncoderParameterList(clsidEncoder As CLSID, ByVal size As UINT, buffer As EncoderParameters) As GpStatus
-        Return SetStatus(GdipGetEncoderParameterList(im, clsidEncoder, size, buffer))
-    End Function
-
-    '#if (GDIPVER >= 0x0110)
-    Function FindFirstItem(item As ImageItemData) As GpStatus
-        Return SetStatus(GdipFindFirstImageItem(im, item))
-    End Function
-    
-    Function FindNextItem(item As ImageItemData) As GpStatus
-        Return SetStatus(GdipFindNextImageItem(im, item))
-    End Function
-    
-    Function GetItemData(item As ImageItemData) As GpStatus
-        Return SetStatus(GdipGetImageItemData(im, item))
-    End Function
-    
-    Function SetAbort(pIAbort As GdiPlusAbort) As GpStatus
-        Return SetStatus(GdipImageSetAbort(im, pIAbort))
-    End Function
-    '#endif //(GDIPVER >= 0x0110)
-    
-    Function GetLastStatus() As GpStatus
-        GetLastStatus = LastResult
-        LastResult = Ok
-    End Function
-    
-    Protected Sub New()
-    End Sub
-    
-    Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
-        SetNativeImage(nativeImage)
-        LastResult = status
-    End Sub
-    
-    Protected Sub SetNativeImage(ByVal nativeImage As GpImage)
-        im = nativeImage
-    End Sub
-    
-    Protected Function SetStatus(status As GpStatus) As GpStatus
-        If status <> Ok Then
-            LastResult = status
-        End If
-        Return status
-    End Function
-End Class

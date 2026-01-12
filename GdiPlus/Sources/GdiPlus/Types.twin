@@ -1,18 +1,11 @@
+' Reviewed 2026-01-12
+
+Option Base 1
+
 ' This is the main GDI+ Abort interface
 Interface GdiPlusAbort
     Function Abort() As Long
 End Interface
-
-[COMCreatable(False)]
-Class GdiPlusBase
-    Static Function Alloc(size As LongPtr) As LongPtr
-        Return GdipAlloc(size)
-    End Function
-    
-    Static Sub Free(ptr As LongPtr)
-        GdipFree(ptr)
-    End Sub
-End Class
 
 Alias ARGB As Long
 Alias UINT As Long
@@ -260,29 +253,15 @@ Module Types
             Location.Y = Me.Y
         End Property
         
-        Sub GetLocation(point As GpPointF)
-            point.X = Me.X
-            point.Y = Me.Y
-        End Sub
-        
         Property Get Size() As GpSizeF
             Size.Width = Me.Width
             Size.Height = Me.Height
         End Property
-        
-        Sub GetSize(size As GpSizeF)
-            size.Width = Me.Width
-            size.Height = Me.Height
-        End Sub
-        
+                
         Property Get Bounds() As GpRectF
             Return Me
         End Property
-        
-        Sub GetBounds(bounds As GpRectF)
-            bounds = Me
-        End Sub
-        
+                
         Property Get Left!()
             Return Me.X
         End Property
@@ -298,26 +277,10 @@ Module Types
         Property Get Bottom!()
             Return Me.Y + Me.Height
         End Property
-        
-        Function GetLeft!()
-            Return Me.X
-        End Function
-        
-        Function GetTop!()
-            Return Me.Y
-        End Function
-        
-        Function GetRight!()
-            Return Me.X + Me.Width
-        End Function
-        
-        Function GetBottom!()
-            Return Me.Y + Me.Height
-        End Function
-        
-        Function IsEmptyArea() As Boolean
+                
+        Property Get IsEmptyArea() As Boolean
             Return (Me.Width <= REAL_EPSILON) OrElse (Me.Height <= REAL_EPSILON)
-        End Function
+        End Property
         
         Function Equals(rect As GpRectF) As Boolean
             Return Me.X = rect.X AndAlso _
@@ -368,9 +331,9 @@ Module Types
                     Me.Bottom > rect.Top
         End Function
         
-        Sub Offset(point As POINTF)
-            Me.X += point.x
-            Me.Y += point.y
+        Sub Offset(point As GpPointF)
+            Me.X += point.X
+            Me.Y += point.Y
         End Sub
         
         Sub Offset(ByVal dx!, ByVal dy!)
@@ -386,7 +349,7 @@ Module Types
         GpRectF.Height = 0
     End Function
 
-    Function GpRectF(x!, y!, width!, height!) As GpRectF
+    Function GpRectF(ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpRectF
         GpRectF.X = x
         GpRectF.Y = y
         GpRectF.Width = width
@@ -401,10 +364,10 @@ Module Types
     End Function
     
     Private Function Intersect(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
+        Dim right! = GDIPLUS_MIN(a.Right, b.Right)
+        Dim bottom! = GDIPLUS_MIN(a.Bottom, b.Bottom)
+        Dim left! = GDIPLUS_MAX(a.Left, b.Left)
+        Dim top! = GDIPLUS_MAX(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -414,10 +377,10 @@ Module Types
     End Function
     
     Private Function Union(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
+        Dim right! = GDIPLUS_MAX(a.Right, b.Right)
+        Dim bottom! = GDIPLUS_MAX(a.Bottom, b.Bottom)
+        Dim left! = GDIPLUS_MIN(a.Left, b.Left)
+        Dim top! = GDIPLUS_MIN(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -438,28 +401,14 @@ Module Types
             Location.Y = Me.Y
         End Property
         
-        Sub GetLocation(point As GpPoint)
-            point.X = Me.X
-            point.Y = Me.Y
-        End Sub
-        
         Property Get Size() As GpSize
             Size.Width = Me.Width
             Size.Height = Me.Height
         End Property
         
-        Sub GetSize(size As GpSize)
-            size.Width = Me.Width
-            size.Height = Me.Height
-        End Sub
-        
         Property Get Bounds() As GpRect
             Return Me
         End Property
-        
-        Sub GetBounds(bounds As GpRect)
-            bounds = Me
-        End Sub
         
         Property Get Left&()
             Return Me.X
@@ -477,25 +426,9 @@ Module Types
             Return Me.Y + Me.Height
         End Property
         
-        Function GetLeft&()
-            Return Me.X
-        End Function
-        
-        Function GetTop&()
-            Return Me.Y
-        End Function
-        
-        Function GetRight&()
-            Return Me.X + Me.Width
-        End Function
-        
-        Function GetBottom&()
-            Return Me.Y + Me.Height
-        End Function
-        
-        Function IsEmptyArea() As Boolean
+        Property Get IsEmptyArea() As Boolean
             Return (Me.Width <= 0) OrElse (Me.Height <= 0)
-        End Function
+        End Property
         
         Function Equals(rect As GpRect) As Boolean
             Return Me.X = rect.X AndAlso _
@@ -564,7 +497,7 @@ Module Types
         GpRect.Height = 0
     End Function
 
-    Function GpRect(x&, y&, width&, height&) As GpRect
+    Function GpRect(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpRect
         GpRect.X = x
         GpRect.Y = y
         GpRect.Width = width
@@ -579,10 +512,10 @@ Module Types
     End Function
     
     Function Intersect(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MIN(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MIN(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MAX(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MAX(a.GetTop(), b.GetTop())
+        Dim right! = GDIPLUS_MIN(a.Right, b.Right)
+        Dim bottom! = GDIPLUS_MIN(a.Bottom, b.Bottom)
+        Dim left! = GDIPLUS_MAX(a.Left, b.Left)
+        Dim top! = GDIPLUS_MAX(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -592,10 +525,10 @@ Module Types
     End Function
     
     Function Union(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MAX(a.GetRight(), b.GetRight())
-        Dim bottom! = GDIPLUS_MAX(a.GetBottom(), b.GetBottom())
-        Dim left! = GDIPLUS_MIN(a.GetLeft(), b.GetLeft())
-        Dim top! = GDIPLUS_MIN(a.GetTop(), b.GetTop())
+        Dim right! = GDIPLUS_MAX(a.Right, b.Right)
+        Dim bottom! = GDIPLUS_MAX(a.Bottom, b.Bottom)
+        Dim left! = GDIPLUS_MIN(a.Left, b.Left)
+        Dim top! = GDIPLUS_MIN(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -607,10 +540,59 @@ Module Types
     '--------------------------------------------------------------------------
     ' Assorted Types
     '--------------------------------------------------------------------------
+    
+    [Description("Points and nodes in a Path." & vbCrLf & _
+            "This UDT does not manage memory by itself. Allocate() and Free()" & vbCrLf & _
+            "must be explicitly invoked.")]
     Type PathData
         Count&
         Points As LongPtr ' GpPointF*
         Types As LongPtr  ' BYTE*
+        
+        Sub Free()
+            GdipFree(Me.Points)
+            GdipFree(Me.Types)
+            Me.Count = 0
+            Me.Points = vbNullPtr
+            Me.Types = vbNullPtr
+        End Sub
+        
+        Function Allocate(ByVal newCount&) As GpStatus
+            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of Byte), Me.Types, Me.Count)
+        End Function
+        
+        Property Get Point(index&) As GpPointF
+            Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
+            If index >= Me.Count Then Err.Raise ERROR_INVALID_PARAMETER
+            GetMem8(src, ByVal VarPtr(Point))
+        End Property
+
+        Property Get Type(index&) As Byte
+            Dim src As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
+            GetMem1(src, Type)
+        End Property
+        
+        Property Let Point(index&, point As GpPointF)
+            Dim dst As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
+            CopyMemory(ByVal dst, point, LenB(Of GpPointF))
+        End Property
+
+        Property Let Type(index&, ByVal type As Byte)
+            Dim dst As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
+            PutMem1(dst, type)
+        End Property
+        
+        [Description("Returns a view into the points array." & vbCrLf & _
+                "The view is valid only as long as the PathData exists.")]
+        Function GetPoints() As GpPointF()
+            Return GetStaticTrailingSA(Of GpPointF)(Me.Points, Me.Count)
+        End Function
+        
+        [Description("Returns a view into the types array." & vbCrLf & _
+                "The view is valid only as long as the PathData exists")]
+        Function GetTypes() As Byte()
+            Return GetStaticTrailingSA(Of Byte)(Me.Types, Me.Count)
+        End Function
     End Type
     
     Function PathData() As PathData
@@ -618,11 +600,6 @@ Module Types
         PathData.Points = 0
         PathData.Types = 0
     End Function
-    
-    Sub Free(pathData As PathData)
-        GdipFree(pathData.Points)
-        GdipFree(pathData.Types)
-    End Sub
     
     Type CharacterRange
         First&

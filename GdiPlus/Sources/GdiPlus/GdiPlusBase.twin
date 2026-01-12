@@ -1,0 +1,28 @@
+[COMCreatable(False)]
+Class GdiPlusBase
+    Protected LastStatus As GpStatus
+    
+    Property Get LastResult() As GpStatus
+        Return LastStatus
+    End Property
+    
+    Function GetLastResult() As GpStatus
+        GetLastResult = LastStatus
+        LastStatus = Ok
+    End Function
+    
+    Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
+        If status <> Ok Then
+            LastStatus = status
+        End If
+        Return status
+    End Function
+    
+    Static Function Alloc(size As LongPtr) As LongPtr
+        Return GdipAlloc(size)
+    End Function
+    
+    Static Sub Free(ptr As LongPtr)
+        GdipFree(ptr)
+    End Sub
+End Class
