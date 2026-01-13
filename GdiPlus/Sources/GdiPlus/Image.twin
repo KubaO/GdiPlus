@@ -1,15 +1,11 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 [Description("Abstract base class for Image and Metafile")]
 Class Image
     Inherits GdiPlusBase
     Protected im As GpImage
     Protected LoadStatus As GpStatus
-
-    'Protected Property Get Native() As GpImage
-    '    Return im
-    'End Property
-    
+   
     Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
             LastStatus = GdipLoadImageFromFileICM(StrPtr(filename), im)
@@ -151,7 +147,7 @@ Class Image
     End Function
 
     Function RotateFlip(ByVal rotateFlipTyp As RotateFlipType) As GpStatus
-        Return SetStatus(GdipImageRotateFlip(im, RotateFlipType))
+        Return SetStatus(GdipImageRotateFlip(im, rotateFlipTyp))
     End Function
 
     Property Get PropertyCount() As UINT
@@ -232,7 +228,15 @@ End Class
 
 Alias PROPID As Long
 
-Module ImageModule
+Module GdipImage
+    Function Image(ByVal filename$, useEmbeddedColorManagement As Boolean = False) As Image
+        Return New Image(filename, useEmbeddedColorManagement)
+    End Function
+
+    Function Image(stream As IStream, useEmbeddedColorManagement As Boolean = False) As Image
+        Return New Image(stream, useEmbeddedColorManagement)
+    End Function
+    
     Type GpImage
         Native As LongPtr
     End Type

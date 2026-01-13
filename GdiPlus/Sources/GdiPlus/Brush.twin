@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 [Description("Abstract base class for various brush types")]
 Class Brush
@@ -43,7 +43,7 @@ Class Brush
     End Sub
 End Class
 
-Module BrushModule
+Module GdipBrush
     Type GpBrush
         Native As LongPtr
     End Type

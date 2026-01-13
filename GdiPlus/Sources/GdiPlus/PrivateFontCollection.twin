@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class PrivateFontCollection
     Inherits FontCollection
@@ -12,7 +12,7 @@ Class PrivateFontCollection
     End Sub
     
     Function AddFontFile(ByVal filename As String) As GpStatus
-        Return SetStatus(GdipPrivateAddFontFile(Native, StrPtr(filename)))
+        Return SetStatus(GdipPrivateAddFontFile(Native, filename))
     End Function
     
     Function AddMemoryFont(ByVal memAddress As LongPtr, ByVal length&) As GpStatus
@@ -35,7 +35,11 @@ Class PrivateFontCollection
     End Sub
 End Class
 
-Module PrivateFontCollectionModule
+Module GdipPrivateFontCollection
+    Function PrivateFontCollection() As PrivateFontCollection
+        Return New PrivateFontCollection
+    End Function
+    
     Type GpPrivateFontCollection
         ' Inherits GpFontCollection
         Native As LongPtr

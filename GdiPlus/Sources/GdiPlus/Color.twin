@@ -1,9 +1,9 @@
-' Reviewed 2026-01-11
-Module ColorModule
+' Reviewed 2026-01-13
+Module GdipColor
     '----------------------------------------------------------------------------
     ' Color mode
     '----------------------------------------------------------------------------
-
+    
     Enum ColorMode
         ColorModeARGB32 = 0
         ColorModeARGB64 = 1
@@ -20,14 +20,14 @@ Module ColorModule
         ColorChannelFlagsK
         ColorChannelFlagsLast
     End Enum
-
+    
     '----------------------------------------------------------------------------
     ' Color
     '----------------------------------------------------------------------------
     
     Private Const Black = &H000000
     
-    Function Color() As Color
+    Public Function Color() As Color
         Color.argb = Black
     End Function
     
@@ -36,15 +36,15 @@ Module ColorModule
     '
     ' Color values are not premultiplied.
     
-    Function Color(ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+    Public Function Color(ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
         Color.argb = MakeARGB(255, r, g, b)
     End Function
     
-    Function Color(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+    Public Function Color(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
         Color.argb = MakeARGB(a, r, g, b)
     End Function
     
-    Function Color(ByVal argb As ARGB) As Color
+    Public Function Color(ByVal argb As ARGB) As Color
         Color.argb = argb
     End Function
     
@@ -58,7 +58,7 @@ Module ColorModule
         Property Get A() As Byte
             Return Me.Alpha
         End Property
-
+        
         Property Get Red() As Byte
             Return CByte(Me.argb >> RedShift)
         End Property
@@ -66,7 +66,7 @@ Module ColorModule
         Property Get R() As Byte
             Return Me.Red
         End Property
-            
+        
         Property Get Green() As Byte
             Return CByte(Me.argb >> GreenShift)
         End Property
@@ -87,7 +87,39 @@ Module ColorModule
             Return Me.argb
         End Property
         
-        Property Set Value(ByVal argb As ARGB)
+        Property Let Alpha(ByVal a As Byte)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << AlphaShift))) Or (CLng(a) << AlphaShift)
+        End Property
+        
+        Property Let A(ByVal a As Byte)
+            Me.Alpha = a
+        End Property
+        
+        Property Let Red(ByVal r As Byte)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << RedShift))) Or (CLng(r) << RedShift)
+        End Property
+        
+        Property Let R(ByVal r As Byte)
+            Me.Red = r
+        End Property
+        
+        Property Let Green(ByVal g As Byte)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << GreenShift))) Or (CLng(g) << GreenShift)
+        End Property
+        
+        Property Let G(ByVal g As Byte)
+            Me.Green = g
+        End Property
+        
+        Property Let Blue(ByVal b As Byte)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << BlueShift))) Or (CLng(b) << BlueShift)
+        End Property
+        
+        Property Let B(ByVal b As Byte)
+            Me.Blue = b
+        End Property
+        
+        Property Let Value(ByVal argb As ARGB)
             Me.argb = argb
         End Property
         
@@ -103,4 +135,31 @@ Module ColorModule
     Function FromCOLORREF(ByVal rgb As Long) As Color
         FromCOLORREF.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
     End Function
+    
+    Public Function MakeARGB(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Long
+        MakeARGB = ((CLng(b)) << BlueShift) Or _
+                ((CLng(g)) << GreenShift) Or _
+                ((CLng(r)) << RedShift) Or _
+                ((CLng(a)) << AlphaShift)
+    End Function
+    
+    Public gpBlack As Color
+    Public gpBlue As Color
+    Public gpCyan As Color
+    Public gpGreen As Color
+    Public gpMagenta As Color
+    Public gpRed As Color
+    Public gpWhite As Color
+    Public gpYellow As Color
+    
+    Sub Init()
+        gpBlack = Color(0, 0, 0)
+        gpBlue = Color(0, 0, 255)
+        gpCyan = Color(0, 255, 255)
+        gpGreen = Color(0, 255, 0)
+        gpMagenta = Color(255, 0, 255)
+        gpRed = Color(255, 0, 0)
+        gpWhite = Color(255, 255, 255)
+        gpYellow = Color(255, 255, 0)
+    End Sub
 End Module

@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class PathIterator
     Inherits GdiPlusBase
@@ -13,6 +13,32 @@ Class PathIterator
     Sub Class_Terminate()
         GdipDeletePathIter(pi)
     End Sub
+      
+    Function NextIndexedSubpath() As IndexedSubPath
+        Dim booln As BOOL
+        SetStatus(GdipPathIterNextSubpath(pi, _
+            NextIndexedSubpath.count, NextIndexedSubpath.startIndex, NextIndexedSubpath.endIndex, booln))
+        NextIndexedSubpath.isClosed = booln
+    End Function
+    
+    Function NextPathSubpath() As PathSubPath
+        Dim native As GpPath
+        Dim booln As BOOL
+        SetStatus(GdipPathIterNextSubpathPath(pi, NextPathSubpath.count, native, booln))
+        If LastResult = Ok Then
+            NextPathSubpath.path = New GraphicsPath(native)
+            NextPathSubpath.isClosed = booln
+        End If
+    End Function
+    
+    Function NextPathType() As SubPathType
+        SetStatus(GdipPathIterNextPathType(pi, _
+            NextPathType.count, NextPathType.pathType, NextPathType.startIndex, NextPathType.endIndex))
+    End Function
+    
+    Function NextMarker() As SubPathSection
+        SetStatus(GdipPathIterNextMarker(pi, NextMarker.count, NextMarker.startIndex, NextMarker.endIndex))
+    End Function
     
     Function NextSubpath&(startIndex&, endIndex&, isClosed As Boolean)
         Dim booln As BOOL
@@ -52,9 +78,49 @@ Class PathIterator
         Return booln
     End Property
     
-    Sub Rewind()
+    Function Rewind() As GpStatus
         SetStatus(GdipPathIterRewind(pi))
-    End Sub
+    End Function
+    
+    Function Enumerate() As TypedPoint()
+        Dim count& = Me.Count
+        Dim points() As GpPointF
+        Dim types() As Byte
+        Dim result() As TypedPoint
+        ReDim points(1 To count)
+        ReDim types(1 To count)
+        SetStatus(GdipPathIterEnumerate(pi, count, points(1), types(1), count))
+        If LastResult = Ok Then
+            ReDim result(1 To count)
+            For i As Integer = 1 To count
+                result(i).pos = points(i)
+                result(i).type = types(i)
+            Next
+            Return result
+        End If
+    End Function
+    
+    Function CopyData(ByVal startIndex&, ByVal endIndex&) As TypedPoint()
+        Dim count& = 1 + endIndex - startIndex
+        If count <= 0 Then
+            SetStatus(InvalidParameter)
+            Exit Function
+        End If
+        Dim points() As GpPointF
+        Dim types() As Byte
+        Dim result() As TypedPoint
+        ReDim points(1 To count)
+        ReDim types(1 To count)
+        SetStatus(GdipPathIterCopyData(pi, count, points(1), types(1), startIndex, endIndex))
+        If LastResult = Ok Then
+            ReDim result(1 To count)
+            For i As Integer = 1 To count
+                result(i).pos = points(i)
+                result(i).type = types(i)
+            Next
+            Return result
+        End If
+    End Function
     
     Function Enumerate&(points As GpPointF, types As Byte, ByVal count&)
         SetStatus(GdipPathIterEnumerate(pi, Enumerate, points, types, count))
@@ -78,7 +144,11 @@ Class PathIterator
     End Sub
 End Class
 
-Module PathIteratorModule
+Module GdipPathIterator
+    Function PathIterator(path As GraphicsPath) As PathIterator
+        Return New PathIterator(path)
+    End Function
+    
     Type GpPathIterator
         Native As LongPtr
     End Type
@@ -86,6 +156,37 @@ Module PathIteratorModule
     Function GpPathIterator() As GpPathIterator
         GpPathIterator.Native = 0
     End Function
+    
+    Type TypedPoint
+        pos As GpPointF
+        type As Byte
+    End Type
+    
+    Type SubPathSection
+        startIndex&
+        endIndex&      
+        count&
+    End Type
+    
+    Type SubPathType
+        pathType As Byte
+        startIndex&
+        endIndex&
+        count&
+    End Type
+    
+    Type IndexedSubPath
+        startIndex&
+        endIndex&
+        isClosed As Boolean
+        count&
+    End Type
+    
+    Type PathSubPath
+        path As GraphicsPath
+        isClosed As Boolean
+        count&
+    End Type
     
     Public Declare PtrSafe Function GdipCreatePathIter Lib "gdiplus" (iterator As GpPathIterator, ByVal Path As GpPath) As GpStatus
     Public Declare PtrSafe Function GdipDeletePathIter Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus

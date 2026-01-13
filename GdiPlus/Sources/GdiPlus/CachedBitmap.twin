@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class CachedBitmap
     Inherits GdiPlusBase
@@ -17,7 +17,11 @@ Class CachedBitmap
     End Property
 End Class
 
-Module CachedBitmapModule
+Module GdipCachedBitmap
+    Function CachedBitmap(bitmap As Bitmap, graphics As Graphics) As CachedBitmap
+        Return New CachedBitmap(bitmap, graphics)
+    End Function
+    
     Type GpCachedBitmap
         Native As LongPtr
     End Type

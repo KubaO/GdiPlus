@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class GraphicsPath
     Inherits GdiPlusBase
@@ -7,7 +7,16 @@ Class GraphicsPath
     Sub New(ByVal fillMode As FillMode = FillModeAlternate)
         LastStatus = GdipCreatePath(fillMode, pa)
     End Sub
+    
+    Sub New(pathData As PathData, ByVal fillMode As FillMode = FillModeAlternate)
+        LastStatus = GdipCreatePath2(ByVal pathData.PointsPtr, ByVal pathData.TypesPtr, pathData.Count, fillMode, pa)
+    End Sub
 
+    Sub New(typedPoints() As TypedPoint, ByVal fillMode As FillMode = FillModeAlternate)
+        Dim pd As PathData = PathData(typedPoints)
+        LastStatus = GdipCreatePath2(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa)
+    End Sub
+    
     Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate)
         Debug.Assert Len(points) = Len(types)
         LastStatus = GdipCreatePath2(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
@@ -51,8 +60,9 @@ Class GraphicsPath
     End Property
     
     Property Get PathData() As PathData
-        SetStatus(PathData.Allocate(GetPointCount))
-        SetStatus(pa.GetPathData(PathData))
+        Dim pd As GpPathData
+        SetStatus(pa.GetPathData(pd))
+        If LastStatus = Ok Then Set PathData = New PathData(pd)
     End Property
     
     Function StartFigure() As GpStatus
@@ -319,7 +329,7 @@ Class GraphicsPath
         Return SetStatus(pa.AddPathPath(GetNative(addingPath), connect))
     End Function
     
-    Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPointF, format As StringFormat) As GpStatus
+    Function AddString(ByVal string$, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPointF, format As StringFormat) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(pa.AddPathString(StrPtr(string), Len(string), _
             GetNative(family), _
@@ -327,18 +337,18 @@ Class GraphicsPath
             GetNative(format)))
     End Function
     
-    Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRectF, format As StringFormat) As GpStatus
+    Function AddString(ByVal string$, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRectF, format As StringFormat) As GpStatus
         Return SetStatus(pa.AddPathString(StrPtr(string), Len(string), _
             GetNative(family), style, emSize, layoutRect, GetNative(format)))
     End Function
 
-    Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPoint, format As StringFormat) As GpStatus
+    Function AddString(ByVal string$, family As FontFamily, ByVal style&, ByVal emSize!, origin As GpPoint, format As StringFormat) As GpStatus
         Dim rect As GpRect = GpRect(origin.X, origin.Y, 0, 0)
         Return SetStatus(pa.AddPathStringI(StrPtr(string), Len(string), _
             GetNative(family), style, emSize, rect, GetNative(format)))
     End Function
     
-    Function AddString(string As String, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRect, format As StringFormat) As GpStatus
+    Function AddString(ByVal string$, family As FontFamily, ByVal style&, ByVal emSize!, layoutRect As GpRect, format As StringFormat) As GpStatus
         Return SetStatus(pa.AddPathStringI(StrPtr(string), Len(string), _
             GetNative(family), style, emSize, layoutRect, GetNative(format)))
     End Function
@@ -387,8 +397,10 @@ Class GraphicsPath
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     
-    Function GetPointCount&()
-        SetStatus(pa.GetPointCount(GetPointCount))
+    Function Warp(destPoints() As GpPointF, srcRect As GpRectF, Optional matrix As Matrix, _
+            Optional warpMode As WarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
+        Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints(LBound(destPoints)), Len(destPoints), _
+                srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     
     Property Get PointCount&()
@@ -482,7 +494,35 @@ Class GraphicsPath
     End Sub
 End Class
 
-Module GraphicsPathModule
+Module GdipGraphicsPath
+    Function GraphicsPath(pathData As PathData, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(pathData, fillMode)
+    End Function
+
+    Function GraphicsPath(typedPoints() As TypedPoint, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(typedPoints, fillMode)
+    End Function
+    
+    Function GraphicsPath(ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(fillMode)
+    End Function
+    
+    Function GraphicsPath(points() As GpPointF, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(points, types, fillMode)
+    End Function
+    
+    Function GraphicsPath(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(points, types, count, fillMode)
+    End Function
+    
+    Function GraphicsPath(points() As GpPoint, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(points, types, fillMode)
+    End Function
+    
+    Function GraphicsPath(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+        Return New GraphicsPath(points, types, count, fillMode)
+    End Function
+            
     Type GpPath
         Native As LongPtr
         

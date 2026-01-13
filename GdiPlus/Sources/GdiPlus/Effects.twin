@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class Effect
     Inherits GdiPlusBase
@@ -15,11 +15,7 @@ Class Effect
     End Sub
     
     Sub Class_Terminate()
-        ' pvData Is allocated by ApplyEffect. Return the pointer so that
-        ' it can be freed by the appropriate memory manager.
         GdipFree(PropAuxData)
-        
-        ' Release the native Effect.
         GdipDeleteEffect(fx)
     End Sub
     
@@ -250,7 +246,156 @@ Class ColorCurve
     End Property
 End Class
 
-Module EffectsModule
+Module GdipEffects
+    Function Blur() As Blur
+        Return New Blur
+    End Function
+    
+    Function Blur(params As BlurParams) As Blur
+        Set Blur = New Blur
+        Blur.Parameters = params
+    End Function
+    
+    Function Blur(ByVal radius!, ByVal expandEdge As Boolean) As Blur
+        Set Blur = New Blur
+        Blur.Parameters = BlurParams(radius, expandEdge)
+    End Function
+    
+    Function Sharpen() As Sharpen
+        Return New Sharpen
+    End Function
+    
+    Function Sharpen(params As SharpenParams) As Sharpen
+        Set Sharpen = New Sharpen
+        Sharpen.Parameters = params
+    End Function
+    
+    Function Sharpen(ByVal radius!, ByVal amount!) As Sharpen
+        Set Sharpen = New Sharpen
+        Sharpen.Parameters = SharpenParams(radius, amount)
+    End Function
+    
+    Function RedEyeCorrection() As RedEyeCorrection
+        Return New RedEyeCorrection
+    End Function
+    
+    Function RedEyeCorrection(params As RedEyeCorrectionParams) As RedEyeCorrection
+        Set RedEyeCorrection = New RedEyeCorrection
+        RedEyeCorrection.Parameters = params
+    End Function
+    
+    Function RedEyeCorrection(areas() As GpRect) As RedEyeCorrection
+        Set RedEyeCorrection = New RedEyeCorrection
+        RedEyeCorrection.Parameters = RedEyeCorrectionParams(areas)
+    End Function
+    
+    Function BrightnessContrast() As BrightnessContrast
+        Return New BrightnessContrast
+    End Function
+    
+    Function BrightnessContrast(params As BrightnessContrastParams) As BrightnessContrast
+        Set BrightnessContrast = New BrightnessContrast
+        BrightnessContrast.Parameters = params
+    End Function
+    
+    Function BrightnessContrast(ByVal brightness&, ByVal contrast&) As BrightnessContrast
+        Set BrightnessContrast = New BrightnessContrast
+        BrightnessContrast.Parameters = BrightnessContrastParams(brightness, contrast)
+    End Function
+    
+    Function HueSaturationLightness() As HueSaturationLightness
+        Return New HueSaturationLightness
+    End Function
+    
+    Function HueSaturationLightness(params As HueSaturationLightnessParams) As HueSaturationLightness
+        Set HueSaturationLightness = New HueSaturationLightness
+        HueSaturationLightness.Parameters = params
+    End Function
+    
+    Function HueSaturationLightness(ByVal hue&, ByVal saturation&, ByVal lightness&) As HueSaturationLightness
+        Set HueSaturationLightness = New HueSaturationLightness
+        HueSaturationLightness.Parameters = HueSaturationLightnessParams(hue, saturation, lightness)
+    End Function
+    
+    Function Levels() As Levels
+        Return New Levels
+    End Function
+    
+    Function Levels(params As LevelsParams) As Levels
+        Set Levels = New Levels
+        Levels.Parameters = params
+    End Function
+    
+    Function Levels(ByVal highlight&, ByVal midtone&, ByVal shadow&) As Levels
+        Set Levels = New Levels
+        Levels.Parameters = LevelsParams(highlight, midtone, shadow)
+    End Function
+    
+    Function Tint() As Tint
+        Return New Tint
+    End Function
+    
+    Function Tint(params As TintParams) As Tint
+        Set Tint = New Tint
+        Tint.Parameters = params
+    End Function
+    
+    Function Tint(ByVal hue&, ByVal amount&) As Tint
+        Set Tint = New Tint
+        Tint.Parameters = TintParams(hue, amount)
+    End Function
+    
+    Function ColorBalance() As ColorBalance
+        Return New ColorBalance
+    End Function
+    
+    Function ColorBalance(params As ColorBalanceParams) As ColorBalance
+        Set ColorBalance = New ColorBalance
+        ColorBalance.Parameters = params
+    End Function
+    
+    Function ColorBalance(ByVal cyanRed&, ByVal magentaGreen&, ByVal yellowBlue&) As ColorBalance
+        Set ColorBalance = New ColorBalance
+        ColorBalance.Parameters = ColorBalanceParams(cyanRed, magentaGreen, yellowBlue)
+    End Function
+    
+    Function ColorMatrixEffect() As ColorMatrixEffect
+        Return New ColorMatrixEffect
+    End Function
+    
+    Function ColorMatrixEffect(params As ColorMatrix) As ColorMatrixEffect
+        Set ColorMatrixEffect = New ColorMatrixEffect
+        ColorMatrixEffect.Parameters = params
+    End Function
+    
+    Function ColorLUT() As ColorLUT
+        Return New ColorLUT
+    End Function
+    
+    Function ColorLUT(params As ColorLUTParams) As ColorLUT
+        Set ColorLUT = New ColorLUT
+        ColorLUT.Parameters = params
+    End Function
+    
+    Function ColorLUT(lutB() As Byte, lutG() As Byte, lutR() As Byte, lutA() As Byte) As ColorLUT
+        Set ColorLUT = New ColorLUT
+        ColorLUT.Parameters = ColorLutParams(lutB, lutG, lutR, lutA)
+    End Function
+    
+    Function ColorCurve() As ColorCurve
+        Return New ColorCurve
+    End Function
+    
+    Function ColorCurve(params As ColorCurveParams) As ColorCurve
+        Set ColorCurve = New ColorCurve
+        ColorCurve.Parameters = params
+    End Function
+    
+    Function ColorCurve(ByVal adjustment As CurveAdjustments, ByVal channel As CurveChannel, ByVal value&) As ColorCurve
+        Set ColorCurve = New ColorCurve
+        ColorCurve.Parameters = ColorCurveParams(adjustment, channel, value)
+    End Function
+    
     Type GpEffect
         Native As LongPtr
     End Type
@@ -397,10 +542,21 @@ Module EffectsModule
         End Property
     End Type
     
+    Function HueSaturationLightnessParams(ByVal hue&, ByVal saturation&, ByVal lightness&) As HueSaturationLightnessParams
+        HueSaturationLightnessParams.hue = hue
+        HueSaturationLightnessParams.saturation = saturation
+        HueSaturationLightnessParams.lightness = lightness
+    End Function
+    
     Type TintParams
         hue&
         amount&
     End Type
+    
+    Function TintParams(ByVal hue&, ByVal amount&) As TintParams
+        TintParams.hue = hue
+        TintParams.amount = amount
+    End Function
     
     Type LevelsParams
         highight&
@@ -408,11 +564,23 @@ Module EffectsModule
         shadow&
     End Type
     
+    Function LevelsParams(ByVal highlight&, ByVal midtone&, ByVal shadow&) As LevelsParams
+        LevelsParams.highight = highlight
+        LevelsParams.midtone = midtone
+        LevelsParams.shadow = shadow
+    End Function
+    
     Type ColorBalanceParams
         cyanRed&
         magentaGreen&
         yellowBlue&
     End Type
+    
+    Function ColorBalanceParams(ByVal cyanRed&, ByVal magentaGreen&, ByVal yellowBlue&) As ColorBalanceParams
+        ColorBalanceParams.cyanRed = cyanRed
+        ColorBalanceParams.magentaGreen = magentaGreen&
+        ColorBalanceParams.yellowBlue = yellowBlue&
+    End Function
     
     Type ColorLUTParams
         lutB As ColorChannelLUT
@@ -420,6 +588,15 @@ Module EffectsModule
         lutR As ColorChannelLUT
         lutA As ColorChannelLUT
     End Type
+    
+    Function ColorLutParams(lutB() As Byte, lutG() As Byte, lutR() As Byte, lutA() As Byte) As ColorLUTParams
+        If Len(lutB) = 256 And Len(lutG) = 256 And Len(lutR) = 256 And Len(lutA) = 256 Then
+            CopyMemory(ColorLutParams.lutB, lutB, 256)
+            CopyMemory(ColorLutParams.lutG, lutG, 256)
+            CopyMemory(ColorLutParams.lutR, lutR, 256)
+            CopyMemory(ColorLutParams.lutA, lutB, 256)
+        End If
+    End Function
     
     Enum CurveAdjustments
         AdjustExposure
@@ -442,8 +619,22 @@ Module EffectsModule
     Type ColorCurveParams
         adjustment As CurveAdjustments
         channel As CurveChannel
-        adjustValue&
+        value&
+        
+        Property Get adjustValue&()
+            Return Me.value&
+        End Property
+        
+        Property Let adjustValue(ByVal newValue&)
+            Me.value& = newValue
+        End Property
     End Type
+    
+    Function ColorCurveParams(ByVal adjustment As CurveAdjustments, ByVal channel As CurveChannel, ByVal value&) As ColorCurveParams
+        ColorCurveParams.adjustment = adjustment
+        ColorCurveParams.channel = channel
+        ColorCurveParams.adjustValue = value
+    End Function
     
     '-----------------------------------------------------------------------------
     ' GDI+ effect GUIDs

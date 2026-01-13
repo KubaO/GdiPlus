@@ -1,25 +1,33 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 [Description("Solid Fill Brush Object")]
 Class SolidBrush
     Inherits Brush
     
-    Sub New(color As Color)
-        LastStatus = GdipCreateSolidFill(color, br)
+    Sub New(ByVal rgb&)
+        LastStatus = GdipSolidBrush.GdipCreateSolidFill(FromCOLORREF(rgb), br)
     End Sub
     
-    Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
-        lastStatus = lastStatus
-        SetNativeSolid(nativeBrush)
+    Sub New(ByVal color As Color)
+        LastStatus = GdipSolidBrush.GdipCreateSolidFill(color, br)
     End Sub
     
     Property Get Color() As Color
         SetStatus(GdipGetSolidFillColor(br, Color))
     End Property
     
-    Property Let tColor(color As Color)
+    Property Let Color(ByVal color As Color)
         SetStatus(GdipSetSolidFillColor(br, color))
     End Property
+
+    Property Let RGB(ByVal rgb&)
+        SetStatus(GdipSetSolidFillColor(br, FromCOLORREF(rgb)))
+    End Property
+    
+    Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
+        lastStatus = lastStatus
+        SetNativeSolid(nativeBrush)
+    End Sub
     
     Protected Property Get Native() As GpSolidFill
         Native.Native = br.Native
@@ -30,7 +38,15 @@ Class SolidBrush
     End Sub
 End Class
 
-Module SolidBrushModule
+Module GdipSolidBrush
+    Function SolidBrush(ByVal rgb&) As SolidBrush
+        Return New SolidBrush(rgb)
+    End Function
+
+    Function SolidBrush(ByVal color As Color) As SolidBrush
+        Return New SolidBrush(color)
+    End Function
+    
     Type GpSolidFill
         'Inherits GpBrush
         Native As LongPtr

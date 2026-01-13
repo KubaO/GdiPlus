@@ -1,15 +1,11 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class StringFormat
     Inherits GdiPlusBase
     Dim sf As GpStringFormat
         
-    Sub New(ByVal formatFlags& = 0, ByVal language As LANGID = lang_neutral)
-        LastStatus = GdipCreateStringFormat(formatFlags, language, sf)
-    End Sub
-    
-    Sub New(format As StringFormat)
-        LastStatus = GdipCloneStringFormat(GetNative(format), sf)
+    Sub New(ByVal flags As StringFormatFlags = 0, ByVal language As LANGID = lang_neutral)
+        LastStatus = GdipCreateStringFormat(FormatFlags, language, sf)
     End Sub
     
     Function Clone() As StringFormat
@@ -22,12 +18,22 @@ Class StringFormat
         GdipDeleteStringFormat(sf)
     End Sub
     
-    Property Let FormatFlags(ByVal flags&)
+    [Description("Use Flags instead")]
+    Property Let FormatFlags(ByVal flags As StringFormatFlags)
         SetStatus(GdipSetStringFormatFlags(sf, flags))
     End Property
     
-    Property Get FormatFlags() As Long
+    [Description("Use Flags instead")]
+    Property Get FormatFlags() As StringFormatFlags
         SetStatus(GdipGetStringFormatFlags(sf, FormatFlags))
+    End Property
+    
+    Property Let Flags(ByVal flags As StringFormatFlags)
+        SetStatus(GdipSetStringFormatFlags(sf, flags))
+    End Property
+    
+    Property Get Flags() As StringFormatFlags
+        SetStatus(GdipGetStringFormatFlags(sf, Flags))
     End Property
     
     Property Let Alignment(ByVal align As StringAlignment)
@@ -76,6 +82,14 @@ Class StringFormat
     Function GetTabStops(ByVal count&, firstTabOffset!, tabStops!) As GpStatus
         Return SetStatus(GdipGetStringFormatTabStops(sf, count, firstTabOffset, tabStops))
     End Function
+    
+    Property Let DigitSubstitutionLanguage(ByVal language As LANGID)
+        SetDigitSubstitution(language, DigitSubstitutionMethod)
+    End Property
+
+    Property Let DigitSubstitutionMethod(ByVal method As StringDigitSubstitute)
+        SetDigitSubstitution(DigitSubstitutionLanguage, method)
+    End Property
     
     Function SetDigitSubstitution(ByVal language As LANGID, ByVal substitute As StringDigitSubstitute) As GpStatus
         Return SetStatus(GdipSetStringFormatDigitSubstitution(sf, language, substitute))
@@ -133,16 +147,12 @@ Class StringFormat
     End Sub
 End Class
 
-Module StringFormatModule
-    Type GpStringFormat
-        Native As LongPtr
-    End Type
-    
-    Function GpStringFormat() As GpStringFormat
-        GpStringFormat.Native = 0
+Module GdipStringFormat
+    Function StringFormat(ByVal format As StringFormatFlags = 0, ByVal language As LANGID = lang_neutral) As StringFormat
+        Return New StringFormat(format, language)
     End Function
     
-    Function GenericDefault() As StringFormat
+    Function GenericDefaultStringFormat() As StringFormat
         Static sf As StringFormat
         If sf Is Nothing Then Set sf = New StringFormat
         sf.Class_Terminate()
@@ -150,12 +160,20 @@ Module StringFormatModule
         Return sf
     End Function
     
-    Function GenericTypographic() As StringFormat
+    Function GenericTypographicStringFormat() As StringFormat
         Static sf As StringFormat
         If sf Is Nothing Then Set sf = New StringFormat
         sf.Class_Terminate()
         UnprotectedAccess(sf).SetStatus(GdipStringFormatGetGenericTypographic(UnprotectedAccess(sf).sf))
         Return sf
+    End Function
+    
+    Type GpStringFormat
+        Native As LongPtr
+    End Type
+    
+    Function GpStringFormat() As GpStringFormat
+        GpStringFormat.Native = 0
     End Function
     
     Public Declare PtrSafe Function GdipStringFormatGetGenericDefault Lib "gdiplus" (format As GpStringFormat) As GpStatus

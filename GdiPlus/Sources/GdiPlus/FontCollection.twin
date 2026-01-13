@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class FontCollection
     Inherits GdiPlusBase
@@ -46,7 +46,7 @@ Class FontCollection
     End Sub
 End Class
 
-Module FontCollectionModule
+Module GdipFontCollection
     Type GpFontCollection
         Native As LongPtr
     End Type

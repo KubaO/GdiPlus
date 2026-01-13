@@ -1,11 +1,36 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class LinearGradientBrush
     Inherits Brush
     
+    Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, _
+                FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
+    Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, color1, color2, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
+    Sub New(point1 As GpPointF, point2 As GpPointF, ByVal rgb1&, ByVal rgb2&)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrush(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
     Sub New(point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrush(point1, point2, color1, color2, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
+    Sub New(point1 As GpPoint, point2 As GpPoint, ByVal rgb1&, ByVal rgb2&)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrushI(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
     
@@ -15,15 +40,34 @@ Class LinearGradientBrush
         SetNativeLineGradient(brush)
     End Sub
     
+    Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrushFromRect(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
     Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRect(rect, color1, color2, mode, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
 
+    Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrushFromRectI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
     Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRectI(rect, color1, color2, mode, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
+    Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal angle!, ByVal isAngleScalable As Boolean = False)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrushFromRectWithAngle(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
+                angle, isAngleScalable, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
     
@@ -33,15 +77,32 @@ Class LinearGradientBrush
         SetNativeLineGradient(brush)
     End Sub
     
+    Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal angle!, ByVal isAngleScalable As Boolean = False)
+        Dim brush As GpLineGradient
+        LastStatus = GdipCreateLineBrushFromRectWithAngleI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
+                angle, isAngleScalable, WrapModeTile, brush)
+        SetNativeLineGradient(brush)
+    End Sub
+    
     Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRectWithAngleI(rect, color1, color2, angle, isAngleScalable, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
     
+    Function SetLinearColors(ByVal rgb1&, ByVal rgb2&) As GpStatus
+        Return SetStatus(GdipSetLineColors(br, FromCOLORREF(rgb1), FromCOLORREF(rgb2)))
+    End Function
+    
     Function SetLinearColors(ByVal color1 As Color, ByVal color2 As Color) As GpStatus
         Return SetStatus(GdipSetLineColors(br, color1, color2))
     End Function
+    
+    Property Get LinearRGBs() As Long()
+        Dim result(2) As Long
+        SetStatus(GdipGetLineColors(br, result(1)))
+        If LastStatus = Ok Then LinearRGBs = result
+    End Property
     
     Property Get LinearColors() As Color()
         Dim result(2) As Color
@@ -71,8 +132,22 @@ Class LinearGradientBrush
         SetStatus(GdipGetLineBlendCount(br, BlendCount))
     End Property
     
+    Function SetBlend(blendFactors!(), blendPositions!()) As GpStatus
+        Dim count& = Len(blendFactors)
+        If Len(blendPositions) <> count Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipSetLineBlend(br, _
+            blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
+    End Function
+    
     Function SetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
         Return SetStatus(GdipSetLineBlend(br, blendFactors, blendPositions, count))
+    End Function
+    
+    Function GetBlend(blendFactors!(), blendPositions!()) As GpStatus
+        Dim count& = BlendCount
+        ReDim blendFactors(1 To count)
+        ReDim blendPositions(1 To count)
+        Return SetStatus(GdipSetLineBlend(br, blendFactors(1), blendPositions(1), count))
     End Function
     
     Function GetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
@@ -82,12 +157,26 @@ Class LinearGradientBrush
     Property Get InterpolationColorCount&()
         SetStatus(GdipGetLinePresetBlendCount(br, InterpolationColorCount&))
     End Property
+    
+    Function SetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
+        Dim count& = Len(presetColors)
+        If count <> Len(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
+        Return SetStatus(GdipSetLinePresetBlend(br, _
+            presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
+    End Function
         
     Function SetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
         If count <= 0 OrElse VarPtr(presetColors) = vbNullPtr Then
             Return SetStatus(InvalidParameter)
         End If
         Return SetStatus(GdipSetLinePresetBlend(br, presetColors, blendPositions, count))
+    End Function
+    
+    Function GetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
+        Dim count& = InterpolationColorCount
+        ReDim presetColors(1 To count)
+        ReDim blendPositions(1 To count)
+        Return SetStatus(GdipGetLinePresetBlend(br, presetColors(1), blendPositions(1), count))
     End Function
     
     Function GetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
@@ -161,7 +250,67 @@ Class LinearGradientBrush
     End Sub
 End Class
 
-Module LineGradientModule
+Module GdipLineGradient
+    Function LinearGradientBrush(rect As GpRectF, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1, rgb2)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2)
+    End Function
+
+    Function LinearGradientBrush(point1 As GpPointF, point2 As GpPointF, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+        Return New LinearGradientBrush(point1, point2, rgb1, rgb2)
+    End Function
+
+    Function LinearGradientBrush(point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+        Return New LinearGradientBrush(point1, point2, color1, color2)
+    End Function
+
+    Function LinearGradientBrush(point1 As GpPoint, point2 As GpPoint, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+        Return New LinearGradientBrush(point1, point2, rgb1, rgb2)
+    End Function
+
+    Function LinearGradientBrush(point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+        Return New LinearGradientBrush(point1, point2, color1, color2)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1, rgb2, mode)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2, mode)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1, rgb2, mode)
+    End Function
+    
+    Function LinearGradientBrush(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2, mode)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, _
+            ByVal angle!, ByVal isAngleScalable As Boolean = False) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1&, rgb2&, angle, isAngleScalable)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, _
+            ByVal angle!, ByVal isAngleScalable As Boolean = False) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2, angle, isAngleScalable)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRect, ByVal rgb1&, ByVal rgb2&, _
+            ByVal angle!, ByVal isAngleScalable As Boolean = False) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1&, rgb2&, angle, isAngleScalable)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, _
+            ByVal angle!, ByVal isAngleScalable As Boolean = False) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2, angle, isAngleScalable)
+    End Function
+    
     Type GpLineGradient
         'Inherits GpBrush
         Native As LongPtr
@@ -183,6 +332,7 @@ Module LineGradientModule
     Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     
     Public Declare PtrSafe Function GdipSetLineColors Lib "gdiplus" (ByVal brush As GpBrush, ByVal color1 As Color, ByVal color2 As Color) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineColors Lib "gdiplus" (ByVal brush As GpBrush, rgbs As Long) As GpStatus
     Public Declare PtrSafe Function GdipGetLineColors Lib "gdiplus" (ByVal brush As GpBrush, colors As Color) As GpStatus
     Public Declare PtrSafe Function GdipGetLineRect Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRectF) As GpStatus
     Public Declare PtrSafe Function GdipGetLineRectI Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRect) As GpStatus

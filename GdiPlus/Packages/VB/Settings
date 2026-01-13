@@ -5,7 +5,7 @@
 	"project.autoPrettify": true,
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
-	"project.debuggable": true,
+	"project.debuggable": false,
 	"project.description": "twinBASIC - VB Compatibility Package (Forms)",
 	"project.exportPathIsV2": true,
 	"project.featureFlagsUI": 4294967295,

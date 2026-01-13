@@ -1,12 +1,8 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class Region
     Inherits GdiPlusBase
     Dim rg As GpRegion
-        
-    Sub New(ByVal nativeRegion As GpRegion)
-        SetNativeRegion(nativeRegion)
-    End Sub
     
     Sub New()
         Dim region As GpRegion
@@ -255,6 +251,10 @@ Class Region
         Return SetStatus(GdipGetRegionScansI(rg, rects, count, GetNative(matrix)))
     End Function
     
+    Public Sub New(ByVal nativeRegion As GpRegion)
+        SetNativeRegion(nativeRegion)
+    End Sub
+    
     Protected Property Get Native() As GpRegion
         Return rg
     End Property
@@ -264,7 +264,31 @@ Class Region
     End Sub
 End Class
 
-Module RegionModule
+Module GdipRegion
+    Function Region() As Region
+        Return New Region
+    End Function
+    
+    Function Region(rect As GpRectF) As Region
+        Return New Region(rect)
+    End Function
+
+    Function Region(rect As GpRect) As Region
+        Return New Region(rect)
+    End Function
+
+    Function Region(path As GraphicsPath) As Region
+        Return New Region(path)
+    End Function
+    
+    Function Region(regionData As Byte, ByVal size&) As Region
+        Return New Region(regionData, size)
+    End Function
+    
+    Function Region(ByVal hRgn As LongPtr) As Region
+        Return New Region(hRgn)
+    End Function
+    
     Type GpRegion
         Native As LongPtr
     End Type

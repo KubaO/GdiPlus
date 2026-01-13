@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class Matrix
     Inherits GdiPlusBase
@@ -22,13 +22,13 @@ Class Matrix
         SetNativeMatrix(nativeMatrix)
     End Sub
     
-    Sub New(rect As GpRectF, dstplg As GpPointF)
+    Sub New(rect As GpRectF, ByVal dstplg As GpPointF)
         Dim nativeMatrix As GpMatrix
         LastStatus = GdipCreateMatrix3(rect, dstplg, nativeMatrix)
         SetNativeMatrix(nativeMatrix)
     End Sub
 
-    Sub New(rect As GpRect, dstplg As GpPoint)
+    Sub New(rect As GpRect, ByVal dstplg As GpPoint)
         Dim nativeMatrix As GpMatrix
         LastStatus = GdipCreateMatrix3I(rect, dstplg, nativeMatrix)
         SetNativeMatrix(nativeMatrix)
@@ -80,6 +80,10 @@ Class Matrix
     
     Function Translate(ByVal offsetX!, ByVal offsety!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipTranslateMatrix(mx, offsetX, offsety, order))
+    End Function
+    
+    Function Translate(ByVal offset As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipTranslateMatrix(mx, offset.X, offset.Y, order))
     End Function
     
     Function Scale(ByVal scaleX!, ByVal scaleY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
@@ -169,7 +173,23 @@ Class Matrix
     End Sub
 End Class
 
-Module MatrixModule
+Module GdipMatrix
+    Function Matrix() As Matrix
+        Return New Matrix
+    End Function
+    
+    Function Matrix(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!) As Matrix
+        Return New Matrix(m11, m12, m21, m22, dx, dy)
+    End Function
+    
+    Function Matrix(rect As GpRectF, ByVal dstplg As GpPointF) As Matrix
+        Return New Matrix(rect, dstplg)
+    End Function
+    
+    Function Matrix(rect As GpRect, ByVal dstplg As GpPoint) As Matrix
+        Return New Matrix(rect, dstplg)
+    End Function
+    
     Type GpMatrix
         Native As LongPtr
     End Type

@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class Font
     Inherits GdiPlusBase
@@ -78,6 +78,14 @@ Class Font
         End If
     End Sub
 
+    Function GetLogFontA(g As Graphics) As LOGFONTA
+        SetStatus(GdipGetLogFontA(ft, GetNative(g), GetLogFontA))
+    End Function
+    
+    Function GetLogFontW(g As Graphics) As LOGFONTW
+        SetStatus(GdipGetLogFontW(ft, GetNative(g), GetLogFontW))
+    End Function
+    
     Function GetLogFontA(g As Graphics, logfonta As LOGFONTA) As GpStatus
         Return SetStatus(GdipGetLogFontA(ft, GetNative(g), logfonta))
     End Function
@@ -151,7 +159,38 @@ Class Font
     End Sub
 End Class
 
-Module FontModule
+Module GdipFont
+    Function Font(ByVal hdc As LongPtr) As Font
+        Return New Font(hdc)
+    End Function
+    
+    Function Font(ByVal hdc As LongPtr, ByVal hfont As LongPtr) As Font
+        Return New Font(hdc, hfont)
+    End Function
+    
+    Function Font(ByVal hdc As LongPtr, logfont As LOGFONTA) As Font
+        Return New Font(hdc, logfont)
+    End Function
+    
+    Function Font(ByVal hdc As LongPtr, logfont As LOGFONTW) As Font
+        Return New Font(hdc, logfont)
+    End Function
+    
+    Function Font(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+                ByVal unit As GpUnit = UnitPoint) As Font
+        Return New Font(family, emSize, style, unit)
+    End Function
+    
+    Function Font(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+                ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection) As Font
+        Return New Font(family, emSize, style, unit, fontCollection)
+    End Function
+    
+    Function Font(ByVal familyName$, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+                ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection) As Font
+        Return New Font(familyName, emSize, style, unit, fontCollection)
+    End Function
+    
     Type GpFont
         Native As LongPtr
     End Type

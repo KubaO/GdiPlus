@@ -1,0 +1,189 @@
+[COMCreatable(False)]
+Class PathData
+    Public pd As GpPathData
+    
+    Sub New()
+    End Sub
+    
+    Sub New(ByVal count&)
+        pd.Allocate(count)
+    End Sub
+    
+    Sub New(points() As TypedPoint)
+        pd = GpPathData(points)
+    End Sub
+    
+    Sub New(pathData As GpPathData)
+        pd = pathData
+    End Sub
+    
+    Sub Allocate(ByVal Count&)
+        pd.Allocate(Count)
+    End Sub
+    
+    Property Get PointsPtr() As LongPtr
+        Return pd.Points
+    End Property
+    
+    Property Get TypesPtr() As LongPtr
+        Return pd.Types
+    End Property
+    
+    Property Get Count&()
+        Return pd.count
+    End Property
+    
+    Property Get Point(ByVal index&) As GpPointF
+        Dim src As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
+        If index >= pd.count Then Err.Raise ERROR_INVALID_PARAMETER
+        GetMem8(src, ByVal VarPtr(Point))
+    End Property
+
+    Property Get Type(ByVal index&) As Byte
+        Dim src As LongPtr = pd.Types + (index - 1) * LenB(Of Byte)
+        GetMem1(src, Type)
+    End Property
+        
+    Property Get TypedPoint(ByVal index&) As TypedPoint
+        TypedPoint.pos = Point(index)
+        TypedPoint.type = Type(index)
+    End Property
+        
+    Property Let Point(ByVal index&, point As GpPointF)
+        Dim dst As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
+        CopyMemory(ByVal dst, point, LenB(Of GpPointF))
+    End Property
+
+    Property Let Type(ByVal index&, ByVal type As Byte)
+        Dim dst As LongPtr = pd.Types + (index - 1) * LenB(Of Byte)
+        PutMem1(dst, type)
+    End Property
+        
+    Property Let TypedPoint(ByVal index&, point As TypedPoint)
+        Me.Point(index) = point.pos
+        Me.Type(index) = point.type
+    End Property
+        
+    [Description("Returns a view into the points array." & vbCrLf & _
+            "The view is valid only as long as the PathData exists.")]
+    Function Points() As GpPointF()
+        Return pd.GetPoints()
+    End Function
+        
+    [Description("Returns a view into the types array." & vbCrLf & _
+            "The view is valid only as long as the PathData exists")]
+    Function Types() As Byte()
+        Return pd.GetTypes()
+    End Function
+        
+    Function TypedPoints() As TypedPoint()
+        Return pd.GetTypedPoints()
+    End Function
+        
+    Sub Class_Terminate()
+        pd.Free()
+    End Sub
+End Class
+
+Module GdipPathData
+    Function PathData(ByVal count&) As PathData
+        Return New PathData(count)
+    End Function
+    
+    Function PathData(points() As TypedPoint) As PathData
+        Return New PathData(points)
+    End Function
+    
+    Function PathData(pd As GpPathData) As PathData
+        Return New PathData(pd)
+    End Function
+    
+    [Description("Points and nodes in a Path." & vbCrLf & _
+            "This UDT does not manage memory by itself. Allocate() and Free()" & vbCrLf & _
+            "must be explicitly invoked. Use the PathData class instead.")]
+    Type GpPathData
+        count&
+        Points As LongPtr ' GpPointF*
+        Types As LongPtr  ' BYTE*
+        
+        Sub Free()
+            GdipFree(Me.Points)
+            GdipFree(Me.Types)
+            Me.count = 0
+            Me.Points = vbNullPtr
+            Me.Types = vbNullPtr
+        End Sub
+        
+        Function Allocate(ByVal newCount&) As GpStatus
+            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of Byte), Me.Types, Me.count)
+        End Function
+        
+        Property Get Point(ByVal index&) As GpPointF
+            Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
+            If index >= Me.count Then Err.Raise ERROR_INVALID_PARAMETER
+            GetMem8(src, ByVal VarPtr(Point))
+        End Property
+
+        Property Get Type(ByVal index&) As Byte
+            Dim src As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
+            GetMem1(src, Type)
+        End Property
+        
+        Property Get TypedPoint(ByVal index&) As TypedPoint
+            TypedPoint.pos = Me.Point(index)
+            TypedPoint.type = Me.Type(index)
+        End Property
+        
+        Property Let Point(ByVal index&, point As GpPointF)
+            Dim dst As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
+            CopyMemory(ByVal dst, point, LenB(Of GpPointF))
+        End Property
+
+        Property Let Type(ByVal index&, ByVal type As Byte)
+            Dim dst As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
+            PutMem1(dst, type)
+        End Property
+        
+        Property Let TypedPoint(ByVal index&, point As TypedPoint)
+            Me.Point(index) = point.pos
+            Me.Type(index) = point.type
+        End Property
+        
+        [Description("Returns a view into the points array." & vbCrLf & _
+                "The view is valid only as long as the PathData exists.")]
+        Function GetPoints() As GpPointF()
+            Return GetStaticTrailingSA(Of GpPointF)(Me.Points, Me.count)
+        End Function
+        
+        [Description("Returns a view into the types array." & vbCrLf & _
+                "The view is valid only as long as the PathData exists")]
+        Function GetTypes() As Byte()
+            Return GetStaticTrailingSA(Of Byte)(Me.Types, Me.count)
+        End Function
+        
+        Function GetTypedPoints() As TypedPoint()
+            Dim result() As TypedPoint
+            ReDim result(1 To Me.count)
+            For i As Long = 1 To Me.count
+                result(i).pos = Me.Point(i)
+                result(i).type = Me.Type(i)
+            Next
+            Return result
+        End Function
+    End Type
+    
+    Function GpPathData() As GpPathData
+        GpPathData.count = 0
+        GpPathData.Points = 0
+        GpPathData.Types = 0
+    End Function
+    
+    Function GpPathData(points() As TypedPoint) As GpPathData
+        Dim i&
+        GpPathData.Allocate(Len(points))
+        For i = 1 To GpPathData.count
+            GpPathData.Point(i) = points(i).pos
+            GpPathData.Type(i) = points(i).type
+        Next
+    End Function
+End Module

@@ -1,16 +1,16 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class FontFamily
     Inherits GdiPlusBase
-    Dim ff As GpFontFamily = vbNullPtr
+    Dim ff As GpFontFamily
         
     Sub New()
         ' empty
         Dim x As FontStyle
     End Sub
     
-    Sub New(ByVal name As String, Optional fontCollection As FontCollection)
-        LastStatus = GdipCreateFontFamilyFromName(StrPtr(name), GetNative(fontCollection), ff)
+    Sub New(ByVal name$, Optional fontCollection As FontCollection)
+        LastStatus = GdipCreateFontFamilyFromName(name, GetNative(fontCollection), ff)
     End Sub
         
     Sub Class_Terminate()
@@ -88,7 +88,8 @@ Class FontFamily
         SetNativeFontFamily(nativeFamily)
     End Sub
     
-    Protected Sub New(ByVal nativeFamily As GpFontFamily, ByVal status As GpStatus)
+    ' Used in FontFamilyModule
+    Public Sub New(ByVal nativeFamily As GpFontFamily, ByVal status As GpStatus)
         LastStatus = status
         SetNativeFontFamily(nativeFamily)
     End Sub
@@ -97,7 +98,11 @@ End Class
 Alias WORD As Integer
 Alias LANGID As Integer  ' WORD
 
-Module FontFamilyModule
+Module GdipFontFamily
+    Function FontFamily(ByVal name$, Optional fontCollection As FontCollection) As FontFamily
+        Return New FontFamily(name, fontCollection)
+    End Function
+    
     Type GpFontFamily
         Native As LongPtr
     End Type
@@ -107,29 +112,29 @@ Module FontFamilyModule
     End Function
     
     Function GenericSansSerif() As FontFamily
-        If GenericSansSerifFontFamily IsNot Nothing Then Return GenericSansSerifFontFamily
-        Set GenericSansSerifFontFamily = New FontFamily
-        UnprotectedAccess(GenericSansSerifFontFamily).LastStatus = _
-                GdipGetGenericFontFamilySansSerif(GetNative(GenericSansSerifFontFamily))
+        If GenericSansSerifFF IsNot Nothing Then Return GenericSansSerifFF
+        Dim nativeFF As GpFontFamily
+        Dim status As GpStatus = GdipGetGenericFontFamilySansSerif(nativeFF)
+        Set GenericSansSerifFF = New FontFamily(nativeFF, status)
     End Function
     
     Function GenericSerif() As FontFamily
-        If GenericSerifFontFamily IsNot Nothing Then Return GenericSerifFontFamily
-        Set GenericSerifFontFamily = New FontFamily
-        UnprotectedAccess(GenericSerifFontFamily).LastStatus = _
-                GdipGetGenericFontFamilySerif(GetNative(GenericSerifFontFamily))
+        If GenericSerifFF IsNot Nothing Then Return GenericSerifFF
+        Dim nativeFF As GpFontFamily
+        Dim status As GpStatus = GdipGetGenericFontFamilySerif(nativeFF)
+        Set GenericSerifFF = New FontFamily(nativeFF, status)
     End Function
     
     Function GenericMonospace() As FontFamily
-        If GenericMonospaceFontFamily IsNot Nothing Then Return GenericMonospaceFontFamily
-        Set GenericMonospaceFontFamily = New FontFamily
-        UnprotectedAccess(GenericMonospaceFontFamily).LastStatus = _
-                GdipGetGenericFontFamilyMonospace(GetNative(GenericMonospaceFontFamily))
+        If GenericMonospaceFF IsNot Nothing Then Return GenericMonospaceFF
+        Dim nativeFF As GpFontFamily
+        Dim status As GpStatus = GdipGetGenericFontFamilyMonospace(nativeFF)
+        Set GenericMonospaceFF = New FontFamily(nativeFF, status)
     End Function
         
-    Dim GenericSansSerifFontFamily As FontFamily
-    Dim GenericSerifFontFamily As FontFamily
-    Dim GenericMonospaceFontFamily As FontFamily
+    Dim GenericSansSerifFF As FontFamily
+    Dim GenericSerifFF As FontFamily
+    Dim GenericMonospaceFF As FontFamily
     
     Public Declare PtrSafe Function GdipGetGenericFontFamilySerif Lib "gdiplus" (Me As GpFontFamily) As GpStatus
     Public Declare PtrSafe Function GdipGetGenericFontFamilySansSerif Lib "gdiplus" (Me As GpFontFamily) As GpStatus

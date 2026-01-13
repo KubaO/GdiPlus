@@ -55,7 +55,7 @@ Module Native
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     
-    Public Function GetNative(for As AdjustableArrowCap) As GpAdjustableArrowCap
+    Public Function GetNative(for As ArrowCap) As GpArrowCap
         If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
     End Function
     

@@ -1,11 +1,23 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class PathGradientBrush
     Inherits Brush
-       
+
+    Sub New(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp)
+        Dim brush As GpPathGradient
+        LastStatus = GdipCreatePathGradient(points(LBound(points)), Len(points), wrapMode, brush)
+        SetNativePathGradient(brush)
+    End Sub
+    
     Sub New(points As GpPointF, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp)
         Dim brush As GpPathGradient
         LastStatus = GdipCreatePathGradient(points, count, wrapMode, brush)
+        SetNativePathGradient(brush)
+    End Sub
+
+    Sub New(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp)
+        Dim brush As GpPathGradient
+        LastStatus = GdipCreatePathGradientI(points(LBound(points)), Len(points), wrapMode, brush)
         SetNativePathGradient(brush)
     End Sub
     
@@ -24,9 +36,13 @@ Class PathGradientBrush
     Property Get CenterColor() As Color
         SetStatus(GdipGetPathGradientCenterColor(Native, CenterColor))
     End Property
-        
-    Property Set CenterColor(ByVal color As Color)
+    
+    Property Let CenterColor(ByVal color As Color)
         SetStatus(GdipSetPathGradientCenterColor(Native, color))
+    End Property
+
+    Property Let CenterRGB(ByVal rgb&)
+        SetStatus(GdipSetPathGradientCenterColor(Native, FromCOLORREF(rgb)))
     End Property
     
     Property Get PointCount&()
@@ -44,7 +60,7 @@ Class PathGradientBrush
         SetStatus(GdipGetPathGradientSurroundColorsWithCount(Native, SurroundColors(1), count))
     End Property
     
-    Property Set SurroundColors(colors() As Color)
+    Property Let SurroundColors(colors() As Color)
         Dim count& = PointCount
         If LastResult <> Ok Then Exit Property
         If Len(colors) > count Then
@@ -60,7 +76,7 @@ Class PathGradientBrush
         If LastStatus = Ok Then Set GraphicsPath = New GraphicsPath(nativePath)
     End Property
     
-    Property Set GraphicsPath(path As GraphicsPath)
+    Property Let GraphicsPath(path As GraphicsPath)
         SetStatus(GdipSetPathGradientPath(Native, GetNative(path)))
     End Property
         
@@ -68,7 +84,7 @@ Class PathGradientBrush
         SetStatus(GdipGetPathGradientCenterPoint(Native, CenterPoint))
     End Property
     
-    Property Set CenterPoint(point As GpPointF)
+    Property Let CenterPoint(point As GpPointF)
         SetStatus(GdipSetPathGradientCenterPoint(Native, point))
     End Property
     
@@ -76,7 +92,7 @@ Class PathGradientBrush
         SetStatus(GdipGetPathGradientCenterPointI(Native, CenterPointI))
     End Property
     
-    Property Set CenterPointI(point As GpPoint)
+    Property Let CenterPointI(point As GpPoint)
         SetStatus(GdipSetPathGradientCenterPointI(Native, point))
     End Property
         
@@ -166,8 +182,9 @@ Class PathGradientBrush
     End Function
 
     Property Get Transform() As Matrix
-        Set Transform = New Matrix
-        SetStatus(GdipGetPathGradientTransform(Native, GetNative(Transform)))
+        Dim nativeTransform As GpMatrix
+        SetStatus(GdipGetPathGradientTransform(Native, nativeTransform))
+        If LastStatus = Ok Then Set Transform = New Matrix()
     End Property
     
     Property Let Transform(matrix As Matrix)
@@ -211,6 +228,12 @@ Class PathGradientBrush
     Protected Sub New()
     End Sub
     
+    ' Used by Pen
+    Public Sub New(ByVal nativeGradient As GpPathGradient, ByVal lastStatus&)
+        Me.LastStatus = lastStatus
+        SetNativePathGradient(nativeGradient)
+    End Sub
+    
     Protected Property Get Native() As GpPathGradient
         Native.Native = br.Native
     End Property
@@ -225,7 +248,27 @@ Class PathGradientBrush
     End Sub
 End Class
 
-Module PathGradientModule
+Module GdipPathGradient
+    Function PathGradientBrush(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
+        Return New PathGradientBrush(points, wrapMode)
+    End Function
+    
+    Function PathGradientBrush(points As GpPointF, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
+        Return New PathGradientBrush(points, count, wrapMode)
+    End Function
+    
+    Function PathGradientBrush(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
+        Return New PathGradientBrush(points, wrapMode)
+    End Function
+    
+    Function PathGradientBrush(points As GpPoint, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
+        Return New PathGradientBrush(points, count, wrapMode)
+    End Function
+    
+    Function PathGradientBrush(path As GraphicsPath) As PathGradientBrush
+        Return New PathGradientBrush(path)
+    End Function
+    
     Type GpPathGradient
         'Inherits GpBrush
         Native As LongPtr
@@ -233,6 +276,10 @@ Module PathGradientModule
     
     Function GpPathGradient() As GpPathGradient
         GpPathGradient.Native = 0
+    End Function
+    
+    Function GpPathGradient(nativeBrush As GpBrush) As GpPathGradient
+        GpPathGradient.Native = nativeBrush.Native
     End Function
     
     Public Declare PtrSafe Function GdipCreatePathGradient Lib "gdiplus" (points As GpPointF, ByVal count As Long, ByVal wrapMode As GpWrapMode, polyGradient As GpPathGradient) As GpStatus

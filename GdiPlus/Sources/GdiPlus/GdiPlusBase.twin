@@ -25,4 +25,17 @@ Class GdiPlusBase
     Static Sub Free(ptr As LongPtr)
         GdipFree(ptr)
     End Sub
+    
+    Property Get Status$()
+        Return AsText$(LastStatus)
+    End Property
+    
+    Property Get StatusNL$()
+        Return AsText$(LastStatus) & vbCrLf
+    End Property
 End Class
+
+Module GdipModule
+    Public Declare PtrSafe Function GdipAlloc Lib "gdiplus.dll" (ByVal Size As LongPtr) As LongPtr
+    Public Declare PtrSafe Function GdipFree Lib "gdiplus.dll" (ByVal Ptr As LongPtr) As GpStatus
+End Module

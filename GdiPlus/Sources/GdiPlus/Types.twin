@@ -1,4 +1,4 @@
-' Reviewed 2026-01-12
+' Reviewed 2026-01-13
 
 Option Base 1
 
@@ -9,6 +9,11 @@ End Interface
 
 Alias ARGB As Long
 Alias UINT As Long
+
+'--------------------------------------------------------------------------
+' Graphics and Container State cookies
+'--------------------------------------------------------------------------
+
 Alias GraphicsState As Long
 Alias GraphicsContainer As Long
 
@@ -86,6 +91,33 @@ Module Types
         ProfileNotFound = 21
         '#endif //(GDIPVER >= 0x0110)
     End Enum
+    
+    Function AsText$(ByVal status As GpStatus)
+        Select Case status:
+            Case 0: Return "Ok"
+            Case 1: Return "Generic Error"
+            Case 2: Return "Invalid Parameter"
+            Case 3: Return "Out of Memory"
+            Case 4: Return "Object Busy"
+            Case 5: Return "Insufficient Buffer"
+            Case 6: Return "Not Implemented"
+            Case 7: Return "Win32 Error"
+            Case 8: Return "Wrong State"
+            Case 9: Return "Aborted"
+            Case 10: Return "File Not Found"
+            Case 11: Return "Value Overflow"
+            Case 12: Return "Access Denied"
+            Case 13: Return "Unknown Image Format"
+            Case 14: Return "Font Family Not Found"
+            Case 15: Return "Font Style Not Found"
+            Case 16: Return "Not a True Type Font"
+            Case 17: Return "Unsupported GDI+ Version"
+            Case 18: Return "GDI+ Not Initialized"
+            Case 19: Return "Property Not Found"
+            Case 20: Return "Property Not Supported"
+            Case 21: Return "Profile Not Found"
+        End Select
+    End Function
     
     [Description("Represents a dimension in a 2D coordinate system (floating-point coordinates)")]
     Type GpSizeF
@@ -277,6 +309,22 @@ Module Types
         Property Get Bottom!()
             Return Me.Y + Me.Height
         End Property
+        
+        Property Get TopLeft() As GpPointF
+            Return GpPointF(Me.X, Me.Y)
+        End Property
+        
+        Property Get TopRight() As GpPointF
+            Return GpPointF(Me.X + Me.Width, Me.Y)
+        End Property
+
+        Property Get BottomLeft() As GpPointF
+            Return GpPointF(Me.X, Me.Y + Me.Height)
+        End Property
+        
+        Property Get BottomRight() As GpPointF
+            Return GpPointF(Me.X + Me.Width, Me.Y + Me.Height)
+        End Property
                 
         Property Get IsEmptyArea() As Boolean
             Return (Me.Width <= REAL_EPSILON) OrElse (Me.Height <= REAL_EPSILON)
@@ -340,6 +388,13 @@ Module Types
             Me.X += dx
             Me.Y += dy
         End Sub
+        
+        Function AsRECTF() As RECTF
+            AsRECTF.Left = Me.X
+            AsRECTF.Right = Me.X + Me.Width
+            AsRECTF.Top = Me.Y
+            AsRECTF.Bottom = Me.Y + Me.Width
+        End Function
     End Type
     
     Function GpRectF() As GpRectF
@@ -361,6 +416,13 @@ Module Types
         GpRectF.Y = location.Y
         GpRectF.Width = size.Width
         GpRectF.Height = size.Height
+    End Function
+    
+    Function GpRectF(rect As RECTF) As GpRectF
+        GpRectF.X = rect.Left
+        GpRectF.Y = rect.Top
+        GpRectF.Width = rect.Right - rect.Left
+        GpRectF.Height = rect.Bottom - rect.Top
     End Function
     
     Private Function Intersect(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
@@ -426,6 +488,22 @@ Module Types
             Return Me.Y + Me.Height
         End Property
         
+        Property Get TopLeft() As GpPoint
+            Return GpPoint(Me.X, Me.Y)
+        End Property
+        
+        Property Get TopRight() As GpPoint
+            Return GpPoint(Me.X + Me.Width, Me.Y)
+        End Property
+
+        Property Get BottomLeft() As GpPoint
+            Return GpPoint(Me.X, Me.Y + Me.Height)
+        End Property
+        
+        Property Get BottomRight() As GpPoint
+            Return GpPoint(Me.X + Me.Width, Me.Y + Me.Height)
+        End Property
+        
         Property Get IsEmptyArea() As Boolean
             Return (Me.Width <= 0) OrElse (Me.Height <= 0)
         End Property
@@ -488,6 +566,13 @@ Module Types
             Me.X += dx
             Me.Y += dy
         End Sub
+        
+        Function AsRECT() As RECT
+            AsRECT.Left = Me.X
+            AsRECT.Right = Me.X + Me.Width
+            AsRECT.Top = Me.Y
+            AsRECT.Bottom = Me.Y + Me.Width
+        End Function
     End Type
     
     Function GpRect() As GpRect
@@ -509,6 +594,13 @@ Module Types
         GpRect.Y = location.Y
         GpRect.Width = size.Width
         GpRect.Height = size.Height
+    End Function
+    
+    Function GpRect(rect As RECT) As GpRect
+        GpRect.X = rect.Left
+        GpRect.Y = rect.Top
+        GpRect.Width = rect.Right - rect.Left
+        GpRect.Height = rect.Bottom - rect.Top
     End Function
     
     Function Intersect(c As GpRect, a As GpRect, b As GpRect) As Boolean
@@ -541,66 +633,6 @@ Module Types
     ' Assorted Types
     '--------------------------------------------------------------------------
     
-    [Description("Points and nodes in a Path." & vbCrLf & _
-            "This UDT does not manage memory by itself. Allocate() and Free()" & vbCrLf & _
-            "must be explicitly invoked.")]
-    Type PathData
-        Count&
-        Points As LongPtr ' GpPointF*
-        Types As LongPtr  ' BYTE*
-        
-        Sub Free()
-            GdipFree(Me.Points)
-            GdipFree(Me.Types)
-            Me.Count = 0
-            Me.Points = vbNullPtr
-            Me.Types = vbNullPtr
-        End Sub
-        
-        Function Allocate(ByVal newCount&) As GpStatus
-            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of Byte), Me.Types, Me.Count)
-        End Function
-        
-        Property Get Point(index&) As GpPointF
-            Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
-            If index >= Me.Count Then Err.Raise ERROR_INVALID_PARAMETER
-            GetMem8(src, ByVal VarPtr(Point))
-        End Property
-
-        Property Get Type(index&) As Byte
-            Dim src As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
-            GetMem1(src, Type)
-        End Property
-        
-        Property Let Point(index&, point As GpPointF)
-            Dim dst As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
-            CopyMemory(ByVal dst, point, LenB(Of GpPointF))
-        End Property
-
-        Property Let Type(index&, ByVal type As Byte)
-            Dim dst As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
-            PutMem1(dst, type)
-        End Property
-        
-        [Description("Returns a view into the points array." & vbCrLf & _
-                "The view is valid only as long as the PathData exists.")]
-        Function GetPoints() As GpPointF()
-            Return GetStaticTrailingSA(Of GpPointF)(Me.Points, Me.Count)
-        End Function
-        
-        [Description("Returns a view into the types array." & vbCrLf & _
-                "The view is valid only as long as the PathData exists")]
-        Function GetTypes() As Byte()
-            Return GetStaticTrailingSA(Of Byte)(Me.Types, Me.Count)
-        End Function
-    End Type
-    
-    Function PathData() As PathData
-        PathData.Count = 0
-        PathData.Points = 0
-        PathData.Types = 0
-    End Function
-    
     Type CharacterRange
         First&
         Length&
@@ -617,7 +649,24 @@ Module Types
     End Function
     
     Public Type ColorMap
-        oldColor As Long
-        newColor As Long
+        oldColor As Color
+        newColor As Color
     End Type
+    
+    Function ColorMap(ByVal oldColor As Color, ByVal newColor As Color) As ColorMap
+        ColorMap.oldColor = oldColor
+        ColorMap.newColor = newColor
+    End Function
+    
+    Public Type ColorPalette
+        flags As PaletteFlags
+        count As Long
+        entries(0 To 255) As Long
+    End Type
+    
+    Function ColorPalette(ByVal flags As PaletteFlags, entries() As Long) As ColorPalette
+        ColorPalette.flags = flags
+        ColorPalette.count = GDIPLUS_MIN(256, Len(entries))
+        CopyMemory(ColorPalette.entries, entries(LBound(entries)), ColorPalette.count * LenB(Of Color))
+    End Function
 End Module

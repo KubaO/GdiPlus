@@ -4,7 +4,7 @@
 	"project.autoPrettify": true,
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
-	"project.debuggable": true,
+	"project.debuggable": false,
 	"project.description": "VBA Package",
 	"project.disablePackageVBA": true,
 	"project.disablePackageVBRUN": true,

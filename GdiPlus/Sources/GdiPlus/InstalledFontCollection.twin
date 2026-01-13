@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class InstalledFontCollection
     Inherits FontCollection
@@ -27,7 +27,11 @@ Class InstalledFontCollection
     End Sub
 End Class
 
-Module InstalledFontCollectionModule
+Module GdipInstalledFontCollection
+    Function InstalledFontCollection() As InstalledFontCollection
+        Return New InstalledFontCollection
+    End Function
+    
     Type GpInstalledFontCollection
         ' Inherits GpFontCollection
         Native As LongPtr

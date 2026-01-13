@@ -1,4 +1,4 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 /**************************************************************************\
 *
 * Copyright (c) 1998-2001, Microsoft Corp.  All Rights Reserved.
@@ -99,6 +99,10 @@ Class ImageAttributes
         Return SetStatus(GdipSetImageAttributesNoOp(ia, type, False))
     End Function
 
+    Function SetColorKey(ByVal rgbLow&, ByVal rgbHigh&, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
+        Return SetStatus(GdipSetImageAttributesColorKeys(ia, type, True, FromCOLORREF(rgbLow), FromCOLORREF(rgbHigh)))
+    End Function
+    
     Function SetColorKey(ByVal colorLow As Color, ByVal colorHigh As Color, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
         Return SetStatus(GdipSetImageAttributesColorKeys(ia, type, True, colorLow, colorHigh))
     End Function
@@ -143,6 +147,10 @@ Class ImageAttributes
         Return ClearRemapTable(ColorAdjustTypeBrush)
     End Function
     
+    Function SetWrapMode(ByVal wrap As GpWrapMode, ByVal rgb&, ByVal clamp As Boolean = False) As GpStatus
+        Return SetStatus(GdipSetImageAttributesWrapMode(ia, wrap, FromCOLORREF(rgb), clamp))
+    End Function
+    
     Function SetWrapMode(ByVal wrap As GpWrapMode, ByVal color As Color, ByVal clamp As Boolean = False) As GpStatus
         Return SetStatus(GdipSetImageAttributesWrapMode(ia, wrap, color, clamp))
     End Function
@@ -170,7 +178,11 @@ Class ImageAttributes
     End Sub
 End Class
 
-Module ImageAttributesModule
+Module GdipImageAttributes
+    Function ImageAttributes() As ImageAttributes
+        Return New ImageAttributes
+    End Function
+    
     Type GpImageAttributes
         Native As LongPtr
     End Type

@@ -1,17 +1,19 @@
-' Reviewed 2026-01-11
+' Reviewed 2026-01-13
 [COMCreatable(False)]
 Class Pen
     Inherits GdiPlusBase
     Dim pn As GpPen
-        
-    Sub New(ByVal color As Color, ByVal width! = 1.0!)
-        Dim unit As GpUnit = UnitWorld
+    
+    Sub New(ByVal rgb As Long, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
+        LastStatus = GdipCreatePen1(FromCOLORREF(rgb), width, unit, pn)
+    End Sub
+    
+    Sub New(ByVal color As Color, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
         LastStatus = GdipCreatePen1(color, width, unit, pn)
     End Sub
     
     Sub New(brush As Brush, ByVal width! = 1.0!)
-        Dim unit As GpUnit = UnitWorld
-        LastStatus = GdipCreatePen2(GetNative(brush), width, unit, pn)
+        LastStatus = GdipCreatePen2(GetNative(brush), width, UnitWorld, pn)
     End Sub
     
     Sub New(ByVal nativePen As GpPen, status As GpStatus = Ok)
@@ -76,24 +78,24 @@ Class Pen
         SetStatus(GdipGetPenLineJoin(pn, LineJoin))
     End Property
         
-    Property Let CustomStartCap(customCap As CustomLineCap)
+    Property Let CustomStartCap(customCap As LineCap)
         SetStatus(GdipSetPenCustomStartCap(pn, GetNative(customCap)))
     End Property
     
-    Property Get CustomStartCap() As CustomLineCap
+    Property Get CustomStartCap() As LineCap
         Dim customCap As GpCustomLineCap
         SetStatus(GdipGetPenCustomStartCap(pn, customCap))
-        Return New CustomLineCap(customCap)
+        If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
-    Property Let CustomEndCap(customCap As CustomLineCap)
+    Property Let CustomEndCap(customCap As LineCap)
         SetStatus(GdipSetPenCustomEndCap(pn, GetNative(customCap)))
     End Property
     
-    Property Get CustomEndCap() As CustomLineCap
+    Property Get CustomEndCap() As LineCap
         Dim customCap As GpCustomLineCap
         SetStatus(GdipGetPenCustomEndCap(pn, customCap))
-        Return New CustomLineCap(customCap)
+        If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
     Property Let MiterLimit(ByVal miterLimit!)
@@ -130,6 +132,10 @@ Class Pen
         Return SetStatus(GdipMultiplyPenTransform(pn, GetNative(matrix), order))
     End Function
     
+    Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(GdipTranslatePenTransform(pn, delta.X, delta.Y, order))
+    End Function
+    
     Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Return SetStatus(GdipTranslatePenTransform(pn, dx, dy, order))
     End Function
@@ -144,6 +150,16 @@ Class Pen
 
     Property Get PenType() As GpPenType
         SetStatus(GdipGetPenFillType(pn, PenType))
+    End Property
+    
+    Property Let RGB(ByVal rgb&)
+        SetStatus(GdipSetPenColor(pn, FromCOLORREF(rgb)))
+    End Property
+    
+    Property Get RGB&()
+        Dim clr As Color
+        SetStatus(GdipSetPenColor(pn, clr))
+        Return clr.argb And &h00FF_FFFF
     End Property
     
     Property Let Color(ByVal color As Color)
@@ -174,7 +190,7 @@ Class Pen
             Case PenTypeTextureFill
                 Set Brush = New TextureBrush(GpTexture(nativeBrush), LastResult)
             Case PenTypePathGradient
-                Set Brush = New Brush(nativeBrush, LastResult)
+                Set Brush = New PathGradientBrush(GpPathGradient(nativeBrush), LastResult)
             Case PenTypeLinearGradient
                 Set Brush = New LinearGradientBrush(GpLineGradient(nativeBrush), LastResult)
         End Select
@@ -236,7 +252,19 @@ Class Pen
     End Sub
 End Class
 
-Module PenModule
+Module GdipPen
+    Function Pen(ByVal rgb As Long, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld) As Pen
+        Return New Pen(rgb, width, unit)
+    End Function
+    
+    Function Pen(ByVal color As Color, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld) As Pen
+        Return New Pen(color, width, unit)
+    End Function
+    
+    Function Pen(brush As Brush, ByVal width! = 1.0!) As Pen
+        Return New Pen(brush, width)
+    End Function
+    
     Type GpPen
         Native As LongPtr
     End Type
@@ -244,7 +272,7 @@ Module PenModule
     Function GpPen() As GpPen
         GpPen.Native = 0
     End Function
-    
+        
     Public Declare PtrSafe Function GdipCreatePen1 Lib "gdiplus" (ByVal Color As Color, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
     Public Declare PtrSafe Function GdipCreatePen2 Lib "gdiplus" (ByVal brush As GpBrush, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
     Public Declare PtrSafe Function GdipClonePen Lib "gdiplus" (ByVal pen As GpPen, clonepen As GpPen) As GpStatus

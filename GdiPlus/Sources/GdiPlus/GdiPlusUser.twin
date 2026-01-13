@@ -1,0 +1,28 @@
+Class GdiPlusUser
+    Inherits GdiPlusBase
+
+    Sub New()
+        gdiPlusRefCount += 1
+        If gdiPlusRefCount = 1 Or gdiPlusToken = -1 Then
+            Dim gsi As GdiplusStartupInput
+            gsi.GdiplusVersion = 1
+            LastStatus = GdiplusStartup(gdiPlusToken, gsi, vbNullPtr)
+            GdipColor.Init()
+        End If
+    End Sub
+    
+    Sub Class_Terminate()
+        gdiPlusRefCount -= 1
+        If gdiPlusRefCount <= 0 And gdiPlusToken <> -1 Then
+            SetStatus(GdiplusShutdown(gdiPlusToken))
+            gdiPlusToken = -1
+            gdiPlusRefCount = 0
+        End If
+    End Sub
+End Class
+
+Module GdipGdiPlusUser
+    Function GdiPlusUser() As GdiPlusUser
+        Return New GdiPlusUser
+    End Function
+End Module
