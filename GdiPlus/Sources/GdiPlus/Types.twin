@@ -10,6 +10,7 @@ End Interface
 Alias ARGB As Long
 Alias ARGB64 As LongLong
 Alias UINT As Long
+Alias ULONG As Long
 
 '--------------------------------------------------------------------------
 ' Graphics and Container State cookies
