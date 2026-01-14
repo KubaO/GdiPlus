@@ -265,10 +265,6 @@ Module GdipMetafile
                 ByVal type As EmfType = EmfTypeEmfPlusDual, Optional ByVal description$) As Metafile
         Return New Metafile(stream, referenceHdc, frameRect, frameUnit, type, description)
     End Function
-
-    Type MetafileHeader
-        type As MetafileType
-    End Type
     
     Type GpMetafile
         Native As LongPtr
