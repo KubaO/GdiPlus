@@ -408,7 +408,7 @@ Class GraphicsPath
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     
-    Property Get PointCount&()
+    Property Get PointCount() As Long
         SetStatus(pa.GetPointCount(PointCount))
     End Property
     

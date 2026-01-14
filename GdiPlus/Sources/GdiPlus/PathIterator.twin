@@ -45,35 +45,35 @@ Class PathIterator
         SetStatus(GdipPathIterNextMarker(pi, NextMarker.count, NextMarker.startIndex, NextMarker.endIndex))
     End Function
     
-    Function NextSubpath&(startIndex&, endIndex&, isClosed As Boolean)
+    Function NextSubpath(startIndex&, endIndex&, isClosed As Boolean) As Long
         Dim booln As BOOL
         SetStatus(GdipPathIterNextSubpath(pi, NextSubpath, startIndex, endIndex, booln))
         isClosed = booln
     End Function
     
-    Function NextSubPath&(path As GraphicsPath, isClosed As Boolean)
+    Function NextSubPath(path As GraphicsPath, isClosed As Boolean) As Long
         Dim booln As BOOL
         SetStatus(GdipPathIterNextSubpathPath(pi, NextSubPath, GetNative(path), booln))
         isClosed = booln
     End Function
     
-    Function NextPathType&(pathType As Byte, startIndex&, endIndex&)
+    Function NextPathType(pathType As Byte, startIndex&, endIndex&) As Long
         SetStatus(GdipPathIterNextPathType(pi, NextPathType, pathType, startIndex, endIndex))
     End Function
     
-    Function NextMarker&(startIndex&, endIndex&)
+    Function NextMarker(startIndex&, endIndex&) As Long
         SetStatus(GdipPathIterNextMarker(pi, NextMarker, startIndex, endIndex))
     End Function
     
-    Function NextMarker&(path As GraphicsPath)
+    Function NextMarker(path As GraphicsPath) As Long
         SetStatus(GdipPathIterNextMarkerPath(pi, NextMarker, GetNative(path)))
     End Function
     
-    Property Get Count&()
+    Property Get Count() As Long
         SetStatus(GdipPathIterGetCount(pi, Count))
     End Property
     
-    Property Get SubpathCount&()
+    Property Get SubpathCount() As Long
         SetStatus(GdipPathIterGetSubpathCount(pi, SubpathCount))
     End Property
     
@@ -127,11 +127,11 @@ Class PathIterator
         End If
     End Function
     
-    Function Enumerate&(points As GpPointF, types As Byte, ByVal count&)
+    Function Enumerate(points As GpPointF, types As Byte, ByVal count&) As Long
         SetStatus(GdipPathIterEnumerate(pi, Enumerate, points, types, count))
     End Function
     
-    Function CopyData&(points As GpPointF, types As Byte, ByVal startIndex&, ByVal endIndex&)
+    Function CopyData(points As GpPointF, types As Byte, ByVal startIndex&, ByVal endIndex&) As Long
         SetStatus(GdipPathIterCopyData(pi, CopyData&, points, types, startIndex, endIndex))
     End Function
         

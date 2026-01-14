@@ -64,12 +64,12 @@ Class Matrix
         Return SetStatus(GdipSetMatrixElements(mx, m11, m12, m21, m22, dx, dy))
     End Function
     
-    Property Get OffsetX!()
+    Property Get OffsetX() As Single
         Dim elements!(1 To 6)
         If GetElements(elements(1)) = Ok Then OffsetX = elements(5)
     End Property
     
-    Property Get OffsetY!()
+    Property Get OffsetY() As Single
         Dim elements!(1 To 6)
         If GetElements(elements(1)) = Ok Then OffsetY = elements(6)
     End Property

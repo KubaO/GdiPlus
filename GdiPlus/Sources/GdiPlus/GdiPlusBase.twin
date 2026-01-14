@@ -32,11 +32,11 @@ Class GdiPlusBase
         GdipFree(ptr)
     End Sub
     
-    Property Get Status$()
+    Property Get Status() As String
         Return AsText$(LastStatus)
     End Property
     
-    Property Get StatusNL$()
+    Property Get StatusNL() As String
         Return AsText$(LastStatus) & vbCrLf
     End Property
 End Class

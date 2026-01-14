@@ -24,19 +24,19 @@ Alias GraphicsState As Long
 Alias GraphicsContainer As Long
 
 Module Types
-    Function GDIPLUS_MIN!(ByVal a!, ByVal b!)
+    Function GDIPLUS_MIN(ByVal a!, ByVal b!) As Single
         Return If(a < b, a, b)
     End Function
 
-    Function GDIPLUS_MIN&(ByVal a&, ByVal b&)
+    Function GDIPLUS_MIN(ByVal a&, ByVal b&) As Long
         Return If(a < b, a, b)
     End Function
     
-    Function GDIPLUS_MAX!(ByVal a!, ByVal b!)
+    Function GDIPLUS_MAX(ByVal a!, ByVal b!) As Single
         Return If(a > b, a, b)
     End Function
     
-    Function GDIPLUS_MAX&(ByVal a&, ByVal b&)
+    Function GDIPLUS_MAX(ByVal a&, ByVal b&) As Long
         Return If(a > b, a, b)
     End Function
     
@@ -98,7 +98,7 @@ Module Types
         '#endif //(GDIPVER >= 0x0110)
     End Enum
     
-    Function AsText$(ByVal status As GpStatus)
+    Function AsText(ByVal status As GpStatus) As String
         Select Case status:
             Case 0: Return "Ok"
             Case 1: Return "Generic Error"
@@ -300,19 +300,19 @@ Module Types
             Return Me
         End Property
                 
-        Property Get Left!()
+        Property Get Left() As Single
             Return Me.X
         End Property
         
-        Property Get Top!()
+        Property Get Top() As Single
             Return Me.Y
         End Property
         
-        Property Get Right!()
+        Property Get Right() As Single
             Return Me.X + Me.Width
         End Property
         
-        Property Get Bottom!()
+        Property Get Bottom() As Single
             Return Me.Y + Me.Height
         End Property
         
@@ -478,19 +478,19 @@ Module Types
             Return Me
         End Property
         
-        Property Get Left&()
+        Property Get Left() As Long
             Return Me.X
         End Property
         
-        Property Get Top&()
+        Property Get Top() As Long
             Return Me.Y
         End Property
         
-        Property Get Right&()
+        Property Get Right() As Long
             Return Me.X + Me.Width
         End Property
         
-        Property Get Bottom&()
+        Property Get Bottom() As Long
             Return Me.Y + Me.Height
         End Property
         

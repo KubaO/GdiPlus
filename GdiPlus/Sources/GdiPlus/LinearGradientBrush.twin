@@ -133,7 +133,7 @@ Class LinearGradientBrush
         Return useGammaCorrection
     End Property
 
-    Property Get BlendCount&()
+    Property Get BlendCount() As Long
         SetStatus(GdipGetLineBlendCount(br, BlendCount))
     End Property
     
@@ -159,7 +159,7 @@ Class LinearGradientBrush
         Return SetStatus(GdipGetLineBlend(br, blendFactors, blendPositions, count))
     End Function
     
-    Property Get InterpolationColorCount&()
+    Property Get InterpolationColorCount() As Long
         SetStatus(GdipGetLinePresetBlendCount(br, InterpolationColorCount&))
     End Property
     

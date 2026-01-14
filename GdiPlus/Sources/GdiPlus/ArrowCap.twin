@@ -24,7 +24,7 @@ Class ArrowCap
         SetStatus(GdipSetAdjustableArrowCapHeight(Native, height))
     End Property
     
-    Property Get Height!()
+    Property Get Height() As Single
         SetStatus(GdipGetAdjustableArrowCapHeight(Native, Height))
     End Property
 
@@ -32,7 +32,7 @@ Class ArrowCap
         SetStatus(GdipSetAdjustableArrowCapWidth(Native, width))
     End Property
     
-    Property Get Width!()
+    Property Get Width() As Single
         SetStatus(GdipGetAdjustableArrowCapWidth(Native, Width))
     End Property
     
@@ -40,7 +40,7 @@ Class ArrowCap
         SetStatus(GdipSetAdjustableArrowCapMiddleInset(Native, middleInset))
     End Property
     
-    Property Get MiddleInset!()
+    Property Get MiddleInset() As Single
         SetStatus(GdipGetAdjustableArrowCapMiddleInset(Native, Width))
     End Property
     

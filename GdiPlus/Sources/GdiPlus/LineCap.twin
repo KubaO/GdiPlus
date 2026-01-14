@@ -92,7 +92,7 @@ Class LineCap
         SetStatus(GdipSetCustomLineCapBaseInset(lc, inset))
     End Property
     
-    Property Get BaseInset!()
+    Property Get BaseInset() As Single
         Return SetStatus(GdipGetCustomLineCapBaseInset(lc, BaseInset))
     End Property
         
@@ -100,7 +100,7 @@ Class LineCap
         SetStatus(GdipSetCustomLineCapWidthScale(lc, widthScale))
     End Property
     
-    Property Get WidthScale!()
+    Property Get WidthScale() As Single
         SetStatus(GdipGetCustomLineCapWidthScale(lc, WidthScale))
     End Property
    

@@ -176,15 +176,15 @@ Class Graphics
         SetStatus(gr.SetPageScale(scale))
     End Property
     
-    Property Get PageScale!()
+    Property Get PageScale() As Single
         SetStatus(gr.GetPageScale(PageScale))
     End Property
     
-    Property Get DpiX!()
+    Property Get DpiX() As Single
         SetStatus(gr.GetDpiX(DpiX))
     End Property
 
-    Property Get DpiY!()
+    Property Get DpiY() As Single
         SetStatus(gr.GetDpiY(DpiY))
     End Property
             

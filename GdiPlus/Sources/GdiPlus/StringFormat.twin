@@ -73,7 +73,7 @@ Class StringFormat
         Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, count, tabStops))
     End Function
     
-    Property Get TabStopCount&()
+    Property Get TabStopCount() As Long
         SetStatus(GdipGetStringFormatTabStopCount(sf, TabStopCount))
     End Property
 
@@ -124,7 +124,7 @@ Class StringFormat
         Return SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, rangeCount, ranges))
     End Function
     
-    Property Get MeasurableCharacterRangeCount&()
+    Property Get MeasurableCharacterRangeCount() As Long
         SetStatus(GdipGetStringFormatMeasurableCharacterRangeCount(sf, MeasurableCharacterRangeCount&))
     End Property
         

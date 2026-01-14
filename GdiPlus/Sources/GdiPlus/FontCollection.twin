@@ -17,7 +17,7 @@ Class FontCollection
         ' empty by design
     End Sub
     
-    Property Get FamilyCount&()
+    Property Get FamilyCount() As Long
         GdipGetFontCollectionFamilyCount(fc, FamilyCount&)
     End Property
     

@@ -50,11 +50,11 @@ Class PathGradientBrush
         SetStatus(GdipSetPathGradientCenterColor(Native, FromCOLORREF(rgb)))
     End Property
     
-    Property Get PointCount&()
+    Property Get PointCount() As Long
         SetStatus(GdipGetPathGradientPointCount(Native, PointCount))
     End Property
     
-    Property Get SurroundColorCount&()
+    Property Get SurroundColorCount() As Long
         SetStatus(GdipGetPathGradientSurroundColorCount(Native, PointCount))
     End Property
 
@@ -119,7 +119,7 @@ Class PathGradientBrush
         Return booln
     End Property
         
-    Property Get BlendCount&()
+    Property Get BlendCount() As Long
        SetStatus(GdipGetPathGradientBlendCount(Native, BlendCount))
     End Property
 
@@ -148,7 +148,7 @@ Class PathGradientBrush
         Return SetStatus(GdipSetPathGradientBlend(Native, blendFactors, blendPositions, count))
     End Function
     
-    Property Get InterpolationColorCount&()
+    Property Get InterpolationColorCount() As Long
         SetStatus(GdipGetPathGradientPresetBlendCount(Native, InterpolationColorCount))
     End Property
    

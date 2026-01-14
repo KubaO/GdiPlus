@@ -24,7 +24,7 @@ Class Effect
         GdipDeleteEffect(fx)
     End Sub
     
-    Property Get AuxDataSize&()
+    Property Get AuxDataSize() As Long
         Return PropAuxDataSize
     End Property
         
@@ -434,7 +434,7 @@ Module GdipEffects
         contrast&
         
         ' For compatibility with MS API, these names are too verbose otherwise
-        Property Get brightnessLevel&()
+        Property Get brightnessLevel() As Long
             Return Me.brightness
         End Property
         
@@ -442,7 +442,7 @@ Module GdipEffects
             Me.brightness = level
         End Property
                 
-        Property Get contrastLevel&()
+        Property Get contrastLevel() As Long
             Return Me.contrast&
         End Property
 
@@ -522,7 +522,7 @@ Module GdipEffects
         lightness&
         
         ' For compatibility with MS API, these names are too verbose otherwise
-        Property Get hueLevel&()
+        Property Get hueLevel() As Long
             Return Me.hue
         End Property
         
@@ -530,7 +530,7 @@ Module GdipEffects
             Me.hue = level
         End Property
         
-        Property Get saturationLevel&()
+        Property Get saturationLevel() As Long
             Return Me.saturation
         End Property
 
@@ -538,7 +538,7 @@ Module GdipEffects
             Me.saturation = level
         End Property
         
-        Property Get lightnessLevel&()
+        Property Get lightnessLevel() As Long
             Return Me.lightness
         End Property
         
@@ -626,7 +626,7 @@ Module GdipEffects
         channel As CurveChannel
         value&
         
-        Property Get adjustValue&()
+        Property Get adjustValue() As Long
             Return Me.value&
         End Property
         

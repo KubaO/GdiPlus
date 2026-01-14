@@ -40,7 +40,7 @@ Class Pen
         SetStatus(GdipSetPenWidth(pn, width))
     End Property
     
-    Property Get Width!()
+    Property Get Width() As Single
         SetStatus(GdipGetPenWidth(pn, Width))
     End Property
     
@@ -107,7 +107,7 @@ Class Pen
         SetStatus(GdipSetPenMiterLimit(pn, miterLimit))
     End Property
     
-    Property Get MiterLimit!()
+    Property Get MiterLimit() As Single
         SetStatus(GdipGetPenMiterLimit(pn, MiterLimit))
     End Property
     
@@ -161,7 +161,7 @@ Class Pen
         SetStatus(GdipSetPenColor(pn, FromCOLORREF(rgb)))
     End Property
     
-    Property Get RGB&()
+    Property Get RGB() As Long
         Dim clr As Color
         SetStatus(GdipSetPenColor(pn, clr))
         Return clr.argb And &h00FF_FFFF
@@ -218,7 +218,7 @@ Class Pen
         SetStatus(GdipSetPenDashOffset(pn, dashStyle))
     End Property
     
-    Property Get DashPatternCount&()
+    Property Get DashPatternCount() As Long
         SetStatus(GdipGetPenDashCount(pn, DashPatternCount))
     End Property
     
@@ -233,7 +233,7 @@ Class Pen
         End If
     End Property
 
-    Property Get CompoundArrayCount&()
+    Property Get CompoundArrayCount() As Long
         SetStatus(GdipGetPenCompoundCount(pn, CompoundArrayCount))
     End Property
     

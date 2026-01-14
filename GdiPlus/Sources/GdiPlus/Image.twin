@@ -75,11 +75,11 @@ Class Image
         SetStatus(GdipGetImageHeight(im, Height))
     End Property
     
-    Property Get HorizontalResolution!()
+    Property Get HorizontalResolution() As Single
         SetStatus(GdipGetImageHorizontalResolution(im, HorizontalResolution))
     End Property
     
-    Property Get VerticalResolution!()
+    Property Get VerticalResolution() As Single
         SetStatus(GdipGetImageVerticalResolution(im, VerticalResolution))
     End Property
     
@@ -95,7 +95,7 @@ Class Image
         SetStatus(GdipGetImagePixelFormat(im, PixelFormat))
     End Property
     
-    Property Get PaletteSize&()
+    Property Get PaletteSize() As Long
         SetStatus(GdipGetImagePaletteSize(im, PaletteSize&))
     End Property
     
@@ -127,7 +127,7 @@ Class Image
         If GetThumbnailImage Is Nothing Then GdipDisposeImage(thumbImage)
     End Function
 
-    Property Get FrameDimensionsCount&()
+    Property Get FrameDimensionsCount() As Long
         SetStatus(GdipImageGetFrameDimensionsCount(im, FrameDimensionsCount))
     End Property
     

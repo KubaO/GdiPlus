@@ -117,7 +117,7 @@ Class Font
         SetStatus(GdipGetFontStyle(ft, Style))
     End Property
     
-    Property Get Size!()
+    Property Get Size() As Single
         SetStatus(GdipGetFontSize(ft, Size))
     End Property
     
@@ -125,17 +125,17 @@ Class Font
         SetStatus(GdipGetFontUnit(ft, Unit))
     End Property
     
-    Property Get PtHeight!()
+    Property Get PtHeight() As Single
         Dim height!
         SetStatus(GdipGetFontHeightGivenDPI(ft, 1000, height))
         If LastResult = Ok Then PtHeight = height / (1000.0 / 72.0)
     End Property
     
-    Function GetHeight!(graphics As Graphics)
+    Function GetHeight(graphics As Graphics) As Single
         SetStatus(GdipGetFontHeight(ft, GetNative(graphics), GetHeight))
     End Function
     
-    Function GetHeight!(ByVal dpi!)
+    Function GetHeight(ByVal dpi!) as Single
         SetStatus(GdipGetFontHeightGivenDPI(ft, dpi, GetHeight))
     End Function
     

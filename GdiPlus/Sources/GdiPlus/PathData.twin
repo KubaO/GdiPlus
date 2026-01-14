@@ -35,7 +35,7 @@ Class PathData
         Return pd.Types
     End Property
     
-    Property Get Count&()
+    Property Get Count() As Long
         Return pd.count
     End Property
     
