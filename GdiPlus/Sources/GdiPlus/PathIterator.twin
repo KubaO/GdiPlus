@@ -200,6 +200,6 @@ Module GdipPathIterator
     Public Declare PtrSafe Function GdipPathIterIsValid Lib "gdiplus" (ByVal iterator As GpPathIterator, valid As BOOL) As GpStatus
     Public Declare PtrSafe Function GdipPathIterHasCurve Lib "gdiplus" (ByVal iterator As GpPathIterator, hasCurve As BOOL) As GpStatus
     Public Declare PtrSafe Function GdipPathIterRewind Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus
-    Public Declare PtrSafe Function GdipPathIterEnumerate Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As POINTF, types As Byte, ByVal count As Long) As GpStatus
-    Public Declare PtrSafe Function GdipPathIterCopyData Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As POINTF, types As Byte, ByVal startIndex As Long, ByVal endIndex As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterEnumerate Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal count As Long) As GpStatus
+    Public Declare PtrSafe Function GdipPathIterCopyData Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal startIndex As Long, ByVal endIndex As Long) As GpStatus
 End Module

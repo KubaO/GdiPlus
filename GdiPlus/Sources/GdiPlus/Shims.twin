@@ -1,0 +1,105 @@
+#If GDIPLUS_NO_WINDEVLIB Then
+
+' This shim is a formal definition of dependencies of this package (GDI+) on WinDevLib. 
+' It is useful in ensuring that the types and prototypes that we want to use are actually
+' used.
+
+' This is ONLY A SHIM. It is not meant to be functional, just to have matching declarations.
+    
+Interface IStream
+End Interface
+
+Interface IDirectDrawSurface7
+End Interface
+
+Module GdipShims
+    [Description("The parameter is incorrect.")] Public Const ERROR_INVALID_PARAMETER As Long = 87
+    
+    Public Type RECTF
+        Left As Single
+        Top As Single
+        Right As Single
+        Bottom As Single
+    End Type
+    
+    Public Enum MappingModes
+        MM_TEXT = 1
+        MM_LOMETRIC = 2
+        MM_HIMETRIC = 3
+        MM_LOENGLISH = 4
+        MM_HIENGLISH = 5
+        MM_TWIPS = 6
+        MM_ISOTROPIC = 7
+        MM_ANISOTROPIC = 8
+        MM_MIN = MM_TEXT
+        MM_MAX = MM_ANISOTROPIC
+        MM_MAX_FIXEDSCALE = MM_TWIPS
+    End Enum
+    
+    Type METAHEADER
+        dummy&
+    End Type
+    
+    Public Type BITMAPINFO
+        dummy&
+    End Type
+    
+    Public Type RECT
+        Left As Long
+        Top As Long
+        Right As Long
+        Bottom As Long
+    End Type
+    
+    Public Type UUID
+        Data1 As Long
+        Data2 As Integer
+        Data3 As Integer
+        Data4(0 To 7) As Byte
+    End Type
+    
+    Public Sub DEFINE_UUID(Name As UUID, L As Long, w1 As Integer, w2 As Integer, B0 As Byte, b1 As Byte, b2 As Byte, B3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
+    End Sub
+
+    Public Type CLSID
+        Data1 As Long
+        Data2 As Integer
+        Data3 As Integer
+        Data4(0 To 7) As Byte
+    End Type
+    
+    Public Type SAFEARRAY1D
+        cDims      As Integer
+        fFeatures  As Integer
+        cbElements As Long
+        cLocks     As Long
+        pvData     As LongPtr
+        Bounds     As SAFEARRAYBOUND
+    End Type
+    
+    Public Type SAFEARRAYBOUND
+        cElements As Long
+        lLbound   As Long
+    End Type
+    
+    Public Enum FontWeight
+        FW_DONTCARE = 0
+    End Enum
+
+    Public Type LOGFONTA
+        LFHeight As Long
+    End Type
+    
+    Public Type LOGFONTW
+        LFHeight As Long
+        LFWidth As Long
+    End Type
+    
+    Public Enum BOOL
+        CFALSE
+        CTRUE
+        API_TRUE = 1
+        API_FALSE = 0
+    End Enum
+End Module
+#End If

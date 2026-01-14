@@ -337,7 +337,7 @@ Module GdipImaging
     Public Type EncoderParameter
         Guid As UUID                        ' GUID of the parameter
         NumberOfValues As Long              ' Number of the parameter values
-        Type As EncoderParameterValueType   ' Value type, like ValueTypeLONG  etc.
+        Type As GpEncoderParameterValueType ' Value type, like ValueTypeLONG  etc.
         Value As LongPtr                    ' A pointer to the parameter values
     End Type
     

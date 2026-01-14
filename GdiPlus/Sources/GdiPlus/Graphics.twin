@@ -69,27 +69,27 @@ Class Graphics
         Return SetStatus(gr.GetRenderingOrigin(x, y))
     End Function
 
-    Property Let CompositingMode(ByVal compositingMode As CompositingMode)
+    Property Let CompositingMode(ByVal compositingMode As GpCompositingMode)
         SetStatus(gr.SetCompositingMode(compositingMode))
     End Property
     
-    Property Get CompositingMode() As CompositingMode
+    Property Get CompositingMode() As GpCompositingMode
         SetStatus(gr.GetCompositingMode(CompositingMode))
     End Property
     
-    Property Let CompositingQuality(ByVal compositingQuality As CompositingQuality)
+    Property Let CompositingQuality(ByVal compositingQuality As GpCompositingQuality)
         SetStatus(gr.SetCompositingQuality(compositingQuality))
     End Property
 
-    Property Get CompositingQuality() As CompositingQuality
+    Property Get CompositingQuality() As GpCompositingQuality
         SetStatus(gr.GetCompositingQuality(CompositingQuality))
     End Property
     
-    Property Let TextRenderingHint(ByVal newMode As TextRenderingHint)
+    Property Let TextRenderingHint(ByVal newMode As GpTextRenderingHint)
         SetStatus(gr.SetTextRenderingHint(newMode))
     End Property
     
-    Property Get TextRenderingHint() As TextRenderingHint
+    Property Get TextRenderingHint() As GpTextRenderingHint
         SetStatus(gr.GetTextRenderingHint(TextRenderingHint))
     End Property
     
@@ -101,27 +101,27 @@ Class Graphics
         SetStatus(gr.GetTextContrast(TextContrast))
     End Property
     
-    Property Get InterpolationMode() As InterpolationMode
+    Property Get InterpolationMode() As GpInterpolationMode
         SetStatus(gr.GetInterpolationMode(InterpolationMode))
     End Property
     
-    Property Let InterpolationMode(ByVal interpolationMode As InterpolationMode)
+    Property Let InterpolationMode(ByVal interpolationMode As GpInterpolationMode)
         SetStatus(gr.SetInterpolationMode(interpolationMode))
     End Property
 
-    Property Get SmoothingMode() As SmoothingMode
+    Property Get SmoothingMode() As GpSmoothingMode
         SetStatus(gr.GetSmoothingMode(SmoothingMode))
     End Property
 
-    Property Let SmoothingMode(ByVal smoothingMode As SmoothingMode)
+    Property Let SmoothingMode(ByVal smoothingMode As GpSmoothingMode)
         SetStatus(gr.SetSmoothingMode(smoothingMode))
     End Property
     
-    Property Get PixelOffsetMode() As PixelOffsetMode
+    Property Get PixelOffsetMode() As GpPixelOffsetMode
         SetStatus(gr.GetPixelOffsetMode(PixelOffsetMode))
     End Property
     
-    Property Let PixelOffsetMode(ByVal pixelOffsetMode As PixelOffsetMode)
+    Property Let PixelOffsetMode(ByVal pixelOffsetMode As GpPixelOffsetMode)
         SetStatus(gr.SetPixelOffsetMode(pixelOffsetMode))
     End Property
 
@@ -993,23 +993,23 @@ Class Graphics
             GetNative(imageAttributes)))
     End Function
     
-    Function SetClip(g As Graphics, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(g As Graphics, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipGraphics(GetNative(g), combineMode))
     End Function
     
-    Function SetClip(rect As GpRectF, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(rect As GpRectF, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipRect(rect.X, rect.Y, rect.Width, rect.Height, combineMode))
     End Function
     
-    Function SetClip(rect As GpRect, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(rect As GpRect, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipRectI(rect.X, rect.Y, rect.Width, rect.Height, combineMode))
     End Function
     
-    Function SetClip(path As GraphicsPath, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(path As GraphicsPath, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipPath(GetNative(path), combineMode))
     End Function
 
-    Function SetClip(region As Region, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(region As Region, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipRegion(GetNative(region), combineMode))
     End Function
     
@@ -1017,7 +1017,7 @@ Class Graphics
     ' that the HRGN is already in device units, so it doesn't transform
     ' the coordinates in the HRGN.
     
-    Function SetClip(ByVal hRgn As LongPtr, ByVal combineMode As CombineMode = CombineModeReplace) As GpStatus
+    Function SetClip(ByVal hRgn As LongPtr, ByVal combineMode As GpCombineMode = CombineModeReplace) As GpStatus
         Return SetStatus(gr.SetClipHrgn(hRgn, combineMode))
     End Function
     
@@ -1080,7 +1080,7 @@ Class Graphics
     End Property
     
     Property Get IsClipEmpty() As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsClipEmpty(booln))
         Return booln
     End Property
@@ -1094,55 +1094,55 @@ Class Graphics
     End Property
     
     Property Get IsVisibleClipEmpty() As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisibleClipEmpty(booln))
         Return booln
     End Property
     
     Function IsVisible(ByVal x&, ByVal y&) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisiblePointI(x, y, booln))
         Return booln
     End Function
 
     Function IsVisible(point As GpPoint) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisiblePointI(point.X, point.Y, booln))
         Return booln
     End Function
     
     Function IsVisible(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisibleRectI(x, y, width, height, booln))
         Return booln
     End Function
     
     Function IsVisible(rect As GpRect) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisibleRectI(rect.X, rect.Y, rect.Width, rect.Height, booln))
         Return booln
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisiblePoint(x, y, booln))
         Return booln
     End Function
 
     Function IsVisible(point As GpPointF) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisiblePoint(point.X, point.Y, booln))
         Return booln
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!, ByVal width!, ByVal height!) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisibleRect(x, y, width, height, booln))
         Return booln
     End Function
     
     Function IsVisible(rect As GpRectF) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(gr.IsVisibleRect(rect.X, rect.Y, rect.Width, rect.Height, booln))
         Return booln
     End Function
@@ -1240,22 +1240,22 @@ Module GdipGraphics
         Public Declare PtrSafe Function ReleaseDC Lib "gdiplus" Alias "GdipReleaseDC" (ByVal Me As GpGraphics, ByVal hDC As LongPtr) As GpStatus
         Public Declare PtrSafe Function SetRenderingOrigin Lib "gdiplus" Alias "GdipSetRenderingOrigin" (ByVal Me As GpGraphics, ByVal x&, ByVal y&) As GpStatus
         Public Declare PtrSafe Function GetRenderingOrigin Lib "gdiplus" Alias "GdipGetRenderingOrigin" (ByVal Me As GpGraphics, x&, y&) As GpStatus
-        Public Declare PtrSafe Function SetCompositingMode Lib "gdiplus" Alias "GdipSetCompositingMode" (ByVal Me As GpGraphics, ByVal compositingMode As CompositingMode) As GpStatus
-        Public Declare PtrSafe Function GetCompositingMode Lib "gdiplus" Alias "GdipGetCompositingMode" (ByVal Me As GpGraphics, compositingMode As CompositingMode) As GpStatus
-        Public Declare PtrSafe Function SetCompositingQuality Lib "gdiplus" Alias "GdipSetCompositingQuality" (ByVal Me As GpGraphics, ByVal compositingQuality As CompositingQuality) As GpStatus
-        Public Declare PtrSafe Function GetCompositingQuality Lib "gdiplus" Alias "GdipGetCompositingQuality" (ByVal Me As GpGraphics, compositingQuality As CompositingQuality) As GpStatus
-        Public Declare PtrSafe Function SetTextRenderingHint Lib "gdiplus" Alias "GdipSetTextRenderingHint" (ByVal Me As GpGraphics, ByVal mode As TextRenderingHint) As GpStatus
-        Public Declare PtrSafe Function GetTextRenderingHint Lib "gdiplus" Alias "GdipGetTextRenderingHint" (ByVal Me As GpGraphics, mode As TextRenderingHint) As GpStatus
+        Public Declare PtrSafe Function SetCompositingMode Lib "gdiplus" Alias "GdipSetCompositingMode" (ByVal Me As GpGraphics, ByVal compositingMode As GpCompositingMode) As GpStatus
+        Public Declare PtrSafe Function GetCompositingMode Lib "gdiplus" Alias "GdipGetCompositingMode" (ByVal Me As GpGraphics, compositingMode As GpCompositingMode) As GpStatus
+        Public Declare PtrSafe Function SetCompositingQuality Lib "gdiplus" Alias "GdipSetCompositingQuality" (ByVal Me As GpGraphics, ByVal compositingQuality As GpCompositingQuality) As GpStatus
+        Public Declare PtrSafe Function GetCompositingQuality Lib "gdiplus" Alias "GdipGetCompositingQuality" (ByVal Me As GpGraphics, compositingQuality As GpCompositingQuality) As GpStatus
+        Public Declare PtrSafe Function SetTextRenderingHint Lib "gdiplus" Alias "GdipSetTextRenderingHint" (ByVal Me As GpGraphics, ByVal mode As GpTextRenderingHint) As GpStatus
+        Public Declare PtrSafe Function GetTextRenderingHint Lib "gdiplus" Alias "GdipGetTextRenderingHint" (ByVal Me As GpGraphics, mode As GpTextRenderingHint) As GpStatus
         Public Declare PtrSafe Function SetTextContrast Lib "gdiplus" Alias "GdipSetTextContrast" (ByVal Me As GpGraphics, ByVal contrast&) As GpStatus
         Public Declare PtrSafe Function GetTextContrast Lib "gdiplus" Alias "GdipGetTextContrast" (ByVal Me As GpGraphics, contrast&) As GpStatus
-        Public Declare PtrSafe Function GetInterpolationMode Lib "gdiplus" Alias "GdipGetInterpolationMode" (ByVal Me As GpGraphics, interpolation As InterpolationMode) As GpStatus
-        Public Declare PtrSafe Function SetInterpolationMode Lib "gdiplus" Alias "GdipSetInterpolationMode" (ByVal Me As GpGraphics, ByVal interpolation As InterpolationMode) As GpStatus
+        Public Declare PtrSafe Function GetInterpolationMode Lib "gdiplus" Alias "GdipGetInterpolationMode" (ByVal Me As GpGraphics, interpolation As GpInterpolationMode) As GpStatus
+        Public Declare PtrSafe Function SetInterpolationMode Lib "gdiplus" Alias "GdipSetInterpolationMode" (ByVal Me As GpGraphics, ByVal interpolation As GpInterpolationMode) As GpStatus
         [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
         Public Declare PtrSafe Function GraphicsSetAbort Lib "gdiplus" Alias "GpGraphicsSetAbort" (ByVal Me As GpGraphics, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        Public Declare PtrSafe Function SetSmoothingMode Lib "gdiplus" Alias "GdipSetSmoothingMode" (ByVal Me As GpGraphics, ByVal smoothingMode As SmoothingMode) As GpStatus
-        Public Declare PtrSafe Function GetSmoothingMode Lib "gdiplus" Alias "GdipGetSmoothingMode" (ByVal Me As GpGraphics, smoothingMode As SmoothingMode) As GpStatus
-        Public Declare PtrSafe Function SetPixelOffsetMode Lib "gdiplus" Alias "GdipSetPixelOffsetMode" (ByVal Me As GpGraphics, ByVal pixelOffsetMode As PixelOffsetMode) As GpStatus
-        Public Declare PtrSafe Function GetPixelOffsetMode Lib "gdiplus" Alias "GdipGetPixelOffsetMode" (ByVal Me As GpGraphics, pixelOffsetMode As PixelOffsetMode) As GpStatus
+        Public Declare PtrSafe Function SetSmoothingMode Lib "gdiplus" Alias "GdipSetSmoothingMode" (ByVal Me As GpGraphics, ByVal smoothingMode As GpSmoothingMode) As GpStatus
+        Public Declare PtrSafe Function GetSmoothingMode Lib "gdiplus" Alias "GdipGetSmoothingMode" (ByVal Me As GpGraphics, smoothingMode As GpSmoothingMode) As GpStatus
+        Public Declare PtrSafe Function SetPixelOffsetMode Lib "gdiplus" Alias "GdipSetPixelOffsetMode" (ByVal Me As GpGraphics, ByVal pixelOffsetMode As GpPixelOffsetMode) As GpStatus
+        Public Declare PtrSafe Function GetPixelOffsetMode Lib "gdiplus" Alias "GdipGetPixelOffsetMode" (ByVal Me As GpGraphics, pixelOffsetMode As GpPixelOffsetMode) As GpStatus
         
         Public Declare PtrSafe Function ResetWorldTransform Lib "gdiplus" Alias "GdipResetWorldTransform" (ByVal Me As GpGraphics) As GpStatus
         Public Declare PtrSafe Function GetWorldTransform Lib "gdiplus" Alias "GdipGetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
@@ -1397,14 +1397,14 @@ Module GdipGraphics
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         Public Declare PtrSafe Function EnumerateMetafileSrcRectDestPointsI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPointsI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPoint, ByVal count&, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
-        Public Declare PtrSafe Function PlayMetafileRecord Lib "gdiplus" Alias "GdipPlayMetafileRecord" (ByVal metafile As GpMetafile, ByVal recordType As EmfPlusRecordType, ByVal flags&, ByVal dataSize&, data As Byte) As GpStatus
+        Public Declare PtrSafe Function PlayMetafileRecord Lib "gdiplus" Alias "GdipPlayMetafileRecord" (ByVal metafile As GpMetafile, ByVal recordType As GpEmfPlusRecordType, ByVal flags&, ByVal dataSize&, data As Byte) As GpStatus
         
-        Public Declare PtrSafe Function SetClipGraphics Lib "gdiplus" Alias "GdipSetClipGraphics" (ByVal Me As GpGraphics, ByVal srcgraphics As GpGraphics, ByVal combineMode As CombineMode) As GpStatus
-        Public Declare PtrSafe Function SetClipRect Lib "gdiplus" Alias "GdipSetClipRect" (ByVal Me As GpGraphics, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal combineMode As CombineMode) As GpStatus
-        Public Declare PtrSafe Function SetClipRectI Lib "gdiplus" Alias "GdipSetClipRectI" (ByVal Me As GpGraphics, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal combineMode As CombineMode) As GpStatus
-        Public Declare PtrSafe Function SetClipPath Lib "gdiplus" Alias "GdipSetClipPath" (ByVal Me As GpGraphics, ByVal path As GpPath, ByVal combineMode As CombineMode) As GpStatus
-        Public Declare PtrSafe Function SetClipRegion Lib "gdiplus" Alias "GdipSetClipRegion" (ByVal Me As GpGraphics, ByVal Region As GpRegion, ByVal combineMode As CombineMode) As GpStatus
-        Public Declare PtrSafe Function SetClipHrgn Lib "gdiplus" Alias "GdipSetClipHrgn" (ByVal Me As GpGraphics, ByVal hRgn As LongPtr, ByVal combineMode As CombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipGraphics Lib "gdiplus" Alias "GdipSetClipGraphics" (ByVal Me As GpGraphics, ByVal srcgraphics As GpGraphics, ByVal combineMode As GpCombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipRect Lib "gdiplus" Alias "GdipSetClipRect" (ByVal Me As GpGraphics, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal combineMode As GpCombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipRectI Lib "gdiplus" Alias "GdipSetClipRectI" (ByVal Me As GpGraphics, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal combineMode As GpCombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipPath Lib "gdiplus" Alias "GdipSetClipPath" (ByVal Me As GpGraphics, ByVal path As GpPath, ByVal combineMode As GpCombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipRegion Lib "gdiplus" Alias "GdipSetClipRegion" (ByVal Me As GpGraphics, ByVal Region As GpRegion, ByVal combineMode As GpCombineMode) As GpStatus
+        Public Declare PtrSafe Function SetClipHrgn Lib "gdiplus" Alias "GdipSetClipHrgn" (ByVal Me As GpGraphics, ByVal hRgn As LongPtr, ByVal combineMode As GpCombineMode) As GpStatus
         Public Declare PtrSafe Function ResetClip Lib "gdiplus" Alias "GdipResetClip" (ByVal Me As GpGraphics) As GpStatus
         Public Declare PtrSafe Function TranslateClip Lib "gdiplus" Alias "GdipTranslateClip" (ByVal Me As GpGraphics, ByVal dx!, ByVal dy!) As GpStatus
         Public Declare PtrSafe Function TranslateClipI Lib "gdiplus" Alias "GdipTranslateClipI" (ByVal Me As GpGraphics, ByVal dx&, ByVal dy&) As GpStatus
@@ -1430,8 +1430,8 @@ Module GdipGraphics
         Public Declare PtrSafe Function SaveGraphics Lib "gdiplus" Alias "GdipSaveGraphics" (ByVal Me As GpGraphics, state&) As GpStatus
         Public Declare PtrSafe Function RestoreGraphics Lib "gdiplus" Alias "GdipRestoreGraphics" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
         
-        Public Declare PtrSafe Function BeginContainer Lib "gdiplus" Alias "GdipBeginContainer" (ByVal Me As GpGraphics, dstrect As GpRectF, srcrect As RECTF, ByVal unit As GpUnit, state&) As GpStatus
-        Public Declare PtrSafe Function BeginContainerI Lib "gdiplus" Alias "GdipBeginContainerI" (ByVal Me As GpGraphics, dstrect As GpRect, srcrect As RECT, ByVal unit As GpUnit, state&) As GpStatus
+        Public Declare PtrSafe Function BeginContainer Lib "gdiplus" Alias "GdipBeginContainer" (ByVal Me As GpGraphics, dstrect As GpRectF, srcrect As GpRectF, ByVal unit As GpUnit, state&) As GpStatus
+        Public Declare PtrSafe Function BeginContainerI Lib "gdiplus" Alias "GdipBeginContainerI" (ByVal Me As GpGraphics, dstrect As GpRect, srcrect As GpRect, ByVal unit As GpUnit, state&) As GpStatus
         Public Declare PtrSafe Function BeginContainer2 Lib "gdiplus" Alias "GdipBeginContainer2" (ByVal Me As GpGraphics, state&) As GpStatus
         Public Declare PtrSafe Function EndContainer Lib "gdiplus" Alias "GdipEndContainer" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
         

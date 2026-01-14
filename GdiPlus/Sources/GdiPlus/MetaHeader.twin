@@ -17,8 +17,8 @@ Module GdipMetaHeader
         offDescription As Long  ' Offset to the metafile description record.
                                 ' This is 0 if there is no description string
         nPalEntries As Long     ' Number of entries in the metafile palette.
-        szlDevice As SIZE       ' Size of the reference device in pels
-        szlMillimeters As SIZE  ' Size of the reference device in millimeters
+        szlDevice As GpSize     ' Size of the reference device in pels
+        szlMillimeters As GpSize' Size of the reference device in millimeters
     End Type
 
     ' Placeable WMFs
@@ -88,7 +88,7 @@ Module GdipMetaHeader
      Public Const GDIP_EMFPLUSFLAGS_DISPLAY = &h00000001
      
      Type MetafileHeader
-        Type As MetafileType
+        Type As GpMetafileType
         Size As UINT               ' Size of the metafile (in bytes)
         Version As UINT            ' EMF+, EMF, or WMF version
         EmfPlusFlags As UINT       ' EMF+ flags associated with the metafile
@@ -153,7 +153,7 @@ Module GdipMetaHeader
         [Description("Get the WMF header of the metafile (if it is a WMF)")]
         Property Get WmfHeader() As METAHEADER
             If Me.IsWmf Then
-                CopyMemory(WmfHeader, Me.HeaderSpace, LenB(Of METAHEADER))
+                vbaCopyBytesRef(LenB(Of METAHEADER), WmfHeader, Me.HeaderSpace)
             End If
         End Property
       

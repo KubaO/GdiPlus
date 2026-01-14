@@ -468,13 +468,13 @@ Module GdipEffects
         Property Get Area(ByVal index&) As RECT
             Dim src As LongPtr = Me.areas + (index - 1) * LenB(Of RECT)
             If index >= Me.numberOfAreas Then Err.Raise ERROR_INVALID_PARAMETER
-            CopyMemory(Area, ByVal src, LenB(Of RECT))
+            vbaCopyBytesRef(LenB(Of RECT), Area, ByVal src)
         End Property
         
         Property Set Area(ByVal index&, value As RECT)
             Dim dst As LongPtr = Me.areas + (index - 1) * LenB(Of RECT)
             If index >= Me.numberOfAreas Then Err.Raise ERROR_INVALID_PARAMETER
-            CopyMemory(ByVal dst, value, LenB(Of RECT))
+            vbaCopyBytesRef(LenB(Of RECT), ByVal dst, value)
         End Property
         
         [Description("Returns a view into the areas array." & vbCrLf & _
@@ -591,10 +591,10 @@ Module GdipEffects
     
     Function ColorLutParams(lutB() As Byte, lutG() As Byte, lutR() As Byte, lutA() As Byte) As ColorLUTParams
         If Len(lutB) = 256 And Len(lutG) = 256 And Len(lutR) = 256 And Len(lutA) = 256 Then
-            CopyMemory(ColorLutParams.lutB, lutB, 256)
-            CopyMemory(ColorLutParams.lutG, lutG, 256)
-            CopyMemory(ColorLutParams.lutR, lutR, 256)
-            CopyMemory(ColorLutParams.lutA, lutB, 256)
+            vbaCopyBytesRef(256, ColorLutParams.lutB, lutB)
+            vbaCopyBytesRef(256, ColorLutParams.lutG, lutG)
+            vbaCopyBytesRef(256, ColorLutParams.lutR, lutR)
+            vbaCopyBytesRef(256, ColorLutParams.lutA, lutB)
         End If
     End Function
     

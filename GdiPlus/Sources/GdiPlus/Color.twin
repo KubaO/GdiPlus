@@ -124,7 +124,7 @@ Module GdipColor
         End Property
         
         Sub SetFromCOLORREF(ByVal rgb As Long)
-            Me.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
+            Me.argb = MakeARGB(255, CByte(RGB_R(rgb)), CByte(RGB_G(rgb)), CByte(RGB_B(rgb)))
         End Sub
         
         Function ToCOLORREF() As Long
@@ -133,7 +133,7 @@ Module GdipColor
     End Type
     
     Function FromCOLORREF(ByVal rgb As Long) As Color
-        FromCOLORREF.argb = MakeARGB(255, CByte(GetRValue(rgb)), CByte(GetGValue(rgb)), CByte(GetBValue(rgb)))
+        FromCOLORREF.argb = MakeARGB(255, CByte(RGB_R(rgb)), CByte(RGB_G(rgb)), CByte(RGB_B(rgb)))
     End Function
     
     Public Function MakeARGB(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Long

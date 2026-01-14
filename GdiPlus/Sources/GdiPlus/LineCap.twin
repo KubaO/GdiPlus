@@ -135,7 +135,7 @@ Module GdipLineCap
     Public Declare PtrSafe Function GdipCreateCustomLineCap Lib "gdiplus" (ByVal fillPath As GpPath, ByVal strokePath As GpPath, ByVal baseCap As GpLineCap, ByVal baseInset As Single, customCap As GpCustomLineCap) As GpStatus
     Public Declare PtrSafe Function GdipDeleteCustomLineCap Lib "gdiplus" (ByVal Me As GpCustomLineCap) As GpStatus
     Public Declare PtrSafe Function GdipCloneCustomLineCap Lib "gdiplus" (ByVal Me As GpCustomLineCap, clonedCap As GpCustomLineCap) As GpStatus
-    Public Declare PtrSafe Function GdipGetCustomLineCapType Lib "gdiplus" (ByVal Me As GpCustomLineCap, capType As CustomLineCapType) As GpStatus
+    Public Declare PtrSafe Function GdipGetCustomLineCapType Lib "gdiplus" (ByVal Me As GpCustomLineCap, capType As GpCustomLineCapType) As GpStatus
     Public Declare PtrSafe Function GdipSetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
     Public Declare PtrSafe Function GdipGetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal Me As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
     Public Declare PtrSafe Function GdipSetCustomLineCapStrokeJoin Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal lineJoin As GpLineJoin) As GpStatus

@@ -321,15 +321,15 @@ Module GdipRegion
     Public Declare PtrSafe Function GdipGetRegionDataSize Lib "gdiplus" (ByVal Region As GpRegion, bufferSize As Long) As GpStatus
     Public Declare PtrSafe Function GdipGetRegionData Lib "gdiplus" (ByVal Region As GpRegion, buffer As Byte, ByVal bufferSize As Long, sizeFilled As Long) As GpStatus
     
-    Public Declare PtrSafe Function GdipCombineRegionRect Lib "gdiplus" (ByVal Region As GpRegion, Rect As RECTF, ByVal combineMode As CombineMode) As GpStatus
-    Public Declare PtrSafe Function GdipCombineRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, Rect As RECT, ByVal combineMode As CombineMode) As GpStatus
-    Public Declare PtrSafe Function GdipCombineRegionRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionRect Lib "gdiplus" (ByVal Region As GpRegion, Rect As GpRectF, ByVal combineMode As GpCombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, Rect As GpRect, ByVal combineMode As GpCombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal combineMode As GpCombineMode) As GpStatus
     Public Declare PtrSafe Function GdipGetRegionHRgn Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, hRgn As LongPtr) As GpStatus
     Public Declare PtrSafe Function GdipIsEmptyRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
     Public Declare PtrSafe Function GdipIsInfiniteRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
     Public Declare PtrSafe Function GdipIsEqualRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
     Public Declare PtrSafe Function GdipDeleteRegion Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
-    Public Declare PtrSafe Function GdipCombineRegionPath Lib "gdiplus" (ByVal Region As GpRegion, ByVal Path As GpPath, ByVal combineMode As CombineMode) As GpStatus
+    Public Declare PtrSafe Function GdipCombineRegionPath Lib "gdiplus" (ByVal Region As GpRegion, ByVal Path As GpPath, ByVal combineMode As GpCombineMode) As GpStatus
     Public Declare PtrSafe Function GdipCreateRegionPath Lib "gdiplus" (ByVal Path As GpPath, Region As GpRegion) As GpStatus
     Public Declare PtrSafe Function GdipCreateRegionRgnData Lib "gdiplus" (regionData As Byte, ByVal size As Long, Region As GpRegion) As GpStatus
     Public Declare PtrSafe Function GdipCreateRegionHrgn Lib "gdiplus" (ByVal hRgn As LongPtr, Region As GpRegion) As GpStatus

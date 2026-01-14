@@ -51,7 +51,7 @@ Class PathData
         
     Property Let Point(ByVal index&, point As GpPointF)
         Dim dst As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
-        CopyMemory(ByVal dst, point, LenB(Of GpPointF))
+        vbaCopyBytesRef(LenB(Of GpPointF), ByVal dst, point)
     End Property
 
     Property Let Type(ByVal index&, ByVal type As Byte)
@@ -136,7 +136,7 @@ Module GdipPathData
         
         Property Let Point(ByVal index&, point As GpPointF)
             Dim dst As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
-            CopyMemory(ByVal dst, point, LenB(Of GpPointF))
+            vbaCopyBytesRef(LenB(Of GpPointF), ByVal dst, point)
         End Property
 
         Property Let Type(ByVal index&, ByVal type As Byte)

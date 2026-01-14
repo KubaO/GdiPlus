@@ -340,7 +340,7 @@ Module GdipBitmap
     Public Declare PtrSafe Function GdipBitmapCreateApplyEffect Lib "gdiplus" (inputBitmaps As Any, ByVal numInputs As Long, ByVal effect As GpEffect, roi As RECT, outputRect As RECT, outputBitmap As GpBitmap, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
     Public Declare PtrSafe Function GdipCloneBitmapArea Lib "gdiplus" (ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
     Public Declare PtrSafe Function GdipCloneBitmapAreaI Lib "gdiplus" (ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
-    Public Declare PtrSafe Function GdipBitmapLockBits Lib "gdiplus" (ByVal Me As GpBitmap, Rect As RECT, ByVal flags As Long, ByVal format As PixelFormat, lockedBitmapData As BitmapData) As GpStatus
+    Public Declare PtrSafe Function GdipBitmapLockBits Lib "gdiplus" (ByVal Me As GpBitmap, Rect As GpRect, ByVal flags As Long, ByVal format As PixelFormat, lockedBitmapData As BitmapData) As GpStatus
     Public Declare PtrSafe Function GdipBitmapUnlockBits Lib "gdiplus" (ByVal Me As GpBitmap, lockedBitmapData As BitmapData) As GpStatus
     Public Declare PtrSafe Function GdipBitmapGetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, Color As Color) As GpStatus
     Public Declare PtrSafe Function GdipBitmapSetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, ByVal Color As Color) As GpStatus

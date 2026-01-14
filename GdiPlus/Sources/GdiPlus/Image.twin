@@ -49,7 +49,7 @@ Class Image
         Return SetStatus(GdipSaveAddImage(im, GetNative(newImage), encoderParams))
     End Function
 
-    Property Get Type() As ImageType
+    Property Get Type() As GpImageType
         Type = ImageTypeUnknown
         SetStatus(GdipGetImageType(im, Type))
     End Property
@@ -271,7 +271,7 @@ Module GdipImage
     
     Public Declare PtrSafe Function GdipGetImageBounds Lib "gdiplus" (ByVal Image As GpImage, srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
     Public Declare PtrSafe Function GdipGetImageDimension Lib "gdiplus" (ByVal Image As GpImage, ByRef Width As Single, ByRef Height As Single) As GpStatus
-    Public Declare PtrSafe Function GdipGetImageType Lib "gdiplus" (ByVal Image As GpImage, type As ImageType) As GpStatus
+    Public Declare PtrSafe Function GdipGetImageType Lib "gdiplus" (ByVal Image As GpImage, type As GpImageType) As GpStatus
     Public Declare PtrSafe Function GdipGetImageHeight Lib "gdiplus" (ByVal Image As GpImage, Height As Long) As GpStatus
     Public Declare PtrSafe Function GdipGetImageWidth Lib "gdiplus" (ByVal Image As GpImage, Width As Long) As GpStatus
     Public Declare PtrSafe Function GdipGetImageHorizontalResolution Lib "gdiplus" (ByVal Image As GpImage, resolution As Single) As GpStatus

@@ -468,7 +468,7 @@ Module GdipEnums
         ObjectTypeMin = ObjectTypeBrush
     End Enum
 
-    Function ObjectTypeIsValid(type As ObjectType) As Boolean
+    Function ObjectTypeIsValid(type As GpObjectType) As Boolean
         Return (type >= ObjectTypeMin) And (type <= ObjectTypeMax)
     End Function
 

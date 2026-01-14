@@ -24,4 +24,14 @@ Module GdipGdiPlusUser
     Function GdiPlusUser() As GdiPlusUser
         Return New GdiPlusUser
     End Function
+    
+    Public Type GdiplusStartupInput
+        GdiplusVersion As Long
+        DebugEventCallback As LongPtr
+        SuppressBackgroundThread As BOOL
+        SuppressExternalCodecs As BOOL
+    End Type
+    
+    Public Declare PtrSafe Function GdiplusStartup Lib "gdiplus" (token As LongPtr, LInput As GdiplusStartupInput, Optional ByVal lOutPut As LongPtr = 0) As GpStatus
+    Public Declare PtrSafe Function GdiplusShutdown Lib "gdiplus" (ByVal token As LongPtr) As GpStatus
 End Module

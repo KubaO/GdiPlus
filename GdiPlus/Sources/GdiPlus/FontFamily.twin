@@ -6,7 +6,6 @@ Class FontFamily
         
     Sub New()
         ' empty
-        Dim x As FontStyle
     End Sub
     
     Sub New(ByVal name$, Optional fontCollection As FontCollection)
@@ -52,7 +51,7 @@ Class FontFamily
         Return IsStyleAvailable(FontStyleStrikeout)
     End Property
     
-    Function IsStyleAvailable(ByVal style As FontStyle) As Boolean
+    Function IsStyleAvailable(ByVal style As GpFontStyle) As Boolean
         Dim booln As BOOL
         SetStatus(GdipIsStyleAvailable(ff, style, booln))
         If LastStatus = Ok Then IsStyleAvailable = booln
@@ -93,6 +92,9 @@ Class FontFamily
         LastStatus = status
         SetNativeFontFamily(nativeFamily)
     End Sub
+    
+    Private Const LF_FACESIZE = 32
+    Private Const LF_FULLFACESIZE = 64
 End Class
 
 Alias WORD As Integer

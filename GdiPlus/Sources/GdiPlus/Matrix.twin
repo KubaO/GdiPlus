@@ -147,19 +147,19 @@ Class Matrix
     End Function
     
     Property Get IsInvertible() As Boolean
-        Dim result As BOOL = False
+        Dim result As BOOL
         SetStatus(GdipIsMatrixInvertible(mx, result))
         Return result
     End Property
     
     Property Get IsIdentity() As Boolean
-        Dim result As BOOL = False
+        Dim result As BOOL
         SetStatus(GdipIsMatrixIdentity(mx, result))
         Return result
     End Property
 
     Function Equals(matrix As Matrix) As Boolean
-        Dim result As BOOL = False
+        Dim result As BOOL
         SetStatus(GdipIsMatrixEqual(mx, GetNative(matrix), result))
         Return result
     End Function
@@ -200,8 +200,8 @@ Module GdipMatrix
     
     Public Declare PtrSafe Function GdipCreateMatrix Lib "gdiplus" (matrix As GpMatrix) As GpStatus
     Public Declare PtrSafe Function GdipCreateMatrix2 Lib "gdiplus" (ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single, matrix As GpMatrix) As GpStatus
-    Public Declare PtrSafe Function GdipCreateMatrix3 Lib "gdiplus" (rect As RECTF, dstplg As POINTF, matrix As GpMatrix) As GpStatus
-    Public Declare PtrSafe Function GdipCreateMatrix3I Lib "gdiplus" (rect As RECT, dstplg As POINT, matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMatrix3 Lib "gdiplus" (rect As GpRectF, dstplg As GpPointF, matrix As GpMatrix) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMatrix3I Lib "gdiplus" (rect As GpRect, dstplg As GpPoint, matrix As GpMatrix) As GpStatus
     Public Declare PtrSafe Function GdipInvertMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
     Public Declare PtrSafe Function GdipSetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
     Public Declare PtrSafe Function GdipGetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, matrixOut As Single) As GpStatus

@@ -292,8 +292,8 @@ Module GdipPathGradient
     Public Declare PtrSafe Function GdipGetPathGradientPath Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal path As GpPath) As GpStatus
     Public Declare PtrSafe Function GdipSetPathGradientPath Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal path As GpPath) As GpStatus
     
-    Public Declare PtrSafe Function GdipGetPathGradientRect Lib "gdiplus" (ByVal brush As GpPathGradient, rect As RECTF) As GpStatus
-    Public Declare PtrSafe Function GdipGetPathGradientRectI Lib "gdiplus" (ByVal brush As GpPathGradient, rect As RECT) As GpStatus
+    Public Declare PtrSafe Function GdipGetPathGradientRect Lib "gdiplus" (ByVal brush As GpPathGradient, rect As GpRectF) As GpStatus
+    Public Declare PtrSafe Function GdipGetPathGradientRectI Lib "gdiplus" (ByVal brush As GpPathGradient, rect As GpRect) As GpStatus
     Public Declare PtrSafe Function GdipGetPathGradientPointCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
     Public Declare PtrSafe Function GdipGetPathGradientSurroundColorCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
     Public Declare PtrSafe Function GdipSetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal useGammaCorrection As BOOL) As GpStatus

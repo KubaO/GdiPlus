@@ -57,7 +57,7 @@ Module Types
     ' FALSE, the enumeration process is aborted.  Otherwise, it continues.
 
     ' typedef BOOL (CALLBACK * EnumerateMetafileProc)(EmfPlusRecordType,UINT,UINT,const BYTE*,VOID*);
-    Public Delegate Function EnumerateMetafileProc (ByVal nType As EmfPlusRecordType, ByVal dwFlags As Long, ByVal cbData As Long, ByVal data As LongPtr, ByVal callbackData As LongPtr)
+    Public Delegate Function EnumerateMetafileProc (ByVal nType As GpEmfPlusRecordType, ByVal dwFlags As Long, ByVal cbData As Long, ByVal data As LongPtr, ByVal callbackData As LongPtr)
     
     Public Const REAL_MAX = 3.402823466E+38!
     Public Const REAL_MIN = 1.175494351E-38!
@@ -669,6 +669,6 @@ Module Types
     Function ColorPalette(ByVal flags As PaletteFlags, entries() As Long) As ColorPalette
         ColorPalette.flags = flags
         ColorPalette.count = GDIPLUS_MIN(256, Len(entries))
-        CopyMemory(ColorPalette.entries, entries(LBound(entries)), ColorPalette.count * LenB(Of Color))
+        vbaCopyBytesRef(ColorPalette.count * LenB(Of Color), ColorPalette.entries, entries(LBound(entries)))
     End Function
 End Module

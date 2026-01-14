@@ -40,25 +40,25 @@ Class LinearGradientBrush
         SetNativeLineGradient(brush)
     End Sub
     
-    Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode)
+    Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRect(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
     
-    Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode)
+    Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRect(rect, color1, color2, mode, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
 
-    Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode)
+    Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRectI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
         SetNativeLineGradient(brush)
     End Sub
     
-    Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode)
+    Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
         LastStatus = GdipCreateLineBrushFromRectI(rect, color1, color2, mode, WrapModeTile, brush)
         SetNativeLineGradient(brush)
@@ -275,19 +275,19 @@ Module GdipLineGradient
         Return New LinearGradientBrush(point1, point2, color1, color2)
     End Function
 
-    Function LinearGradientBrush(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode) As LinearGradientBrush
+    Function LinearGradientBrush(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode) As LinearGradientBrush
         Return New LinearGradientBrush(rect, rgb1, rgb2, mode)
     End Function
 
-    Function LinearGradientBrush(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode) As LinearGradientBrush
+    Function LinearGradientBrush(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode) As LinearGradientBrush
         Return New LinearGradientBrush(rect, color1, color2, mode)
     End Function
 
-    Function LinearGradientBrush(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As LinearGradientMode) As LinearGradientBrush
+    Function LinearGradientBrush(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode) As LinearGradientBrush
         Return New LinearGradientBrush(rect, rgb1, rgb2, mode)
     End Function
     
-    Function LinearGradientBrush(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode) As LinearGradientBrush
+    Function LinearGradientBrush(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode) As LinearGradientBrush
         Return New LinearGradientBrush(rect, color1, color2, mode)
     End Function
 
@@ -326,8 +326,8 @@ Module GdipLineGradient
     
     Public Declare PtrSafe Function GdipCreateLineBrush Lib "gdiplus" (point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     Public Declare PtrSafe Function GdipCreateLineBrushI Lib "gdiplus" (point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRect Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As LinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRect Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngle Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     

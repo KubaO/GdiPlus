@@ -1,0 +1,67 @@
+Module GdipColorMatrix
+    '#if (GDIPVER >= 0x0110)
+    '----------------------------------------------------------------------------
+    ' Color channel look up table (LUT)
+    '----------------------------------------------------------------------------
+
+    Public Type ColorChannelLUT
+        b(0 To 255) As Byte
+    End Type
+
+    '----------------------------------------------------------------------------
+    ' Per-channel Histogram for 8bpp images.
+    '----------------------------------------------------------------------------
+
+    Enum HistogramFormat
+        HistogramFormatARGB
+        HistogramFormatPARGB
+        HistogramFormatRGB
+        HistogramFormatGray
+        HistogramFormatB
+        HistogramFormatG
+        HistogramFormatR
+        HistogramFormatA
+    End Enum
+    '#endif '(GDIPVER >= 0x0110)
+    
+    '----------------------------------------------------------------------------
+    ' Color matrix
+    '----------------------------------------------------------------------------
+    [Description(" NOTE: Array dimensions are switched vs C++ to match the underlying memory layout.")]
+    Public Type ColorMatrix
+        m(0 To 4, 0 To 4) As Single
+    End Type
+    
+    '----------------------------------------------------------------------------
+    ' Color Matrix flags
+    '----------------------------------------------------------------------------
+    
+    Public Enum ColorMatrixFlags
+        ColorMatrixFlagsDefault = 0
+        ColorMatrixFlagsSkipGrays = 1
+        ColorMatrixFlagsAltGray = 2
+    End Enum
+
+    '----------------------------------------------------------------------------
+    ' Color Adjust Type
+    '----------------------------------------------------------------------------
+
+    Enum ColorAdjustType
+        ColorAdjustTypeDefault
+        ColorAdjustTypeBitmap
+        ColorAdjustTypeBrush
+        ColorAdjustTypePen
+        ColorAdjustTypeText
+        ColorAdjustTypeCount
+        ColorAdjustTypeAny      ' Reserved
+    End Enum
+    
+    '----------------------------------------------------------------------------
+    ' Color Map
+    '----------------------------------------------------------------------------
+    
+    Type ColorMapX
+        oldColor As Color
+        newColor As Color
+    End Type
+End Module

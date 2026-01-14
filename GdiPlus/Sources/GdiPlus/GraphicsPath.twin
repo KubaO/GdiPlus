@@ -4,34 +4,34 @@ Class GraphicsPath
     Inherits GdiPlusBase
     Protected pa As GpPath
             
-    Sub New(ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(ByVal fillMode As GpFillmode = FillModeAlternate)
         LastStatus = GdipCreatePath(fillMode, pa)
     End Sub
     
-    Sub New(pathData As PathData, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(pathData As PathData, ByVal fillMode As GpFillmode = FillModeAlternate)
         LastStatus = GdipCreatePath2(ByVal pathData.PointsPtr, ByVal pathData.TypesPtr, pathData.Count, fillMode, pa)
     End Sub
 
-    Sub New(typedPoints() As TypedPoint, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(typedPoints() As TypedPoint, ByVal fillMode As GpFillmode = FillModeAlternate)
         Dim pd As PathData = PathData(typedPoints)
         LastStatus = GdipCreatePath2(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa)
     End Sub
     
-    Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert Len(points) = Len(types)
         LastStatus = GdipCreatePath2(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
     End Sub
     
-    Sub New(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
         LastStatus = GdipCreatePath2(points, types, count, fillMode, pa)
     End Sub
 
-    Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert Len(points) = Len(types)
         LastStatus = GdipCreatePath2I(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
     End Sub
     
-    Sub New(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate)
+    Sub New(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
         pa.Native = vbNullPtr
         LastStatus = GdipCreatePath2I(points, types, count, fillMode, pa)
     End Sub
@@ -51,11 +51,11 @@ Class GraphicsPath
         Return SetStatus(pa.ResetPath())
     End Function
     
-    Property Get FillMode() As FillMode
+    Property Get FillMode() As GpFillmode
         SetStatus(pa.GetPathFillMode(FillMode))
     End Property
     
-    Property Let FillMode(ByVal fillMode As FillMode)
+    Property Let FillMode(ByVal fillMode As GpFillmode)
         SetStatus(pa.SetPathFillMode(fillMode))
     End Property
     
@@ -392,13 +392,13 @@ Class GraphicsPath
     ' identity matrix is assumed.
     
     Function Warp(destPoints As GpPointF, ByVal count&, srcRect As GpRectF, Optional matrix As Matrix, _
-            Optional warpMode As WarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
+            Optional warpMode As GpWarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
         Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints, count, _
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     
     Function Warp(destPoints() As GpPointF, srcRect As GpRectF, Optional matrix As Matrix, _
-            Optional warpMode As WarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
+            Optional warpMode As GpWarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
         Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints(LBound(destPoints)), Len(destPoints), _
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
@@ -439,7 +439,7 @@ Class GraphicsPath
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!, Optional g As Graphics) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(pa.IsVisiblePathPoint(x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -449,7 +449,7 @@ Class GraphicsPath
     End Function
     
     Function IsVisible(ByVal x&, ByVal y&, Optional g As Graphics) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(pa.IsVisiblePathPointI(x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -459,7 +459,7 @@ Class GraphicsPath
     End Function
     
     Function IsOutlineVisible(ByVal x!, ByVal y!, pen As Pen, Optional g As Graphics) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(pa.IsOutlineVisiblePathPoint(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
@@ -469,7 +469,7 @@ Class GraphicsPath
     End Function
     
     Function IsOutlineVisible(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
-        Dim booln As BOOL = False
+        Dim booln As BOOL
         SetStatus(pa.IsOutlineVisiblePathPointI(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
@@ -495,31 +495,31 @@ Class GraphicsPath
 End Class
 
 Module GdipGraphicsPath
-    Function GraphicsPath(pathData As PathData, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(pathData As PathData, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(pathData, fillMode)
     End Function
 
-    Function GraphicsPath(typedPoints() As TypedPoint, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(typedPoints() As TypedPoint, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(typedPoints, fillMode)
     End Function
     
-    Function GraphicsPath(ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(fillMode)
     End Function
     
-    Function GraphicsPath(points() As GpPointF, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, fillMode)
     End Function
     
-    Function GraphicsPath(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, count, fillMode)
     End Function
     
-    Function GraphicsPath(points() As GpPoint, types() As Byte, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, fillMode)
     End Function
     
-    Function GraphicsPath(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As FillMode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, count, fillMode)
     End Function
             
@@ -533,11 +533,11 @@ Module GdipGraphicsPath
         Public Declare PtrSafe Function TransformPath Lib "gdiplus" Alias "GdipTransformPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix) As GpStatus
         Public Declare PtrSafe Function WidenPath Lib "gdiplus" Alias "GdipWidenPath" (ByVal Me As GpPath, ByVal pen As GpPen, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
         Public Declare PtrSafe Function FlattenPath Lib "gdiplus" Alias "GdipFlattenPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
-        Public Declare PtrSafe Function WarpPath Lib "gdiplus" Alias "GdipWarpPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, points As GpPointF, ByVal count&, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal warpMode As WarpMode, ByVal flatness!) As GpStatus
+        Public Declare PtrSafe Function WarpPath Lib "gdiplus" Alias "GdipWarpPath" (ByVal Me As GpPath, ByVal matrix As GpMatrix, points As GpPointF, ByVal count&, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal warpMode As GpWarpMode, ByVal flatness!) As GpStatus
         Public Declare PtrSafe Function ReversePath Lib "gdiplus" Alias "GdipReversePath" (ByVal Me As GpPath) As GpStatus
         
-        Public Declare PtrSafe Function GetPathFillMode Lib "gdiplus" Alias "GdipGetPathFillMode" (ByVal Me As GpPath, fillmode As GpFillMode) As GpStatus
-        Public Declare PtrSafe Function SetPathFillMode Lib "gdiplus" Alias "GdipSetPathFillMode" (ByVal Me As GpPath, ByVal fillmode As GpFillMode) As GpStatus
+        Public Declare PtrSafe Function GetPathFillMode Lib "gdiplus" Alias "GdipGetPathFillMode" (ByVal Me As GpPath, fillmode As GpFillmode) As GpStatus
+        Public Declare PtrSafe Function SetPathFillMode Lib "gdiplus" Alias "GdipSetPathFillMode" (ByVal Me As GpPath, ByVal fillmode As GpFillmode) As GpStatus
         
         Public Declare PtrSafe Function GetPathData Lib "gdiplus" Alias "GdipGetPathData" (ByVal Me As GpPath, pathData As GpPathData) As GpStatus
         Public Declare PtrSafe Function GetPathTypes Lib "gdiplus" Alias "GdipGetPathTypes" (ByVal Me As GpPath, types As Any, ByVal count&) As GpStatus
@@ -599,12 +599,12 @@ Module GdipGraphicsPath
         
         Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
         Public Declare PtrSafe Function IsVisiblePathPointI Lib "gdiplus" Alias "GdipIsVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
-        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
-        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result&) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
     End Type
     
     Public Declare PtrSafe Function GdipCreatePath Lib "gdiplus" (ByVal brushmode As GpFillMode, Path As GpPath) As GpStatus
     Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
-    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As POINT, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As GpPoint, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
     Public Declare PtrSafe Function GdipDeletePath Lib "gdiplus" (ByVal Path As GpPath) As GpStatus
 End Module

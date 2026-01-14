@@ -46,14 +46,14 @@ Class Font
         SetNativeFont(font)
     End Sub
 
-    Sub New(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+    Sub New(family As FontFamily, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
             ByVal unit As GpUnit = UnitPoint)
         Dim font As GpFont
         LastStatus = GdipCreateFont(GetNative(family), emSize, style, unit, font)
         SetNativeFont(font)
     End Sub
 
-    Sub New(ByVal familyName$, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+    Sub New(ByVal familyName$, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
             ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection)
 
         Dim family As FontFamily = New FontFamily(familyName, fontCollection)
@@ -108,7 +108,7 @@ Class Font
         Return ft.Native <> 0
     End Property
     
-    Property Get Style() As FontStyle
+    Property Get Style() As GpFontStyle
         SetStatus(GdipGetFontStyle(ft, Style))
     End Property
     
@@ -157,6 +157,8 @@ Class Font
     Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
         ft = nativeFont
     End Sub
+    
+    Private DeclareWide PtrSafe Function GetObjectW Lib "gdi32" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
 End Class
 
 Module GdipFont
@@ -176,17 +178,17 @@ Module GdipFont
         Return New Font(hdc, logfont)
     End Function
     
-    Function Font(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+    Function Font(family As FontFamily, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
                 ByVal unit As GpUnit = UnitPoint) As Font
         Return New Font(family, emSize, style, unit)
     End Function
     
-    Function Font(family As FontFamily, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+    Function Font(family As FontFamily, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
                 ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection) As Font
         Return New Font(family, emSize, style, unit, fontCollection)
     End Function
     
-    Function Font(ByVal familyName$, ByVal emSize!, ByVal style As FontStyle = FontStyleRegular, _
+    Function Font(ByVal familyName$, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
                 ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection) As Font
         Return New Font(familyName, emSize, style, unit, fontCollection)
     End Function
