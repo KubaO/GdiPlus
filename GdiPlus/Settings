@@ -66,7 +66,7 @@
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 2,
+	"project.versionRevision": 3,
 	"project.warnings": {
 		"errors": [],
 		"hints": [],
