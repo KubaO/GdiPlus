@@ -1,5 +1,3 @@
-
-
 Module GdipEnums
 
     '--------------------------------------------------------------------------
@@ -204,15 +202,15 @@ Module GdipEnums
         LineCapRound = 2
         LineCapTriangle = 3
 
-        LineCapNoAnchor = &h10  ' corresponds to flat cap
+        LineCapNoAnchor = &h10      ' corresponds to flat cap
         LineCapSquareAnchor = &h11  ' corresponds to square cap
-        LineCapRoundAnchor = &h12  ' corresponds to round cap
-        LineCapDiamondAnchor = &h13  ' corresponds to triangle cap
-        LineCapArrowAnchor = &h14  ' no correspondence
+        LineCapRoundAnchor = &h12   ' corresponds to round cap
+        LineCapDiamondAnchor = &h13 ' corresponds to triangle cap
+        LineCapArrowAnchor = &h14   ' no correspondence
 
-        LineCapCustom = &hff  ' custom cap
+        LineCapCustom = &hff        ' custom cap
 
-        LineCapAnchorMask = &hf0  ' mask to check for anchor or not.
+        LineCapAnchorMask = &hf0    ' mask to check for anchor or not.
     End Enum
 
     '--------------------------------------------------------------------------
@@ -242,17 +240,16 @@ Module GdipEnums
     '--------------------------------------------------------------------------
 
     Enum GpPathPointType
-        PathPointTypeStart = 0     ' move
-        PathPointTypeLine = 1     ' line
-        PathPointTypeBezier = 3     ' default Bezier (= cubic Bezier)
-        PathPointTypePathTypeMask = &h07  ' type mask (lowest 3 bits).
-        PathPointTypeDashMode = &h10  ' currently in dash mode.
-        PathPointTypePathMarker = &h20  ' a marker for the path.
-        PathPointTypeCloseSubpath = &h80  ' closed flag
+        PathPointTypeStart = 0              ' move
+        PathPointTypeLine = 1               ' line
+        PathPointTypeBezier = 3             ' default Bezier (= cubic Bezier)
+        PathPointTypePathTypeMask = &h07    ' type mask (lowest 3 bits).
+        PathPointTypeDashMode = &h10        ' currently in dash mode.
+        PathPointTypePathMarker = &h20      ' a marker for the path.
+        PathPointTypeCloseSubpath = &h80    ' closed flag
 
         ' Path types used for advanced path.
-
-        PathPointTypeBezier3 = 3          ' cubic Bezier
+        PathPointTypeBezier3 = 3            ' cubic Bezier
     End Enum
 
     '--------------------------------------------------------------------------
@@ -441,7 +438,7 @@ Module GdipEnums
     '---------------------------------------------------------------------------
 
     Enum GpEmfType
-        EmfTypeEmfOnly = MetafileTypeEmf           ' no EMF+, only EMF
+        EmfTypeEmfOnly = MetafileTypeEmf               ' no EMF+, only EMF
         EmfTypeEmfPlusOnly = MetafileTypeEmfPlusOnly   ' no EMF, only EMF+
         EmfTypeEmfPlusDual = MetafileTypeEmfPlusDual   ' both EMF+ and EMF
     End Enum
@@ -955,27 +952,27 @@ Module GdipEnums
     '---------------------------------------------------------------------------
 
     Enum GpEncoderParameterValueType
-        EncoderParameterValueTypeByte = 1     ' 8-bit unsigned int
-        EncoderParameterValueTypeASCII = 2     ' 8-bit byte containing one 7-bit ASCII
-                                                        ' code. NULL terminated.
-        EncoderParameterValueTypeShort = 3     ' 16-bit unsigned int
-        EncoderParameterValueTypeLong = 4     ' 32-bit unsigned int
-        EncoderParameterValueTypeRational = 5     ' Two Longs. The first Long is the
-                                                        ' numerator, the second Long expresses the
-                                                        ' denomintor.
-        EncoderParameterValueTypeLongRange = 6     ' Two longs which specify a range of
-                                                        ' integer values. The first Long specifies
-                                                        ' the lower end and the second one
-                                                        ' specifies the higher end. All values
-                                                        ' are inclusive at both ends
-        EncoderParameterValueTypeUndefined = 7     ' 8-bit byte that can take any value
-                                                        ' depending on field definition
-        EncoderParameterValueTypeRationalRange = 8     ' Two Rationals. The first Rational
-                                                        ' specifies the lower end and the second
-                                                        ' specifies the higher end. All values
-                                                        ' are inclusive at both ends
+        EncoderParameterValueTypeByte = 1           ' 8-bit unsigned int
+        EncoderParameterValueTypeASCII = 2          ' 8-bit byte containing one 7-bit ASCII
+                                                    ' code. NULL terminated.
+        EncoderParameterValueTypeShort = 3          ' 16-bit unsigned int
+        EncoderParameterValueTypeLong = 4           ' 32-bit unsigned int
+        EncoderParameterValueTypeRational = 5       ' Two Longs. The first Long is the
+                                                    ' numerator, the second Long expresses the
+                                                    ' denomintor.
+        EncoderParameterValueTypeLongRange = 6      ' Two longs which specify a range of
+                                                    ' integer values. The first Long specifies
+                                                    ' the lower end and the second one
+                                                    ' specifies the higher end. All values
+                                                    ' are inclusive at both ends
+        EncoderParameterValueTypeUndefined = 7      ' 8-bit byte that can take any value
+                                                    ' depending on field definition
+        EncoderParameterValueTypeRationalRange = 8  ' Two Rationals. The first Rational
+                                                    ' specifies the lower end and the second
+                                                    ' specifies the higher end. All values
+                                                    ' are inclusive at both ends
     '#if (GDIPVER >= &h0110)
-        EncoderParameterValueTypePointer = 9     ' a pointer to a parameter defined data.
+        EncoderParameterValueTypePointer = 9        ' a pointer to a parameter defined data.
     '#endif //(GDIPVER >= &h0110)
     End Enum
 
