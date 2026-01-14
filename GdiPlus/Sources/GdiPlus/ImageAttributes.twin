@@ -1,29 +1,26 @@
-' Reviewed 2026-01-13
-/**************************************************************************\
-*
-* Copyright (c) 1998-2001, Microsoft Corp.  All Rights Reserved.
+' A part of the GDI+ Package for TwinBasic  https://github.com/kubao/GdiPlus
+' Licensed under the MIT license. (c) 2026 Sunderland Ober Consulting.
+' "Windows" is a trademark of the Microsoft Corporation.
+' Certain descriptive text (c) Microsoft, taken from SDK headers and official documentation.
+' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
-*   GDI+ Image Attributes used with Graphics.DrawImage
-*
-* There are 5 possible sets of color adjustments:
-*          ColorAdjustDefault,
-*          ColorAdjustBitmap,
-*          ColorAdjustBrush,
-*          ColorAdjustPen,
-*          ColorAdjustText,
-*
-* Bitmaps, Brushes, Pens, and Text will all use any color adjustments
-* that have been set into the default ImageAttributes until their own
-* color adjustments have been set.  So as soon as any "Set" method is
-* called for Bitmaps, Brushes, Pens, or Text, then they start from
-* scratch with only the color adjustments that have been set for them.
-* Calling Reset removes any individual color adjustments for a type
-* and makes it revert back to using all the default color adjustments
-* (if any).  The SetToIdentity method is a way to force a type to
-* have no color adjustments at all, regardless of what previous adjustments
-* have been set for the defaults or for that type.
-*
-\**************************************************************************/
+' There are 5 possible sets of color adjustments:
+'          ColorAdjustDefault,
+'          ColorAdjustBitmap,
+'          ColorAdjustBrush,
+'          ColorAdjustPen,
+'          ColorAdjustText,
+'
+' Bitmaps, Brushes, Pens, and Text will all use any color adjustments
+' that have been set into the default ImageAttributes until their own
+' color adjustments have been set.  So as soon as any "Set" method is
+' called for Bitmaps, Brushes, Pens, or Text, then they start from
+' scratch with only the color adjustments that have been set for them.
+' Calling Reset removes any individual color adjustments for a type
+' and makes it revert back to using all the default color adjustments
+' (if any).  The SetToIdentity method is a way to force a type to
+' have no color adjustments at all, regardless of what previous adjustments
+' have been set for the defaults or for that type.
 
 [COMCreatable(False)]
 Class ImageAttributes
