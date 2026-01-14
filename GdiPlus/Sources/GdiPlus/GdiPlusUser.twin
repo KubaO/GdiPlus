@@ -7,7 +7,6 @@ Class GdiPlusUser
             Dim gsi As GdiplusStartupInput
             gsi.GdiplusVersion = 1
             LastStatus = GdiplusStartup(gdiPlusToken, gsi, vbNullPtr)
-            GdipColor.Init()
         End If
     End Sub
     

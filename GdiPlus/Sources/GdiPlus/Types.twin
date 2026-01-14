@@ -8,6 +8,7 @@ Interface GdiPlusAbort
 End Interface
 
 Alias ARGB As Long
+Alias ARGB64 As LongLong
 Alias UINT As Long
 
 '--------------------------------------------------------------------------
@@ -659,7 +660,7 @@ Module Types
     End Function
     
     Public Type ColorPalette
-        flags As PaletteFlags
+        flags As PaletteFlags       ' see PixelFormats for definition
         count As Long
         entries(0 To 255) As Long
     End Type
