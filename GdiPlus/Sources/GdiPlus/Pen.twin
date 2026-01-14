@@ -278,56 +278,103 @@ Module GdipPen
         GpPen.Native = 0
     End Function
         
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreatePen1 Lib "gdiplus" (ByVal Color As Color, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreatePen2 Lib "gdiplus" (ByVal brush As GpBrush, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipClonePen Lib "gdiplus" (ByVal pen As GpPen, clonepen As GpPen) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeletePen Lib "gdiplus" (ByVal pen As GpPen) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenDashStyle Lib "gdiplus" (ByVal pen As GpPen, ByVal dashStyle As GpDashStyle) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenDashStyle Lib "gdiplus" (ByVal pen As GpPen, dashStyle As GpDashStyle) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenDashCount Lib "gdiplus" (ByVal pen As GpPen, count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenDashArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenDashArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenCompoundCount Lib "gdiplus" (ByVal pen As GpPen, count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenCompoundArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenCompoundArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenWidth Lib "gdiplus" (ByVal pen As GpPen, ByVal width As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenWidth Lib "gdiplus" (ByVal pen As GpPen, width As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenDashOffset Lib "gdiplus" (ByVal pen As GpPen, ByVal offset As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenDashOffset Lib "gdiplus" (ByVal pen As GpPen, offset As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenUnit Lib "gdiplus" (ByVal pen As GpPen, ByVal unit As GpUnit) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenUnit Lib "gdiplus" (ByVal pen As GpPen, unit As GpUnit) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenFillType Lib "gdiplus" (ByVal pen As GpPen, type As GpPenType) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenStartCap Lib "gdiplus" (ByVal pen As GpPen, ByVal startCap As GpLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenEndCap Lib "gdiplus" (ByVal pen As GpPen, ByVal endCap As GpLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenStartCap Lib "gdiplus" (ByVal pen As GpPen, startCap As GpLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenEndCap Lib "gdiplus" (ByVal pen As GpPen, endCap As GpLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenCustomStartCap Lib "gdiplus" (ByVal pen As GpPen, customCap As GpCustomLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenCustomEndCap Lib "gdiplus" (ByVal pen As GpPen, customCap As GpCustomLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenLineJoin Lib "gdiplus" (ByVal pen As GpPen, ByVal lineJoin As GpLineJoin) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenLineJoin Lib "gdiplus" (ByVal pen As GpPen, lineJoin As GpLineJoin) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenLineCap197819 Lib "gdiplus" (ByVal pen As GpPen, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap, ByVal dashCap As GpDashCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenDashCap197819 Lib "gdiplus" (ByVal pen As GpPen, ByVal dashCap As GpDashCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenDashCap197819 Lib "gdiplus" (ByVal pen As GpPen, dashCap As GpDashCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenMiterLimit Lib "gdiplus" (ByVal pen As GpPen, ByVal miterLimit As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenMiterLimit Lib "gdiplus" (ByVal pen As GpPen, miterLimit As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenColor Lib "gdiplus" (ByVal pen As GpPen, ByVal color As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenColor Lib "gdiplus" (ByVal pen As GpPen, color As Color) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenCustomStartCap Lib "gdiplus" (ByVal pen As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenCustomEndCap Lib "gdiplus" (ByVal pen As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenMode Lib "gdiplus" (ByVal pen As GpPen, ByVal penMode As GpPenAlignment) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenMode Lib "gdiplus" (ByVal pen As GpPen, penMode As GpPenAlignment) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipResetPenTransform Lib "gdiplus" (ByVal pen As GpPen) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipMultiplyPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTranslatePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipScalePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipRotatePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetPenBrushFill Lib "gdiplus" (ByVal pen As GpPen, ByVal Brush As GpBrush) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPenBrushFill Lib "gdiplus" (ByVal pen As GpPen, Brush As GpBrush) As GpStatus
 End Module

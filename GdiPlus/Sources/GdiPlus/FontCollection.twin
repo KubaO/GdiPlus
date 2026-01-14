@@ -60,6 +60,8 @@ Module GdipFontCollection
         GpFontCollection.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal Me As GpFontCollection, numFound As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal Me As GpFontCollection, ByVal numSought As Long, gpfamilies As GpFontFamily, numFound As Long) As GpStatus
 End Module

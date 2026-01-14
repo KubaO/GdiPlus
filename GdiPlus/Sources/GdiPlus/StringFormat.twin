@@ -185,26 +185,48 @@ Module GdipStringFormat
     
     Private Const LANG_NEUTRAL = &H00
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipStringFormatGetGenericDefault Lib "gdiplus" (format As GpStringFormat) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipStringFormatGetGenericTypographic Lib "gdiplus" (format As GpStringFormat) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateStringFormat Lib "gdiplus" (ByVal formatAttributes As Long, ByVal language As Integer, format As GpStringFormat) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneStringFormat Lib "gdiplus" (ByVal format As GpStringFormat, newFormat As GpStringFormat) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteStringFormat Lib "gdiplus" (ByVal format As GpStringFormat) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, ByVal flags As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, flags As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, align As GpStringAlignment) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, ByVal trimming As GpStringTrimming) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, trimming As GpStringTrimming) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, ByVal hotkeyPrefix As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, hotkeyPrefix As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatTabStopCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, ByVal language As Integer, ByVal substitute As GpStringDigitSubstitute) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, language As Integer, substitute As GpStringDigitSubstitute) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetStringFormatMeasurableCharacterRangeCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetStringFormatMeasurableCharacterRanges Lib "gdiplus" (ByVal format As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
 End Module

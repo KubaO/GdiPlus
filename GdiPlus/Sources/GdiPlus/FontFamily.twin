@@ -143,17 +143,29 @@ Module GdipFontFamily
     Dim GenericSerifFF As FontFamily
     Dim GenericMonospaceFF As FontFamily
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetGenericFontFamilySerif Lib "gdiplus" (Me As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetGenericFontFamilySansSerif Lib "gdiplus" (Me As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetGenericFontFamilyMonospace Lib "gdiplus" (Me As GpFontFamily) As GpStatus
 
+    [UseGetLastError(False)]
     Public DeclareWide PtrSafe Function GdipCreateFontFamilyFromName Lib "gdiplus" (ByVal Name As String, ByVal fontCollection As GpFontCollection, fontFamily As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public DeclareWide PtrSafe Function GdipGetFamilyName Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal Name As String, ByVal language As Integer) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteFontFamily Lib "gdiplus" (ByVal Me As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneFontFamily Lib "gdiplus" (ByVal Me As GpFontFamily, clonedFontFamily As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsStyleAvailable Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, IsStyleAvailable As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetEmHeight Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, EmHeight As Integer) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetCellAscent Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, CellAscent As Integer) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetCellDescent Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, CellDescent As Integer) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetLineSpacing Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, LineSpacing As Integer) As GpStatus
 End Module

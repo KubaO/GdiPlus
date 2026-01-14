@@ -206,19 +206,33 @@ Module GdipFont
         GpFont.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateFont Lib "gdiplus" (ByVal fontFamily As GpFontFamily, ByVal emSize As Single, ByVal style As Long, ByVal unit As GpUnit, font As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateFontFromDC Lib "gdiplus" (ByVal hdc As LongPtr, font As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateFontFromLogfontA Lib "gdiplus" (ByVal hdc As LongPtr, logfont As LOGFONTA, font As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateFontFromLogfontW Lib "gdiplus" (ByVal hdc As LongPtr, logfont As LOGFONTW, font As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneFont Lib "gdiplus" (ByVal Me As GpFont, cloneFont As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteFont Lib "gdiplus" (ByVal Me As GpFont) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetLogFontA Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTA) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetLogFontW Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, logfontA As LOGFONTW) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFamily Lib "gdiplus" (ByVal Me As GpFont, family As GpFontFamily) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontStyle Lib "gdiplus" (ByVal Me As GpFont, style As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontSize Lib "gdiplus" (ByVal Me As GpFont, size As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontUnit Lib "gdiplus" (ByVal Me As GpFont, unit As GpUnit) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontHeight Lib "gdiplus" (ByVal Me As GpFont, ByVal Graphics As GpGraphics, height As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontHeightGivenDPI Lib "gdiplus" (ByVal Me As GpFont, ByVal dpi As Single, height As Single) As GpStatus
 End Module

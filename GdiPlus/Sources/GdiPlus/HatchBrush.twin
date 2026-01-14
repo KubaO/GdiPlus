@@ -70,8 +70,12 @@ Module GdipHatch
         GpHatch.Native = nativeBrush.Native
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateHatchBrush Lib "gdiplus" (ByVal style As GpHatchStyle, ByVal forecolr As Color, ByVal backcolr As Color, Brush As GpBrush) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetHatchStyle Lib "gdiplus" (ByVal brush As GpBrush, style As GpHatchStyle) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetHatchForegroundColor Lib "gdiplus" (ByVal brush As GpBrush, forecol As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetHatchBackgroundColor Lib "gdiplus" (ByVal brush As GpBrush, backcol As Color) As GpStatus
 End Module

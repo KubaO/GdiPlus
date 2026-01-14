@@ -69,7 +69,10 @@ Module GdipSolidBrush
         GpSolidFill.Native = nativeBrush.Native
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateSolidFill Lib "gdiplus" (ByVal argb As Color, brush As GpSolidFill) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, ByVal color As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetSolidFillColor Lib "gdiplus" (ByVal brush As GpBrush, color As Color) As GpStatus
 End Module

@@ -42,6 +42,8 @@ Class GdiPlusBase
 End Class
 
 Module GdipModule
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipAlloc Lib "gdiplus.dll" (ByVal Size As LongPtr) As LongPtr
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipFree Lib "gdiplus.dll" (ByVal Ptr As LongPtr) As GpStatus
 End Module

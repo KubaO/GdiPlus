@@ -311,38 +311,70 @@ Module GdipRegion
         Return newRegion
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegion Lib "gdiplus" (Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegionRect Lib "gdiplus" (Rect As GpRectF, Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegionRectI Lib "gdiplus" (Rect As GpRect, Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneRegion Lib "gdiplus" (ByVal Region As GpRegion, cloneRegion As GpRegion) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetEmpty Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTranslateRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal dx As Single, ByVal dy As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTranslateRegionI Lib "gdiplus" (ByVal Region As GpRegion, ByVal dx As Long, ByVal dy As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetInfinite Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionScansCount Lib "gdiplus" (ByVal Region As GpRegion, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionScans Lib "gdiplus" (ByVal Region As GpRegion, rects As GpRectF, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionScansI Lib "gdiplus" (ByVal Region As GpRegion, rects As GpRect, count As Long, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionDataSize Lib "gdiplus" (ByVal Region As GpRegion, bufferSize As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionData Lib "gdiplus" (ByVal Region As GpRegion, buffer As Byte, ByVal bufferSize As Long, sizeFilled As Long) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCombineRegionRect Lib "gdiplus" (ByVal Region As GpRegion, Rect As GpRectF, ByVal combineMode As GpCombineMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCombineRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, Rect As GpRect, ByVal combineMode As GpCombineMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCombineRegionRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal combineMode As GpCombineMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionHRgn Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, hRgn As LongPtr) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsEmptyRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsInfiniteRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsEqualRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteRegion Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCombineRegionPath Lib "gdiplus" (ByVal Region As GpRegion, ByVal Path As GpPath, ByVal combineMode As GpCombineMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegionPath Lib "gdiplus" (ByVal Path As GpPath, Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegionRgnData Lib "gdiplus" (regionData As Byte, ByVal size As Long, Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateRegionHrgn Lib "gdiplus" (ByVal hRgn As LongPtr, Region As GpRegion) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTransformRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionBoundsI Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, Rect As GpRect) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionBounds Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, Rect As GpRectF) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsVisibleRegionPoint Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsVisibleRegionPointI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsVisibleRegionRect Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsVisibleRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
 End Module

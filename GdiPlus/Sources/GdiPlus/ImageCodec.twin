@@ -45,8 +45,12 @@ Module GdipImageCodec
         Return GdipGetImageEncoders(numEncoders, size, encoders)
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetImageDecodersSize Lib "gdiplus" (numDecoders&, size&) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetImageDecoders Lib "gdiplus" (ByVal numDecoders&, ByVal size&, decoders As Any) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetImageEncodersSize Lib "gdiplus" (numEncoders&, size&) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetImageEncoders Lib "gdiplus" (ByVal numEncoders&, ByVal size&, encoders As Any) As GpStatus
 End Module

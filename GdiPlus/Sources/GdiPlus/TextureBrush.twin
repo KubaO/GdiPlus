@@ -175,19 +175,34 @@ Module GdipTexture
         GpTexture.Native = nativeBrush.Native
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateTexture Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, texture As GpTexture) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateTexture2 Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, ByVal x!, ByVal y!, ByVal width!, ByVal height!, texture As GpTexture) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateTexture2I Lib "gdiplus" (ByVal Image As GpImage, ByVal wrapMode As GpWrapMode, ByVal x&, ByVal y&, ByVal width&, ByVal height&, texture As GpTexture) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateTextureIA Lib "gdiplus" (ByVal Image As GpImage, ByVal imageAttributes As GpImageAttributes, ByVal x!, ByVal y!, ByVal width!, ByVal height!, texture As GpTexture) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateTextureIAI Lib "gdiplus" (ByVal Image As GpImage, ByVal imageAttributes As GpImageAttributes, ByVal x&, ByVal y&, ByVal width&, ByVal height&, texture As GpTexture) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipResetTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipMultiplyTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTranslateTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipScaleTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipRotateTextureTransform Lib "gdiplus" (ByVal Brush As GpBrush, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetTextureWrapMode Lib "gdiplus" (ByVal Brush As GpBrush, ByVal wrapMode As GpWrapMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetTextureWrapMode Lib "gdiplus" (ByVal Brush As GpBrush, wrapMode As GpWrapMode) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetTextureImage Lib "gdiplus" (ByVal Brush As GpBrush, Image As GpImage) As GpStatus
 End Module

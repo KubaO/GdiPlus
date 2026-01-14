@@ -46,5 +46,6 @@ Module GdipInstalledFontCollection
         GpInstalledFontCollection.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipNewInstalledFontCollection Lib "gdiplus" (fontCollection As GpInstalledFontCollection) As GpStatus
 End Module

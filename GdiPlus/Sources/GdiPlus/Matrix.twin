@@ -203,26 +203,47 @@ Module GdipMatrix
         GpMatrix.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMatrix Lib "gdiplus" (matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMatrix2 Lib "gdiplus" (ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single, matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMatrix3 Lib "gdiplus" (rect As GpRectF, dstplg As GpPointF, matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMatrix3I Lib "gdiplus" (rect As GpRect, dstplg As GpPoint, matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipInvertMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, matrixOut As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, cloneMatrix As GpMatrix) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipMultiplyMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTranslateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipRotateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipScaleMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipShearMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsMatrixInvertible Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsMatrixIdentity Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipIsMatrixEqual Lib "gdiplus" (ByVal matrix1 As GpMatrix, ByVal matrix2 As GpMatrix, result As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipVectorTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipVectorTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
 End Module

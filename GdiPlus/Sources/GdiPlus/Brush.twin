@@ -57,7 +57,10 @@ Module GdipBrush
         GpBrush.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteBrush Lib "gdiplus" (ByVal Me As GpBrush) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneBrush Lib "gdiplus" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetBrushType Lib "gdiplus" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
 End Module

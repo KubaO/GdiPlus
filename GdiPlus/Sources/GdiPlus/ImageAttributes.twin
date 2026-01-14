@@ -188,21 +188,38 @@ Module GdipImageAttributes
         GpImageAttributes.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateImageAttributes Lib "gdiplus" (imageattr As GpImageAttributes) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes, cloneImageattr As GpImageAttributes) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesColorMatrix Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, colourMatrix As ColorMatrix, grayMatrix As ColorMatrix, ByVal flags As ColorMatrixFlags) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesToIdentity Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDisposeImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesThreshold Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal threshold As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesGamma Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal gamma As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesNoOp Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesColorKeys Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal colorLow As Color, ByVal colorHigh As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesOutputChannel Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal channelFlags As ColorChannelFlags) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesOutputChannelColorProfile Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal colorProfileFilename As LongPtr) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesRemapTable Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal mapSize As Long, map As ColorMap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesRemapTable2 Lib "gdiplus" Alias "GdipSetImageAttributesRemapTable" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As BOOL, ByVal mapSize As Long, ByVal map As LongPtr) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesWrapMode Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal wrap As GpWrapMode, ByVal color As Color, ByVal bClamp As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetImageAttributesICMMode Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal on As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetImageAttributesAdjustedPalette Lib "gdiplus" (ByVal imageattr As GpImageAttributes, colorPalette As ColorPalette, ByVal colorAdjustType As ColorAdjustType) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipResetImageAttributes Lib "gdiplus" (ByVal imageattr As GpImageAttributes, ByVal type As ColorAdjustType) As GpStatus
 End Module

@@ -35,6 +35,8 @@ Module GdipCachedBitmap
         GpCachedBitmap.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateCachedBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal Graphics As GpGraphics, cachedBitmap As GpCachedBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteCachedBitmap Lib "gdiplus" (ByVal cachedBitmap As GpCachedBitmap) As GpStatus
 End Module

@@ -327,31 +327,57 @@ Module GdipBitmap
         Return status
     End Function
     
+    [UseGetLastError(False)]
     Public DeclareWide PtrSafe Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FileName As String, ByRef bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public DeclareWide PtrSafe Function GdipCreateBitmapFromFileICM Lib "gdiplus" (ByVal FileName As String, ByRef bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromStream Lib "gdiplus" (ByVal stream As IStream, ByRef bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromStreamICM Lib "gdiplus" (ByVal stream As IStream, ByRef bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromResource Lib "gdiplus" (ByVal hInstance As LongPtr, ByVal lpBitmapName As LongPtr, ByRef bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromScan0 Lib "gdiplus" (ByVal Width As Long, ByVal Height As Long, ByVal stride As Long, ByVal format As PixelFormat, scan0 As Any, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromGraphics Lib "gdiplus" (ByVal Width As Long, ByVal Height As Long, ByVal Graphics As GpGraphics, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromDirectDrawSurface Lib "gdiplus" (surface As Any, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromGdiDib Lib "gdiplus" (gdiBitmapInfo As BITMAPINFO, ByVal gdiBitmapData As LongPtr, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromHBITMAP Lib "gdiplus" (ByVal hbm As LongPtr, ByVal hpal As LongPtr, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateBitmapFromHICON Lib "gdiplus" (ByVal hicon As LongPtr, bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, ByRef hbmReturn As LongPtr, ByVal Background As Color) As GpStatus
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipInitializePalette Lib "gdiplus" (palette As ColorPalette, ByVal paletteType As PaletteType, ByVal optimalColors As Long, ByVal useTransparentColor As BOOL, ByVal bitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapApplyEffect Lib "gdiplus" (ByVal Me As GpBitmap, ByVal effect As GpEffect, roi As RECT, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapCreateApplyEffect Lib "gdiplus" (inputBitmaps As Any, ByVal numInputs As Long, ByVal effect As GpEffect, roi As RECT, outputRect As RECT, outputBitmap As GpBitmap, ByVal useAuxData As BOOL, auxData As Any, auxDataSize As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneBitmapArea Lib "gdiplus" (ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneBitmapAreaI Lib "gdiplus" (ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapLockBits Lib "gdiplus" (ByVal Me As GpBitmap, Rect As GpRect, ByVal flags As Long, ByVal format As PixelFormat, lockedBitmapData As BitmapData) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapUnlockBits Lib "gdiplus" (ByVal Me As GpBitmap, lockedBitmapData As BitmapData) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapGetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, Color As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapSetPixel Lib "gdiplus" (ByVal Me As GpBitmap, ByVal X As Long, ByVal Y As Long, ByVal Color As Color) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapConvertFormat Lib "gdiplus" (ByVal inputBitmap As GpBitmap, ByVal format As PixelFormat, ByVal dithertype As DitherType, ByVal palettetype As PaletteType, palette As ColorPalette, ByVal alphaThresholdPercent As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapGetHistogram Lib "gdiplus" (ByVal Me As GpBitmap, ByVal format As HistogramFormat, ByVal NumberOfEntries As Long, channel0 As Long, channel1 As Long, channel2 As Long, channel3 As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapGetHistogramSize Lib "gdiplus" (ByVal format As HistogramFormat, NumberOfEntries As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipBitmapSetResolution Lib "gdiplus" (ByVal Me As GpBitmap, ByVal xdpi As Single, ByVal ydpi As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateHICONFromBitmap Lib "gdiplus" (ByVal Me As GpBitmap, hbmReturn As LongPtr) As GpStatus
 End Module

@@ -7,7 +7,7 @@
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\${ProjectName}",
 	"project.exportPathIsV2": true,
-	"project.featureFlagsUI": 63,
+	"project.featureFlagsUI": 0,
 	"project.featureFlagsUI2": 4294954496,
 	"project.forceDpiAwarenessAtStartup": "SYSTEM_DPI_AWARE",
 	"project.id": "{36057D8B-2239-4205-A267-309AE927D5B7}",

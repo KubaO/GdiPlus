@@ -712,9 +712,14 @@ Module GdipEffects
      ColorCurveEffectGuid = iid
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateEffect Lib "gdiplus" (ByVal guid As UUID, effect As GpEffect) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteEffect Lib "gdiplus" (ByVal Me As GpEffect) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetEffectParameterSize Lib "gdiplus" (ByVal Me As GpEffect, size As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetEffectParameters Lib "gdiplus" (ByVal Me As GpEffect, params As Any, ByVal size As Long) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetEffectParameters Lib "gdiplus" (ByVal Me As GpEffect, size As Long, params As Any) As GpStatus
 End Module

@@ -89,13 +89,22 @@ Module GdipArrowCap
         GpArrowCap.Native = 0
     End Function
     
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateAdjustableArrowCap Lib "gdiplus" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpArrowCap) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal height As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpArrowCap, height As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal width As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpArrowCap, width As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal middleInset As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpArrowCap, middleInset As Single) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal fillState As BOOL) As GpStatus
+    [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, fillState As BOOL) As GpStatus
 End Module
