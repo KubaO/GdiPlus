@@ -228,6 +228,10 @@ Class Graphics
         Return SetStatus(gr.DrawLine(GetNative(pen), pt1.X, pt1.Y, pt2.X, pt2.Y))
     End Function
     
+    Function DrawLine(pen As Pen, rect As GpRectF) As GpStatus
+        Return SetStatus(gr.DrawLine(GetNative(pen), rect.Left, rect.Top, rect.Right, rect.Bottom))
+    End Function
+    
     Function DrawLines(pen As Pen, points As GpPointF()) As GpStatus
         Return SetStatus(gr.DrawLines(GetNative(pen), points(LBound(points)), Len(points)))
     End Function
@@ -244,6 +248,10 @@ Class Graphics
         Return SetStatus(gr.DrawLineI(GetNative(pen), pt1.X, pt1.Y, pt2.X, pt2.Y))
     End Function
 
+    Function DrawLine(pen As Pen, rect As GpRect) As GpStatus
+        Return SetStatus(gr.DrawLineI(GetNative(pen), rect.Left, rect.Top, rect.Right, rect.Bottom))
+    End Function
+    
     Function DrawLines(pen As Pen, points As GpPoint()) As GpStatus
         Return SetStatus(gr.DrawLinesI(GetNative(pen), points(LBound(points)), Len(points)))
     End Function
@@ -443,7 +451,7 @@ Class Graphics
     Function FillRectangle(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
         Return SetStatus(gr.FillRectangle(GetNative(brush), x, y, width, height))
     End Function
-
+    
     Function FillRectangles(brush As Brush, rects As GpRectF, ByVal count&) As GpStatus
         Return SetStatus(gr.FillRectangles(GetNative(brush), rects, count))
     End Function
@@ -551,6 +559,10 @@ Class Graphics
             rect, GpStringFormat(), GetNative(brush)))
     End Function
     
+    Function DrawString(ByVal string$, font As Font, ByVal x!, ByVal y!, brush As Brush) As GpStatus
+        DrawString(string, font, GpPointF(x, y), brush)
+    End Function
+    
     Function DrawString(ByVal string$, font As Font, origin As GpPointF, stringFormat As StringFormat, brush As Brush) As GpStatus
         Dim rect As GpRectF
         rect.X = origin.X
@@ -561,6 +573,10 @@ Class Graphics
         Return SetStatus(gr.DrawString( _
             StrPtr(string), Len(string), GetNative(font), _
             rect, GetNative(stringFormat), GetNative(brush)))
+    End Function
+    
+    Function DrawString(ByVal string$, font As Font, ByVal x!, ByVal y!, stringFormat As StringFormat, brush As Brush) As GpStatus
+        Return DrawString(string, font, GpPointF(x, y), stringFormat, brush)
     End Function
     
     Function MeasureString(ByVal string$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, _

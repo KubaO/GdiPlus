@@ -16,8 +16,8 @@ Class Form1
         Dim ft As Any = Font("Segoe UI", 20)
         Dim fbr As Any = SolidBrush(vbBlack)
                         
-        gr.FillRectangle(br, 0, 0, ScaleWidth, ScaleHeight)
-        gr.DrawLine(Pen(vbGreen, 3.0), 0, 0, ScaleWidth, ScaleHeight)
+        gr.FillRectangle(br, rect)
+        gr.DrawLine(Pen(vbGreen, 3.0), rect)
         gr.DrawString("Welcome to GDI+", ft, GpPointF(50, 50), fbr)
     End Sub
 End Class

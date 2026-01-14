@@ -88,7 +88,7 @@ Module GdipColor
         End Property
         
         Property Let Alpha(ByVal a As Byte)
-            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << AlphaShift))) Or (CLng(a) << AlphaShift)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor AlphaMask)) Or (CLng(a) << AlphaShift)
         End Property
         
         Property Let A(ByVal a As Byte)
@@ -96,7 +96,7 @@ Module GdipColor
         End Property
         
         Property Let Red(ByVal r As Byte)
-            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << RedShift))) Or (CLng(r) << RedShift)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor RedMask)) Or (CLng(r) << RedShift)
         End Property
         
         Property Let R(ByVal r As Byte)
@@ -104,7 +104,7 @@ Module GdipColor
         End Property
         
         Property Let Green(ByVal g As Byte)
-            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << GreenShift))) Or (CLng(g) << GreenShift)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor GreenMask)) Or (CLng(g) << GreenShift)
         End Property
         
         Property Let G(ByVal g As Byte)
@@ -112,7 +112,7 @@ Module GdipColor
         End Property
         
         Property Let Blue(ByVal b As Byte)
-            Me.argb = (Me.argb And (&HFFFF_FFFF Xor (&hFF << BlueShift))) Or (CLng(b) << BlueShift)
+            Me.argb = (Me.argb And (&HFFFF_FFFF Xor BlueMask)) Or (CLng(b) << BlueShift)
         End Property
         
         Property Let B(ByVal b As Byte)
@@ -143,23 +143,169 @@ Module GdipColor
                 ((CLng(a)) << AlphaShift)
     End Function
     
-    Public gpBlack As Color
-    Public gpBlue As Color
-    Public gpCyan As Color
-    Public gpGreen As Color
-    Public gpMagenta As Color
-    Public gpRed As Color
-    Public gpWhite As Color
-    Public gpYellow As Color
+    '----------------------------------------------------------------------------
+    ' Common color constants
+    '----------------------------------------------------------------------------
     
-    Sub Init()
-        gpBlack = Color(0, 0, 0)
-        gpBlue = Color(0, 0, 255)
-        gpCyan = Color(0, 255, 255)
-        gpGreen = Color(0, 255, 0)
-        gpMagenta = Color(255, 0, 255)
-        gpRed = Color(255, 0, 0)
-        gpWhite = Color(255, 255, 255)
-        gpYellow = Color(255, 255, 0)
-    End Sub
+    Enum CColor
+        AliceBlue = &hFFF0F8FF
+        AntiqueWhite = &hFFFAEBD7
+        Aqua = &hFF00FFFF
+        Aquamarine = &hFF7FFFD4
+        Azure = &hFFF0FFFF
+        Beige = &hFFF5F5DC
+        Bisque = &hFFFFE4C4
+        Black = &hFF000000
+        BlanchedAlmond = &hFFFFEBCD
+        Blue = &hFF0000FF
+        BlueViolet = &hFF8A2BE2
+        Brown = &hFFA52A2A
+        BurlyWood = &hFFDEB887
+        CadetBlue = &hFF5F9EA0
+        Chartreuse = &hFF7FFF00
+        Chocolate = &hFFD2691E
+        Coral = &hFFFF7F50
+        CornflowerBlue = &hFF6495ED
+        Cornsilk = &hFFFFF8DC
+        Crimson = &hFFDC143C
+        Cyan = &hFF00FFFF
+        DarkBlue = &hFF00008B
+        DarkCyan = &hFF008B8B
+        DarkGoldenrod = &hFFB8860B
+        DarkGray = &hFFA9A9A9
+        DarkGreen = &hFF006400
+        DarkKhaki = &hFFBDB76B
+        DarkMagenta = &hFF8B008B
+        DarkOliveGreen = &hFF556B2F
+        DarkOrange = &hFFFF8C00
+        DarkOrchid = &hFF9932CC
+        DarkRed = &hFF8B0000
+        DarkSalmon = &hFFE9967A
+        DarkSeaGreen = &hFF8FBC8B
+        DarkSlateBlue = &hFF483D8B
+        DarkSlateGray = &hFF2F4F4F
+        DarkTurquoise = &hFF00CED1
+        DarkViolet = &hFF9400D3
+        DeepPink = &hFFFF1493
+        DeepSkyBlue = &hFF00BFFF
+        DimGray = &hFF696969
+        DodgerBlue = &hFF1E90FF
+        Firebrick = &hFFB22222
+        FloralWhite = &hFFFFFAF0
+        ForestGreen = &hFF228B22
+        Fuchsia = &hFFFF00FF
+        Gainsboro = &hFFDCDCDC
+        GhostWhite = &hFFF8F8FF
+        Gold = &hFFFFD700
+        Goldenrod = &hFFDAA520
+        Gray = &hFF808080
+        Green = &hFF008000
+        GreenYellow = &hFFADFF2F
+        Honeydew = &hFFF0FFF0
+        HotPink = &hFFFF69B4
+        IndianRed = &hFFCD5C5C
+        Indigo = &hFF4B0082
+        Ivory = &hFFFFFFF0
+        Khaki = &hFFF0E68C
+        Lavender = &hFFE6E6FA
+        LavenderBlush = &hFFFFF0F5
+        LawnGreen = &hFF7CFC00
+        LemonChiffon = &hFFFFFACD
+        LightBlue = &hFFADD8E6
+        LightCoral = &hFFF08080
+        LightCyan = &hFFE0FFFF
+        LightGoldenrodYellow = &hFFFAFAD2
+        LightGray = &hFFD3D3D3
+        LightGreen = &hFF90EE90
+        LightPink = &hFFFFB6C1
+        LightSalmon = &hFFFFA07A
+        LightSeaGreen = &hFF20B2AA
+        LightSkyBlue = &hFF87CEFA
+        LightSlateGray = &hFF778899
+        LightSteelBlue = &hFFB0C4DE
+        LightYellow = &hFFFFFFE0
+        Lime = &hFF00FF00
+        LimeGreen = &hFF32CD32
+        Linen = &hFFFAF0E6
+        Magenta = &hFFFF00FF
+        Maroon = &hFF800000
+        MediumAquamarine = &hFF66CDAA
+        MediumBlue = &hFF0000CD
+        MediumOrchid = &hFFBA55D3
+        MediumPurple = &hFF9370DB
+        MediumSeaGreen = &hFF3CB371
+        MediumSlateBlue = &hFF7B68EE
+        MediumSpringGreen = &hFF00FA9A
+        MediumTurquoise = &hFF48D1CC
+        MediumVioletRed = &hFFC71585
+        MidnightBlue = &hFF191970
+        MintCream = &hFFF5FFFA
+        MistyRose = &hFFFFE4E1
+        Moccasin = &hFFFFE4B5
+        NavajoWhite = &hFFFFDEAD
+        Navy = &hFF000080
+        OldLace = &hFFFDF5E6
+        Olive = &hFF808000
+        OliveDrab = &hFF6B8E23
+        Orange = &hFFFFA500
+        OrangeRed = &hFFFF4500
+        Orchid = &hFFDA70D6
+        PaleGoldenrod = &hFFEEE8AA
+        PaleGreen = &hFF98FB98
+        PaleTurquoise = &hFFAFEEEE
+        PaleVioletRed = &hFFDB7093
+        PapayaWhip = &hFFFFEFD5
+        PeachPuff = &hFFFFDAB9
+        Peru = &hFFCD853F
+        Pink = &hFFFFC0CB
+        Plum = &hFFDDA0DD
+        PowderBlue = &hFFB0E0E6
+        Purple = &hFF800080
+        Red = &hFFFF0000
+        RosyBrown = &hFFBC8F8F
+        RoyalBlue = &hFF4169E1
+        SaddleBrown = &hFF8B4513
+        Salmon = &hFFFA8072
+        SandyBrown = &hFFF4A460
+        SeaGreen = &hFF2E8B57
+        SeaShell = &hFFFFF5EE
+        Sienna = &hFFA0522D
+        Silver = &hFFC0C0C0
+        SkyBlue = &hFF87CEEB
+        SlateBlue = &hFF6A5ACD
+        SlateGray = &hFF708090
+        Snow = &hFFFFFAFA
+        SpringGreen = &hFF00FF7F
+        SteelBlue = &hFF4682B4
+        Tan = &hFFD2B48C
+        Teal = &hFF008080
+        Thistle = &hFFD8BFD8
+        Tomato = &hFFFF6347
+        Transparent = &h00FFFFFF
+        Turquoise = &hFF40E0D0
+        Violet = &hFFEE82EE
+        Wheat = &hFFF5DEB3
+        White = &hFFFFFFFF
+        WhiteSmoke = &hFFF5F5F5
+        Yellow = &hFFFFFF00
+        YellowGreen = &hFF9ACD32
+    End Enum
+    
+    '----------------------------------------------------------------------------
+    ' Shift count and bit mask for A, R, G, B components
+    '----------------------------------------------------------------------------
+    
+    Public Enum ColorShift
+        AlphaShift = 24
+        RedShift = 16
+        GreenShift = 8
+        BlueShift = 0
+    End Enum
+    
+    Public Enum ColorMask
+        AlphaMask = &Hff& << AlphaShift
+        RedMask = &Hff& << RedShift
+        GreenMask = &Hff& << GreenShift
+        BlueMask = &Hff& << BlueShift
+    End Enum
 End Module
