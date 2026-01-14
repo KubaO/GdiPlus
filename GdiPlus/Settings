@@ -2,7 +2,7 @@
 	"configuration.inherits": "Defaults",
 	"project.appTitle": "GdiPlus",
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
-	"project.buildType": "Standard EXE",
+	"project.buildType": "Package TWINPACK",
 	"project.description": "GdiPlus",
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\${ProjectName}",
@@ -12,6 +12,7 @@
 	"project.forceDpiAwarenessAtStartup": "SYSTEM_DPI_AWARE",
 	"project.id": "{36057D8B-2239-4205-A267-309AE927D5B7}",
 	"project.largeAddressAware": true,
+	"project.licence": "MIT",
 	"project.name": "GdiPlus",
 	"project.optionExplicit": true,
 	"project.references": [
@@ -60,7 +61,12 @@
 		}
 	],
 	"project.settingsVersion": 1,
-	"project.startupObject": "Form1",
+	"project.versionBuild": 0,
+	"project.versionLegalCopyright": "(c) 2026 Sunderland Ober Consulting",
+	"project.versionMajor": 0,
+	"project.versionMinor": 9,
+	"project.versionProductName": "GdiPlus For TwinBasic",
+	"project.versionRevision": 2,
 	"project.warnings": {
 		"errors": [],
 		"hints": [],
