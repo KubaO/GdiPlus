@@ -9,14 +9,38 @@ Private Module GdipImplementation
         sa.Bounds.lLbound = 1
     End Sub
     
+    Private Sub SetCElements(ByRef sa As SAFEARRAY1D, ByVal count&)
+        sa.Bounds.cElements = count
+    End Sub
+    
+    [Description("Returns a static SAFEARRAY1D that refers to data.")]
     Function StaticSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
-        Dim saPtr As longptr
-        GdiPlusImpl.SafeArrayAllocDescriptor(1, StaticSA)
+        Dim saPtr As LongPtr
+        GdipImplementation.SafeArrayAllocDescriptor(1, StaticSA)
         GetMemPtr(VarPtr(StaticSA), saPtr)
         SetStaticSA(ByVal saPtr, LenB(Of T), data, count)
     End Function
     
-    Private Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
+    [Description("Redims an array from lbound to ubound." & vbcrlf & _
+        "Ensures that total allocated size is at least requiredByteSize.")]
+    Sub ReDimOversized(Of T)(array() As T, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&)
+        Dim numElements& = ubound - lbound + 1
+        Dim itemSize& = LenB(Of T)
+        
+        Dim arrayCount& = ((requiredByteSize + itemSize - 1) / itemSize)
+        If arrayCount < numElements Then arrayCount = numElements
+                
+        ReDim array(lbound To lbound + arrayCount - 1)
+        Dim arrayAddr As LongPtr
+        GetMemPtr(VarPtr(array), arrayAddr)
+        
+        SetCElements(ByVal arrayAddr, numElements)
+        ' The SAFEARRAY structure's bounds reflect the number of elements.
+        ' The allocated memory for the structure is potentially larger and can hold at 
+        ' least requiredbyteSize bytes.
+    End Sub
+    
+    Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
         Return ((ptr + alignment& - 1) / alignment) * alignment
     End Function
     
