@@ -260,11 +260,7 @@ Class Graphics
     Function DrawLines(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
         Return SetStatus(gr.DrawLinesI(GetNative(pen), points, count))
     End Function
-    
-    Function DrawArc(pen As Pen, ByVal x#, ByVal y#, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
-        Return SetStatus(gr.DrawArc(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
-    End Function
-    
+        
     Function DrawArc(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(gr.DrawArc(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
@@ -279,12 +275,6 @@ Class Graphics
     
     Function DrawArc(pen As Pen, rect As GpRect, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(gr.DrawArcI(GetNative(pen), rect.X, rect.Y, rect.Width, rect.Height, startAngle, sweepAngle))
-    End Function
-
-    Function DrawBezier(pen As Pen, _
-            ByVal x1#, ByVal y1#, ByVal x2#, ByVal y2#, _
-            ByVal x3#, ByVal y3#, ByVal x4#, ByVal y4#) As GpStatus
-        Return SetStatus(gr.DrawBezier(GetNative(pen), x1, y1, x2, y2, x3, y3, x4, y4))
     End Function
     
     Function DrawBezier(pen As Pen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, _
@@ -315,11 +305,7 @@ Class Graphics
     Function DrawRectangle(pen As Pen, rect As GpRectF) As GpStatus
         Return DrawRectangle(pen, rect.Left, rect.Top, rect.Width, rect.Height)
     End Function
-    
-    Function DrawRectangle(pen As Pen, ByVal x#, ByVal y#, ByVal width#, ByVal height#) As GpStatus
-        Return SetStatus(gr.DrawRectangle(GetNative(pen), x, y, width, height))
-    End Function
-    
+        
     Function DrawRectangle(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
         Return SetStatus(gr.DrawRectangle(GetNative(pen), x, y, width, height))
     End Function
@@ -343,11 +329,7 @@ Class Graphics
     Function DrawEllipse(pen As Pen, rect As GpRectF) As GpStatus
         Return DrawEllipse(pen, rect.Left, rect.Top, rect.Width, rect.Height)
     End Function
-    
-    Function DrawEllipse(pen As Pen, ByVal x#, ByVal y#, ByVal width#, ByVal height#) As GpStatus
-        Return SetStatus(gr.DrawEllipse(GetNative(pen), x, y, width, height))
-    End Function
-    
+        
     Function DrawEllipse(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
         Return SetStatus(gr.DrawEllipse(GetNative(pen), x, y, width, height))
     End Function
@@ -363,12 +345,7 @@ Class Graphics
     Function DrawPie(pen As Pen, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return DrawPie(pen, rect.Left, rect.Top, rect.Width, rect.Height, startAngle, sweepAngle)
     End Function
-    
-    Function DrawPie(pen As Pen, ByVal x#, ByVal y#, ByVal width#, ByVal height#, _
-            ByVal startAngle#, ByVal sweepAngle#) As GpStatus
-        Return SetStatus(gr.DrawPie(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
-    End Function
-    
+        
     Function DrawPie(pen As Pen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(gr.DrawPie(GetNative(pen), x, y, width, height, startAngle, sweepAngle))
     End Function
@@ -444,11 +421,7 @@ Class Graphics
     Function FillRectangle(brush As Brush, rect As GpRectF) As GpStatus
         Return FillRectangle(brush, rect.Left, rect.Top, rect.Width, rect.Height)
     End Function
-    
-    Function FillRectangle(brush As Brush, ByVal x#, ByVal y#, ByVal width#, ByVal height#) As GpStatus
-        Return SetStatus(gr.FillRectangle(GetNative(brush), x, y, width, height))
-    End Function
-    
+        
     Function FillRectangle(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
         Return SetStatus(gr.FillRectangle(GetNative(brush), x, y, width, height))
     End Function
@@ -480,11 +453,7 @@ Class Graphics
     Function FillEllipse(brush As Brush, rect As GpRectF) As GpStatus
         Return FillEllipse(brush, rect.Left, rect.Top, rect.Width, rect.Height)
     End Function
-    
-    Function FillEllipse(brush As Brush, ByVal x#, ByVal y#, ByVal width#, ByVal height#) As GpStatus
-        Return SetStatus(gr.FillEllipse(GetNative(brush), x, y, width, height))
-    End Function
-    
+        
     Function FillEllipse(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpStatus
         Return SetStatus(gr.FillEllipse(GetNative(brush), x, y, width, height))
     End Function
@@ -500,12 +469,7 @@ Class Graphics
     Function FillPie(brush As Brush, rect As GpRectF, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return FillPie(brush, rect.Left, rect.Top, rect.Width, rect.Height, startAngle, sweepAngle)
     End Function
-    
-    Function FillPie(brush As Brush, ByVal x#, ByVal y#, ByVal width#, ByVal height#, _
-            ByVal startAngle#, ByVal sweepAngle#) As GpStatus
-        Return SetStatus(gr.FillPie(GetNative(brush), x, y, width, height, startAngle, sweepAngle))
-    End Function
-    
+        
     Function FillPie(brush As Brush, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(gr.FillPie(GetNative(brush), x, y, width, height, startAngle, sweepAngle))
     End Function
@@ -727,29 +691,12 @@ Class Graphics
         End If
         Return SetStatus(gr.DrawImagePointsI(GetNative(image), destPoints, count))
     End Function
-    
-    Function DrawImage(image As Image, ByVal x#, ByVal y#, _
-            ByVal srcx#, ByVal srcy#, ByVal srcwidth#, ByVal srcheight#, ByVal srcUnit#) As GpStatus
-        Return SetStatus(gr.DrawImagePointRect(GetNative(image), x, y, srcx, srcy, srcwidth, srcheight, srcUnit))
-    End Function
-    
+        
     Function DrawImage(image As Image, ByVal x!, ByVal y!, _
             ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit) As GpStatus
         Return SetStatus(gr.DrawImagePointRect(GetNative(image), x, y, srcx, srcy, srcwidth, srcheight, srcUnit))
     End Function
-
-    Function DrawImage(image As Image, destRect As GpRectF, _
-                        ByVal srcx#, ByVal srcy#, ByVal srcwidth#, ByVal srcheight#, ByVal srcUnit As GpUnit, _
-                        Optional imageAttributes As ImageAttributes = Nothing, _
-                        Optional ByVal callback As LongPtr, _
-                        Optional ByVal callbackData As LongPtr) As GpStatus
-        Return SetStatus(gr.DrawImageRectRect( _
-            GetNative(image), _
-            destRect.X, destRect.Y, destRect.Width, destRect.Height, _
-            srcx, srcy, srcwidth, srcheight, srcUnit, _
-            GetNative(imageAttributes), callback, callbackData))
-    End Function
-    
+  
     Function DrawImage(image As Image, destRect As GpRectF, _
                         ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit, _
                         Optional imageAttributes As ImageAttributes = Nothing, _
@@ -760,16 +707,6 @@ Class Graphics
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
             srcx, srcy, srcwidth, srcheight, srcUnit, _
             GetNative(imageAttributes), callback, callbackData))
-    End Function
-    
-    Function DrawImage(image As Image, destPoints() As GpPointF, _
-                    ByVal srcx#, ByVal srcy#, ByVal srcwidth#, ByVal srcheight#, ByVal srcUnit As GpUnit, _
-                    Optional imageAttributes As ImageAttributes = Nothing, _
-                    Optional ByVal callback As LongPtr = vbNullPtr, _
-                    Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
-        Return DrawImage(image, destPoints(LBound(destPoints)), Len(destPoints), _
-                    srcx, srcy, srcwidth, srcheight, srcUnit, _
-                    imageAttributes, callback, callbackData)
     End Function
     
     Function DrawImage(image As Image, destPoints() As GpPointF, _

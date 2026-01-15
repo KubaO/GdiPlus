@@ -14,7 +14,7 @@ Class GdiPlusTestForm
         Dim gr As Any = Graphics(hDC)
         Dim size! = If(ScaleWidth < ScaleHeight, ScaleWidth, ScaleHeight)
         Dim pPen As Any = Pen(CColor.Firebrick, 1)
-        gr.FillRectangle(CType(Of Brush)(SolidBrush(CColor.White)), 0, 0, ScaleWidth, ScaleHeight)
+        gr.FillRectangle(SolidBrush(CColor.White), 0, 0, ScaleWidth, ScaleHeight)
         gr.TranslateTransform(size / 2, size / 2)
         gr.ScaleTransform(size / 200, size / 200)
         
