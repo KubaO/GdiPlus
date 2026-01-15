@@ -121,7 +121,7 @@ Class ImageAttributes
     End Function
 
     Function SetOutputChannelColorProfile(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
-        Return SetStatus(GdipSetImageAttributesOutputChannelColorProfile(ia, type, False, vbNullPtr))
+        Return SetStatus(GdipSetImageAttributesOutputChannelColorProfile(ia, type, False, 0))
     End Function
 
     Function SetRemapTable(map() As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
@@ -133,7 +133,7 @@ Class ImageAttributes
     End Function
 
     Function ClearRemapTable(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
-        Return SetStatus(GdipSetImageAttributesRemapTable2(ia, type, False, 0, vbNullPtr))
+        Return SetStatus(GdipSetImageAttributesRemapTable2(ia, type, False, 0, 0))
     End Function
     
     Function SetBrushRemapTable(ByVal mapSize&, map As ColorMap) As GpStatus

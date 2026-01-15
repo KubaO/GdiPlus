@@ -41,11 +41,11 @@ Module GdipColor
     '
     ' Color values are not premultiplied.
     
-    Public Function Color(ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+    Public Function Color(ByVal r&, ByVal g&, ByVal b&) As Color
         Color.argb = MakeARGB(255, r, g, b)
     End Function
     
-    Public Function Color(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Color
+    Public Function Color(ByVal a&, ByVal r&, ByVal g&, ByVal b&) As Color
         Color.argb = MakeARGB(a, r, g, b)
     End Function
     
@@ -129,11 +129,12 @@ Module GdipColor
         End Property
         
         Sub SetFromCOLORREF(ByVal rgb As Long)
-            Me.argb = MakeARGB(255, CByte(rgb >> RedShift), CByte(RGB_G(rgb >> GreenShift)), CByte(rgb >> BlueShift))
+            ' Yes, RGB_B..RGB_R are not named correctly for this ARGB format, but they do the job.
+            Me.argb = MakeARGB(255, RGB_B(rgb), RGB_G(rgb), RGB_R(rgb))
         End Sub
         
-        Function ToCOLORREF() As Long
-            Return RGB(Me.Red, Me.Green, Me.Blue)
+        Function AsCOLORREF() As Long
+            Return Me.argb And &h00FF_FFFF
         End Function
     End Type
     
@@ -141,11 +142,11 @@ Module GdipColor
         FromCOLORREF.SetFromCOLORREF(rgb)
     End Function
     
-    Public Function MakeARGB(ByVal a As Byte, ByVal r As Byte, ByVal g As Byte, ByVal b As Byte) As Long
-        MakeARGB = ((CLng(b)) << BlueShift) Or _
-                ((CLng(g)) << GreenShift) Or _
-                ((CLng(r)) << RedShift) Or _
-                ((CLng(a)) << AlphaShift)
+    Public Function MakeARGB(ByVal a&, ByVal r&, ByVal g&, ByVal b&) As Long
+        MakeARGB = ((b And &hFF) << BlueShift) Or _
+                ((g And &hFF) << GreenShift) Or _
+                ((r And &hFF) << RedShift) Or _
+                ((a And &hFF) << AlphaShift)
     End Function
     
     '----------------------------------------------------------------------------

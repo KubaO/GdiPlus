@@ -617,14 +617,14 @@ Class Graphics
         Return SetStatus(gr.MeasureString( _
             StrPtr(string), Len(string), GetNative(font), _
             rect, GetNative(stringFormat), boundingBox, _
-            vbNullPtr, vbNullPtr))
+            ByVal 0, 0))
     End Function
 
     Function MeasureString(ByVal string$, font As Font, layoutRect As GpRectF, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureString( _
             StrPtr(string), Len(string), GetNative(font), _
             layoutRect, GpStringFormat(), boundingBox, _
-            vbNullPtr, vbNullPtr))
+            0, 0))
     End Function
     
     Function MeasureString(ByVal string$, font As Font, origin As GpPointF, boundingBox As GpRectF) As GpStatus
@@ -632,7 +632,7 @@ Class Graphics
         Return SetStatus(gr.MeasureString( _
             StrPtr(string), Len(string), GetNative(font), _
             rect, GpStringFormat(), boundingBox, _
-            vbNullPtr, vbNullPtr))
+            0, 0))
     End Function
     
     Function MeasureCharacterRanges(ByVal string$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, _
@@ -852,7 +852,7 @@ Class Graphics
             GetNative(image), _
             destRect.X, destRect.Y, destRect.Width, destRect.Height, _
             sourceRect.X, sourceRect.Y, sourceRect.Width, sourceRect.Height, srcUnit, _
-            GetNative(imageAttributes), vbNullPtr, vbNullPtr))
+            GetNative(imageAttributes), 0, 0))
     End Function
 
     Function DrawImage(image As Image, sourceRect As GpRectF, xForm As Matrix, effect As Effect, _

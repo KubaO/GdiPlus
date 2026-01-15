@@ -29,36 +29,36 @@ Class Bitmap
     End Sub
     
     Sub New(ByVal size As GpSizeF, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
-        NewImpl(size.Width, size.Height, stride, format, scan0)
+        NewImpl2(size.Width, size.Height, stride, format, scan0)
     End Sub
     
     Sub New(ByVal width!, ByVal height!, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
-        NewImpl(width, height, stride, format, scan0)
+        NewImpl2(width, height, stride, format, scan0)
     End Sub
     
     Sub New(ByVal size As GpSizeF, ByVal format As PixelFormat = PixelFormat32bppARGB)
-        NewImpl(size.Width, size.Height, 0, format, vbNullPtr)
+        NewImpl2(size.Width, size.Height, 0, format, ByVal 0)
     End Sub
     
     Sub New(ByVal width!, ByVal height!, ByVal format As PixelFormat = PixelFormat32bppARGB)
-        NewImpl(width, height, 0, format, vbNullPtr)
+        NewImpl2(width, height, 0, format, ByVal 0)
     End Sub
     
     Sub New(ByVal size As GpSizeF, target As Graphics)
-        NewImpl(size.Width, size.Height, target)
+        NewImpl1(size.Width, size.Height, target)
     End Sub
     
     Sub New(ByVal width!, ByVal height!, target As Graphics)
-        NewImpl(width, height, target)
+        NewImpl1(width, height, target)
     End Sub
     
-    Private Sub NewImpl(ByVal width!, ByVal height!, target As Graphics)
+    Private Sub NewImpl1(ByVal width!, ByVal height!, target As Graphics)
         Dim nativeBitmap As GpBitmap
         LastStatus = GdipCreateBitmapFromGraphics(width, height, GetNative(target), nativeBitmap)
         SetNativeBitmap(nativeBitmap)
     End Sub
     
-    Private Sub NewImpl(ByVal width!, ByVal height!, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
+    Private Sub NewImpl2(ByVal width!, ByVal height!, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
         Dim nativeBitmap As GpBitmap
         LastStatus = GdipCreateBitmapFromScan0(width, height, stride, format, scan0, nativeBitmap)
         SetNativeBitmap(nativeBitmap)
@@ -112,7 +112,7 @@ Class Bitmap
     Function ApplyEffect(effect As Effect, roi As GpRect) As GpStatus
         Dim auxData As LongPtr
         Dim auxDataSize&
-        If effect.AuxData <> 0 Then effect.SetAuxData(vbNullPtr, 0)
+        If effect.AuxData <> 0 Then effect.SetAuxData(0, 0)
         SetStatus(GdipBitmapApplyEffect(Native, GetNative(effect), _
                 roi.AsRECT(), effect.UseAuxData, auxData, auxDataSize))
         effect.SetAuxData(auxData, auxDataSize)
@@ -303,7 +303,7 @@ Module GdipBitmap
             j += 1
         Next
         
-        If effect.AuxData <> 0 Then effect.SetAuxData(vbNullPtr, 0)
+        If effect.AuxData <> 0 Then effect.SetAuxData(0, 0)
         
         Dim auxData As LongPtr
         Dim auxDataSize&

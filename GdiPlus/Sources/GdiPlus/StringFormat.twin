@@ -101,11 +101,11 @@ Class StringFormat
     End Function
     
     Property Get DigitSubstitutionLanguage() As LANGID
-        SetStatus(GdipGetStringFormatDigitSubstitution(sf, DigitSubstitutionLanguage, vbNullPtr))
+        SetStatus(GdipGetStringFormatDigitSubstitution(sf, DigitSubstitutionLanguage, 0))
     End Property
     
     Property Get DigitSubstitutionMethod() As GpStringDigitSubstitute
-        SetStatus(GdipGetStringFormatDigitSubstitution(sf, vbNullPtr, DigitSubstitutionMethod))
+        SetStatus(GdipGetStringFormatDigitSubstitution(sf, 0, DigitSubstitutionMethod))
     End Property
     
     Property Let Trimming(ByVal trimming As GpStringTrimming)

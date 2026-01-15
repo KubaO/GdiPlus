@@ -22,6 +22,7 @@ Private Module GdipImplementation
         sa.Bounds.cElements = count
     End Sub
     
+#If 1 Then
     [Description("Returns a static SAFEARRAY1D that refers to data.")]
     Function StaticSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
         Dim saPtr As LongPtr
@@ -29,7 +30,9 @@ Private Module GdipImplementation
         GetMemPtr(VarPtr(StaticSA), saPtr)
         SetStaticSA(ByVal saPtr, LenB(Of T), data, count)
     End Function
+#End If
     
+#If 1 Then
     [Description("Redims an array from lbound to ubound." & vbcrlf & _
         "Ensures that total allocated size is at least requiredByteSize.")]
     Sub ReDimOversized(Of T)(array() As T, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&)
@@ -48,6 +51,28 @@ Private Module GdipImplementation
         ' The allocated memory for the structure is potentially larger and can hold at 
         ' least requiredbyteSize bytes.
     End Sub
+#End If
+
+#If 0 Then
+    [Description("Redims an array from lbound to ubound." & vbcrlf & _
+        "Ensures that total allocated size is at least requiredByteSize.")]
+    Sub ReDimOversized(array() As ImageCodecInfo, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&)
+        Dim numElements& = ubound - lbound + 1
+        Dim itemSize& = LenB(Of ImageCodecInfo)
+            
+        Dim arrayCount& = ((requiredByteSize + itemSize - 1) / itemSize)
+        If arrayCount < numElements Then arrayCount = numElements
+                    
+        ReDim array(lbound To lbound + arrayCount - 1)
+        Dim arrayAddr As LongPtr
+        GetMemPtr(VarPtr(array), arrayAddr)
+            
+        SetCElements(ByVal arrayAddr, numElements)
+        ' The SAFEARRAY structure's bounds reflect the number of elements.
+        ' The allocated memory for the structure is potentially larger and can hold at 
+        ' least requiredbyteSize bytes.
+    End Sub
+#End If
     
     Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
         Return ((ptr + alignment& - 1) / alignment) * alignment
@@ -58,10 +83,29 @@ Private Module GdipImplementation
         SetStaticSA(ByVal (data + alignedSize), elementSize, data, count)
     End Sub
     
+#If 1 Then
     Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
         Dim alignedSize& = AlignTo(count * LenB(Of T), 8)
         PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
     End Function
+#End If
+    
+#If 0 Then
+    Function GetStaticTrailingSAOfRECT(ByVal data As LongPtr, ByVal count&) As RECT()
+        Dim alignedSize& = AlignTo(count * LenB(Of RECT), 8)
+        PutMemPtr(VarPtr(GetStaticTrailingSAOfRECT), data + alignedSize)
+    End Function
+    
+    Function GetStaticTrailingSAOfByte(ByVal data As LongPtr, ByVal count&) As Byte()
+        Dim alignedSize& = AlignTo(count * LenB(Of Byte), 8)
+        PutMemPtr(VarPtr(GetStaticTrailingSAOfByte), data + alignedSize)
+    End Function
+    
+    Function GetStaticTrailingSAOfGpPointF(ByVal data As LongPtr, ByVal count&) As GpPointF()
+        Dim alignedSize& = AlignTo(count * LenB(Of GpPointF), 8)
+        PutMemPtr(VarPtr(GetStaticTrailingSAOfGpPointF), data + alignedSize)
+    End Function
+#End If
     
     [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it.")]
     Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count As LongPtr) As GpStatus

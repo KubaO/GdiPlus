@@ -48,7 +48,7 @@ Class Metafile
     ' Record a metafile to memory.
     Sub New(ByVal referenceHdc As LongPtr, ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
-        LastStatus = GdipRecordMetafileN(referenceHdc, type, vbNullPtr, MetafileFrameUnitGdi, description, metafile)
+        LastStatus = GdipRecordMetafileN(referenceHdc, type, 0, MetafileFrameUnitGdi, description, metafile)
         SetNativeMetafile(metafile)
     End Sub
 
@@ -71,7 +71,7 @@ Class Metafile
     Sub New(ByVal fileName$, ByVal referenceHdc As LongPtr, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
-        LastStatus = GdipRecordMetafileFileNameN(StrPtr(fileName), referenceHdc, type, vbNullPtr, MetafileFrameUnitGdi, description, metafile)
+        LastStatus = GdipRecordMetafileFileNameN(StrPtr(fileName), referenceHdc, type, 0, MetafileFrameUnitGdi, description, metafile)
         SetNativeMetafile(metafile)
     End Sub
     
@@ -94,7 +94,7 @@ Class Metafile
     Sub New(stream As IStream, ByVal referenceHdc As LongPtr, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
-        LastStatus = GdipRecordMetafileStreamN(stream, referenceHdc, type, vbNullPtr, MetafileFrameUnitGdi, description, metafile)
+        LastStatus = GdipRecordMetafileStreamN(stream, referenceHdc, type, 0, MetafileFrameUnitGdi, description, metafile)
         SetNativeMetafile(metafile)
     End Sub
     

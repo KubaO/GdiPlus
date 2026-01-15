@@ -13,7 +13,7 @@ Class GdiPlusUser
         If gdiPlusRefCount = 1 Or gdiPlusToken = -1 Then
             Dim gsi As GdiplusStartupInput
             gsi.GdiplusVersion = 1
-            LastStatus = GdiplusStartup(gdiPlusToken, gsi, vbNullPtr)
+            LastStatus = GdiplusStartup(gdiPlusToken, gsi, 0)
         End If
     End Sub
     
