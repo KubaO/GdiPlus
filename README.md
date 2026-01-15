@@ -2,9 +2,7 @@
 
 This is a very early preview of a higher-level GDI+ interface for twinBASIC. It is modeled after the C++ wrapper that is the official GDI+ API from Microsoft.
 
-Since this project is under heavy development, it is set up as a simple .EXE project, not a TWINPACK like would be in order for shareable tB packages.
-
-The benefit of .EXE during development is that demo/test code can be run instantly.
+To get the `.twinpack` package file, open the project and build it.
 
 TO DO:
 
