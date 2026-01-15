@@ -7,7 +7,7 @@
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\${ProjectName}",
 	"project.exportPathIsV2": true,
-	"project.featureFlagsUI": 0,
+	"project.featureFlagsUI": 4097,
 	"project.featureFlagsUI2": 4294954496,
 	"project.forceDpiAwarenessAtStartup": "SYSTEM_DPI_AWARE",
 	"project.id": "{36057D8B-2239-4205-A267-309AE927D5B7}",
@@ -69,7 +69,7 @@
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 11,
+	"project.versionRevision": 13,
 	"project.warnings": {
 		"errors": [],
 		"hints": [],

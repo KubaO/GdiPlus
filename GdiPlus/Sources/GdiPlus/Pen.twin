@@ -44,6 +44,16 @@ Class Pen
         SetStatus(GdipGetPenWidth(pn, Width))
     End Property
     
+    Sub Set(ByVal color As Color, ByVal width!)
+        Me.Color = color
+        Me.Width = width
+    End Sub
+
+    Sub Set(ByVal rgb&, ByVal width!)
+        Me.RGB = rgb
+        Me.Width = width
+    End Sub
+    
     ' Set/get line caps: start, End, and dash
     ' Line cap and join APIs by using LineCap and LineJoin enums.
     
