@@ -53,38 +53,46 @@ Module GdipColor
         Color.argb = argb
     End Function
     
+    Private Sub CheckColor()
+        Dim a As Any = Color(&hFFEEDDCC)
+        Debug.Print a.Alpha ; " " ; &hff
+        Debug.Print a.Red ; " " ; &hEE
+        Debug.Print a.Green ; " " ; &hDD
+        Debug.Print a.Blue ; " " ; &hCC
+    End Sub
+    
     Type Color
         argb As ARGB
         
-        Property Get Alpha() As Byte
-            Return CByte(Me.argb >> AlphaShift)
+        Property Get Alpha() As Integer
+            Return RGBA_A(Me.argb)
         End Property
         
-        Property Get A() As Byte
+        Property Get A() As Integer
             Return Me.Alpha
         End Property
         
-        Property Get Red() As Byte
-            Return CByte(Me.argb >> RedShift)
+        Property Get Red() As Integer
+            Return RGB_B(Me.argb)  ' Sic
         End Property
         
-        Property Get R() As Byte
+        Property Get R() As Integer
             Return Me.Red
         End Property
         
-        Property Get Green() As Byte
-            Return CByte(Me.argb >> GreenShift)
+        Property Get Green() As Integer
+            Return RGB_G(Me.argb)
         End Property
         
-        Property Get G() As Byte
+        Property Get G() As Integer
             Return Me.Green
         End Property
         
-        Property Get Blue() As Byte
-            Return CByte(Me.argb >> BlueShift)
+        Property Get Blue() As Integer
+            Return RGB_R(Me.argb)  ' Sic
         End Property
         
-        Property Get B() As Byte
+        Property Get B() As Integer
             Return Me.Blue
         End Property
         
@@ -124,6 +132,10 @@ Module GdipColor
             Me.Blue = b
         End Property
         
+        Property Get Value() As ARGB
+            Return Me.argb
+        End Property
+        
         Property Let Value(ByVal argb As ARGB)
             Me.argb = argb
         End Property
@@ -136,6 +148,18 @@ Module GdipColor
         Function AsCOLORREF() As Long
             Return Me.argb And &h00FF_FFFF
         End Function
+        
+        Property Get RGB() As Long
+            Return Me.argb And &h00FF_FFFF
+        End Property
+        
+        Property Get BGR() As Long
+            Return MakeARGB(0, Me.B, Me.G, Me.R)
+        End Property
+        
+        Property Let BGR(ByVal bgr&)
+            Me.argb = MakeARGB(255, RGB_R(bgr), RGB_G(bgr), RGB_B(bgr))
+        End Property
     End Type
     
     Function FromCOLORREF(ByVal rgb As Long) As Color

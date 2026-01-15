@@ -374,12 +374,8 @@ Module Types
             Me.Height += 2 * dy
         End Sub
         
-        Sub Inflate(point As GpPointF)
-            'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
-            Me.X -= point.X
-            Me.Y -= point.Y
-            Me.Width += 2 * point.X
-            Me.Height += 2 * point.Y
+        Sub InflatePt(point As GpPointF)
+            Me.Inflate(point.X, point.Y)
         End Sub
         
         Function Intersect(rect As GpRectF) As Boolean
