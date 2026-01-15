@@ -105,7 +105,7 @@ Class Image
     End Property
     
     Property Let Palette(palette() As ColorPalette)
-        SetStatus(GdipGetImagePalette(im, palette(LBound(palette)), Len(palette)))
+        SetStatus(GdipGetImagePalette(im, palette(LBound(palette)), ArrayLen(palette)))
     End Property
     
     Function GetPalette() As ColorPalette()

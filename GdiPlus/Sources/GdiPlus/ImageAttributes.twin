@@ -125,7 +125,7 @@ Class ImageAttributes
     End Function
 
     Function SetRemapTable(map() As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
-        Return SetStatus(GdipSetImageAttributesRemapTable(ia, type, True, Len(map), map(LBound(map))))
+        Return SetStatus(GdipSetImageAttributesRemapTable(ia, type, True, ArrayLen(map), map(LBound(map))))
     End Function
 
     Function SetRemapTable(ByVal mapSize&, map As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus

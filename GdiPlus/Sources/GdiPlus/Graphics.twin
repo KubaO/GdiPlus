@@ -189,7 +189,7 @@ Class Graphics
     End Property
             
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPointF()) As GpStatus
-        Return SetStatus(gr.TransformPoints(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), Len(pts)))
+        Return SetStatus(gr.TransformPoints(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), ArrayLen(pts)))
     End Function
     
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPointF, ByVal count&) As GpStatus
@@ -197,7 +197,7 @@ Class Graphics
     End Function
 
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPoint()) As GpStatus
-        Return SetStatus(gr.TransformPointsI(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), Len(pts)))
+        Return SetStatus(gr.TransformPointsI(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), ArrayLen(pts)))
     End Function
     
     Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPoint, ByVal count&) As GpStatus
@@ -234,7 +234,7 @@ Class Graphics
     End Function
     
     Function DrawLines(pen As Pen, points As GpPointF()) As GpStatus
-        Return SetStatus(gr.DrawLines(GetNative(pen), points(LBound(points)), Len(points)))
+        Return SetStatus(gr.DrawLines(GetNative(pen), points(LBound(points)), ArrayLen(points)))
     End Function
     
     Function DrawLines(pen As Pen, points As GpPointF, ByVal count&) As GpStatus
@@ -254,7 +254,7 @@ Class Graphics
     End Function
     
     Function DrawLines(pen As Pen, points As GpPoint()) As GpStatus
-        Return SetStatus(gr.DrawLinesI(GetNative(pen), points(LBound(points)), Len(points)))
+        Return SetStatus(gr.DrawLinesI(GetNative(pen), points(LBound(points)), ArrayLen(points)))
     End Function
     
     Function DrawLines(pen As Pen, points As GpPoint, ByVal count&) As GpStatus
@@ -597,20 +597,20 @@ Class Graphics
     
     Function MeasureCharacterRanges(ByVal string$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, _
             regions() As Region) As GpStatus
-        If VarPtr(regions) = 0 OrElse Len(regions) = 0 Then
+        If VarPtr(regions) = 0 OrElse ArrayLen(regions) = 0 Then
             Return InvalidParameter
         End If
         Dim status As GpStatus
         Dim nativeRegions() As GpRegion
         
-        ReDim nativeRegions(1 To Len(regions))
-        For i As Integer = 1 To Len(regions)
+        ReDim nativeRegions(1 To ArrayLen(regions))
+        For i As Integer = 1 To ArrayLen(regions)
             nativeRegions(i) = GetNative(regions(i))
         Next
         status = SetStatus(gr.MeasureCharacterRanges( _
             StrPtr(string), Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), _
-            Len(regions), nativeRegions(1)))
+            ArrayLen(regions), nativeRegions(1)))
         Erase nativeRegions
         Return status
     End Function
@@ -671,7 +671,7 @@ Class Graphics
     End Function
     
     Function DrawImage(image As Image, destPoints() As GpPointF) As GpStatus
-        Return DrawImage(image, destPoints(LBound(destPoints)), Len(destPoints))
+        Return DrawImage(image, destPoints(LBound(destPoints)), ArrayLen(destPoints))
     End Function
     
     Function DrawImage(image As Image, destPoints As GpPointF, ByVal count&) As GpStatus
@@ -682,7 +682,7 @@ Class Graphics
     End Function
 
     Function DrawImage(image As Image, destPoints() As GpPoint) As GpStatus
-        Return DrawImage(image, destPoints(LBound(destPoints)), Len(destPoints))
+        Return DrawImage(image, destPoints(LBound(destPoints)), ArrayLen(destPoints))
     End Function
     
     Function DrawImage(image As Image, destPoints As GpPoint, ByVal count&) As GpStatus
@@ -714,7 +714,7 @@ Class Graphics
                     Optional imageAttributes As ImageAttributes = Nothing, _
                     Optional ByVal callback As LongPtr = vbNullPtr, _
                     Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
-        Return DrawImage(image, destPoints(LBound(destPoints)), Len(destPoints), _
+        Return DrawImage(image, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
                     srcx, srcy, srcwidth, srcheight, srcUnit, _
                     imageAttributes, callback, callbackData)
     End Function
@@ -753,7 +753,7 @@ Class Graphics
                     Optional imageAttributes As ImageAttributes = Nothing, _
                     Optional ByVal callback As LongPtr = vbNullPtr, _
                     Optional ByVal callbackData As LongPtr = vbNullPtr) As GpStatus
-        Return DrawImage(image, destPoints(LBound(destPoints)), Len(destPoints), _
+        Return DrawImage(image, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
                     srcx, srcy, srcwidth, srcheight, srcUnit, _
                     imageAttributes, callback, callbackData)
     End Function
@@ -831,7 +831,7 @@ Class Graphics
 
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPointF, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr, Optional imageAttributes As ImageAttributes) As GpStatus
-        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), Len(destPoints), _
+        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
             callback, callBackData, imageAttributes)
     End Function
     
@@ -845,7 +845,7 @@ Class Graphics
     
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPoint, _
             ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr, Optional imageAttributes As ImageAttributes) As GpStatus
-        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), Len(destPoints), _
+        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
             callback, callBackData, imageAttributes)
     End Function
     
@@ -895,7 +895,7 @@ Class Graphics
     
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPointF, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr, Optional imageAttributes As ImageAttributes) As GpStatus
-        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), Len(destPoints), srcRect, srcUnit, _
+        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), srcRect, srcUnit, _
                 callback, callBackData, imageAttributes)
     End Function
     
@@ -910,7 +910,7 @@ Class Graphics
 
     Function EnumerateMetaFile(metafile As Metafile, destPoints() As GpPoint, srcRect As GpRect, ByVal srcUnit As GpUnit, _
                     ByVal callback As EnumerateMetafileProc, Optional ByVal callBackData As LongPtr, Optional imageAttributes As ImageAttributes) As GpStatus
-        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), Len(destPoints), srcRect, srcUnit, _
+        Return EnumerateMetaFile(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), srcRect, srcUnit, _
                 callback, callBackData, imageAttributes)
     End Function
     

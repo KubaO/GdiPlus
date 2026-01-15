@@ -138,8 +138,8 @@ Class LinearGradientBrush
     End Property
     
     Function SetBlend(blendFactors!(), blendPositions!()) As GpStatus
-        Dim count& = Len(blendFactors)
-        If Len(blendPositions) <> count Then Return SetStatus(InvalidParameter)
+        Dim count& = ArrayLen(blendFactors)
+        If ArrayLen(blendPositions) <> count Then Return SetStatus(InvalidParameter)
         Return SetStatus(GdipSetLineBlend(br, _
             blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
     End Function
@@ -164,8 +164,8 @@ Class LinearGradientBrush
     End Property
     
     Function SetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
-        Dim count& = Len(presetColors)
-        If count <> Len(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
+        Dim count& = ArrayLen(presetColors)
+        If count <> ArrayLen(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
         Return SetStatus(GdipSetLinePresetBlend(br, _
             presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
     End Function

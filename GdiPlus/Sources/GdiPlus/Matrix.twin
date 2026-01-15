@@ -120,11 +120,11 @@ Class Matrix
     End Function
     
     Function TransformPoints(pts() As GpPointF) As GpStatus
-        Return SetStatus(GdipTransformMatrixPoints(mx, pts(LBound(pts)), Len(pts)))
+        Return SetStatus(GdipTransformMatrixPoints(mx, pts(LBound(pts)), ArrayLen(pts)))
     End Function
 
     Function TransformPoints(pts() As GpPoint) As GpStatus
-        Return SetStatus(GdipTransformMatrixPointsI(mx, pts(LBound(pts)), Len(pts)))
+        Return SetStatus(GdipTransformMatrixPointsI(mx, pts(LBound(pts)), ArrayLen(pts)))
     End Function
     
     Function TransformPoints(pts As GpPointF, ByVal count& = 1) As GpStatus
@@ -136,11 +136,11 @@ Class Matrix
     End Function
     
     Function TransformVectors(pts() As GpPointF) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts(LBound(pts)), Len(pts)))
+        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts(LBound(pts)), ArrayLen(pts)))
     End Function
 
     Function TransformVectors(pts() As GpPoint) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts(LBound(pts)), Len(pts)))
+        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts(LBound(pts)), ArrayLen(pts)))
     End Function
     
     Function TransformVectors(pts As GpPointF, ByVal count& = 1) As GpStatus

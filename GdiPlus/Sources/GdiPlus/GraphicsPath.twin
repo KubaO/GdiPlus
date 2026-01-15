@@ -23,8 +23,8 @@ Class GraphicsPath
     End Sub
     
     Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
-        Debug.Assert Len(points) = Len(types)
-        LastStatus = GdipCreatePath2(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
+        Debug.Assert ArrayLen(points) = ArrayLen(types)
+        LastStatus = GdipCreatePath2(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa)
     End Sub
     
     Sub New(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
@@ -32,8 +32,8 @@ Class GraphicsPath
     End Sub
 
     Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
-        Debug.Assert Len(points) = Len(types)
-        LastStatus = GdipCreatePath2I(points(LBound(points)), types(LBound(types)), Len(points), fillMode, pa)
+        Debug.Assert ArrayLen(points) = ArrayLen(types)
+        LastStatus = GdipCreatePath2I(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa)
     End Sub
     
     Sub New(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
@@ -107,7 +107,7 @@ Class GraphicsPath
     End Function
     
     Function AddLines(points() As GpPointF) As GpStatus
-        Return AddLines(points(LBound(points)), Len(points))
+        Return AddLines(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddLines(points As GpPointF, ByVal count&) As GpStatus
@@ -123,7 +123,7 @@ Class GraphicsPath
     End Function
     
     Function AddLines(points() As GpPoint) As GpStatus
-        Return AddLines(points(LBound(points)), Len(points))
+        Return AddLines(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddLines(points As GpPoint, ByVal count&) As GpStatus
@@ -155,7 +155,7 @@ Class GraphicsPath
     End Function
 
     Function AddBeziers(points() As GpPointF) As GpStatus
-        Return SetStatus(pa.AddPathBeziers(points(LBound(points)), Len(points)))
+        Return SetStatus(pa.AddPathBeziers(points(LBound(points)), ArrayLen(points)))
     End Function
     
     Function AddBeziers(points As GpPointF, ByVal count&) As GpStatus
@@ -171,7 +171,7 @@ Class GraphicsPath
     End Function
 
     Function AddBeziers(points() As GpPoint) As GpStatus
-        Return SetStatus(pa.AddPathBeziersI(points(LBound(points)), Len(points)))
+        Return SetStatus(pa.AddPathBeziersI(points(LBound(points)), ArrayLen(points)))
     End Function
     
     Function AddBeziers(points As GpPoint, ByVal count&) As GpStatus
@@ -179,7 +179,7 @@ Class GraphicsPath
     End Function
     
     Function AddCurve(points() As GpPointF) As GpStatus
-        Return AddCurve(points(LBound(points)), Len(points))
+        Return AddCurve(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddCurve(points As GpPointF, ByVal count&) As GpStatus
@@ -187,7 +187,7 @@ Class GraphicsPath
     End Function
     
     Function AddCurve(points() As GpPointF, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathCurve2(points(LBound(points)), Len(points), tension))
+        Return SetStatus(pa.AddPathCurve2(points(LBound(points)), ArrayLen(points), tension))
     End Function
     
     Function AddCurve(points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
@@ -195,7 +195,7 @@ Class GraphicsPath
     End Function
 
     Function AddCurve(points() As GpPointF, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathCurve3(points(LBound(points)), Len(points), offset, numberOfSegments, tension))
+        Return SetStatus(pa.AddPathCurve3(points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension))
     End Function
     
     Function AddCurve(points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
@@ -203,7 +203,7 @@ Class GraphicsPath
     End Function
     
     Function AddCurve(points() As GpPoint) As GpStatus
-        Return AddCurve(points(LBound(points)), Len(points))
+        Return AddCurve(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddCurve(points As GpPoint, ByVal count&) As GpStatus
@@ -211,7 +211,7 @@ Class GraphicsPath
     End Function
     
     Function AddCurve(points() As GpPoint, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathCurve2I(points(LBound(points)), Len(points), tension))
+        Return SetStatus(pa.AddPathCurve2I(points(LBound(points)), ArrayLen(points), tension))
     End Function
     
     Function AddCurve(points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
@@ -219,7 +219,7 @@ Class GraphicsPath
     End Function
 
     Function AddCurve(points() As GpPoint, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathCurve3I(points(LBound(points)), Len(points), offset, numberOfSegments, tension))
+        Return SetStatus(pa.AddPathCurve3I(points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension))
     End Function
     
     Function AddCurve(points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
@@ -227,7 +227,7 @@ Class GraphicsPath
     End Function
     
     Function AddClosedCurve(points() As GpPointF) As GpStatus
-        Return AddClosedCurve(points(LBound(points)), Len(points))
+        Return AddClosedCurve(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddClosedCurve(points As GpPointF, ByVal count&) As GpStatus
@@ -235,7 +235,7 @@ Class GraphicsPath
     End Function
     
     Function AddClosedCurve(points() As GpPointF, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathClosedCurve2(points(LBound(points)), Len(points), tension))
+        Return SetStatus(pa.AddPathClosedCurve2(points(LBound(points)), ArrayLen(points), tension))
     End Function
     
     Function AddClosedCurve(points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
@@ -243,7 +243,7 @@ Class GraphicsPath
     End Function
 
     Function AddClosedCurve(points() As GpPoint) As GpStatus
-        Return SetStatus(pa.AddPathClosedCurveI(points(LBound(points)), Len(points)))
+        Return SetStatus(pa.AddPathClosedCurveI(points(LBound(points)), ArrayLen(points)))
     End Function
     
     Function AddClosedCurve(points As GpPoint, ByVal count&) As GpStatus
@@ -251,7 +251,7 @@ Class GraphicsPath
     End Function
     
     Function AddClosedCurve(points() As GpPoint, ByVal tension!) As GpStatus
-        Return SetStatus(pa.AddPathClosedCurve2I(points(LBound(points)), Len(points), tension))
+        Return SetStatus(pa.AddPathClosedCurve2I(points(LBound(points)), ArrayLen(points), tension))
     End Function
     
     Function AddClosedCurve(points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
@@ -263,7 +263,7 @@ Class GraphicsPath
     End Function
 
     Function AddRectangles(rects() As GpRectF) As GpStatus
-        Return SetStatus(pa.AddPathRectangles(rects(LBound(rects)), Len(rects)))
+        Return SetStatus(pa.AddPathRectangles(rects(LBound(rects)), ArrayLen(rects)))
     End Function
     
     Function AddRectangles(rects As GpRectF, ByVal count&) As GpStatus
@@ -275,7 +275,7 @@ Class GraphicsPath
     End Function
 
     Function AddRectangles(rects() As GpRect) As GpStatus
-        Return SetStatus(pa.AddPathRectanglesI(rects(LBound(rects)), Len(rects)))
+        Return SetStatus(pa.AddPathRectanglesI(rects(LBound(rects)), ArrayLen(rects)))
     End Function
     
     Function AddRectangles(rects As GpRect, ByVal count&) As GpStatus
@@ -315,7 +315,7 @@ Class GraphicsPath
     End Function
     
     Function AddPolygon(points() As GpPointF) As GpStatus
-        Return AddPolygon(points(LBound(points)), Len(points))
+        Return AddPolygon(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddPolygon(points As GpPointF, ByVal count&) As GpStatus
@@ -323,7 +323,7 @@ Class GraphicsPath
     End Function
 
     Function AddPolygon(points() As GpPoint) As GpStatus
-        Return AddPolygon(points(LBound(points)), Len(points))
+        Return AddPolygon(points(LBound(points)), ArrayLen(points))
     End Function
     
     Function AddPolygon(points As GpPoint, ByVal count&) As GpStatus
@@ -404,7 +404,7 @@ Class GraphicsPath
     
     Function Warp(destPoints() As GpPointF, srcRect As GpRectF, Optional matrix As Matrix, _
             Optional warpMode As GpWarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
-        Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints(LBound(destPoints)), Len(destPoints), _
+        Return SetStatus(pa.WarpPath(GetNative(matrix), destPoints(LBound(destPoints)), ArrayLen(destPoints), _
                 srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness))
     End Function
     

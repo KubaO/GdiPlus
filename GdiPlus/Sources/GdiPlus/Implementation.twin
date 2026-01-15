@@ -8,6 +8,10 @@ Private Module GdipImplementation
     Private Const FADF_STATIC = &H2%
     Private Const FADF_FIXEDSIZE = &H10%
 
+    Function ArrayLen(Of T)(array() As T) As Long
+        Return 1 + UBound(array) - LBound(array)
+    End Function
+    
     Sub SetStaticSA(ByRef sa As SAFEARRAY1D, ByVal elementSize&, ByVal data As LongPtr, ByVal count&)
         sa.cDims = 1
         sa.fFeatures = FADF_STATIC + FADF_FIXEDSIZE

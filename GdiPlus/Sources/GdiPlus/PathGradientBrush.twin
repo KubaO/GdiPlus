@@ -10,7 +10,7 @@ Class PathGradientBrush
 
     Sub New(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp)
         Dim brush As GpPathGradient
-        LastStatus = GdipCreatePathGradient(points(LBound(points)), Len(points), wrapMode, brush)
+        LastStatus = GdipCreatePathGradient(points(LBound(points)), ArrayLen(points), wrapMode, brush)
         SetNativePathGradient(brush)
     End Sub
     
@@ -22,7 +22,7 @@ Class PathGradientBrush
 
     Sub New(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp)
         Dim brush As GpPathGradient
-        LastStatus = GdipCreatePathGradientI(points(LBound(points)), Len(points), wrapMode, brush)
+        LastStatus = GdipCreatePathGradientI(points(LBound(points)), ArrayLen(points), wrapMode, brush)
         SetNativePathGradient(brush)
     End Sub
     
@@ -68,10 +68,10 @@ Class PathGradientBrush
     Property Let SurroundColors(colors() As Color)
         Dim count& = PointCount
         If LastResult <> Ok Then Exit Property
-        If Len(colors) > count Then
+        If ArrayLen(colors) > count Then
             SetStatus(InvalidParameter)
         End If
-        count = Len(colors)
+        count = ArrayLen(colors)
         SetStatus(GdipSetPathGradientSurroundColorsWithCount(Native, colors(LBound(colors)), count))
     End Property
     
@@ -133,8 +133,8 @@ Class PathGradientBrush
     End Function
     
     Function SetBlend(blendFactors() As Single, blendPositions() As Single) As GpStatus
-        Dim count& = Len(blendFactors)
-        If count <> Len(blendPositions) Then Return SetStatus(InvalidParameter)
+        Dim count& = ArrayLen(blendFactors)
+        If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
         Return SetStatus(GdipSetPathGradientBlend(Native, _
             blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
     End Function
@@ -154,8 +154,8 @@ Class PathGradientBrush
    
     Function SetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
         If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Then Return SetStatus(InvalidParameter)
-        Dim count& = Len(presetColors)
-        If count <> Len(blendPositions) Then Return SetStatus(InvalidParameter)
+        Dim count& = ArrayLen(presetColors)
+        If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
         Return SetStatus(GdipSetPathGradientPresetBlend(Native, _
             presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
     End Function

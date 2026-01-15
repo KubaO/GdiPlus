@@ -296,7 +296,7 @@ Module GdipBitmap
             ) As GpStatus
         Dim outputNative As GpBitmap
         Dim nativeInputs() As GpBitmap
-        ReDim nativeInputs(1 To Len(inputs))
+        ReDim nativeInputs(1 To ArrayLen(inputs))
         Dim j As Integer = 1
         For i As Integer = LBound(inputs) To UBound(inputs)
             nativeInputs(j) = GetNative(inputs(i))
@@ -308,7 +308,7 @@ Module GdipBitmap
         Dim auxData As LongPtr
         Dim auxDataSize&
         Dim status As GpStatus = GdipBitmapCreateApplyEffect( _
-                nativeInputs(1), Len(nativeInputs), GetNative(effect), _
+                nativeInputs(1), ArrayLen(nativeInputs), GetNative(effect), _
                 ROI, _
                 outputRect, _
                 outputNative, _

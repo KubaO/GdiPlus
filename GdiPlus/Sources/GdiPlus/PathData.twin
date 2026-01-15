@@ -186,7 +186,7 @@ Module GdipPathData
     
     Function GpPathData(points() As TypedPoint) As GpPathData
         Dim i&
-        GpPathData.Allocate(Len(points))
+        GpPathData.Allocate(ArrayLen(points))
         For i = 1 To GpPathData.count
             GpPathData.Point(i) = points(i).pos
             GpPathData.Type(i) = points(i).type

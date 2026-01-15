@@ -66,7 +66,7 @@ Class StringFormat
     End Property
 
     Function SetTabStops(ByVal firstTabOffset!, tabStops!()) As GpStatus
-        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, Len(tabStops), tabStops(LBound(tabStops))))
+        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops))))
     End Function
     
     Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
@@ -80,7 +80,7 @@ Class StringFormat
     Function GetTabStops(firstTabOffset!) As Single()
         Dim tabStops!()
         ReDim tabStops(1 To TabStopCount)
-        SetStatus(GdipGetStringFormatTabStops(sf, Len(tabStops), firstTabOffset, tabStops(1)))
+        SetStatus(GdipGetStringFormatTabStops(sf, ArrayLen(tabStops), firstTabOffset, tabStops(1)))
         Return tabStops
     End Function
     
@@ -117,7 +117,7 @@ Class StringFormat
     End Property
     
     Property Let MeasurableCharacterRanges(ranges() As CharacterRange)
-        SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, Len(ranges), ranges(LBound(ranges))))
+        SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, ArrayLen(ranges), ranges(LBound(ranges))))
     End Property
     
     Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus

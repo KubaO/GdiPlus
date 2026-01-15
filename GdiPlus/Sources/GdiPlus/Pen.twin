@@ -233,7 +233,7 @@ Class Pen
     End Property
     
     Property Let DashPattern(dashArray!())
-        SetStatus(GdipSetPenDashArray(pn, dashArray(LBound(dashArray)), Len(dashArray)))
+        SetStatus(GdipSetPenDashArray(pn, dashArray(LBound(dashArray)), ArrayLen(dashArray)))
     End Property
         
     Property Get DashPattern() As Single()
@@ -255,7 +255,7 @@ Class Pen
     End Property
     
     Property Let CompoundArray(compoundArray() As Single)
-        SetStatus(GdipSetPenCompoundArray(pn, compoundArray(LBound(compoundArray)), Len(compoundArray)))
+        SetStatus(GdipSetPenCompoundArray(pn, compoundArray(LBound(compoundArray)), ArrayLen(compoundArray)))
     End Property
     
     Protected Property Get Native() As GpPen

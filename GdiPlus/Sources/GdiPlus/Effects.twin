@@ -490,7 +490,7 @@ Module GdipEffects
     End Type
     
     Function RedEyeCorrectionParams(areas() As GpRect) As RedEyeCorrectionParams
-        Dim count& = Len(areas)
+        Dim count& = ArrayLen(areas)
         If count > 0 Then
             RedEyeCorrectionParams.Allocate(count)
             Dim dst As LongPtr = RedEyeCorrectionParams.areas
@@ -595,7 +595,7 @@ Module GdipEffects
     End Type
     
     Function ColorLutParams(lutB() As Byte, lutG() As Byte, lutR() As Byte, lutA() As Byte) As ColorLUTParams
-        If Len(lutB) = 256 And Len(lutG) = 256 And Len(lutR) = 256 And Len(lutA) = 256 Then
+        If ArrayLen(lutB) = 256 And ArrayLen(lutG) = 256 And ArrayLen(lutR) = 256 And ArrayLen(lutA) = 256 Then
             vbaCopyBytesRef(256, ColorLutParams.lutB, lutB)
             vbaCopyBytesRef(256, ColorLutParams.lutG, lutG)
             vbaCopyBytesRef(256, ColorLutParams.lutR, lutR)
