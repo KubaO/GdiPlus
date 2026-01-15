@@ -24,12 +24,20 @@ Alias GraphicsState As Long
 Alias GraphicsContainer As Long
 
 Module Types
+    Function GDIPLUS_MIN(ByVal a#, ByVal b#) As Double
+        Return If(a < b, a, b)
+    End Function
+    
     Function GDIPLUS_MIN(ByVal a!, ByVal b!) As Single
         Return If(a < b, a, b)
     End Function
 
     Function GDIPLUS_MIN(ByVal a&, ByVal b&) As Long
         Return If(a < b, a, b)
+    End Function
+    
+    Function GDIPLUS_MAX(ByVal a#, ByVal b#) As Double
+        Return If(a > b, a, b)
     End Function
     
     Function GDIPLUS_MAX(ByVal a!, ByVal b!) As Single

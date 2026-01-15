@@ -68,10 +68,10 @@ Class Bitmap
         Return Clone(rect.X, rect.Y, rect.Width, rect.Height, format)
     End Function
     
-    Function Clone(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal format As PixelFormat) As Bitmap
+    Function CloneI(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal format As PixelFormat) As Bitmap
         Dim dstNative As GpBitmap
         SetStatus(GdipCloneBitmapAreaI(x, y, width, height, format, Native, dstNative))
-        If LastResult = Ok Then Set Clone = New Bitmap(dstNative)
+        If LastResult = Ok Then Set CloneI = New Bitmap(dstNative)
     End Function
     
     Function Clone(rect As GpRectF, ByVal format As PixelFormat) As Bitmap

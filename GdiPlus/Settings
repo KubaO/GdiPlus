@@ -61,6 +61,7 @@
 		}
 	],
 	"project.settingsVersion": 1,
+	"project.startupObject": "GdiPlusTestForm",
 	"project.versionAutoIncrement": "Revision",
 	"project.versionBuild": 0,
 	"project.versionCompanyName": "Sunderland Ober Consulting",
@@ -68,7 +69,7 @@
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 9,
+	"project.versionRevision": 10,
 	"project.warnings": {
 		"errors": [],
 		"hints": [],

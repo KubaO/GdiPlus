@@ -62,7 +62,9 @@ Class TextureBrush
         SetNativeTexture(texture)
     End Sub
     
-    Sub New(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX&, ByVal dstY&, ByVal dstWidth&, ByVal dstHeight&)
+    ' The dummy is a disambiguator. The New TextureBrush() call will always default to the Single-taking signature above.
+    ' This constructor is called from TextureBrushI, which is disambiguated by a suffix.
+    Sub New(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX&, ByVal dstY&, ByVal dstWidth&, ByVal dstHeight&, ByVal dummy&)
         Dim texture As GpTexture
         LastStatus = GdipCreateTexture2I(GetNative(image), wrapmode, _
                 dstX, dstY, dstWidth, dstHeight, texture)
@@ -158,8 +160,8 @@ Module GdipTexture
         Return New TextureBrush(image, wrapmode, dstX, dstY, dstWidth, dstHeight)
     End Function
     
-    Function TextureBrush(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX&, ByVal dstY&, ByVal dstWidth&, ByVal dstHeight&) As TextureBrush
-        Return New TextureBrush(image, wrapmode, dstX, dstY, dstWidth, dstHeight)
+    Function TextureBrushI(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX&, ByVal dstY&, ByVal dstWidth&, ByVal dstHeight&) As TextureBrush
+        Return New TextureBrush(image, wrapmode, dstX, dstY, dstWidth, dstHeight, 0)
     End Function
     
     Type GpTexture

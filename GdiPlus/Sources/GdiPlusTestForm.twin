@@ -1,0 +1,30 @@
+[Description("")]
+[FormDesignerId("CACC580D-ABDE-4E13-A859-1477476164AD")]
+[PredeclaredId]
+Class GdiPlusTestForm
+    ' This form is only used for development purposes, to iterate quickly the API development
+    Dim mUser As GdiPlusUser
+    
+	Sub New()
+        Set mUser = New GdiPlusUser
+	End Sub
+    
+    Sub Paint() Handles Form.Paint, Form.Resize
+        ScaleMode = vbPixels
+        Dim gr As Any = Graphics(hDC)
+        Dim size! = If(ScaleWidth < ScaleHeight, ScaleWidth, ScaleHeight)
+        Dim pPen As Any = Pen(CColor.Firebrick, 1)
+        gr.FillRectangle(CType(Of Brush)(SolidBrush(CColor.White)), 0, 0, ScaleWidth, ScaleHeight)
+        gr.TranslateTransform(size / 2, size / 2)
+        gr.ScaleTransform(size / 200, size / 200)
+        
+        Dim pa As Any = New GraphicsPath()
+        Dim m As Any = New Matrix
+        m.Rotate(10)
+        pa.AddLine(0, 0, 50, 0)
+        pa.Transform(m)
+        pa.AddLine(0, 0, 100, 0)
+        pa.Transform(m)
+        gr.DrawPath(pPen, pa)
+    End Sub
+End Class

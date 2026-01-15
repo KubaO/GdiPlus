@@ -118,7 +118,7 @@ Class GraphicsPath
         Return AddLine(pt1.X, pt1.Y, pt2.X, pt2.Y)
     End Function
     
-    Function AddLine(ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&) As GpStatus
+    Function AddLineI(ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&) As GpStatus
         Return SetStatus(pa.AddPathLineI(x1, y1, x2, y2))
     End Function
     
@@ -142,7 +142,7 @@ Class GraphicsPath
         Return AddArc(rect.X, rect.Y, rect.Width, rect.Height, startAngle, sweepAngle)
     End Function
 
-    Function AddArc(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+    Function AddArcI(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(pa.AddPathArcI(x, y, width, height, startAngle, sweepAngle))
     End Function
     
@@ -166,7 +166,7 @@ Class GraphicsPath
         Return AddBezier(pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y, pt4.X, pt4.Y)
     End Function
     
-    Function AddBezier(ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
+    Function AddBezierI(ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
         Return SetStatus(pa.AddPathBezierI(x1, y1, x2, y2, x3, y3, x4, y4))
     End Function
 
@@ -294,7 +294,7 @@ Class GraphicsPath
         Return SetStatus(pa.AddPathEllipseI(rect.X, rect.Y, rect.Width, rect.Height))
     End Function
 
-    Function AddEllipse(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
+    Function AddEllipseI(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpStatus
         Return SetStatus(pa.AddPathEllipseI(x, y, width, height))
     End Function
     
@@ -310,7 +310,7 @@ Class GraphicsPath
         Return AddPie(rect.X, rect.Y, rect.Width, rect.Height, startAngle, sweepAngle)
     End Function
     
-    Function AddPie(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+    Function AddPieI(ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         Return SetStatus(pa.AddPathPieI(x, y, width, height, startAngle, sweepAngle))
     End Function
     
@@ -453,7 +453,7 @@ Class GraphicsPath
         Return IsVisible(point.X, point.Y, g)
     End Function
     
-    Function IsVisible(ByVal x&, ByVal y&, Optional g As Graphics) As Boolean
+    Function IsVisibleI(ByVal x&, ByVal y&, Optional g As Graphics) As Boolean
         Dim booln As BOOL
         SetStatus(pa.IsVisiblePathPointI(x, y, GetNative(g), booln))
         Return booln
@@ -473,7 +473,7 @@ Class GraphicsPath
         Return IsOutlineVisible(point.X, point.Y, pen, g)
     End Function
     
-    Function IsOutlineVisible(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
+    Function IsOutlineVisibleI(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
         Dim booln As BOOL
         SetStatus(pa.IsOutlineVisiblePathPointI(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
@@ -669,11 +669,11 @@ Module GdipGraphicsPath
     End Type
     
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePath Lib "gdiplus" (ByVal brushmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath Lib "gdiplus" (ByVal brushmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Byte, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As GpPoint, bt As Byte, int As Long, ByVal fillmode As GpFillMode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As GpPoint, bt As Byte, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeletePath Lib "gdiplus" (ByVal Path As GpPath) As GpStatus
 End Module

@@ -159,7 +159,7 @@ Class Region
         Return SetStatus(GdipTranslateRegion(rg, dx, dy))
     End Function
 
-    Function Translate(ByVal dx&, ByVal dy&) As GpStatus
+    Function TranslateI(ByVal dx&, ByVal dy&) As GpStatus
         Return SetStatus(GdipTranslateRegionI(rg, dx, dy))
     End Function
 
@@ -191,7 +191,7 @@ Class Region
         Return booln
     End Function
 
-    Function IsVisible(ByVal x&, ByVal y&, g As Graphics) As Boolean
+    Function IsVisibleI(ByVal x&, ByVal y&, g As Graphics) As Boolean
         Dim booln As BOOL
         SetStatus(GdipIsVisibleRegionPointI(rg, x, y, GetNative(g), booln))
         Return booln
@@ -211,7 +211,7 @@ Class Region
         Return IsVisible(point.X, point.Y, g)
     End Function
         
-    Function IsVisible(ByVal x&, ByVal y&, ByVal width&, ByVal height&, g As Graphics) As Boolean
+    Function IsVisibleI(ByVal x&, ByVal y&, ByVal width&, ByVal height&, g As Graphics) As Boolean
         Dim booln As BOOL
         SetStatus(GdipIsVisibleRegionRect(rg, x, y, width, height, GetNative(g), booln))
         Return booln
