@@ -12,7 +12,7 @@ Private Module GdipImplementation
         Return 1 + UBound(array) - LBound(array)
     End Function
     
-    Sub SetStaticSA(ByRef sa As SAFEARRAY1D, ByVal elementSize&, ByVal data As LongPtr, ByVal count&)
+    Sub SetStaticSA(ByRef sa As GDIP_SAFEARRAY1D, ByVal elementSize&, ByVal data As LongPtr, ByVal count&)
         sa.cDims = 1
         sa.fFeatures = FADF_STATIC + FADF_FIXEDSIZE
         sa.cbElements = elementSize&
@@ -22,7 +22,7 @@ Private Module GdipImplementation
         sa.Bounds.lLbound = 1
     End Sub
     
-    Private Sub SetCElements(ByRef sa As SAFEARRAY1D, ByVal count&)
+    Private Sub SetCElements(ByRef sa As GDIP_SAFEARRAY1D, ByVal count&)
         sa.Bounds.cElements = count
     End Sub
     
@@ -82,14 +82,14 @@ Private Module GdipImplementation
         Return ((ptr + alignment& - 1) / alignment) * alignment
     End Function
     
-    Sub InitStaticTrailingSA(ByVal data As LongPtr, ByVal elementSize&, ByVal count&)
-        Dim alignedSize& = AlignTo(count * elementSize, 8)
-        SetStaticSA(ByVal (data + alignedSize), elementSize, data, count)
+    Sub InitStaticTrailingSA(ByVal data As LongPtr, ByVal elementSize&, ByVal count As LongPtr)
+        Dim alignedSize As LongPtr = AlignTo(count * elementSize, 8)
+        SetStaticSA(ByVal (data + alignedSize), elementSize, data, CLng(count))
     End Sub
     
 #If 1 Then
-    Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
-        Dim alignedSize& = AlignTo(count * LenB(Of T), 8)
+    Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count As LongPtr) As T()
+        Dim alignedSize As LongPtr = AlignTo(count * LenB(Of T), 8)
         PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
     End Function
 #End If
@@ -112,8 +112,8 @@ Private Module GdipImplementation
 #End If
     
     [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it.")]
-    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count As LongPtr) As GpStatus
-        Dim alignedSize&
+    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count&) As GpStatus
+        Dim alignedSize As LongPtr
         
         If dataPtr <> 0 Then
             GdipFree(dataPtr)
@@ -122,7 +122,7 @@ Private Module GdipImplementation
         count = 0
         If newCount = 0 Then Return Ok
         alignedSize = AlignTo(newCount * elementSize, 8)
-        dataPtr = GdipAlloc(alignedSize + LenB(Of SAFEARRAY1D))
+        dataPtr = GdipAlloc(alignedSize + LenB(Of GDIP_SAFEARRAY1D))
         If dataPtr = 0 Then
             Return OutOfMemory
         End If
@@ -132,8 +132,8 @@ Private Module GdipImplementation
     End Function
     
     [Description("Allocates two areas for data, each followed by a trailing static SAFEARRAY describing it.")]
-    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, ByRef count As LongPtr) As GpStatus
-        Dim alignedSize1&, alignedSize2&
+    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, ByRef count&) As GpStatus
+        Dim alignedSize1 As LongPtr, alignedSize2 As LongPtr
                     
         If dataPtr1 <> 0 Then
             GdipFree(dataPtr1)
@@ -146,10 +146,10 @@ Private Module GdipImplementation
         count = 0
         If newCount = 0 Then Return Ok
         alignedSize1 = AlignTo(newCount * elementSize1, 8)
-        dataPtr1 = GdipAlloc(alignedSize1 + LenB(Of SAFEARRAY1D))
+        dataPtr1 = GdipAlloc(alignedSize1 + LenB(Of GDIP_SAFEARRAY1D))
         If dataPtr1 = 0 Then Return OutOfMemory
         alignedSize2 = AlignTo(newCount * elementSize2, 8)
-        dataPtr2 = GdipAlloc(alignedSize2 + LenB(Of SAFEARRAY1D))
+        dataPtr2 = GdipAlloc(alignedSize2 + LenB(Of GDIP_SAFEARRAY1D))
         If dataPtr2 = 0 Then
             GdipFree(dataPtr1)
             dataPtr1 = 0
@@ -162,7 +162,7 @@ Private Module GdipImplementation
     End Function
     
     Public gdiPlusRefCount& = 0
-    Public gdiPlusToken& = -1
+    Public gdiPlusToken As LongPtr = -1
     
     Public Declare PtrSafe Function SafeArrayAllocDescriptor Lib "oleaut32" (ByVal cDims As Long, ppsaOut As Any) As Long
     

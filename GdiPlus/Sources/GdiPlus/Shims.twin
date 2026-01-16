@@ -4,108 +4,175 @@
 ' Modeled after code and descriptions (c) Microsoft, taken from SDK headers and official documentation.
 ' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
-#If GDIPLUS_NO_WINDEVLIB Then
+#If GDIP_HAS_WINDEVLIB Then
 
-' This shim is a formal definition of dependencies of this package (GDI+) on WinDevLib. 
+Alias GDIP_IDirectDrawSurface7 As IDirectDrawSurface7
+Alias GDIP_IStream As IStream
+
+Alias GDIP_FontWeight As FontWeight
+Alias GDIP_MappingModes As MappingModes
+    
+Alias GDIP_BITMAPINFO As BITMAPINFO
+Alias GDIP_BOOL As BOOL
+Alias GDIP_ENHMETAHEADER3 As ENHMETAHEADER3
+Alias GDIP_LOGFONTA As LOGFONTA
+Alias GDIP_LOGFONTW As LOGFONTW
+Alias GDIP_METAHEADER As METAHEADER
+Alias GDIP_RECT As RECT
+Alias GDIP_RECTF As RECTF
+Alias GDIP_SAFEARRAY1D As SAFEARRAY1D
+Alias GDIP_SAFEARRAYBOUND As SAFEARRAYBOUND
+Alias GDIP_UUID As UUID
+    
+Module GdipShims
+    Public Sub GDIPDEF_UUID(Name As GDIP_UUID, L As Long, w1 As Integer, w2 As Integer, b0 As Byte, b1 As Byte, b2 As Byte, b3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
+        DEFINE_UUID(Name, L, w1, w2, b0, b1, b2, b3, b4, b5, b6, b7)
+    End Sub
+        
+    Public Const GDIP_ERROR_INVALID_PARAMETER = ERROR_INVALID_PARAMETER
+    Public Const GDIP_FW_DONTCARE = FW_DONTCARE
+    Public Const GDIP_MM_ANISOTROPIC = MM_ANISOTROPIC
+End Module
+
+#Else
+
+' This shim is a formal definition of dependencies of this package (GDIPlus) on WinDevLib. 
 ' It is useful in ensuring that the types and prototypes that we want to use are actually
 ' used.
 
 ' This is ONLY A SHIM. It is not meant to be functional, just to have matching declarations.
-    
-Interface IStream
+' The GDIP_HAS_WINDEVLIB=0 option would be typically used in "pure" VB projects, where the
+' hDC comes from the Form or Picture and there's no need for the use of WINAPI directly.
+
+Interface GDIP_IStream
 End Interface
 
-Interface IDirectDrawSurface7
+Interface GDIP_IDirectDrawSurface7
 End Interface
+
+Alias GDIP_BOOL As Long
 
 Module GdipShims
-    [Description("The parameter is incorrect.")] Public Const ERROR_INVALID_PARAMETER As Long = 87
-    
-    Public Type RECTF
-        Left As Single
-        Top As Single
-        Right As Single
-        Bottom As Single
+    Type GDIP_BITMAPINFO
+        dummy&
+    End Type
+
+    Public Type GDIP_ENHMETAHEADER3
+        iType As Long           ' Record type EMR_HEADER
+        nSize As Long           ' Record size in bytes.  This may be greater
+                                ' than the sizeof(ENHMETAHEADER).
+        rclBounds As GDIP_RECT  ' Inclusive-inclusive bounds in device units
+        rclFrame As GDIP_RECT   ' Inclusive-inclusive Picture Frame .01mm unit
+        dSignature As Long      ' Signature.  Must be ENHMETA_SIGNATURE.
+        nVersion As Long        ' Version number
+        nBytes As Long          ' Size of the metafile in bytes
+        nRecords As Long        ' Number of records in the metafile
+        nHandles As Integer     ' Number of handles in the handle table
+                                ' Handle index zero is reserved.
+        sReserved As Integer    ' Reserved.  Must be zero.
+        nDescription As Long    ' Number of chars in the unicode desc string
+                                ' This is 0 if there is no description string
+        offDescription As Long  ' Offset to the metafile description record.
+                                ' This is 0 if there is no description string
+        nPalEntries As Long     ' Number of entries in the metafile palette.
+        szlDevice As GpSize     ' Size of the reference device in pels
+        szlMillimeters As GpSize' Size of the reference device in millimeters
     End Type
     
-    Public Enum MappingModes
-        MM_TEXT = 1
-        MM_LOMETRIC = 2
-        MM_HIMETRIC = 3
-        MM_LOENGLISH = 4
-        MM_HIENGLISH = 5
-        MM_TWIPS = 6
-        MM_ISOTROPIC = 7
-        MM_ANISOTROPIC = 8
-        MM_MIN = MM_TEXT
-        MM_MAX = MM_ANISOTROPIC
-        MM_MAX_FIXEDSCALE = MM_TWIPS
+    Public Enum GDIP_FontWeight
+        GDIP_FW_DONTCARE = 0
     End Enum
     
-    Type METAHEADER
+    Public Enum GDIP_MappingModes
+        GDIP_MM_ANISOTROPIC = 8
+    End Enum
+    
+    Public Const GDIP_LF_FACESIZE = 32
+    
+    Public Type GDIP_LOGFONTA
+        LFHeight As Long
+        LFWidth As Long
+        LFEscapement As Long
+        LFOrientation As Long
+        LFWeight As GDIP_FontWeight
+        LFItalic As Byte
+        LFUnderline As Byte
+        LFStrikeOut As Byte
+        LFCharset As Byte
+        LFOutPrecision As Byte
+        LFClipPrecision As Byte
+        LFQuality As Byte
+        LFPitchAndFamily As Byte
+        LFFaceName (GDIP_LF_FACESIZE - 1) As Byte
+    End Type
+    
+    Public Type GDIP_LOGFONTW
+        LFHeight As Long
+        LFWidth As Long
+        LFEscapement As Long
+        LFOrientation As Long
+        LFWeight As GDIP_FontWeight
+        LFItalic As Byte
+        LFUnderline As Byte
+        LFStrikeOut As Byte
+        LFCharset As Byte
+        LFOutPrecision As Byte
+        LFClipPrecision As Byte
+        LFQuality As Byte
+        LFPitchAndFamily As Byte
+        LFFaceName (GDIP_LF_FACESIZE - 1) As Integer
+    End Type
+    
+    Public Type GDIP_METAHEADER
         dummy&
     End Type
     
-    Public Type BITMAPINFO
-        dummy&
-    End Type
-    
-    Public Type RECT
+    Public Type GDIP_RECT
         Left As Long
         Top As Long
         Right As Long
         Bottom As Long
     End Type
     
-    Public Type UUID
-        Data1 As Long
-        Data2 As Integer
-        Data3 As Integer
-        Data4(0 To 7) As Byte
+    Public Type GDIP_RECTF
+        Left As Single
+        Top As Single
+        Right As Single
+        Bottom As Single
     End Type
     
-    Public Sub DEFINE_UUID(Name As UUID, L As Long, w1 As Integer, w2 As Integer, B0 As Byte, b1 As Byte, b2 As Byte, B3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
-    End Sub
-
-    Public Type CLSID
-        Data1 As Long
-        Data2 As Integer
-        Data3 As Integer
-        Data4(0 To 7) As Byte
-    End Type
-    
-    Public Type SAFEARRAY1D
+    Public Type GDIP_SAFEARRAY1D
         cDims      As Integer
         fFeatures  As Integer
         cbElements As Long
         cLocks     As Long
         pvData     As LongPtr
-        Bounds     As SAFEARRAYBOUND
+        Bounds     As GDIP_SAFEARRAYBOUND
     End Type
     
-    Public Type SAFEARRAYBOUND
+    Public Type GDIP_SAFEARRAYBOUND
         cElements As Long
         lLbound   As Long
     End Type
     
-    Public Enum FontWeight
-        FW_DONTCARE = 0
-    End Enum
+    Public Type GDIP_UUID
+        Data1 As Long
+        Data2 As Integer
+        Data3 As Integer
+        Data4 (0 To 7) As Byte
+    End Type
+        
+    Public Sub GDIPDEF_UUID(Name As GDIP_UUID, L As Long, w1 As Integer, w2 As Integer, b0 As Byte, b1 As Byte, b2 As Byte, b3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
+        With Name
+            .Data1 = L
+            .Data2 = w1
+            .Data3 = w2
+            .Data4(0) = b0: .Data4(1) = b1:.Data4(2) = b2:.Data4(3) = b3
+            .Data4(5) = b5: .Data4(6) = b1:.Data4(6) = b2:.Data4(7) = b7
+        End With
+    End Sub
 
-    Public Type LOGFONTA
-        LFHeight As Long
-    End Type
-    
-    Public Type LOGFONTW
-        LFHeight As Long
-        LFWidth As Long
-    End Type
-    
-    Public Enum BOOL
-        CFALSE
-        CTRUE
-        API_TRUE = 1
-        API_FALSE = 0
-    End Enum
+    [Description("The parameter is incorrect.")] Public Const GDIP_ERROR_INVALID_PARAMETER As Long = 87
 End Module
+
 #End If

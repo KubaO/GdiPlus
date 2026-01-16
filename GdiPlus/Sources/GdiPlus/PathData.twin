@@ -41,8 +41,12 @@ Class PathData
     
     Property Get Point(ByVal index&) As GpPointF
         Dim src As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
-        If index >= pd.count Then Err.Raise ERROR_INVALID_PARAMETER
-        GetMem8(src, ByVal VarPtr(Point))
+        If index >= pd.count Then Err.Raise GDIP_ERROR_INVALID_PARAMETER
+        #If win64 Then
+            GDIP_CopyMemory(Point, ByVal src, 8)
+        #Else
+            GetMem8(src, ByVal VarPtr(Point))
+        #End If
     End Property
 
     Property Get Type(ByVal index&) As Byte
@@ -126,8 +130,12 @@ Module GdipPathData
         
         Property Get Point(ByVal index&) As GpPointF
             Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
-            If index >= Me.count Then Err.Raise ERROR_INVALID_PARAMETER
-            GetMem8(src, ByVal VarPtr(Point))
+            If index >= Me.count Then Err.Raise GDIP_ERROR_INVALID_PARAMETER
+            #If win64 Then
+                GDIP_CopyMemory(Point, ByVal src, 8)
+            #Else
+                GetMem8(src, ByVal VarPtr(Point))
+            #End If
         End Property
 
         Property Get Type(ByVal index&) As Byte
@@ -192,4 +200,6 @@ Module GdipPathData
             GpPathData.Type(i) = points(i).type
         Next
     End Function
+    
+    Declare PtrSafe Sub GDIP_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
 End Module

@@ -128,7 +128,7 @@ Class LinearGradientBrush
     End Property
 
     Property Get GammaCorrection() As Boolean
-        Dim useGammaCorrection As BOOL
+        Dim useGammaCorrection As GDIP_BOOL
         SetStatus(GdipGetLineGammaCorrection(br, useGammaCorrection))
         Return useGammaCorrection
     End Property
@@ -338,9 +338,9 @@ Module GdipLineGradient
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateLineBrushFromRectI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngle Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngle Lib "gdiplus" (Rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As GDIP_BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
+    Public Declare PtrSafe Function GdipCreateLineBrushFromRectWithAngleI Lib "gdiplus" (Rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As GDIP_BOOL, ByVal wrapMode As GpWrapMode, lineGradient As GpLineGradient) As GpStatus
     
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipSetLineColors Lib "gdiplus" (ByVal brush As GpBrush, ByVal color1 As Color, ByVal color2 As Color) As GpStatus
@@ -353,9 +353,9 @@ Module GdipLineGradient
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetLineRectI Lib "gdiplus" (ByVal brush As GpBrush, rect As GpRect) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, ByVal useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipSetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, ByVal useGammaCorrection As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetLineGammaCorrection Lib "gdiplus" (ByVal brush As GpBrush, useGammaCorrection As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetLineBlendCount Lib "gdiplus" (ByVal brush As GpBrush, count&) As GpStatus
     [UseGetLastError(False)]

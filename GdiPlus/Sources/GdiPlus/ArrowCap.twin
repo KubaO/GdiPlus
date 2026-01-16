@@ -49,7 +49,7 @@ Class ArrowCap
     End Property
     
     Property Get IsFilled() As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipGetAdjustableArrowCapFillState(Native, booln))
         Return booln
     End Property
@@ -104,7 +104,7 @@ Module GdipArrowCap
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpArrowCap, middleInset As Single) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal fillState As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal fillState As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, fillState As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, fillState As GDIP_BOOL) As GpStatus
 End Module

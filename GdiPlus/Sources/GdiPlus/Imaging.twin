@@ -23,81 +23,81 @@ Module GdipImaging
     ' Image file format identifiers
     '---------------------------------------------------------------------------
     
-    Public Function ImageFormatUndefined() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3ca9, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatUndefined() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3ca9, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatUndefined = iid
     End Function
     
-    Public Function ImageFormatMemoryBMP() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3caa, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatMemoryBMP() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3caa, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatMemoryBMP = iid
     End Function
     
-    Public Function ImageFormatBMP() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cab, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatBMP() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cab, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatBMP = iid
     End Function
 
-    Public Function ImageFormatEMF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cac, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatEMF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cac, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatEMF = iid
     End Function
     
-    Public Function ImageFormatWMF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cad, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatWMF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cad, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatWMF = iid
     End Function
     
-    Public Function ImageFormatJPEG() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cae, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatJPEG() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cae, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatJPEG = iid
     End Function
 
-    Public Function ImageFormatPNG() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3caf, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatPNG() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3caf, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatPNG = iid
     End Function
     
-    Public Function ImageFormatGIF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb0, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatGIF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb0, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatGIF = iid
     End Function
         
-    Public Function ImageFormatTIFF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb1, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatTIFF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb1, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatTIFF = iid
     End Function
 
-    Public Function ImageFormatEXIF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb2, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatEXIF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb2, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatEXIF = iid
     End Function
     
-    Public Function ImageFormatIcon() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb5, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatIcon() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb5, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatIcon = iid
     End Function
     
-    Public Function ImageFormatHEIF() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb6, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatHEIF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb6, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatHEIF = iid
     End Function
     
-    Public Function ImageFormatWEBP() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hb96b3cb7, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
+    Public Function ImageFormatWEBP() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hb96b3cb7, &h0728, &h11d3, &h9d, &h7b, &h00, &h00, &hf8, &h1e, &hf3, &h2e)
         ImageFormatWEBP = iid
     End Function
 
@@ -105,22 +105,22 @@ Module GdipImaging
     ' Predefined multi-frame dimension IDs
     '---------------------------------------------------------------------------
     
-    Public Function FrameDimensionTime() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h6aedbd6d, &h3fb5, &h418a, &h83, &ha6, &h7f, &h45, &h22, &h9d, &hc8, &h72)
+    Public Function FrameDimensionTime() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h6aedbd6d, &h3fb5, &h418a, &h83, &ha6, &h7f, &h45, &h22, &h9d, &hc8, &h72)
         FrameDimensionTime = iid
     End Function
     
-    Public Function FrameDimensionResolution() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h84236f7b, &h3bd3, &h428f, &h8d, &hab, &h4e, &ha1, &h43, &h9c, &ha3, &h15)
+    Public Function FrameDimensionResolution() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h84236f7b, &h3bd3, &h428f, &h8d, &hab, &h4e, &ha1, &h43, &h9c, &ha3, &h15)
         FrameDimensionResolution = iid
     End Function
     
     
-    Public Function FrameDimensionPage() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h7462dc86, &h6180, &h4c7e, &h8e, &h3f, &hee, &h73, &h33, &ha7, &ha4, &h83)
+    Public Function FrameDimensionPage() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h7462dc86, &h6180, &h4c7e, &h8e, &h3f, &hee, &h73, &h33, &ha7, &ha4, &h83)
         FrameDimensionPage = iid
     End Function
     
@@ -128,15 +128,15 @@ Module GdipImaging
     ' Property sets
     '---------------------------------------------------------------------------
     
-    Public Function FormatIDImageInformation() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &he5836cbe, &h5eef, &h4f1d, &hac, &hde, &hae, &h4c, &h43, &hb6, &h08, &hce)
+    Public Function FormatIDImageInformation() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &he5836cbe, &h5eef, &h4f1d, &hac, &hde, &hae, &h4c, &h43, &hb6, &h08, &hce)
         FormatIDImageInformation = iid
     End Function
     
-    Public Function FormatIDJpegAppHeaders() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h1c4afdcd, &h6177, &h43cf, &hab, &hc7, &h5f, &h51, &haf, &h39, &hee, &h85)
+    Public Function FormatIDJpegAppHeaders() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h1c4afdcd, &h6177, &h43cf, &hab, &hc7, &h5f, &h51, &haf, &h39, &hee, &h85)
         FormatIDJpegAppHeaders = iid
     End Function
 
@@ -144,89 +144,89 @@ Module GdipImaging
     ' Encoder parameter sets
     '---------------------------------------------------------------------------
     
-    Public Function EncoderCompression() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &he09d739d, &hccd4, &h44ee, &h8e, &hba, &h3f, &hbf, &h8b, &he4, &hfc, &h58)
+    Public Function EncoderCompression() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &he09d739d, &hccd4, &h44ee, &h8e, &hba, &h3f, &hbf, &h8b, &he4, &hfc, &h58)
         EncoderCompression = iid
     End Function
     
-    Public Function EncoderColorDepth() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h66087055, &had66, &h4c7c, &h9a, &h18, &h38, &ha2, &h31, &h0b, &h83, &h37)
+    Public Function EncoderColorDepth() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h66087055, &had66, &h4c7c, &h9a, &h18, &h38, &ha2, &h31, &h0b, &h83, &h37)
         EncoderColorDepth = iid
     End Function
     
-    Public Function EncoderScanMethod() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h3a4e2661, &h3109, &h4e56, &h85, &h36, &h42, &hc1, &h56, &he7, &hdc, &hfa)
+    Public Function EncoderScanMethod() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h3a4e2661, &h3109, &h4e56, &h85, &h36, &h42, &hc1, &h56, &he7, &hdc, &hfa)
         EncoderScanMethod = iid
     End Function
 
-    Public Function EncoderVersion() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h24d18c76, &h814a, &h41a4, &hbf, &h53, &h1c, &h21, &h9c, &hcc, &hf7, &h97)
+    Public Function EncoderVersion() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h24d18c76, &h814a, &h41a4, &hbf, &h53, &h1c, &h21, &h9c, &hcc, &hf7, &h97)
         EncoderVersion = iid
     End Function
     
-    Public Function EncoderRenderMethod() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h6d42c53a, &h229a, &h4825, &h8b, &hb7, &h5c, &h99, &he2, &hb9, &ha8, &hb8)
+    Public Function EncoderRenderMethod() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h6d42c53a, &h229a, &h4825, &h8b, &hb7, &h5c, &h99, &he2, &hb9, &ha8, &hb8)
         EncoderRenderMethod = iid
     End Function
     
-    Public Function EncoderQuality() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h1d5be4b5, &hfa4a, &h452d, &h9c, &hdd, &h5d, &hb3, &h51, &h05, &he7, &heb)
+    Public Function EncoderQuality() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h1d5be4b5, &hfa4a, &h452d, &h9c, &hdd, &h5d, &hb3, &h51, &h05, &he7, &heb)
         EncoderQuality = iid
     End Function
     
-    Public Function EncoderTransformation() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h8d0eb2d1, &ha58e, &h4ea8, &haa, &h14, &h10, &h80, &h74, &hb7, &hb6, &hf9)
+    Public Function EncoderTransformation() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h8d0eb2d1, &ha58e, &h4ea8, &haa, &h14, &h10, &h80, &h74, &hb7, &hb6, &hf9)
         EncoderTransformation = iid
     End Function
 
-    Public Function EncoderLuminanceTable() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hedb33bce, &h0266, &h4a77, &hb9, &h04, &h27, &h21, &h60, &h99, &he7, &h17)
+    Public Function EncoderLuminanceTable() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hedb33bce, &h0266, &h4a77, &hb9, &h04, &h27, &h21, &h60, &h99, &he7, &h17)
         EncoderLuminanceTable = iid
     End Function
     
-    Public Function EncoderChrominanceTable() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hf2e455dc, &h09b3, &h4316, &h82, &h60, &h67, &h6a, &hda, &h32, &h48, &h1c)
+    Public Function EncoderChrominanceTable() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hf2e455dc, &h09b3, &h4316, &h82, &h60, &h67, &h6a, &hda, &h32, &h48, &h1c)
         EncoderChrominanceTable = iid
     End Function
     
-    Public Function EncoderSaveFlag() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h292266fc, &hac40, &h47bf, &h8c, &hfc, &ha8, &h5b, &h89, &ha6, &h55, &hde)
+    Public Function EncoderSaveFlag() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h292266fc, &hac40, &h47bf, &h8c, &hfc, &ha8, &h5b, &h89, &ha6, &h55, &hde)
         EncoderSaveFlag = iid
     End Function
     
     ' #if (GDIPVER >= &h0110)
-    Public Function EncoderColorSpace() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &hae7a62a0, &hee2c, &h49d8, &h9d, &h7, &h1b, &ha8, &ha9, &h27, &h59, &h6e)
+    Public Function EncoderColorSpace() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &hae7a62a0, &hee2c, &h49d8, &h9d, &h7, &h1b, &ha8, &ha9, &h27, &h59, &h6e)
         EncoderColorSpace = iid
     End Function
     
-    Public Function EncoderImageItems() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h63875e13, &h1f1d, &h45ab, &h91, &h95, &ha2, &h9b, &h60, &h66, &ha6, &h50)
+    Public Function EncoderImageItems() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h63875e13, &h1f1d, &h45ab, &h91, &h95, &ha2, &h9b, &h60, &h66, &ha6, &h50)
         EncoderImageItems = iid
     End Function
     
-    Public Function EncoderSaveAsCMYK() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &ha219bbc9, &ha9d, &h4005, &ha3, &hee, &h3a, &h42, &h1b, &h8b, &hb0, &h6c)
+    Public Function EncoderSaveAsCMYK() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &ha219bbc9, &ha9d, &h4005, &ha3, &hee, &h3a, &h42, &h1b, &h8b, &hb0, &h6c)
         EncoderSaveAsCMYK = iid
     End Function
     '#endif '(GDIPVER >= &h0110)
     
-    Public Function CodecIImageBytes() As UUID
-        Static iid As UUID
-        If iid.Data1 = 0 Then Call DEFINE_UUID(iid, &h025d1823, &h6c7d, &h447b, &hbb, &hdb, &ha3, &hcb, &hc3, &hdf, &ha2, &hfc)
+    Public Function CodecIImageBytes() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, &h025d1823, &h6c7d, &h447b, &hbb, &hdb, &ha3, &hcb, &hc3, &hdf, &ha2, &hfc)
         CodecIImageBytes = iid
     End Function
 
@@ -235,8 +235,8 @@ Module GdipImaging
     '--------------------------------------------------------------------------
 
     Public Type ImageCodecInfo
-        Clsid As UUID
-        FormatID As UUID
+        Clsid As GDIP_UUID
+        FormatID As GDIP_UUID
         CodecName As LongPtr
         DllName As LongPtr
         FormatDescription As LongPtr
@@ -341,7 +341,7 @@ Module GdipImaging
     '---------------------------------------------------------------------------
     
     Public Type EncoderParameter
-        Guid As UUID                        ' GUID of the parameter
+        Guid As GDIP_UUID                   ' GUID of the parameter
         NumberOfValues As Long              ' Number of the parameter values
         Type As GpEncoderParameterValueType ' Value type, like ValueTypeLONG  etc.
         Value As LongPtr                    ' A pointer to the parameter values

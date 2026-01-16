@@ -57,7 +57,7 @@ Class FontFamily
     End Property
     
     Function IsStyleAvailable(ByVal style As GpFontStyle) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsStyleAvailable(ff, style, booln))
         If LastStatus = Ok Then IsStyleAvailable = booln
     End Function
@@ -159,7 +159,7 @@ Module GdipFontFamily
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCloneFontFamily Lib "gdiplus" (ByVal Me As GpFontFamily, clonedFontFamily As GpFontFamily) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsStyleAvailable Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, IsStyleAvailable As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsStyleAvailable Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, IsStyleAvailable As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetEmHeight Lib "gdiplus" (ByVal Me As GpFontFamily, ByVal style As Long, EmHeight As Integer) As GpStatus
     [UseGetLastError(False)]

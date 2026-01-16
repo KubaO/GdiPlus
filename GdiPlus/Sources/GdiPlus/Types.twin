@@ -52,9 +52,9 @@ Module Types
     ' Callback functions
     '--------------------------------------------------------------------------
     
-    Public Delegate Function ImageAbort (pv As LongPtr) As BOOL
-    Public Delegate Function DrawImageAbort (pv As LongPtr) As BOOL
-    Public Delegate Function GetThumbnailImageAbort (pv As LongPtr) As BOOL
+    Public Delegate Function ImageAbort (pv As LongPtr) As GDIP_BOOL
+    Public Delegate Function DrawImageAbort (pv As LongPtr) As GDIP_BOOL
+    Public Delegate Function GetThumbnailImageAbort (pv As LongPtr) As GDIP_BOOL
     
     ' Callback for EnumerateMetafile methods.  The parameters are:
     '
@@ -68,7 +68,7 @@ Module Types
     ' record that was just enumerated.  If this method  returns
     ' FALSE, the enumeration process is aborted.  Otherwise, it continues.
 
-    ' typedef BOOL (CALLBACK * EnumerateMetafileProc)(EmfPlusRecordType,UINT,UINT,const BYTE*,VOID*);
+    ' typedef GDIP_BOOL (CALLBACK * EnumerateMetafileProc)(EmfPlusRecordType,UINT,UINT,const BYTE*,VOID*);
     Public Delegate Function EnumerateMetafileProc (ByVal nType As GpEmfPlusRecordType, ByVal dwFlags As Long, ByVal cbData As Long, ByVal data As LongPtr, ByVal callbackData As LongPtr)
     
     Public Const REAL_MAX = 3.402823466E+38!
@@ -344,6 +344,34 @@ Module Types
             Return (Me.Width <= REAL_EPSILON) OrElse (Me.Height <= REAL_EPSILON)
         End Property
         
+        Sub SetFromRECTF(src As GDIP_RECTF)
+            Me.X = src.Left
+            Me.Y = src.Top
+            Me.Width = src.Right - src.Left
+            Me.Height = src.Bottom - src.Top
+        End Sub
+
+        Sub SetFromRECT(src As GDIP_RECT)
+            Me.X = CSng(src.Left)
+            Me.Y = CSng(src.Top)
+            Me.Width = CSng(src.Right - src.Left)
+            Me.Height = CSng(src.Bottom - src.Top)
+        End Sub
+        
+        Sub ToRECT(dst As GDIP_RECTF)
+            dst.Left = Me.X
+            dst.Right = Me.X + Me.Width
+            dst.Top = Me.Y
+            dst.Bottom = Me.Y + Me.Height
+        End Sub
+        
+        Sub SetFrom(src As GpRectF)
+            Me.X = src.X
+            Me.Y = src.Y
+            Me.Width = src.Width
+            Me.Height = src.Height
+        End Sub
+        
         Function Equals(rect As GpRectF) As Boolean
             Return Me.X = rect.X AndAlso _
                     Me.Y = rect.Y AndAlso _
@@ -399,7 +427,7 @@ Module Types
             Me.Y += dy
         End Sub
         
-        Function AsRECTF() As RECTF
+        Function AsRECTF() As GDIP_RECTF
             AsRECTF.Left = Me.X
             AsRECTF.Right = Me.X + Me.Width
             AsRECTF.Top = Me.Y
@@ -428,7 +456,7 @@ Module Types
         GpRectF.Height = size.Height
     End Function
     
-    Function GpRectF(rect As RECTF) As GpRectF
+    Function GpRectF(rect As GDIP_RECTF) As GpRectF
         GpRectF.X = rect.Left
         GpRectF.Y = rect.Top
         GpRectF.Width = rect.Right - rect.Left
@@ -517,6 +545,34 @@ Module Types
         Property Get IsEmptyArea() As Boolean
             Return (Me.Width <= 0) OrElse (Me.Height <= 0)
         End Property
+              
+        Sub SetFromRECT(src As GDIP_RECT)
+            Me.X = src.Left
+            Me.Y = src.Top
+            Me.Width = src.Right - src.Left
+            Me.Height = src.Bottom - src.Top
+        End Sub
+
+        Sub ToRECT(dst As GDIP_RECT)
+            dst.Left = Me.X
+            dst.Right = Me.X + Me.Width
+            dst.Top = Me.Y
+            dst.Bottom = Me.Y + Me.Height
+        End Sub
+
+        Sub ToRECTF(dst As GDIP_RECTF)
+            dst.Left = CSng(Me.X)
+            dst.Right = CSng(Me.X + Me.Width)
+            dst.Top = CSng(Me.Y)
+            dst.Bottom = CSng(Me.Y + Me.Height)
+        End Sub
+        
+        Sub SetFrom(src As GpRect)
+            Me.X = src.X
+            Me.Y = src.Y
+            Me.Width = src.Width
+            Me.Height = src.Height
+        End Sub
         
         Function Equals(rect As GpRect) As Boolean
             Return Me.X = rect.X AndAlso _
@@ -577,7 +633,7 @@ Module Types
             Me.Y += dy
         End Sub
         
-        Function AsRECT() As RECT
+        Function AsRECT() As GDIP_RECT
             AsRECT.Left = Me.X
             AsRECT.Right = Me.X + Me.Width
             AsRECT.Top = Me.Y
@@ -606,7 +662,7 @@ Module Types
         GpRect.Height = size.Height
     End Function
     
-    Function GpRect(rect As RECT) As GpRect
+    Function GpRect(rect As GDIP_RECT) As GpRect
         GpRect.X = rect.Left
         GpRect.Y = rect.Top
         GpRect.Width = rect.Right - rect.Left

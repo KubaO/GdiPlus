@@ -444,7 +444,7 @@ Class GraphicsPath
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!, Optional g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(pa.IsVisiblePathPoint(x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -454,7 +454,7 @@ Class GraphicsPath
     End Function
     
     Function IsVisibleI(ByVal x&, ByVal y&, Optional g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(pa.IsVisiblePathPointI(x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -464,7 +464,7 @@ Class GraphicsPath
     End Function
     
     Function IsOutlineVisible(ByVal x!, ByVal y!, pen As Pen, Optional g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(pa.IsOutlineVisiblePathPoint(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
@@ -474,7 +474,7 @@ Class GraphicsPath
     End Function
     
     Function IsOutlineVisibleI(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(pa.IsOutlineVisiblePathPointI(x, y, GetNative(pen), GetNative(g), booln))
         Return booln
     End Function
@@ -659,21 +659,21 @@ Module GdipGraphicsPath
         Public Declare PtrSafe Function WindingModeOutline Lib "gdiplus" Alias "GdipWindingModeOutline" (ByVal Me As GpPath, ByVal matrix As GpMatrix, Optional ByVal flatness! = 0.25) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePathPointI Lib "gdiplus" Alias "GdipIsVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePathPointI Lib "gdiplus" Alias "GdipIsVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPoint Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPoint" (ByVal Me As GpPath, ByVal X!, ByVal Y!, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsOutlineVisiblePathPointI Lib "gdiplus" Alias "GdipIsOutlineVisiblePathPointI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal pen As GpPen, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     End Type
     
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreatePath Lib "gdiplus" (ByVal brushmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Byte, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2 Lib "gdiplus" (pt As GpPointF, bt As Any, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As GpPoint, bt As Byte, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
+    Public Declare PtrSafe Function GdipCreatePath2I Lib "gdiplus" (pt As GpPoint, bt As Any, int As Long, ByVal fillmode As GpFillmode, Path As GpPath) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeletePath Lib "gdiplus" (ByVal Path As GpPath) As GpStatus
 End Module

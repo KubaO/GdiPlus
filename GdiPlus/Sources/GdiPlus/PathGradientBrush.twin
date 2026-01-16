@@ -114,7 +114,7 @@ Class PathGradientBrush
     End Property
     
     Property Get GammaCorrection() As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipGetPathGradientGammaCorrection(Native, booln))
         Return booln
     End Property
@@ -316,9 +316,9 @@ Module GdipPathGradient
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPathGradientSurroundColorCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipSetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal useGammaCorrection As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, useGammaCorrection As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipGetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, useGammaCorrection As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetPathGradientBlendCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
     [UseGetLastError(False)]

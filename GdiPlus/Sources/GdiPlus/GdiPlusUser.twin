@@ -35,8 +35,8 @@ Module GdipGdiPlusUser
     Public Type GdiplusStartupInput
         GdiplusVersion As Long
         DebugEventCallback As LongPtr
-        SuppressBackgroundThread As BOOL
-        SuppressExternalCodecs As BOOL
+        SuppressBackgroundThread As GDIP_BOOL
+        SuppressExternalCodecs As GDIP_BOOL
     End Type
     
     [UseGetLastError(False)]

@@ -1010,7 +1010,7 @@ Class Graphics
     End Property
     
     Property Get IsClipEmpty() As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsClipEmpty(booln))
         Return booln
     End Property
@@ -1024,55 +1024,55 @@ Class Graphics
     End Property
     
     Property Get IsVisibleClipEmpty() As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisibleClipEmpty(booln))
         Return booln
     End Property
     
     Function IsVisibleI(ByVal x&, ByVal y&) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisiblePointI(x, y, booln))
         Return booln
     End Function
 
     Function IsVisible(point As GpPoint) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisiblePointI(point.X, point.Y, booln))
         Return booln
     End Function
     
     Function IsVisibleI(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisibleRectI(x, y, width, height, booln))
         Return booln
     End Function
     
     Function IsVisible(rect As GpRect) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisibleRectI(rect.X, rect.Y, rect.Width, rect.Height, booln))
         Return booln
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisiblePoint(x, y, booln))
         Return booln
     End Function
 
     Function IsVisible(point As GpPointF) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisiblePoint(point.X, point.Y, booln))
         Return booln
     End Function
     
     Function IsVisible(ByVal x!, ByVal y!, ByVal width!, ByVal height!) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisibleRect(x, y, width, height, booln))
         Return booln
     End Function
     
     Function IsVisible(rect As GpRectF) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(gr.IsVisibleRect(rect.X, rect.Y, rect.Width, rect.Height, booln))
         Return booln
     End Function
@@ -1474,33 +1474,33 @@ Module GdipGraphics
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetClipBoundsI Lib "gdiplus" Alias "GdipGetClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsClipEmpty Lib "gdiplus" Alias "GdipIsClipEmpty" (ByVal Me As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsClipEmpty Lib "gdiplus" Alias "GdipIsClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetVisibleClipBounds Lib "gdiplus" Alias "GdipGetVisibleClipBounds" (ByVal Me As GpGraphics, rect As GpRectF) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetVisibleClipBoundsI Lib "gdiplus" Alias "GdipGetVisibleClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleClipEmpty Lib "gdiplus" Alias "GdipIsVisibleClipEmpty" (ByVal Me As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleClipEmpty Lib "gdiplus" Alias "GdipIsVisibleClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePoint Lib "gdiplus" Alias "GdipIsVisiblePoint" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePoint Lib "gdiplus" Alias "GdipIsVisiblePoint" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePointI Lib "gdiplus" Alias "GdipIsVisiblePointI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePointI Lib "gdiplus" Alias "GdipIsVisiblePointI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRect Lib "gdiplus" Alias "GdipIsVisibleRect" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, ByVal width!, ByVal height!, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRect Lib "gdiplus" Alias "GdipIsVisibleRect" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, ByVal width!, ByVal height!, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRectI Lib "gdiplus" Alias "GdipIsVisibleRectI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, ByVal width&, ByVal height&, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRectI Lib "gdiplus" Alias "GdipIsVisibleRectI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, ByVal width&, ByVal height&, result As GDIP_BOOL) As GpStatus
 
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionPoint Lib "gdiplus" Alias "GdipIsVisibleRegionPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRegionPoint Lib "gdiplus" Alias "GdipIsVisibleRegionPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionPointI Lib "gdiplus" Alias "GdipIsVisibleRegionPointI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRegionPointI Lib "gdiplus" Alias "GdipIsVisibleRegionPointI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionRect Lib "gdiplus" Alias "GdipIsVisibleRegionRect" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRegionRect Lib "gdiplus" Alias "GdipIsVisibleRegionRect" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionRectI Lib "gdiplus" Alias "GdipIsVisibleRegionRectI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+        Public Declare PtrSafe Function IsVisibleRegionRectI Lib "gdiplus" Alias "GdipIsVisibleRegionRectI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SaveGraphics Lib "gdiplus" Alias "GdipSaveGraphics" (ByVal Me As GpGraphics, state&) As GpStatus

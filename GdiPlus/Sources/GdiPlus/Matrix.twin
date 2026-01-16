@@ -152,19 +152,19 @@ Class Matrix
     End Function
     
     Property Get IsInvertible() As Boolean
-        Dim result As BOOL
+        Dim result As GDIP_BOOL
         SetStatus(GdipIsMatrixInvertible(mx, result))
         Return result
     End Property
     
     Property Get IsIdentity() As Boolean
-        Dim result As BOOL
+        Dim result As GDIP_BOOL
         SetStatus(GdipIsMatrixIdentity(mx, result))
         Return result
     End Property
 
     Function Equals(matrix As Matrix) As Boolean
-        Dim result As BOOL
+        Dim result As GDIP_BOOL
         SetStatus(GdipIsMatrixEqual(mx, GetNative(matrix), result))
         Return result
     End Function
@@ -230,11 +230,11 @@ Module GdipMatrix
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipShearMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixInvertible Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixInvertible Lib "gdiplus" (ByVal matrix As GpMatrix, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixIdentity Lib "gdiplus" (ByVal matrix As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixIdentity Lib "gdiplus" (ByVal matrix As GpMatrix, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixEqual Lib "gdiplus" (ByVal matrix1 As GpMatrix, ByVal matrix2 As GpMatrix, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsMatrixEqual Lib "gdiplus" (ByVal matrix1 As GpMatrix, ByVal matrix2 As GpMatrix, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
     

@@ -39,7 +39,7 @@ Class Metafile
         SetNativeMetafile(metafile)
     End Sub
     
-    Sub New(stream As IStream)
+    Sub New(stream As GDIP_IStream)
         Dim metafile As GpMetafile
         LastStatus = GdipCreateMetafileFromStream(stream, metafile)
         SetNativeMetafile(metafile)
@@ -91,14 +91,14 @@ Class Metafile
         SetNativeMetafile(metafile)
     End Sub
     
-    Sub New(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
         LastStatus = GdipRecordMetafileStreamN(stream, referenceHdc, type, 0, MetafileFrameUnitGdi, description, metafile)
         SetNativeMetafile(metafile)
     End Sub
     
-    Sub New(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
@@ -106,7 +106,7 @@ Class Metafile
         SetNativeMetafile(metafile)
     End Sub
     
-    Sub New(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         Dim metafile As GpMetafile
@@ -161,7 +161,7 @@ Class Metafile
         Return status
     End Function
     
-    Function ConvertToEmfPlus(refGraphics As Graphics, stream As IStream, _
+    Function ConvertToEmfPlus(refGraphics As Graphics, stream As GDIP_IStream, _
         Optional conversionFailureFlag&, ByVal emfType As GpEmfType = EmfTypeEmfPlusOnly, Optional ByVal description$) As GpStatus
         Dim metafile As GpMetafile
         Dim status As Any = GdipConvertToEmfPlusToStream(GetNative(refGraphics), Native, conversionFailureFlag, stream, emfType, StrPtr(description), metafile)
@@ -216,7 +216,7 @@ Module GdipMetafile
         Return New Metafile(filename, wmfPlaceableFileHeader)
     End Function
 
-    Function Metafile(stream As IStream) As Metafile
+    Function Metafile(stream As GDIP_IStream) As Metafile
         Return New Metafile(stream)
     End Function
 
@@ -254,18 +254,18 @@ Module GdipMetafile
         Return New Metafile(filename, referenceHdc, frameRect, frameUnit, type, description)
     End Function
 
-    Function Metafile(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Function Metafile(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
                 ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$) As Metafile
         Return New Metafile(stream, referenceHdc, type, description)
     End Function
 
-    Function Metafile(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Function Metafile(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
                 frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
                 ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$) As Metafile
         Return New Metafile(stream, referenceHdc, frameRect, frameUnit, type, description)
     End Function
 
-    Function Metafile(stream As IStream, ByVal referenceHdc As LongPtr, _
+    Function Metafile(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
                 frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
                 ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$) As Metafile
         Return New Metafile(stream, referenceHdc, frameRect, frameUnit, type, description)
@@ -290,13 +290,13 @@ Module GdipMetafile
     Function GetMetafileHeader(ByVal filename$, header As MetafileHeader) As GpStatus
         Return GdipGetMetafileHeaderFromFile(StrPtr(filename), header)
     End Function
-    
-    Function GetMetafileHeader(stream As IStream, header As MetafileHeader) As GpStatus
+
+    Function GetMetafileHeader(stream As GDIP_IStream, header As MetafileHeader) As GpStatus
         Return GdipGetMetafileHeaderFromStream(stream, header)
     End Function
-        
+
     Function EmfToWmfBits(ByVal hEmf As LongPtr, ByVal cbData16 As UINT, pData16 As Byte, _
-            ByVal iMapMode As MappingModes = MM_ANISOTROPIC, _
+            ByVal iMapMode As GDIP_MappingModes = GDIP_MM_ANISOTROPIC, _
             ByVal eFlags As GpEmfToWmfBitsFlags = EmfToWmfBitsFlagsDefault) As UINT
         Return GdipEmfToWmfBits(hEmf, cbData16, pData16, iMapMode, eFlags)
     End Function
@@ -314,21 +314,21 @@ Module GdipMetafile
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetMetafileHeaderFromFile Lib "gdiplus" (ByVal filename As LongPtr, header As MetafileHeader) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetMetafileHeaderFromStream Lib "gdiplus" (ByVal stream As IStream, header As MetafileHeader) As GpStatus
+    Public Declare PtrSafe Function GdipGetMetafileHeaderFromStream Lib "gdiplus" (ByVal stream As GDIP_IStream, header As MetafileHeader) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetMetafileHeaderFromMetafile Lib "gdiplus" (ByVal metafile As GpMetafile, header As MetafileHeader) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateStreamOnFile Lib "gdiplus" (ByVal filename As LongPtr, ByVal access As Long, stream As IStream) As GpStatus
+    Public Declare PtrSafe Function GdipCreateStreamOnFile Lib "gdiplus" (ByVal filename As LongPtr, ByVal access As Long, stream As GDIP_IStream) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMetafileFromWmf Lib "gdiplus" (ByVal hWnf As LongPtr, ByVal deleteWmf As BOOL, wmfPlaceableFileHeader As WmfPlaceableFileHeader, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMetafileFromWmf Lib "gdiplus" (ByVal hWnf As LongPtr, ByVal deleteWmf As GDIP_BOOL, wmfPlaceableFileHeader As WmfPlaceableFileHeader, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMetafileFromEmf Lib "gdiplus" (ByVal hEnf As LongPtr, ByVal deleteEmf As BOOL, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMetafileFromEmf Lib "gdiplus" (ByVal hEnf As LongPtr, ByVal deleteEmf As GDIP_BOOL, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMetafileFromFile Lib "gdiplus" (ByVal filename As LongPtr, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateMetafileFromWmfFile Lib "gdiplus" (ByVal filename As LongPtr, wmfPlaceableFileHeader As WmfPlaceableFileHeader, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMetafileFromStream Lib "gdiplus" (ByVal stream As IStream, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipCreateMetafileFromStream Lib "gdiplus" (ByVal stream As GDIP_IStream, metafile As GpMetafile) As GpStatus
     
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipRecordMetafile Lib "gdiplus" (ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
@@ -343,17 +343,17 @@ Module GdipMetafile
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipRecordMetafileFileNameI Lib "gdiplus" (ByVal FileName As LongPtr, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRecordMetafileStream Lib "gdiplus" (ByVal stream As IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipRecordMetafileStream Lib "gdiplus" (ByVal stream As GDIP_IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRecordMetafileStreamN Lib "gdiplus" Alias "GdipRecordMetafileStream" (ByVal stream As IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, ByVal frameRect As LongPtr, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipRecordMetafileStreamN Lib "gdiplus" Alias "GdipRecordMetafileStream" (ByVal stream As GDIP_IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, ByVal frameRect As LongPtr, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRecordMetafileStreamI Lib "gdiplus" (ByVal stream As IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipRecordMetafileStreamI Lib "gdiplus" (ByVal stream As GDIP_IStream, ByVal referenceHdc As LongPtr, ByVal type As GpEmfType, frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit, ByVal Description As LongPtr, metafile As GpMetafile) As GpStatus
     
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipPlayMetafileRecord Lib "gdiplus" (ByVal metafile As GpMetafile, ByVal recordType As GpEmfPlusRecordType, ByVal flags As Long, ByVal dataSize As Long, data As Byte) As GpStatus
     
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipConvertToEmfPlusToStream Lib "gdiplus" (ByVal refGraphics As GpGraphics, ByVal metafile As GpMetafile, conversionFailureFlag As Long, ByVal stream As IStream, ByVal emfType As GpEmfType, ByVal description As LongPtr, out_metafile As GpMetafile) As GpStatus
+    Public Declare PtrSafe Function GdipConvertToEmfPlusToStream Lib "gdiplus" (ByVal refGraphics As GpGraphics, ByVal metafile As GpMetafile, conversionFailureFlag As Long, ByVal stream As GDIP_IStream, ByVal emfType As GpEmfType, ByVal description As LongPtr, out_metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipConvertToEmfPlusToFile Lib "gdiplus" (ByVal refGraphics As GpGraphics, ByVal metafile As GpMetafile, conversionFailureFlag As Long, ByVal filename As LongPtr, ByVal emfType As GpEmfType, ByVal description As LongPtr, out_metafile As GpMetafile) As GpStatus
     [UseGetLastError(False)]

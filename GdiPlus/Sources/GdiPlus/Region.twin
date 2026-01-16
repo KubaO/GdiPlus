@@ -180,19 +180,19 @@ Class Region
     End Function
     
     Function IsEmpty(g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsEmptyRegion(rg, GetNative(g), booln))
         Return booln
     End Function
     
     Function IsInfinite(g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsInfiniteRegion(rg, GetNative(g), booln))
         Return booln
     End Function
 
     Function IsVisibleI(ByVal x&, ByVal y&, g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsVisibleRegionPointI(rg, x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -202,7 +202,7 @@ Class Region
     End Function
 
     Function IsVisible(ByVal x!, ByVal y!, g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsVisibleRegionPoint(rg, x, y, GetNative(g), booln))
         Return booln
     End Function
@@ -212,7 +212,7 @@ Class Region
     End Function
         
     Function IsVisibleI(ByVal x&, ByVal y&, ByVal width&, ByVal height&, g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsVisibleRegionRect(rg, x, y, width, height, GetNative(g), booln))
         Return booln
     End Function
@@ -222,7 +222,7 @@ Class Region
     End Function
         
     Function IsVisible(ByVal x!, ByVal y!, ByVal width!, ByVal height!, g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsVisibleRegionRectI(rg, x, y, width, height, GetNative(g), booln))
         Return booln
     End Function
@@ -232,7 +232,7 @@ Class Region
     End Function
     
     Function Equals(region As Region, g As Graphics) As Boolean
-        Dim booln As BOOL
+        Dim booln As GDIP_BOOL
         SetStatus(GdipIsEqualRegion(rg, GetNative(region), GetNative(g), booln))
         Return booln
     End Function
@@ -304,7 +304,7 @@ Module GdipRegion
     
     Function FromHRGN(ByVal hRgn As LongPtr) As Region
         Dim newRegion As Region
-        Set newRegion = New Region(GpRegion())
+        Set newRegion = New Region()
         If newRegion IsNot Nothing And GdipCreateRegionHrgn(hRgn, UnprotectedAccess(newRegion).rg) <> Ok Then
             Set newRegion = Nothing
         End If
@@ -348,11 +348,11 @@ Module GdipRegion
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionHRgn Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, hRgn As LongPtr) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsEmptyRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsEmptyRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsInfiniteRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsInfiniteRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsEqualRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsEqualRegion Lib "gdiplus" (ByVal Region As GpRegion, ByVal region2 As GpRegion, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipDeleteRegion Lib "gdiplus" (ByVal Region As GpRegion) As GpStatus
     [UseGetLastError(False)]
@@ -370,11 +370,11 @@ Module GdipRegion
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetRegionBounds Lib "gdiplus" (ByVal Region As GpRegion, ByVal Graphics As GpGraphics, Rect As GpRectF) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsVisibleRegionPoint Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionPoint Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsVisibleRegionPointI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionPointI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsVisibleRegionRect Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionRect Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Single, ByVal Y As Single, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsVisibleRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As BOOL) As GpStatus
+    Public Declare PtrSafe Function GdipIsVisibleRegionRectI Lib "gdiplus" (ByVal Region As GpRegion, ByVal X As Long, ByVal Y As Long, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
 End Module
