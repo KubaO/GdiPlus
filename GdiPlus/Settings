@@ -4,7 +4,7 @@
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
 	"project.conditionalCompilationArguments": "GDIP_HAS_WINDEVLIB=1",
-	"project.description": "GdiPlus",
+	"project.description": "A GdiPlus class library for tB",
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\${ProjectName}",
 	"project.exportPathIsV2": true,
@@ -16,6 +16,7 @@
 	"project.licence": "MIT",
 	"project.name": "GdiPlus",
 	"project.optionExplicit": true,
+	"project.packageVisibility": "PUBLIC",
 	"project.references": [
 		{
 			"hasBeenSplit": true,
