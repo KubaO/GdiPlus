@@ -164,7 +164,7 @@ Private Module GdipImplementation
     Public gdiPlusRefCount& = 0
     Public gdiPlusToken& = -1
     
-    Public Declare PtrSafe Function SafeArrayAllocDescriptor Lib "oleaut32" (ByVal cDims As Long, ppsaOut As LongPtr) As Long
+    Public Declare PtrSafe Function SafeArrayAllocDescriptor Lib "oleaut32" (ByVal cDims As Long, ppsaOut As Any) As Long
     
     [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
     [Description("")]
