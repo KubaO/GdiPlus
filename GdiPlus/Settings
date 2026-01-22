@@ -1,5 +1,6 @@
 {
 	"configuration.inherits": "Defaults",
+	"debugger.breakOnAllErrors": false,
 	"project.appTitle": "GdiPlus",
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
@@ -54,7 +55,7 @@
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 28,
+	"project.versionRevision": 31,
 	"project.warnings": {
 		"errors": [],
 		"hints": [],
