@@ -1,8 +1,10 @@
 # GDI+ for twinBASIC
 
-This is a very early preview of a higher-level GDI+ interface for twinBASIC. It is modeled after the C++ wrapper that is the official GDI+ API from Microsoft.
+This is a preview of a higher-level GDI+ interface for twinBASIC. It is modeled after the C++ wrapper that is the official GDI+ API from Microsoft.
 
 To get the `.twinpack` package file, open the project and build it.
+
+The project is also a public package in TwinBasic's online package library.
 
 TO DO:
 

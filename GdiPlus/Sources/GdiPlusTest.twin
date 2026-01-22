@@ -21,7 +21,7 @@ Module ModMain
         RegisterClass(class)
         
         Dim hWnd As LongPtr = CreateWindow( _
-                "AnalogClock", "Analog Clock Raw", _
+                "AnalogClock", "Analog Clock", _
                 WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1050, _
                 0, 0, GetModuleHandle(), 0)
 
@@ -109,7 +109,6 @@ Module ModMain
         gr.RotateTransform(90)
         gr.DrawString(time, pFont, 0!, 40!, pFormat, pBrush)
         gr.RotateTransform(-90)
-        
         
         pPen.Set(Black, 1)
         pBrush.RGB = LightGray
