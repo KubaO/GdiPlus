@@ -190,24 +190,24 @@ Class Font
     End Type
     
     Protected Function InitMetrics() As Boolean
+        InitMetrics = True
         If metrics.emHeight < 1 Then
-            Dim result As Boolean
             Dim nativeFamily As GpFontFamily
             SetStatus(GdipGetFamily(ft, nativeFamily))
-            result = InitMetrics(nativeFamily)
+            InitMetrics = InitMetrics(nativeFamily)
             GdipDeleteFontFamily(nativeFamily)
-            Return result
         End If
     End Function
     
     Protected Function InitMetrics(ByVal nativeFamily As GpFontFamily) As Boolean
+        InitMetrics = True
         If metrics.emHeight < 1 Then
             Dim myStyle As GpFontStyle = Style
             SetStatus(GdipGetEmHeight(nativeFamily, myStyle, metrics.emHeight))
             SetStatus(GdipGetCellAscent(nativeFamily, myStyle, metrics.ascent))
             SetStatus(GdipGetCellDescent(nativeFamily, myStyle, metrics.descent))
             SetStatus(GdipGetLineSpacing(nativeFamily, myStyle, metrics.lineSpacing))
-            If LastStatus <> Ok Then Return False
+            InitMetrics = LastStatus = Ok
         End If
         Return True
     End Function
