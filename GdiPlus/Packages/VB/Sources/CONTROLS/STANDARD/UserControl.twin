@@ -25,7 +25,7 @@ Private Module UcInternalStateMod
         WindowRgnIsPending As Boolean
         HwndIsParented As Boolean
         DoLoadNowProcessed As Boolean
-        
+           
         siteFrame As IOleInPlaceFrame
         siteDoc As IOleInPlaceUIWindow
         hasFocus As Boolean
@@ -987,35 +987,35 @@ Private Class UserControlBaseCtl
         [Description("")]
             Event Initialize()
         [Description("")]
-        [DispId(&HEAEA0004)]
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
         [Description("")]
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
         [Description("")]
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
         [Description("")]
-        [DispId(&HEAEA0008)]
+        [DispId(&HEA0008)]
             Event KeyDown(KeyCode As Integer, Shift As Integer)
         [Description("")]
-        [DispId(&HEAEA0009)]
+        [DispId(&HEA0009)]
             Event KeyPress(KeyAscii As Integer)
         [Description("")]
-        [DispId(&HEAEA000A)]
+        [DispId(&HEA000A)]
             Event KeyUp(KeyCode As Integer, Shift As Integer)
         [Description("")]
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
         [Description("")]
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
             
         [Description("Fires for all child/descendant controls, and the root UC control.  PreKeyEvents property must be True for this event to fire.  Not available on windowless controls.  Can also use PreKeyWParam/PreKeyLParam properties inside these events.")]
@@ -1034,11 +1034,11 @@ Private Class UserControlBaseCtl
             
         [Description("")]
         [Unimplemented]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
         [Unimplemented]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
             
         Event OLECompleteDrag(Effect As Long)
@@ -1165,9 +1165,11 @@ Private Class UserControlBaseCtl
             '     Stop
             ' End If
             
+            Dim outerClass As Any = CType(Of UserControl)(Me)
+            
             ' FIXME Deserializing here is not quite correct for proper VB6 back compat
             ' (it needs to be done on first access to any member, and again on NEXT member access AFTER a close in a re-open scenario)
-            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+            If Not SerializeInfo.RuntimeUISrzDeserialize(outerClass, False) Then
                 BackColor = SystemColorConstants.vbButtonFace
             End If
             
@@ -1193,7 +1195,7 @@ Private Class UserControlBaseCtl
             Debug.TracePrint "UserControl.HandleInitialize.3"
             
             Dim miscStatus As Long
-            GetClasInstanceAxMiscFlags([_HiddenModule].GetInheritedOwner(Me), miscStatus)()
+            GetClasInstanceAxMiscFlags(outerClass, miscStatus)()
             
             Dim InitData As WindowCreationData
             InitData.WindowAtomIdx = CInt(If(GraphicsBase.HasDC = True, EnumWindowAtoms.AtomIdx_ThunderUserControlDC, EnumWindowAtoms.AtomIdx_ThunderUserControl))
@@ -1234,6 +1236,7 @@ Private Class UserControlBaseCtl
             
             'Debug.Print "UserControl.HandleInitialize.5"
            ' InternalSleep(1000)
+           
         End Sub
                 
         Protected Sub HandleDPIChange(ByVal newDPI As Long) _
@@ -1287,11 +1290,11 @@ Private Class UserControlBaseCtl
         Protected Sub SetExtenderWidthWithCorrection(ByVal Value As Double)
             On Error GoTo ErrorHandler
             Dim targetPixelWidth As Long = CLng(Me.ScaleX(CSng(Value), vbTwips, vbPixels))
-             
+            
             Dim expectedHimetricValue As Double = ScaleX(CSng(targetPixelWidth), vbPixels, vbHimetric)
             InternalState.[_ExtentX] = expectedHimetricValue
             'Debug.TracePrint "uc.Extender.Width(BEFORE): " & Extender.Width
-        
+                                
             InternalIgnoreSetExtent = True
             Extender.Width = 0
             InternalIgnoreSetExtent = False
@@ -1330,10 +1333,10 @@ Private Class UserControlBaseCtl
         Protected Sub SetExtenderHeightWithCorrection(ByVal Value As Double)
             On Error GoTo ErrorHandler
             Dim targetPixelHeight As Long = CLng(Me.ScaleY(CSng(Value), vbTwips, vbPixels))
-                
+            
             Dim expectedHimetricValue As Double = ScaleY(CSng(targetPixelHeight), vbPixels, vbHimetric)
             InternalState.[_ExtentY] = expectedHimetricValue
-            
+                        
             InternalIgnoreSetExtent = True
             Extender.Height = 0
             InternalIgnoreSetExtent = False
@@ -1418,9 +1421,8 @@ Private Class UserControlBaseCtl
             'Stop
             
             If InternalState.IsLoaded = False Then
-                Dim outer As UserControl
-                Set outer = CType(Of UserControl)([_HiddenModule].GetInheritedOwner(Me))
-                UnprotectedAccess(outer).DoLoadNow()
+                Dim outerClass As UserControl = CType(Of UserControl)(Me)
+                UnprotectedAccess(outerClass).DoLoadNow()
             End If
             
             ' If Not Me.InternalState.IsInitialized1 Then
@@ -1457,9 +1459,8 @@ Private Class UserControlBaseCtl
             'Debug.Print CurrentComponentName & "." & CurrentProcedureName
 
             ' At this point the HWND is available, but not correct size etc.     
-            Dim outer As UserControl
-            Set outer = CType(Of UserControl)([_HiddenModule].GetInheritedOwner(Me))
-            UnprotectedAccess(outer).DoLoadNow()                ' this is needed here, at least at design time, otherwise things like resizing the control won't work
+            Dim outerClass As UserControl = CType(Of UserControl)(Me)
+            UnprotectedAccess(outerClass).DoLoadNow()                ' this is needed here, at least at design time, otherwise things like resizing the control won't work
             
             SyncScaleMode(Me, Me.RootWindowElementBase)
             #If FEATURE_OLEDRAGDROP Then
@@ -1491,13 +1492,15 @@ Private Class UserControlBaseCtl
             Me.InternalStateResetGraphics()
             ResetUcInternalState(InternalState)
             
-            SetClassOverrideDispatch([_HiddenModule].GetInheritedOwner(Me), Nothing)        ' breaks circular ref
+            Dim outerClass As Any = CType(Of UserControl)(Me)
+            
+            SetClassOverrideDispatch(outerClass, Nothing)        ' breaks circular ref
                         
             #If FEATURE_DRAWING Then
             Set Font = Nothing
             #End If
             
-            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+            [_HiddenModule].ResetFirstMethodAccessFlag(outerClass)
         End Sub
         
         Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
@@ -2026,8 +2029,9 @@ Private Class UserControlBaseCtl
                     
                     On Error Resume Next
                         Dim SerializeInfo As SerializeInfo
-                        SerializeInfo.Pointer = GetClassInstanceSerializer([_HiddenModule].GetInheritedOwner(Me))
-                        Dim outerClass As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
+                        Dim ucOuter As Any = CType(Of UserControl)(Me)
+                        SerializeInfo.Pointer = GetClassInstanceSerializer(ucOuter)
+                        Dim outerClass As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()    ' could probably use GetInheritedOwner now instead?
                         outerClass.GetIDsOfNames(GUID_NULL, CStr(PropertyName), 1, 0, dispID)
                         If dispID <> DISPID_UNKNOWN Then
                             RuntimeRaisePropertyNotifySinkChangedEvent(outerClass, dispID)
@@ -2586,8 +2590,9 @@ Private Class UserControlBaseCtl
                 ctrlName = CStr(Me.Extender.Name)
                 
                 Dim SerializeInfo As SerializeInfo
-                SerializeInfo.Pointer = GetClassInstanceSerializer([_HiddenModule].GetInheritedOwner(Me))
-                Dim outerClass As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
+                Dim ucOuter As Any = CType(Of UserControl)(Me)
+                SerializeInfo.Pointer = GetClassInstanceSerializer(ucOuter)
+                Dim outerClass As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()        ' could probably use GetInheritedOwner() now instead?
                 
                 OLEAUT32.OleCreatePropertyFrame(hwndParent, 0, 0, ctrlName, 1, ObjPtr(outerClass), pagesInfo.cElems, pagesInfo.pElems, 0, 0, vbNullPtr)
                 'MsgBox "OleCreatePropertyFrame [DONE]"
@@ -2830,7 +2835,8 @@ Private Class UserControlBaseCtl
     
     Protected Sub IOleObjectGetMiscStatus(ByVal dwAspect As Long, ByRef pdwStatus As Long) _
             Implements IOleObject.GetMiscStatus
-        GetClasInstanceAxMiscFlags([_HiddenModule].GetInheritedOwner(Me), pdwStatus)
+        Dim ucOuter As Any = CType(Of UserControl)(Me)
+        GetClasInstanceAxMiscFlags(ucOuter, pdwStatus)
         Debug.TracePrint "--> out misc flags " & Hex(pdwStatus)
         'Debug.TracePrint "RefCount: " & GetClassInstanceRefCount(Me)
     End Sub
@@ -3390,7 +3396,8 @@ Private Class UserControlBaseCtl
     Protected Function GetRootCLSIDStr() As String
         ' This works regardless if OnInitialize has been reached yet
         Dim SerializeInfo As SerializeInfo
-        SerializeInfo.Pointer = GetClassInstanceSerializer([_HiddenModule].GetInheritedOwner(Me))
+        Dim ucOuter As Any = CType(Of UserControl)(Me)
+        SerializeInfo.Pointer = GetClassInstanceSerializer(ucOuter)
         Return SerializeInfo.RuntimeUISrzGetRootCLSID()
     End Function
 
@@ -4480,7 +4487,8 @@ StreamError:
 
         #If FEATURE_PROPERTYPAGE Then
             Dim SerializeInfo As SerializeInfo
-            SerializeInfo.Pointer = GetClassInstanceSerializer([_HiddenModule].GetInheritedOwner(Me))
+            Dim ucOuter As Any = CType(Of UserControl)(Me)
+            SerializeInfo.Pointer = GetClassInstanceSerializer(ucOuter)
             
             'Dim outerClass As Object = GetInheritedOwner(Me) 'CType(Of ITwinBasicInternalClassSupport)([_HiddenModule].GetInheritedOwner(Me)).GetOverridenDispatchHandler()()
             Dim outerClass As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
@@ -4787,12 +4795,14 @@ StreamError:
         ' This event fires once the UserControl has been event-registered into its outer class
 
         Dim SerializeInfo As SerializeInfo
-        SerializeInfo.Pointer = GetClassInstanceSerializer([_HiddenModule].GetInheritedOwner(Me))
+        Dim ucOuter As Any = CType(Of UserControl)(Me)
+        SerializeInfo.Pointer = GetClassInstanceSerializer(ucOuter)
         
         ' We could handle this better if we had full inheritance support
         ' This is needed to make properties on the outer interface accessible at design time in property lists etc.
+        Dim outerClass As Any = CType(Of UserControl)(Me)
         Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
-        SetClassOverrideDispatch([_HiddenModule].GetInheritedOwner(Me), rootObject)
+        SetClassOverrideDispatch(outerClass, rootObject)
         'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler rootObject  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
 
         'Debug.TracePrint "RefCount: " & GetClassInstanceRefCount(Me)
@@ -4855,7 +4865,7 @@ StreamError:
     ' Protected Sub ICategorizeProperties_GetCategoryName(ByVal propcat As Long, ByVal lcid As Long, categoryName As String)
     '     categoryName = "Font123"
     ' End Sub
-    
+        
 End Class
 
 [WindowsControl("/miscellaneous/ICONS??/Frame??.png")]

@@ -867,7 +867,7 @@ Private Module RuntimeUI         ' FIXME got to hide this somehow
         Pointer As LongPtr
 
         [DLLStackCheck(False), UseGetLastError(False), PreserveSig(False), SimplerByVals(True)]                     ' NOTE: PreserveSig(FALSE) here
-        Public DeclareWide PtrSafe Function RuntimeUISrzDeserialize Lib "<runtimeuisrz>" Alias "#1" (ByVal Me As SerializeInfo, ByVal object As stdole.IUnknown) As Boolean
+        Public DeclareWide PtrSafe Function RuntimeUISrzDeserialize Lib "<runtimeuisrz>" Alias "#1" (ByVal Me As SerializeInfo, ByVal object As stdole.IUnknown, ByVal UseOuterOwner As Boolean = True) As Boolean
         [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]
         Public DeclareWide PtrSafe Function RuntimeUISrzGetRootCLSID Lib "<runtimeuisrz>" Alias "#2" (ByVal Me As SerializeInfo) As String
         [DLLStackCheck(False), UseGetLastError(False), PreserveSig(True), SimplerByVals(True)]

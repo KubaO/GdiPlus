@@ -1,3 +1,4 @@
+#If DONT_INCLUDE_PROPERTYPAGES = 0 Then
 #If FEATURE_PICTUREBOX And FEATURE_LABEL And FEATURE_FRAME And FEATURE_COMMANDBUTTON And FEATURE_CHECKBOX And FEATURE_COMBOBOX And FEATURE_LISTBOX And FEATURE_PROPERTYPAGE And FEATURE_DRAWING Then
 [Description("")]
 [FormDesignerId("C878D560-72EB-40C5-BC0B-3D96E34625A5")]
@@ -58,7 +59,7 @@ Private Class StandardFont
                 If Len(fontProp) > 0 Then
                     lstProperties.AddItem(fontProp)
                 End If
-                NextProp:
+                'NextProp:
             Next
         End If
         
@@ -227,4 +228,5 @@ Private Class StandardFont
     End Sub
     
 End Class
+#End If
 #End If

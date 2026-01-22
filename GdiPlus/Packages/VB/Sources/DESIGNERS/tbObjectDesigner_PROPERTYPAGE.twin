@@ -1,3 +1,4 @@
+#If DONT_INCLUDE_DESIGNERS = 0 Then
 [Description("")]
 [FormDesignerId("7E2A55FB-9B20-408D-BA08-797368F04458")]
 [ClassId("D9BE65E4-6425-4191-834E-8AE4C7005201")]
@@ -5,3 +6,4 @@
 [ComImport(True)]
 Private Class tbObjectDesigner_PROPERTYPAGE
 End Class
+#End If

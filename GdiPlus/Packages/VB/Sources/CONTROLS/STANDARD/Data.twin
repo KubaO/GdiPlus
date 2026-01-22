@@ -148,19 +148,19 @@ Private Class DataBaseCtl
 
     #Region "EVENTS"
     
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Event MouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) ' new to tB
         Event Initialize()
         [Description("")]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
         [Unimplemented] Event Error(DataErr As Integer, Response As Integer)
         Event OLECompleteDrag(Effect As Long)
@@ -171,7 +171,7 @@ Private Class DataBaseCtl
         Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
         Event Reposition()
         [Unimplemented] Event Resize()
-        [DispId(&HEAEA000D)]
+        [DispId(&HEA000D)]
         [DefaultDesignerEvent]
             Event Validate(Action As Integer, Save As Integer)
             

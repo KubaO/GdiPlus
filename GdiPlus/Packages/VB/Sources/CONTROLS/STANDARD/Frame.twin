@@ -77,27 +77,27 @@ Private Class FrameBaseCtl
     
         [DefaultDesignerEvent]
         [Description("")]
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
         [Description("")]
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
         [Description("")]
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
             Event Initialize()
         [Description("")]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
         
         Event OLECompleteDrag(Effect As Long)

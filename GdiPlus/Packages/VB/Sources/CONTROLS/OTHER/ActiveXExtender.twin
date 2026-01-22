@@ -172,17 +172,17 @@ Private Class ActiveXControlExtenderX
     #Region "EVENTS"
         'Event ExperimentalLogAxExtender(ByVal Text As String)
         [Unimplemented]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
              Event DragDrop(Source As Control, X As Single, Y As Single)
         [Unimplemented]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
         [Unimplemented]
-        [DispId(&HEAEA000D)]
+        [DispId(&HEA000D)]
             Event Validate(Cancel As Boolean)
     #End Region
                    

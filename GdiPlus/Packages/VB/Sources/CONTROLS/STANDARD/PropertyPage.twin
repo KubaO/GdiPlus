@@ -300,31 +300,31 @@ Class PropertyPage
     #Region "EVENTS"
     
         Event ApplyChanges()
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
         Event EditProperty(PropertyName As String)
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
         Event Initialize()
-        [DispId(&HEAEA0008)]
+        [DispId(&HEA0008)]
             Event KeyDown(KeyCode As Integer, Shift As Integer)
-        [DispId(&HEAEA0009)]
+        [DispId(&HEA0009)]
             Event KeyPress(KeyAscii As Integer)
-        [DispId(&HEAEA000A)]
+        [DispId(&HEA000A)]
             Event KeyUp(KeyCode As Integer, Shift As Integer)
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Event OLECompleteDrag(Effect As Long)
         Event OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -380,7 +380,7 @@ Class PropertyPage
             'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler SerializeInfo.RuntimeUISrzGetRootClassDispatch()  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
             Me.IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
         
-            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+            If Not SerializeInfo.RuntimeUISrzDeserialize(Me, False) Then
                 BackColor = SystemColorConstants.vbButtonFace
             End If
             

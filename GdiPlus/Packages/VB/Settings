@@ -5,6 +5,7 @@
 	"project.autoPrettify": true,
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
+	"project.conditionalCompilationArguments": "DONT_INCLUDE_DESIGNERS=0:DONT_INCLUDE_PROPERTYPAGES=0:LOG_TERMINATE=0",
 	"project.debuggable": false,
 	"project.description": "twinBASIC - VB Compatibility Package (Forms)",
 	"project.exportPathIsV2": true,

@@ -980,7 +980,7 @@ Private Class GraphicsBase
     [Serialize(False)]
     Protected InternalCurrentY As Double               ' These reflect DPI, not unscaled values
     [CustomDesigner("designer_SpectrumWindows")]
-    Public ForeColor As OLE_COLOR = SystemColorConstants.vbButtonText
+    Public ForeColor As OLE_COLOR = 1234'SystemColorConstants.vbButtonText
     [CustomDesigner("designer_SpectrumWindows")]
     Public FillColor As OLE_COLOR = 0
     Public FillStyle As FillStyleConstants = FillStyleConstants.vbFSTransparent
@@ -992,7 +992,7 @@ Private Class GraphicsBase
 
     [Description("")]
     Public ScaleMode As VBRUN.ScaleModeConstants = VBRUN.ScaleModeConstants.vbTwips
-        
+       
     [Serialize(False)]
     Protected InternalIsFirstResizeEventAfterLoad As Boolean = False
     
@@ -1581,6 +1581,7 @@ Private Class GraphicsBase
                 
                         newHDC.BitBlt(0, 0, Me.BaseGraphicsInfo.PersistantBitmap_pixelWidth, Me.BaseGraphicsInfo.PersistantBitmap_pixelHeight, hdc2, 0, 0, vbSrcCopy)
                         hdc2.SelectObject(origBmp)
+                        hdc2.DeleteDC()
                         
                        ' DoEvents
                         
@@ -1674,15 +1675,15 @@ Private Class GraphicsBase
             
     Protected Function GetSafeOwner() As Object
         ' FIXME currently used to fix fafalone-private/41, but needs better solution
-        Set GetSafeOwner = GetInheritedOwner(Me)
+        Set GetSafeOwner = GetInheritedOwner(Me)        ' could probably just use Me here now due to inheritance
         Dim ctlType As Any = OnGetControlType()
         If 0 Then
         #If FEATURE_ACTIVEX_CONTROLS Then
         ElseIf ctlType = ControlTypeConstants.vbUserControl Then
-            Set GetSafeOwner = CType(Of BaseUserControl)(GetSafeOwner)
+            Set GetSafeOwner = CType(Of UserControlBaseCtl)(GetSafeOwner)
         #End If
         ElseIf ctlType = ControlTypeConstants.vbForm Then
-            Set GetSafeOwner = CType(Of BaseForm)(GetSafeOwner)
+            Set GetSafeOwner = CType(Of Form)(GetSafeOwner)
         End If
     End Function
     

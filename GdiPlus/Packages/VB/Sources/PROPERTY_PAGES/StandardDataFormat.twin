@@ -1,3 +1,4 @@
+#If DONT_INCLUDE_PROPERTYPAGES = 0 Then
 #If FEATURE_PROPERTYPAGE Then
 [Description("")]
 [FormDesignerId("04DEE50A-0A3E-4E38-A79A-0D9E438CC19A")]
@@ -11,3 +12,4 @@ Private Class StandardDataFormat
 
 End Class
 #endif
+#End If

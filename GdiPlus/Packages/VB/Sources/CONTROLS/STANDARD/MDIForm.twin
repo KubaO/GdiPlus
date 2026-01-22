@@ -141,24 +141,24 @@ Private Class MDIFormBaseCtl
         Event Deactivate()
         Event Initialize()
         [DefaultDesignerEvent] Event Load()
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
         Event Click()
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
         Event DblClick()
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
         Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
         Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
         Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Event Resize()
         Event Terminate()
         Event Unload(Cancel As Integer)
         [Description("")]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
         [Unimplemented] Event LinkClose()
         [Unimplemented] Event LinkError(LinkErr As Integer)
@@ -207,13 +207,15 @@ Private Class MDIFormBaseCtl
             
             Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
             
+            Dim outerClass As Any = CType(Of MDIForm)(Me)
+            
             ' This allows dispatch calls to pass on to the outer form controller, allowing for extensibility  
             Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
-            SetClassOverrideDispatch(GetInheritedOwner(Me), rootObject)
+            SetClassOverrideDispatch(outerClass, rootObject)
             
             Me.IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
         
-            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+            If Not SerializeInfo.RuntimeUISrzDeserialize(outerClass, False) Then
                 'BackColor = SystemColorConstants.vbButtonFace
             End If
             
@@ -287,9 +289,9 @@ Private Class MDIFormBaseCtl
             Me.InternalStateResetOLEDragDrop()
             #end If
             
-            SetClassOverrideDispatch(GetInheritedOwner(Me), Nothing)                ' breaks circular ref
-            
-            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+            Dim outerClass As Any = CType(Of MDIForm)(Me)
+            SetClassOverrideDispatch(outerClass, Nothing)                ' breaks circular ref
+            [_HiddenModule].ResetFirstMethodAccessFlag(outerClass)
         End Sub
         
         Protected Sub HandleMouseWheel(ByVal Delta As Integer, ByVal Horizontal As Boolean) _
@@ -315,6 +317,7 @@ Private Class MDIFormBaseCtl
             End If
             
             IsLoaded = True
+            
             RaiseEvent Load()
             RaiseEvent Resize()
         End Sub
@@ -800,31 +803,37 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetTopMost() As Boolean _ 
                 Implements Form.TopMost
+            EnsureSelfLoaded()
             Return Me.TopMost
         End Property
         
         Protected Property Get GetAlwaysShowKeyboardCues() As Boolean _
                   Implements Form.AlwaysShowKeyboardCues
+            EnsureSelfLoaded()
             Return Me.AlwaysShowKeyboardCues
         End Property
         
         Protected Property Get GetOpacity() As Double _
                 Implements Form.Opacity
+            EnsureSelfLoaded()
             Return Me.Opacity
         End Property
         
         Protected Property Let LetOpacity(ByVal Value As Double) _ 
                 Implements Form.Opacity
+            EnsureSelfLoaded()
             Me.Opacity = Value
         End Property
         
         Protected Property Get GetTransparencyKey() As OLE_COLOR _ 
                 Implements Form.TransparencyKey
+            EnsureSelfLoaded()
             Return Me.TransparencyKey
         End Property
         
         Protected Property Let LetTransparencyKey(ByVal Value As Long) _ 
                 Implements Form.TransparencyKey
+            EnsureSelfLoaded()
             Me.TransparencyKey = Value
         End Property
         
@@ -846,32 +855,38 @@ Private Class MDIFormBaseCtl
         #If FEATURE_HELP Then
         Protected Property Get GetHelpContextID() As Long _ 
                 Implements Form.HelpContextID
+            EnsureSelfLoaded()
             Return Me.HelpContextID
         End Property
         
         Protected Property Let LetHelpContextID(ByVal Value As Long) _ 
                 Implements Form.HelpContextID
+            EnsureSelfLoaded()
             Me.HelpContextID = Value
         End Property
         #End If
         
         Protected Property Get GetLinkMode() As VBRUN.LinkModeConstants _ 
                       Implements Form.LinkMode
+            EnsureSelfLoaded()
             Return Me.LinkMode
         End Property
         
         Protected Property Let LetLinkMode(ByVal Value As VBRUN.LinkModeConstants) _ 
                       Implements Form.LinkMode
+            EnsureSelfLoaded()
             Me.LinkMode = Value
         End Property
         
         Protected Property Get GetLinkTopic() As String _ 
                       Implements Form.LinkTopic
+            EnsureSelfLoaded()
             Return Me.LinkTopic
         End Property
         
         Protected Property Let LetLinkTopic(ByVal Value As String) _ 
                       Implements Form.LinkTopic
+            EnsureSelfLoaded()
             Me.LinkTopic = Value
         End Property
         
@@ -887,11 +902,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetRightToLeft() As Boolean _ 
                       Implements Form.RightToLeft
+            EnsureSelfLoaded()
             Return Me.RightToLeft
         End Property
         
         Protected Property Let LetRightToLeft(ByVal Value As Boolean) _ 
                       Implements Form.RightToLeft
+            EnsureSelfLoaded()
             Me.RightToLeft = Value
         End Property
         
@@ -908,17 +925,20 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetWhatsThisHelp() As Boolean _ 
                       Implements Form.WhatsThisHelp
+            EnsureSelfLoaded()
             Return Me.WhatsThisHelp
         End Property
         
         Protected Property Let LetWhatsThisHelp(ByVal Value As Boolean) _ 
                       Implements Form.WhatsThisHelp
+            EnsureSelfLoaded()
             Me.WhatsThisHelp = Value
         End Property
         #End If
         
         Protected Property Get GetMDIChild() As Boolean _ 
                       Implements Form.MDIChild
+            EnsureSelfLoaded()
             Return False
         End Property
         
@@ -934,46 +954,55 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetName() As String _ 
                       Implements Form.Name
+            EnsureSelfLoaded()
             Return Me.Name
         End Property
         
         Protected Property Get GetMinWidth() As Double _ 
                       Implements Form.MinWidth
+            EnsureSelfLoaded()
             Return Me.MinWidth
         End Property
         
         Protected Property Let LetMinWidth(ByVal Value As Double) _ 
                       Implements Form.MinWidth
+            EnsureSelfLoaded()
             Me.MinWidth = Value
         End Property
         
         Protected Property Get GetMinHeight() As Double _ 
                       Implements Form.MinHeight
+            EnsureSelfLoaded()
             Return Me.MinHeight
         End Property
         
         Protected Property Let LetMinHeight(ByVal Value As Double) _ 
                       Implements Form.MinHeight
+            EnsureSelfLoaded()
             Me.MinHeight = Value
         End Property
         
         Protected Property Get GetMaxWidth() As Double _ 
                       Implements Form.MaxWidth
+            EnsureSelfLoaded()
             Return Me.MaxWidth
         End Property
         
         Protected Property Let LetMaxWidth(ByVal Value As Double) _ 
                       Implements Form.MaxWidth
+            EnsureSelfLoaded()
             Me.MaxWidth = Value
         End Property
         
         Protected Property Get GetMaxHeight() As Double _ 
                       Implements Form.MaxHeight
+            EnsureSelfLoaded()
             Return Me.MaxHeight
         End Property
         
         Protected Property Let LetMaxHeight(ByVal Value As Double) _ 
                       Implements Form.MaxHeight
+            EnsureSelfLoaded()
             Me.MaxHeight = Value
         End Property
         
@@ -984,17 +1013,20 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetTabFocusAutoSelect() As Boolean _ 
                       Implements Form.TabFocusAutoSelect
+            EnsureSelfLoaded()
             Return Me.TabFocusAutoSelect
         End Property
         
         Protected Property Let LetTabFocusAutoSelect(ByVal Value As Boolean) _ 
                       Implements Form.TabFocusAutoSelect
+            EnsureSelfLoaded()
             Me.TabFocusAutoSelect = Value
         End Property
         
         #If FEATURE_OLEDRAGDROP Then
         Protected Sub FormOLEDrag() _ 
                       Implements Form.OLEDrag
+            EnsureSelfLoaded()
             Me.OLEDrag
         End Sub
         #end if
@@ -1002,11 +1034,13 @@ Private Class MDIFormBaseCtl
         #If FEATURE_OLEDRAGDROP Then
         Protected Property Get GetOLEDropMode() As VBRUN.OLEDropConstants _ 
                       Implements Form.OLEDropMode
+            EnsureSelfLoaded()
             Return Me.OLEDropMode
         End Property
         
         Protected Property Let LetOLEDropMode(ByVal Value As VBRUN.OLEDropConstants) _ 
                       Implements Form.OLEDropMode
+            EnsureSelfLoaded()
             Me.OLEDropMode = Value
         End Property
         #endif
@@ -1023,28 +1057,33 @@ Private Class MDIFormBaseCtl
         
         Protected Sub FormValidateControls() _ 
                 Implements Form.ValidateControls
+            EnsureSelfLoaded()
             Me.ValidateControls()
         End Sub
         
         #If FEATURE_HELP Then
         Protected Sub FormWhatsThisMode() _ 
                 Implements Form.WhatsThisMode
+            EnsureSelfLoaded()
             Me.WhatsThisMode()
         End Sub
         #End If
         
         Protected Property Get GetActiveControl() As Control _ 
                 Implements Form.ActiveControl
+            EnsureSelfLoaded()
             Set GetActiveControl = Me.ActiveControl
         End Property
         
         Protected Property Get GetAppearance() As VBRUN.AppearanceConstants _ 
                 Implements Form.Appearance
+            EnsureSelfLoaded()
             Return Me.Appearance
         End Property
         
         Protected Property Let LetAppearance(ByVal Value As VBRUN.AppearanceConstants) _ 
                 Implements Form.Appearance
+            EnsureSelfLoaded()
             Me.Appearance = Value
         End Property
         
@@ -1060,11 +1099,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetBackColor() As OLE_COLOR _ 
                 Implements Form.BackColor
+            EnsureSelfLoaded()
             Return Me.BackColor
         End Property
         
         Protected Property Let LetBackColor(ByVal Value As Long) _ 
                 Implements Form.BackColor
+            EnsureSelfLoaded()
             Me.BackColor = Value
         End Property
         
@@ -1080,11 +1121,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetCaption() As String _ 
                 Implements Form.Caption
+            EnsureSelfLoaded()
             Return Me.Caption
         End Property
         
         Protected Property Let LetCaption(Value As String) _ 
                 Implements Form.Caption
+            EnsureSelfLoaded()
             Me.Caption = Value
         End Property
                         
@@ -1100,6 +1143,7 @@ Private Class MDIFormBaseCtl
         
         Protected Sub FormClose() _ 
                 Implements Form.Close
+            EnsureSelfLoaded()
             Me.Close
         End Sub
         
@@ -1115,16 +1159,19 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetControls() As Object _ 
                 Implements Form.Controls
+            EnsureSelfLoaded()
             Return Me.Controls
         End Property
                 
         Protected Property Get GetControlType() As ControlTypeConstants _ 
                 Implements Form.ControlType
+            EnsureSelfLoaded()
             Return Me.ControlType
         End Property
         
         Protected Property Get GetCount() As Long _ 
                 Implements Form.Count
+            EnsureSelfLoaded()
             Return Me.Count
         End Property
 
@@ -1327,30 +1374,36 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetDpiScaleFactorX() As Double _ 
                 Implements Form.DpiScaleFactorX
+            EnsureSelfLoaded()
             Return Me.DpiScaleFactorX
         End Property
         
         Protected Property Get GetDpiScaleFactorY() As Double _ 
                 Implements Form.DpiScaleFactorY
+            EnsureSelfLoaded()
             Return Me.DpiScaleFactorY
         End Property
         
         Protected Property Get GetEnabled() As Boolean _ 
-            Implements Form.Enabled
+                Implements Form.Enabled
+            EnsureSelfLoaded()
             Return Me.Enabled
         End Property
         
         Protected Property Let LetEnabled(Value As Boolean) _ 
-            Implements Form.Enabled
+                Implements Form.Enabled
+            EnsureSelfLoaded()
             Me.Enabled = Value
         End Property
                 
         Protected Property Get GetFormDesignerId() As String _ 
             Implements Form.FormDesignerId
+            EnsureSelfLoaded()
         End Property
         
         Protected Property Let LetFormDesignerId(ByVal Value As String) _ 
             Implements Form.FormDesignerId
+            EnsureSelfLoaded()
         End Property
         
         Protected Property Get GetHasDC() As Boolean _ 
@@ -1370,36 +1423,43 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetHeight() As Double _ 
                 Implements Form.Height
+            EnsureSelfLoaded()
             Return Me.Height
         End Property
         
         Protected Property Let LetHeight(ByVal Value As Double) _ 
                 Implements Form.Height
+            EnsureSelfLoaded()
             Me.Height = Value
         End Property
         
         Protected Sub FormHide() _ 
                 Implements Form.Hide
+            EnsureSelfLoaded()
             Me.Hide
         End Sub
         
         Protected Property Get GethWnd() As LongPtr _ 
                 Implements Form.hWnd
+            EnsureSelfLoaded()
             Return Me.hWnd
         End Property
         
         Protected Property Get GetIcon() As StdPicture _ 
                 Implements Form.Icon
+            EnsureSelfLoaded()
             Return Me.Icon
         End Property
         
         Protected Property Set SetIcon(Value As StdPicture) _ 
                 Implements Form.Icon
+            EnsureSelfLoaded()
             Set Me.Icon = Value
         End Property
         
         Protected Property Let LetIcon(Value As StdPicture) _ 
-                Implements Form.Icon
+                Implements Form.Icon    
+            EnsureSelfLoaded()
             Let Me.Icon = Value
         End Property
         
@@ -1420,11 +1480,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetLeft() As Double _ 
                 Implements Form.Left
+            EnsureSelfLoaded()
             Return Me.Left
         End Property
         
         Protected Property Let LetLeft(ByVal Value As Double) _ 
                 Implements Form.Left
+            EnsureSelfLoaded()
             Me.Left = Value
         End Property
         
@@ -1440,72 +1502,86 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetMouseIcon() As StdPicture _ 
                 Implements Form.MouseIcon
+            EnsureSelfLoaded()
             Return Me.MouseIcon
         End Property
         
         Protected Property Set SetMouseIcon(Value As StdPicture) _ 
                 Implements Form.MouseIcon
+            EnsureSelfLoaded()
             Set Me.MouseIcon = Value
         End Property
         
         Protected Property Let LetMouseIcon(Value As StdPicture) _ 
                 Implements Form.MouseIcon
+            EnsureSelfLoaded()
             Let Me.MouseIcon = Value
         End Property
         
         Protected Property Get GetMousePointer() As VBRUN.MousePointerConstants _ 
                 Implements Form.MousePointer
+            EnsureSelfLoaded()
             Return Me.MousePointer
         End Property
         
         Protected Property Let LetMousePointer(ByVal Value As VBRUN.MousePointerConstants) _ 
                 Implements Form.MousePointer
+            EnsureSelfLoaded()
             Me.MousePointer = Value
         End Property
         
         Protected Sub FormMove(ByVal Left As Single, ByVal Top As Variant, ByVal Width As Variant, ByVal Height As Variant) _ 
                 Implements Form.Move
+            EnsureSelfLoaded()
             Me.Move(Left, Top, Width, Height)
         End Sub
         
         Protected Property Get GetMoveable() As Boolean _ 
-                Implements Form.Moveable
+                Implements Form.Moveable    
+            EnsureSelfLoaded()
             Return Me.Moveable
         End Property
         
         Protected Property Let LetMoveable(ByVal Value As Boolean) _ 
                 Implements Form.Moveable
+            EnsureSelfLoaded()
             Me.Moveable = Value
         End Property
         
         Protected Property Get GetPicture() As StdPicture _ 
                 Implements Form.Picture
+            EnsureSelfLoaded()
             Return Me.Picture
         End Property
         
         Protected Property Set SetPicture(Value As StdPicture) _ 
                 Implements Form.Picture
+            EnsureSelfLoaded()
             Set Me.Picture = Value
         End Property
         
         Protected Property Let LetPicture(Value As StdPicture) _ 
                 Implements Form.Picture
+            EnsureSelfLoaded()
             Let Me.Picture = Value
         End Property
         
         Protected Property Get GetPictureDpiScaling() As Boolean _ 
                 Implements Form.PictureDpiScaling
+            EnsureSelfLoaded()
             Return Me.PictureDpiScaling
         End Property
         
         Protected Property Let LetPictureDpiScaling(ByVal Value As Boolean) _ 
                 Implements Form.PictureDpiScaling
+            EnsureSelfLoaded()
             Me.PictureDpiScaling = Value
         End Property
                 
         #If FEATURE_MENU Then
         Protected Sub FormPopUpMenu(ByVal Menu As Object, ByVal Flags As Variant, ByVal X As Variant, ByVal Y As Variant, ByVal DefaultMenu As Variant) _ 
                 Implements Form.PopUpMenu
+            EnsureSelfLoaded()
             Me.PopUpMenu(Menu, Flags, X, Y, DefaultMenu)
         End Sub
         #End If
@@ -1527,11 +1603,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetScaleHeight() As Double _ 
                 Implements Form.ScaleHeight
+            EnsureSelfLoaded()
             Return Me.ScaleHeight
         End Property
         
         Protected Property Let LetScaleHeight(ByVal Value As Double) _ 
                 Implements Form.ScaleHeight
+            EnsureSelfLoaded()
             Err.Raise 383, , "'ScaleHeight' property is read-only"
         End Property
         
@@ -1547,11 +1625,13 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetScaleWidth() As Double _ 
                 Implements Form.ScaleWidth
+            EnsureSelfLoaded()
             Return Me.ScaleWidth
         End Property
         
         Protected Property Let LetScaleWidth(ByVal Value As Double) _ 
                 Implements Form.ScaleWidth
+            EnsureSelfLoaded()
             Err.Raise 383, , "'ScaleWidth' property is read-only"
         End Property
         
@@ -1587,16 +1667,19 @@ Private Class MDIFormBaseCtl
         
         Protected Sub FormSetFocus() _ 
                 Implements Form.SetFocus
+            EnsureSelfLoaded()
             Me.SetFocus
         End Sub
         
         Protected Sub FormShow(ByVal Modal As Variant, ByVal OwnerForm As Variant) _ 
                 Implements Form.Show
+            EnsureSelfLoaded()
             Me.Show(Modal, OwnerForm)
         End Sub
         
         Public Sub FormStartupShow() _ 
                  Implements Form.StartupShow
+            EnsureSelfLoaded()
             Me.StartupShow()
         End Sub
         
@@ -1607,66 +1690,79 @@ Private Class MDIFormBaseCtl
         
         Protected Property Get GetStartUpPosition() As StartUpPositionConstants _ 
                 Implements Form.StartUpPosition
+            EnsureSelfLoaded()
             Return Me.StartUpPosition
         End Property
         
         Protected Property Get GetTag() As String _ 
                 Implements Form.Tag
+            EnsureSelfLoaded()
             Return Me.Tag
         End Property
         
         Protected Property Let LetTag(ByVal Value As String) _ 
                 Implements Form.Tag
+            EnsureSelfLoaded()
             Me.Tag = Value
         End Property
         
         Protected Property Get GetTop() As Double _ 
                 Implements Form.Top
+            EnsureSelfLoaded()
             Return Me.Top
         End Property
         
         Protected Property Let LetTop(ByVal Value As Double) _ 
                 Implements Form.Top
+            EnsureSelfLoaded()
             Me.Top = Value
         End Property
         
         Protected Property Get GetVisible() As Boolean _ 
                 Implements Form.Visible
+            EnsureSelfLoaded()
             Return Me.Visible
         End Property
         
         Protected Property Let LetVisible(Value As Boolean) _ 
                 Implements Form.Visible
+            EnsureSelfLoaded()
             Me.Visible = Value
         End Property
         
         Protected Property Get GetWidth() As Double _ 
                 Implements Form.Width
+            EnsureSelfLoaded()
             Return Me.Width
         End Property
         
         Protected Property Let LetWidth(ByVal Value As Double) _ 
                 Implements Form.Width
+            EnsureSelfLoaded()
             Me.Width = Value
         End Property
         
         Protected Property Get GetWindowState() As FormWindowStateConstants _ 
                 Implements Form.WindowState
+            EnsureSelfLoaded()
             Return Me.WindowState
         End Property
         
         Protected Property Let LetWindowState(ByVal Value As VBRUN.FormWindowStateConstants) _ 
                 Implements Form.WindowState
+            EnsureSelfLoaded()
             Me.WindowState = Value
         End Property
                 
         Protected Sub FormZOrder(ByVal Position As Variant) _ 
                 Implements Form.ZOrder
+            EnsureSelfLoaded()
             Me.ZOrder(Position)
         End Sub
         
         Protected Property Get GetDefault() As Object _
                 Implements Form._Default
+            EnsureSelfLoaded()
         End Property
         
         Protected Property Let LetControlBox(ByVal Value As Boolean) _ 
@@ -1818,6 +1914,10 @@ Private Class MDIFormBaseCtl
         ' Protected Sub Class_Terminate()
         '     MsgBox CurrentComponentName & ".Class_Terminate"
         ' End Sub
+        
+        Protected Sub EnsureSelfLoaded()
+            [_HiddenModule].EnsureContainerIsLoaded(CType(Of MDIForm)(Me))
+        End Sub
         
     #End Region
     

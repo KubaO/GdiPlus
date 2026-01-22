@@ -682,6 +682,6 @@ End Module
 [ClassId("164CBDD2-7321-11D1-A1E8-00A0C90F2731")]
 [InterfaceId("164CBDD0-7321-11D1-A1E8-00A0C90F2731")]
 Class VBControlExtender
-    [DispId(&HEAEA0006)]
+    [DispId(&HEA0006)]
         Event GotFocus()
 End Class

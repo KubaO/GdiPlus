@@ -212,25 +212,25 @@ Private Class ReportBaseCtl
         Event Deactivate()
         Event Initialize()
         [DefaultDesignerEvent] Event Load()
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
-        [DispId(&HEAEA0008)]
+        [DispId(&HEA0008)]
             Event KeyDown(KeyCode As Integer, Shift As Integer)
-        [DispId(&HEAEA0009)]
+        [DispId(&HEA0009)]
             Event KeyPress(KeyAscii As Integer)
-        [DispId(&HEAEA000A)]
+        [DispId(&HEA000A)]
             Event KeyUp(KeyCode As Integer, Shift As Integer)
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Event BeforePaintSection(ByVal Section As ControlsSection)
         Event Resize()
@@ -299,13 +299,15 @@ Private Class ReportBaseCtl
             
             Dim SerializeInfo As Any = ControlContext.RuntimeUICtxGetSerializer()
             
-            If Not SerializeInfo.RuntimeUISrzDeserialize(Me) Then
+            Dim outerClass As Any = CType(Of Report)(Me)
+            
+            If Not SerializeInfo.RuntimeUISrzDeserialize(outerClass, False) Then
                 'Caption_INIT = "Report"
             End If
             ' This allows dispatch calls to pass on to the outer form controller, allowing for extensibility  
             'CType(Of ITwinBasicInternalClassSupport)(Me).OverrideDispatchHandler SerializeInfo.RuntimeUISrzGetRootClassDispatch()  ' this causes a circular reference that needs to be manually broken in IOleObject_Close
             Dim rootObject As Any = SerializeInfo.RuntimeUISrzGetRootClassDispatch()
-            SetClassOverrideDispatch(GetInheritedOwner(Me), rootObject)
+            SetClassOverrideDispatch(outerClass, rootObject)
             
             Me.IsDesignMode = SerializeInfo.RuntimeUISrzIsDesignMode()
             
@@ -373,7 +375,8 @@ Private Class ReportBaseCtl
             
 '            Debug.Print "Form.HandleDestroy"
 
-            SetClassOverrideDispatch(GetInheritedOwner(Me), Nothing)
+            Dim outerClass As Any = CType(Of Report)(Me)
+            SetClassOverrideDispatch(outerClass, Nothing)
             Set Me.SetRootWindowElementBaseScrollH = Nothing
             Set Me.SetRootWindowElementBaseScrollV = Nothing
             
@@ -382,7 +385,7 @@ Private Class ReportBaseCtl
             Erase Me.AggregateControls
             
             Set ExpressionService  = Nothing
-            [_HiddenModule].ResetFirstMethodAccessFlag([_HiddenModule].GetInheritedOwner(Me))
+            [_HiddenModule].ResetFirstMethodAccessFlag(outerClass)
         End Sub
     
         Protected Sub HandleDPIChange(ByVal newDPI As Long) _
@@ -1284,7 +1287,7 @@ Private Class ReportBaseCtl
             'Me.Width = oldWidth            
             'Debug.Print "Caching page: " & pageNum & " *** 6"
             
-        DoneTest:
+        'DoneTest:
             Const LOGPIXELSX As Long = &H58
             Const LOGPIXELSY As Long = &H5A
             Dim twipsPerPixelX As Double = 1440 / metaDC.GetDeviceCaps(LOGPIXELSX)

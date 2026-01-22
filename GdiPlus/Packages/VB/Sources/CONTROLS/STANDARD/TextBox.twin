@@ -130,42 +130,42 @@ Private Class TextBoxBaseCtl
         [Description("")]
             Event Change()
         [Description("")]
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
         [Description("")]
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
         [Description("")]
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
         [Description("")]
-        [DispId(&HEAEA0008)]
+        [DispId(&HEA0008)]
             Event KeyDown(KeyCode As Integer, Shift As Integer)
         [Description("")]
-        [DispId(&HEAEA0009)]
+        [DispId(&HEA0009)]
             Event KeyPress(KeyAscii As Integer)
         [Description("")]
-        [DispId(&HEAEA000A)]
+        [DispId(&HEA000A)]
             Event KeyUp(KeyCode As Integer, Shift As Integer)
         [Description("")]
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
         [Description("")]
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Description("")]
             Event Initialize()
         [Description("")]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
             
         [Unimplemented] Event LinkClose()
@@ -178,7 +178,7 @@ Private Class TextBoxBaseCtl
         Event OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
         Event OLESetData(Data As DataObject, DataFormat As Integer)
         Event OLEStartDrag(Data As DataObject, AllowedEffects As Long)
-        [DispId(&HEAEA000D)]
+        [DispId(&HEA000D)]
             Event Validate(Cancel As Boolean)
 
         Event Scroll()      ' new to tB

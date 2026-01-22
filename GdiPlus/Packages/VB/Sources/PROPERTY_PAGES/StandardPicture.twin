@@ -1,3 +1,4 @@
+#If DONT_INCLUDE_PROPERTYPAGES = 0 Then
 #If FEATURE_PICTUREBOX And FEATURE_LABEL And FEATURE_COMMANDBUTTON And FEATURE_LISTBOX And FEATURE_IMAGE And FEATURE_PROPERTYPAGE Then
 [Description("")]
 [FormDesignerId("DDC40320-6AD0-4E61-8C5A-7D2E25CD1C74")]
@@ -52,7 +53,7 @@ Private Class StandardPicture
                 If Len(pictureProp) > 0 Then
                     lstProperties.AddItem(pictureProp)
                 End If
-                NextProp:
+                'NextProp:
             Next
         End If
         
@@ -123,4 +124,5 @@ Private Class StandardPicture
     End Sub
     
 End Class
+#End If
 #End If

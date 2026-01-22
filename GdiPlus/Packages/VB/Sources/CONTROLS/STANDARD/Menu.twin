@@ -116,7 +116,7 @@ Private Class MenuBaseCtl
     #Region "EVENTS"
                             
     [DefaultDesignerEvent]
-    [DispId(&HEAEA0004)]
+    [DispId(&HEA0004)]
         Event Click()
 
     #End Region

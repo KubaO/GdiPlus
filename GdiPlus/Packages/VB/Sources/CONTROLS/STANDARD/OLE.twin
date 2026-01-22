@@ -191,59 +191,59 @@ Private Class OLEBaseCtl
         [Unimplemented]
         [DefaultDesignerEvent]
         [Description("")]
-        [DispId(&HEAEA0004)]
+        [DispId(&HEA0004)]
             Event Click()
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0005)]
+        [DispId(&HEA0005)]
             Event DblClick()
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0006)]
+        [DispId(&HEA0006)]
             Event GotFocus()
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0008)]
+        [DispId(&HEA0008)]
             Event KeyDown(KeyCode As Integer, Shift As Integer)
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0009)]
+        [DispId(&HEA0009)]
             Event KeyPress(KeyAscii As Integer)
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA000A)]
+        [DispId(&HEA000A)]
             Event KeyUp(KeyCode As Integer, Shift As Integer)
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0007)]
+        [DispId(&HEA0007)]
             Event LostFocus()
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0001)]
+        [DispId(&HEA0001)]
             Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0002)]
+        [DispId(&HEA0002)]
             Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Unimplemented]
         [Description("")]
-        [DispId(&HEAEA0003)]
+        [DispId(&HEA0003)]
             Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         [Unimplemented]
         [Description("")]
             Event Initialize()
 
         [Description("")]
-        [DispId(&HEAEA000B)]
+        [DispId(&HEA000B)]
             Event DragDrop(Source As Control, X As Single, Y As Single)
         [Description("")]
-        [DispId(&HEAEA000C)]
+        [DispId(&HEA000C)]
             Event DragOver(Source As Control, X As Single, Y As Single, State As Integer)
         
         [Unimplemented] Event ObjectMove(Left As Single, Top As Single, Width As Single, Height As Single)
         [Unimplemented] Event Resize(HeightNew As Single, WidthNew As Single)
         [Unimplemented] Event Updated(Code As Integer)
-        [DispId(&HEAEA000D)]
+        [DispId(&HEA000D)]
             Event Validate(Cancel As Boolean)
 
     #End Region
