@@ -8,7 +8,8 @@
 Class Font
     Inherits GdiPlusBase
     Dim ft As GpFont
-    
+    Protected metrics As Metrics
+
     Sub New(ByVal hdc As LongPtr)
         Dim font As GpFont
         LastStatus = GdipCreateFontFromDC(hdc, font)
@@ -19,7 +20,6 @@ Class Font
         Dim font As GpFont
         If hfont <> 0 Then
             Dim lf As GDIP_LOGFONTW
-
             If GetObjectW(hfont, LenB(Of GDIP_LOGFONTW), lf) <> 0 Then
                 LastStatus = GdipCreateFontFromLogfontW(hdc, lf, font)
             Else
@@ -55,21 +55,20 @@ Class Font
             ByVal unit As GpUnit = UnitPoint)
         Dim font As GpFont
         LastStatus = GdipCreateFont(GetNative(family), emSize, style, unit, font)
+        InitMetrics(GetNative(family))
         SetNativeFont(font)
     End Sub
 
     Sub New(ByVal familyName$, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
             ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection)
 
-        Dim family As FontFamily = New FontFamily(familyName, fontCollection)
-        Dim nativeFamily As GpFontFamily = GetNative(family)
-
-        LastStatus = family.GetLastResult()
+        Dim nativeFamily As GpFontFamily
+        LastStatus = GdipCreateFontFamilyFromName(familyName, GetNative(fontCollection), nativeFamily)
 
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
             LastStatus = GenericSansSerif().GetLastResult
-            If LastResult <> Ok Then Exit Sub
+            If LastResult <> Ok Then GoTo Error
         End If
 
         LastStatus = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
@@ -77,10 +76,15 @@ Class Font
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
             LastStatus = GenericSansSerif().GetLastResult
-            If LastResult <> Ok Then Exit Sub
+            If LastResult <> Ok Then GoTo Error
 
             LastStatus = GdipCreateFont(nativeFamily, emSize, style, unit, ft)
         End If
+        
+        If LastResult = Ok Then InitMetrics(nativeFamily)
+        
+        Error:
+        GdipDeleteFontFamily(nativeFamily)
     End Sub
 
     Function GetLogFontA(g As Graphics) As GDIP_LOGFONTA
@@ -102,7 +106,10 @@ Class Font
     Function Clone() As Font
         Dim cloneFont As GpFont
         SetStatus(GdipCloneFont(ft, cloneFont))
-        If LastResult = Ok Then Set Clone = New Font(cloneFont, LastResult)
+        If LastResult = Ok Then
+            Set Clone = New Font(cloneFont, LastResult)
+            CloneMetricsTo(Clone)
+        End If
     End Function
     
     Sub Class_Terminate()
@@ -124,13 +131,7 @@ Class Font
     Property Get Unit() As GpUnit
         SetStatus(GdipGetFontUnit(ft, Unit))
     End Property
-    
-    Property Get PtHeight() As Single
-        Dim height!
-        SetStatus(GdipGetFontHeightGivenDPI(ft, 1000, height))
-        If LastResult = Ok Then PtHeight = height / (1000.0 / 72.0)
-    End Property
-    
+       
     Function GetHeight(graphics As Graphics) As Single
         SetStatus(GdipGetFontHeight(ft, GetNative(graphics), GetHeight))
     End Function
@@ -141,10 +142,28 @@ Class Font
     
     Property Get Family() As FontFamily
         Dim nativeFamily As GpFontFamily
-        GdipGetFamily(ft, nativeFamily)
+        SetStatus(GdipGetFamily(ft, nativeFamily))
         If LastStatus = Ok Then Set Family = New FontFamily(nativeFamily)
     End Property
-        
+    
+    Property Get Ascent() As Single
+        If InitMetrics Then
+            Ascent = Size * metrics.ascent / metrics.emHeight
+        End If
+    End Property
+
+    Property Get Descent() As Single
+        If InitMetrics Then
+            Descent = Size * metrics.descent / metrics.emHeight
+        End If
+    End Property
+
+    Property Get LineSpacing() As Single
+        If InitMetrics Then
+            LineSpacing = Size * metrics.lineSpacing / metrics.emHeight
+        End If
+    End Property
+    
     Protected Sub New(ByVal font As GpFont, ByVal status As GpStatus)
         LastStatus = status
         SetNativeFont(font)
@@ -161,6 +180,42 @@ Class Font
     
     Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
         ft = nativeFont
+    End Sub
+
+    Protected Type Metrics
+        emHeight%
+        ascent%
+        descent%
+        lineSpacing%
+    End Type
+    
+    Protected Function InitMetrics() As Boolean
+        If metrics.emHeight < 1 Then
+            Dim result As Boolean
+            Dim nativeFamily As GpFontFamily
+            SetStatus(GdipGetFamily(ft, nativeFamily))
+            result = InitMetrics(nativeFamily)
+            GdipDeleteFontFamily(nativeFamily)
+            Return result
+        End If
+    End Function
+    
+    Protected Function InitMetrics(ByVal nativeFamily As GpFontFamily) As Boolean
+        If metrics.emHeight < 1 Then
+            Dim myStyle As GpFontStyle = Style
+            SetStatus(GdipGetEmHeight(nativeFamily, myStyle, metrics.emHeight))
+            SetStatus(GdipGetCellAscent(nativeFamily, myStyle, metrics.ascent))
+            SetStatus(GdipGetCellDescent(nativeFamily, myStyle, metrics.descent))
+            SetStatus(GdipGetLineSpacing(nativeFamily, myStyle, metrics.lineSpacing))
+            If LastStatus <> Ok Then Return False
+        End If
+        Return True
+    End Function
+    
+    Protected Sub CloneMetricsTo(other As Font)
+        If metrics.emHeight > 0 Then
+            UnprotectedAccess(other).metrics = metrics
+        End If
     End Sub
     
     Private DeclareWide PtrSafe Function GetObjectW Lib "gdi32" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
