@@ -146,7 +146,8 @@ Class StringFormat
         LastStatus = GdipCloneStringFormat(GetNative(source), sf)
     End Sub
     
-    Protected Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
+    ' Used by GenericDefaultStringFormat and GenericTypographicStringFormat
+    Public Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
         LastStatus = status
         sf = clonedStringFormat
     End Sub
@@ -160,19 +161,15 @@ Module GdipStringFormat
     End Function
     
     Function GenericDefaultStringFormat() As StringFormat
-        Static sf As StringFormat
-        If sf Is Nothing Then Set sf = New StringFormat
-        sf.Class_Terminate()
-        UnprotectedAccess(sf).SetStatus(GdipStringFormatGetGenericDefault(UnprotectedAccess(sf).sf))
-        Return sf
+        Dim nativeSF As GpStringFormat
+        Dim status As GpStatus = GdipStringFormatGetGenericDefault(nativeSF)
+        Return New StringFormat(nativeSF, status)
     End Function
     
     Function GenericTypographicStringFormat() As StringFormat
-        Static sf As StringFormat
-        If sf Is Nothing Then Set sf = New StringFormat
-        sf.Class_Terminate()
-        UnprotectedAccess(sf).SetStatus(GdipStringFormatGetGenericTypographic(UnprotectedAccess(sf).sf))
-        Return sf
+        Dim nativeSF As GpStringFormat
+        Dim status As GpStatus = GdipStringFormatGetGenericTypographic(nativeSF)
+        Return New StringFormat(nativeSF, status)
     End Function
     
     Type GpStringFormat
