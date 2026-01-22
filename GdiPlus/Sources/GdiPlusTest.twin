@@ -1,0 +1,201 @@
+Module ModMain
+    Dim bmp As Bitmap
+    Dim pBrush As SolidBrush
+    Const tickMS% = 5
+    
+    Sub Main()
+        Dim user As Any = GdiPlusUser()
+        Dim class As WNDCLASS
+        
+        Set pBrush = SolidBrush(White)
+        
+        With class
+            .style = CS_HREDRAW Or CS_VREDRAW
+            .hInstance = GetModuleHandle()
+            .hbrBackground = 0
+            .hCursor = LoadCursor(0, IDC_ARROW)
+            .lpszClassName = StrPtr("AnalogClock")
+            .lpfnWndProc = AddressOf WndProc
+        End With
+        
+        RegisterClass(class)
+        
+        Dim hWnd As LongPtr = CreateWindow( _
+                "AnalogClock", "Analog Clock Raw", _
+                WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1050, _
+                0, 0, GetModuleHandle(), 0)
+
+        ShowWindow(hWnd, SW_SHOWNORMAL)
+        UpdateWindow(hWnd)
+        
+        timeBeginPeriod(tickMS)
+        
+        Dim msg As MSG
+        While GetMessage(msg, 0, 0, 0)
+            TranslateMessage(msg)
+            DispatchMessage(msg)
+        Wend
+        
+        UnregisterClass(class.lpszClassName)
+        
+        timeEndPeriod(tickMS)
+        
+        Set bmp = Nothing
+        Set pBrush = Nothing
+        Set user = Nothing
+    End Sub
+    
+    Function Timer() As Single
+        Dim st As SYSTEMTIME
+        GetLocalTime(st)
+        Return st.wHour * 3600.0 + st.wMinute * 60.0 + st.wSecond + st.wMilliseconds * 0.001
+    End Function
+    
+    Sub Draw()
+        If bmp Is Nothing Then Exit Sub
+
+        Dim tSeconds! = Timer
+        Dim time$
+        Dim i%, phi!
+        Dim pPen As Any = Pen(0)
+        Dim pFont As Any = Font(GenericSansSerif(), 10)
+        Dim pFormat As Any = StringFormat()
+        Dim rect As Any = GpRect(0, 0, bmp.Width, bmp.Height)
+        
+        Dim size& = If(rect.Width < rect.Height, rect.Width, rect.Height)
+        
+        Dim gr As Any = GraphicsFromImage(bmp)
+                
+        pBrush.RGB = White
+        gr.SmoothingMode = SmoothingModeAntiAlias
+        gr.FillRectangle(pBrush, 0, 0, rect.Width, rect.Height)
+        
+        ' Set drawing area to be -100, -100 to 100, 100
+        gr.TranslateTransform(bmp.Width / 2, bmp.Height / 2)
+        gr.ScaleTransform(size / 200, size / 200)
+        
+        ' Face
+        pBrush.RGB = Coral
+        gr.FillEllipse(pBrush, -100, -100, 200, 200)
+        pBrush.RGB = LightCoral
+        gr.FillEllipse(pBrush, -92, -92, 184, 184)
+        
+        ' Datum
+        pPen.Set(Red, 0.5)
+        gr.RotateTransform(-90)
+        gr.DrawLine(pPen, 0, 0, 100, 0)
+        
+        ' Minute Ticks
+        pPen.Set(LightGray, 3)
+        For i = 1 To 60
+            gr.DrawLine(pPen, 88, 0, 95, 0)
+            gr.RotateTransform(360 / 60)
+        Next
+        
+        ' Hour Ticks
+        pPen.Set(DarkGray, 4)
+        For i = 1 To 12
+            gr.DrawLine(pPen, 80, 0, 95, 0)
+            gr.RotateTransform(360 / 12)
+        Next
+        
+        ' Time
+        pBrush.RGB = Black
+        pFormat.Alignment = StringAlignmentCenter
+        time = Format(Int(tSeconds / 3600) Mod 24, "00") & ":" & _
+            Format(Int(tSeconds / 60) Mod 60, "00") & ":" & _
+            Format(Int(tSeconds / 1) Mod 60, "00") & "." & _
+            Format(Int(tSeconds * 10) Mod 10, "0")
+        gr.RotateTransform(90)
+        gr.DrawString(time, pFont, 0!, 40!, pFormat, pBrush)
+        gr.RotateTransform(-90)
+        
+        
+        pPen.Set(Black, 1)
+        pBrush.RGB = LightGray
+        
+        ' Hours Arm
+        phi = (tSeconds / 3600) * 360 / 12
+        gr.RotateTransform(phi)
+        gr.FillRectangle(pBrush, -5, -4, 65, 8)
+        gr.DrawRectangle(pPen, -5, -4, 65, 8)
+        gr.RotateTransform(-phi)
+        
+        ' Minutes Arm
+        phi = (tSeconds / 60) * 360 / 60
+        gr.RotateTransform(phi)
+        gr.FillRectangle(pBrush, -8, -2, 85, 2)
+        gr.DrawRectangle(pPen, -8, -2, 85, 2)
+        gr.RotateTransform(-phi)
+        
+        ' Seconds Arm
+        phi = (tSeconds) * 360 / 60
+        gr.RotateTransform(phi)
+        pPen.RGB = Black
+        gr.DrawLine(pPen, -10, 0, 100, 0)
+    End Sub
+    
+    Sub Paint(ByVal hWnd As LongPtr)
+        Dim rect As Any = ClientRect(hWnd)
+        Dim side! = If(rect.Width > rect.Height, rect.Height, rect.Width)
+        If bmp Is Nothing Then
+            Set bmp = Bitmap(side, side)
+            Draw()
+        End If
+        Dim ps As PAINTSTRUCT
+        Dim hDC As LongPtr = BeginPaint(hWnd, ps)
+        Dim wgr As Any = Graphics(hDC)
+        pBrush.RGB = White
+        If rect.Width > bmp.Width Then
+            wgr.FillRectangle(pBrush, 0, 0, (rect.Width - side) / 2 + 1, rect.Height)
+            wgr.FillRectangle(pBrush, (rect.Width + side) / 2 - 1, 0, (rect.Width - side) / 2 + 2, rect.Height)
+        Else
+            wgr.FillRectangle(pBrush, 0, 0, rect.Width, (rect.Height - side) / 2 + 1)
+            wgr.FillRectangle(pBrush, 0, (rect.Height + side) / 2 - 1, rect.Width, (rect.Height - side) / 2 + 2)
+        End If
+        wgr.DrawImage(bmp, (rect.Width - side) / 2, (rect.Height - side) / 2)
+        Set wgr = Nothing
+        EndPaint(hWnd, ps)
+    End Sub
+    
+    Function ClientRect(hWnd As LongPtr) As GpRect
+        Dim rect As RECT
+        wdAPI.GetClientRect(hWnd, rect)
+        Return GpRect(rect)
+    End Function
+    
+    Sub CenterSquare(r As RECT)
+        Dim width% = r.Right - r.Left
+        Dim height% = r.Bottom - r.Top
+        If width >= height Then
+            r.Left = (width - height) / 2 - 1
+            r.Right = (width + height) / 2 + 1
+        Else
+            r.Top = (height - width) / 2 - 1
+            r.Bottom = (height + width) / 2 + 1
+        End If
+    End Sub
+    
+    Function WndProc(ByVal hWnd&, ByVal message&, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+        Dim rect As RECT
+        Select Case message
+            Case WM_CREATE
+                SetTimer(hWnd, 0, tickMS, 0)
+            Case WM_ERASEBKGND
+                Return True
+            Case WM_SIZE
+                Set bmp = Nothing
+            Case WM_PAINT
+                Paint(hWnd)
+            Case WM_TIMER
+                Draw()
+                GetClientRect(hWnd, rect)
+                CenterSquare(rect)
+                InvalidateRect(hWnd, rect, False)
+            Case WM_DESTROY:
+                PostQuitMessage(0)
+            Case Else
+                Return DefWindowProc(hWnd, message, wParam, lParam)
+        End Select
+    End Function
+End Module
