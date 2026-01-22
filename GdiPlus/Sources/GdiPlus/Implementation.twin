@@ -164,6 +164,10 @@ Private Module GdipImplementation
     Public gdiPlusRefCount& = 0
     Public gdiPlusToken As LongPtr = -1
     
+    Public GenericSansSerifFF As FontFamily
+    Public GenericSerifFF As FontFamily
+    Public GenericMonospaceFF As FontFamily
+    
     Public Declare PtrSafe Function SafeArrayAllocDescriptor Lib "oleaut32" (ByVal cDims As Long, ppsaOut As Any) As Long
     
     [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]

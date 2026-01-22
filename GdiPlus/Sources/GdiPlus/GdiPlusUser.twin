@@ -20,6 +20,9 @@ Class GdiPlusUser
     Sub Class_Terminate()
         gdiPlusRefCount -= 1
         If gdiPlusRefCount <= 0 And gdiPlusToken <> -1 Then
+            Set GenericSansSerifFF = Nothing
+            Set GenericSerifFF = Nothing
+            Set GenericMonospaceFF = Nothing
             SetStatus(GdiplusShutdown(gdiPlusToken))
             gdiPlusToken = -1
             gdiPlusRefCount = 0

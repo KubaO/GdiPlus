@@ -119,29 +119,31 @@ Module GdipFontFamily
     End Function
     
     Function GenericSansSerif() As FontFamily
-        If GenericSansSerifFF IsNot Nothing Then Return GenericSansSerifFF
-        Dim nativeFF As GpFontFamily
-        Dim status As GpStatus = GdipGetGenericFontFamilySansSerif(nativeFF)
-        Set GenericSansSerifFF = New FontFamily(nativeFF, status)
+        If GenericSansSerifFF Is Nothing Then
+            Dim nativeFF As GpFontFamily
+            Dim status As GpStatus = GdipGetGenericFontFamilySansSerif(nativeFF)
+            Set GenericSansSerifFF = New FontFamily(nativeFF, status)
+        End If
+        Return GenericSansSerifFF
     End Function
     
     Function GenericSerif() As FontFamily
-        If GenericSerifFF IsNot Nothing Then Return GenericSerifFF
-        Dim nativeFF As GpFontFamily
-        Dim status As GpStatus = GdipGetGenericFontFamilySerif(nativeFF)
-        Set GenericSerifFF = New FontFamily(nativeFF, status)
+        If GenericSerifFF Is Nothing Then
+            Dim nativeFF As GpFontFamily
+            Dim status As GpStatus = GdipGetGenericFontFamilySerif(nativeFF)
+            Set GenericSerifFF = New FontFamily(nativeFF, status)
+        End If
+        Return GenericSerifFF
     End Function
     
     Function GenericMonospace() As FontFamily
-        If GenericMonospaceFF IsNot Nothing Then Return GenericMonospaceFF
-        Dim nativeFF As GpFontFamily
-        Dim status As GpStatus = GdipGetGenericFontFamilyMonospace(nativeFF)
-        Set GenericMonospaceFF = New FontFamily(nativeFF, status)
+        If GenericMonospaceFF Is Nothing Then
+            Dim nativeFF As GpFontFamily
+            Dim status As GpStatus = GdipGetGenericFontFamilyMonospace(nativeFF)
+            Set GenericMonospaceFF = New FontFamily(nativeFF, status)
+        End If
+        Return GenericMonospaceFF
     End Function
-        
-    Dim GenericSansSerifFF As FontFamily
-    Dim GenericSerifFF As FontFamily
-    Dim GenericMonospaceFF As FontFamily
     
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetGenericFontFamilySerif Lib "gdiplus" (Me As GpFontFamily) As GpStatus
