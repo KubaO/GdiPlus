@@ -483,7 +483,8 @@ Class GraphicsPath
         Return pa
     End Property
     
-    Protected Sub New(path As GraphicsPath)
+    [IgnoreWarnings(TB0025)]
+    Protected Sub New(_path As GraphicsPath)
         Dim clonepath As GpPath
         SetStatus(pa.ClonePath(clonepath))
         SetNativePath(clonepath)

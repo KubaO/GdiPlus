@@ -51,6 +51,7 @@ Module ModMain
         Return st.wHour * 3600.0 + st.wMinute * 60.0 + st.wSecond + st.wMilliseconds * 0.001
     End Function
     
+    [IgnoreWarnings(TB0020)]
     Sub Draw()
         If bmp Is Nothing Then Exit Sub
 
@@ -134,6 +135,7 @@ Module ModMain
         gr.DrawLine(pPen, -10, 0, 100, 0)
     End Sub
     
+    [IgnoreWarnings(TB0020)]
     Sub Paint(ByVal hWnd As LongPtr)
         Dim rect As Any = ClientRect(hWnd)
         Dim side! = If(rect.Width > rect.Height, rect.Height, rect.Width)

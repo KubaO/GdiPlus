@@ -57,10 +57,16 @@
 	"project.versionProductName": "GdiPlus For TwinBasic",
 	"project.versionRevision": 32,
 	"project.warnings": {
-		"errors": [],
+		"errors": [
+			"TB0029"
+		],
 		"hints": [],
 		"ignored": [],
-		"info": [],
+		"info": [
+			"TB0020",
+			"TB0024",
+			"TB0025"
+		],
 		"warnings": []
 	},
 	"runtime.useUnicodeStandardLibrary": true

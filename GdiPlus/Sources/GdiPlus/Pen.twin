@@ -193,6 +193,7 @@ Class Pen
         SetStatus(GdipSetPenBrushFill(pn, UnprotectedAccess(brush).br))
     End Property
     
+    [IgnoreWarnings(TB0020)]
     Property Get Brush() As Brush
         Dim type As GpPenType = PenType
         Dim nativeBrush As GpBrush
