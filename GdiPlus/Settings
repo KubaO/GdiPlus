@@ -48,14 +48,13 @@
 	],
 	"project.settingsVersion": 1,
 	"project.startupObject": "Sub Main",
-	"project.versionAutoIncrement": "Revision",
 	"project.versionBuild": 0,
 	"project.versionCompanyName": "Sunderland Ober Consulting",
 	"project.versionLegalCopyright": "(c) 2026 Sunderland Ober Consulting",
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 32,
+	"project.versionRevision": 33,
 	"project.warnings": {
 		"errors": [
 			"TB0029"
