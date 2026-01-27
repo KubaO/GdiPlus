@@ -209,7 +209,6 @@ Class Font
             SetStatus(GdipGetLineSpacing(nativeFamily, myStyle, metrics.lineSpacing))
             InitMetrics = LastStatus = Ok
         End If
-        Return True
     End Function
     
     Protected Sub CloneMetricsTo(other As Font)
