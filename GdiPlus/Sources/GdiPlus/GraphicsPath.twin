@@ -18,7 +18,7 @@ Class GraphicsPath
     End Sub
 
     Sub New(typedPoints() As TypedPoint, ByVal fillMode As GpFillmode = FillModeAlternate)
-        Dim pd As PathData = PathData(typedPoints)
+        Dim pd As PathData = GdipPathData.PathData(typedPoints)
         LastStatus = GdipCreatePath2(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa)
     End Sub
     
