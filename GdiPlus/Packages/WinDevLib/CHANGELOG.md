@@ -1,4 +1,40 @@
 
+**Update (v9.2.653, 29 Jan 2026):** 
+- (API Standards, BREAKING CHANGES) Non-ANSI APIs with As Any should be using DeclareWide. This was inconsistently applied. 
+Fixing this will be ongoing. 
+- (API Standards, BREAKING CHANGE) GetFileInformationByHandleEx should use As Any for multiple UDT PVOID.
+- (Bug fix) - (Bug fix) ID3D10Blob::GetBufferPointer definition incorrect
+EnumCalendarInfoExEx, lstrlen used String without DeclareWide when expecting LPWSTR
+- (Bug fix) IMediaObjectInPlace::GetLatency arg should be ByRef
+- (Bug fix) IMFAsyncCallbackLogging definition issues; Implements-compat version added to WinDevLibImpl
+- (WinDevLibImpl, bug fix) Some MF interfaces did not have [PreserveSig] commented out
+
+**Update (v9.2.651, 28 Jan 2026):** 
+- Add htiface.h/.idl, htiframe.h/.idl 100%
+- Misc native API additions
+- Added constants for backwards compatibility with NeHe's OpenGL typelib
+- (Bug fix) Corrected a number of constants in the form of Const x = &H8000-FFFF as these would 
+improperly become negative Integer types.
+
+**Update (v9.2.648, 25 Jan 2026):** 
+- (BREAKING CHANGE) For compatibility with existing OpenGL work, void* arguments have been changed from 
+ByVal As LongPtr to ByRef As Any, except in cases where it's explicitly asking for a pointer.
+- Misc native API additions
+- (Bug fix) D2D1_VECTOR_3F Alias/Type duplicate 
+
+**Update (v9.2.646, 24 Jan 2026):** 
+- Added Intel vendor-specific and WGL extensions OpenGL functions. 
+- Added WFP ALE Endpoint APIs (fwpstypes.h 100%, fwpsu.h minimal)
+- Misc native API additions
+- Continued implementation of Alias types
+- (Bug fix) PROCESS_MITIGATION_POLICY_INFORMATION union size incorrect
+- (Bug fix) CLSID_SchedulingAgent should be CLSID_CSchedulingAgent
+
+**Update (v9.2.644, 23 Jan 2026):** 
+- Added AMD and NVIDIA vendor-specific OpenGL functions.
+- Add Software Licensing APIs (slpublic.h, slerror.h, sliddefs.h 100%)
+- Add some missing DispIds for shell interfaces
+
 **Update (v9.2.643, 22 Jan 2026):** 
 - (Bug fix) bind/ws_bind namelen should be ByVal
 
