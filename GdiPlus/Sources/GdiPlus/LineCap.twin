@@ -16,18 +16,16 @@ Class LineCap
     End Sub
         
     Sub New(fillPath As GraphicsPath, strokePath As GraphicsPath, ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0)
-        Dim nativeCap As GpCustomLineCap
-        LastStatus = GdipCreateCustomLineCap(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, nativeCap)
-        SetNativeLineCap(nativeCap)
+        LastStatus = lc.CreateInto(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, lc)
     End Sub
     
     Overridable Sub Class_Terminate()
-        GdipDeleteCustomLineCap(lc)
+        lc.Delete
     End Sub
     
     Function Clone() As LineCap
         Dim newNativeLineCap As GpCustomLineCap
-        SetStatus(GdipCloneCustomLineCap(lc, newNativeLineCap))
+        SetStatus(lc.Clone(newNativeLineCap))
         If LastResult = Ok Then Set Clone = New LineCap(newNativeLineCap, LastResult)
     End Function
     
@@ -39,69 +37,69 @@ Class LineCap
     Property Let StartStrokeCap(ByVal startCap As GpLineCap)
         Dim dummyCap As GpLineCap
         Dim endCap As GpLineCap
-        SetStatus(GdipGetCustomLineCapStrokeCaps(lc, dummyCap, endCap))
+        SetStatus(lc.GetStrokeCaps(dummyCap, endCap))
         If LastResult = Ok Then
-            SetStatus(GdipSetCustomLineCapStrokeCaps(lc, startCap, endCap))
+            SetStatus(lc.SetStrokeCaps(startCap, endCap))
         End If
     End Property
     
     Property Let EndStrokeCap(ByVal endCap As GpLineCap)
         Dim startCap As GpLineCap
         Dim dummyCap As GpLineCap
-        SetStatus(GdipGetCustomLineCapStrokeCaps(lc, startCap, dummyCap))
+        SetStatus(lc.GetStrokeCaps(startCap, dummyCap))
         If LastResult = Ok Then
-            SetStatus(GdipSetCustomLineCapStrokeCaps(lc, startCap, endCap))
+            SetStatus(lc.SetStrokeCaps(startCap, endCap))
         End If
     End Property
 
     Property Get StartStrokeCap() As GpLineCap
         Dim dummyCap As GpLineCap
-        SetStatus(GdipGetCustomLineCapStrokeCaps(lc, StartStrokeCap, dummyCap))
+        SetStatus(lc.GetStrokeCaps(StartStrokeCap, dummyCap))
     End Property
 
     Property Get EndStrokeCap() As GpLineCap
         Dim dummyCap As GpLineCap
-        SetStatus(GdipGetCustomLineCapStrokeCaps(lc, dummyCap, EndStrokeCap))
+        SetStatus(lc.GetStrokeCaps(dummyCap, EndStrokeCap))
     End Property
     
     Function SetStrokeCaps(ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
-        Return SetStatus(GdipSetCustomLineCapStrokeCaps(lc, startCap, endCap))
+        Return SetStatus(lc.SetStrokeCaps(startCap, endCap))
     End Function
     
     Function GetStrokeCaps(startCap As GpLineCap, endCap As GpLineCap) As GpStatus
-        Return SetStatus(GdipGetCustomLineCapStrokeCaps(lc, startCap, endCap))
+        Return SetStatus(lc.GetStrokeCaps(startCap, endCap))
     End Function
 
     Property Let StrokeJoin(ByVal lineJoin As GpLineJoin)
-        SetStatus(GdipSetCustomLineCapStrokeJoin(lc, lineJoin))
+        SetStatus(lc.SetStrokeJoin(lineJoin))
     End Property
     
     Property Get StrokeJoin() As GpLineJoin
-        SetStatus(GdipGetCustomLineCapStrokeJoin(lc, StrokeJoin))
+        SetStatus(lc.GetStrokeJoin(StrokeJoin))
     End Property
     
     Property Let BaseCap(ByVal baseCap As GpLineCap)
-        SetStatus(GdipSetCustomLineCapBaseCap(lc, baseCap))
+        SetStatus(lc.SetBaseCap(baseCap))
     End Property
     
     Property Get BaseCap() As GpLineCap
-        SetStatus(GdipGetCustomLineCapBaseCap(lc, BaseCap))
+        SetStatus(lc.GetBaseCap(BaseCap))
     End Property
         
     Property Let BaseInset(ByVal inset!)
-        SetStatus(GdipSetCustomLineCapBaseInset(lc, inset))
+        SetStatus(lc.SetBaseInset(inset))
     End Property
     
     Property Get BaseInset() As Single
-        Return SetStatus(GdipGetCustomLineCapBaseInset(lc, BaseInset))
+        Return SetStatus(lc.GetBaseInset(BaseInset))
     End Property
         
     Property Let WidthScale(ByVal widthScale!)
-        SetStatus(GdipSetCustomLineCapWidthScale(lc, widthScale))
+        SetStatus(lc.SetWidthScale(widthScale))
     End Property
     
     Property Get WidthScale() As Single
-        SetStatus(GdipGetCustomLineCapWidthScale(lc, WidthScale))
+        SetStatus(lc.GetWidthScale(WidthScale))
     End Property
    
     Protected Sub New()
@@ -131,38 +129,38 @@ Module GdipLineCap
     
     Type GpCustomLineCap
         Native As LongPtr
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateCustomLineCap" (ByVal fillPath As GpPath, ByVal strokePath As GpPath, ByVal baseCap As GpLineCap, ByVal baseInset As Single, customCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteCustomLineCap" (ByVal Me As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneCustomLineCap" (ByVal Me As GpCustomLineCap, clonedCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetCustomLineCapType" (ByVal Me As GpCustomLineCap, capType As GpCustomLineCapType) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetStrokeCaps Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetStrokeCaps Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetStrokeJoin Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeJoin" (ByVal Me As GpCustomLineCap, ByVal lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetStrokeJoin Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeJoin" (ByVal Me As GpCustomLineCap, lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetBaseCap Lib "gdiplus" Alias "GdipSetCustomLineCapBaseCap" (ByVal Me As GpCustomLineCap, ByVal baseCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetBaseCap Lib "gdiplus" Alias "GdipGetCustomLineCapBaseCap" (ByVal Me As GpCustomLineCap, baseCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetBaseInset Lib "gdiplus" Alias "GdipSetCustomLineCapBaseInset" (ByVal Me As GpCustomLineCap, ByVal inset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetBaseInset Lib "gdiplus" Alias "GdipGetCustomLineCapBaseInset" (ByVal Me As GpCustomLineCap, inset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetWidthScale Lib "gdiplus" Alias "GdipSetCustomLineCapWidthScale" (ByVal Me As GpCustomLineCap, ByVal widthScale As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetWidthScale Lib "gdiplus" Alias "GdipGetCustomLineCapWidthScale" (ByVal Me As GpCustomLineCap, widthScale As Single) As GpStatus
     End Type
     
     Function GpCustomLineCap() As GpCustomLineCap
         GpCustomLineCap.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateCustomLineCap Lib "gdiplus" (ByVal fillPath As GpPath, ByVal strokePath As GpPath, ByVal baseCap As GpLineCap, ByVal baseInset As Single, customCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteCustomLineCap Lib "gdiplus" (ByVal Me As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCloneCustomLineCap Lib "gdiplus" (ByVal Me As GpCustomLineCap, clonedCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapType Lib "gdiplus" (ByVal Me As GpCustomLineCap, capType As GpCustomLineCapType) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapStrokeCaps Lib "gdiplus" (ByVal Me As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetCustomLineCapStrokeJoin Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal lineJoin As GpLineJoin) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapStrokeJoin Lib "gdiplus" (ByVal Me As GpCustomLineCap, lineJoin As GpLineJoin) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetCustomLineCapBaseCap Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal baseCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapBaseCap Lib "gdiplus" (ByVal Me As GpCustomLineCap, baseCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetCustomLineCapBaseInset Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal inset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapBaseInset Lib "gdiplus" (ByVal Me As GpCustomLineCap, inset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetCustomLineCapWidthScale Lib "gdiplus" (ByVal Me As GpCustomLineCap, ByVal widthScale As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetCustomLineCapWidthScale Lib "gdiplus" (ByVal Me As GpCustomLineCap, widthScale As Single) As GpStatus
 End Module
