@@ -10,82 +10,82 @@ Class StringFormat
     Dim sf As GpStringFormat
         
     Sub New(ByVal flags As GpStringFormatFlags = 0, ByVal language As LANGID = LANG_NEUTRAL)
-        LastStatus = GdipCreateStringFormat(FormatFlags, language, sf)
+        LastStatus = sf.CreateInto(flags, language, sf)
     End Sub
     
     Function Clone() As StringFormat
         Dim nativeClone As GpStringFormat
-        LastStatus = GdipCloneStringFormat(sf, nativeClone)
+        LastStatus = sf.Clone(nativeClone)
         If LastResult = Ok Then Set Clone = New StringFormat(nativeClone, LastResult)
     End Function
     
     Sub Class_Terminate()
-        GdipDeleteStringFormat(sf)
+        sf.Delete
     End Sub
     
     [Description("Use Flags instead")]
     Property Let FormatFlags(ByVal flags As GpStringFormatFlags)
-        SetStatus(GdipSetStringFormatFlags(sf, flags))
+        SetStatus(sf.SetFlags(flags))
     End Property
     
     [Description("Use Flags instead")]
     Property Get FormatFlags() As GpStringFormatFlags
-        SetStatus(GdipGetStringFormatFlags(sf, FormatFlags))
+        SetStatus(sf.GetFlags(FormatFlags))
     End Property
     
     Property Let Flags(ByVal flags As GpStringFormatFlags)
-        SetStatus(GdipSetStringFormatFlags(sf, flags))
+        SetStatus(sf.SetFlags(flags))
     End Property
     
     Property Get Flags() As GpStringFormatFlags
-        SetStatus(GdipGetStringFormatFlags(sf, Flags))
+        SetStatus(sf.GetFlags(Flags))
     End Property
     
     Property Let Alignment(ByVal align As GpStringAlignment)
-        SetStatus(GdipSetStringFormatAlign(sf, align))
+        SetStatus(sf.SetAlign(align))
     End Property
     
     Property Get Alignment() As GpStringAlignment
-        SetStatus(GdipGetStringFormatAlign(sf, Alignment))
+        SetStatus(sf.GetAlign(Alignment))
     End Property
         
     Property Let LineAlignment(ByVal align As GpStringAlignment)
-        SetStatus(GdipSetStringFormatLineAlign(sf, align))
+        SetStatus(sf.SetLineAlign(align))
     End Property
     
     Property Get LineAlignment() As GpStringAlignment
-        SetStatus(GdipGetStringFormatLineAlign(sf, LineAlignment))
+        SetStatus(sf.GetLineAlign(LineAlignment))
     End Property
     
     Property Let HotkeyPrefix(ByVal hotkeyPrefix As GpHotkeyPrefix)
-        SetStatus(GdipSetStringFormatHotkeyPrefix(sf, hotkeyPrefix))
+        SetStatus(sf.SetHotkeyPrefix(hotkeyPrefix))
     End Property
     
     Property Get HotkeyPrefix() As GpHotkeyPrefix
-        SetStatus(GdipSetStringFormatHotkeyPrefix(sf, HotkeyPrefix))
+        SetStatus(sf.SetHotkeyPrefix(HotkeyPrefix))
     End Property
 
     Function SetTabStops(ByVal firstTabOffset!, tabStops!()) As GpStatus
-        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops))))
+        Return SetStatus(sf.SetTabStops(firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops))))
     End Function
     
     Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
-        Return SetStatus(GdipSetStringFormatTabStops(sf, firstTabOffset, count, tabStops))
+        Return SetStatus(sf.SetTabStops(firstTabOffset, count, tabStops))
     End Function
     
     Property Get TabStopCount() As Long
-        SetStatus(GdipGetStringFormatTabStopCount(sf, TabStopCount))
+        SetStatus(sf.GetTabStopCount(TabStopCount))
     End Property
 
     Function GetTabStops(firstTabOffset!) As Single()
         Dim tabStops!()
         ReDim tabStops(1 To TabStopCount)
-        SetStatus(GdipGetStringFormatTabStops(sf, ArrayLen(tabStops), firstTabOffset, tabStops(1)))
+        SetStatus(sf.GetTabStops(ArrayLen(tabStops), firstTabOffset, tabStops(1)))
         Return tabStops
     End Function
     
     Function GetTabStops(ByVal count&, firstTabOffset!, tabStops!) As GpStatus
-        Return SetStatus(GdipGetStringFormatTabStops(sf, count, firstTabOffset, tabStops))
+        Return SetStatus(sf.GetTabStops(count, firstTabOffset, tabStops))
     End Function
     
     Property Let DigitSubstitutionLanguage(ByVal language As LANGID)
@@ -97,35 +97,35 @@ Class StringFormat
     End Property
     
     Function SetDigitSubstitution(ByVal language As LANGID, ByVal substitute As GpStringDigitSubstitute) As GpStatus
-        Return SetStatus(GdipSetStringFormatDigitSubstitution(sf, language, substitute))
+        Return SetStatus(sf.SetDigitSubstitution(language, substitute))
     End Function
     
     Property Get DigitSubstitutionLanguage() As LANGID
-        SetStatus(GdipGetStringFormatDigitSubstitution(sf, DigitSubstitutionLanguage, 0))
+        SetStatus(sf.GetDigitSubstitution(DigitSubstitutionLanguage, ByVal vbNullPtr))
     End Property
     
     Property Get DigitSubstitutionMethod() As GpStringDigitSubstitute
-        SetStatus(GdipGetStringFormatDigitSubstitution(sf, 0, DigitSubstitutionMethod))
+        SetStatus(sf.GetDigitSubstitution(ByVal vbNullPtr, DigitSubstitutionMethod))
     End Property
     
     Property Let Trimming(ByVal trimming As GpStringTrimming)
-        SetStatus(GdipSetStringFormatTrimming(sf, trimming))
+        SetStatus(sf.SetTrimming(trimming))
     End Property
         
     Property Get Trimming() As GpHotkeyPrefix
-        SetStatus(GdipGetStringFormatTrimming(sf, Trimming))
+        SetStatus(sf.GetTrimming(Trimming))
     End Property
     
     Property Let MeasurableCharacterRanges(ranges() As CharacterRange)
-        SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, ArrayLen(ranges), ranges(LBound(ranges))))
+        SetStatus(sf.SetMeasurableCharacterRanges(ArrayLen(ranges), ranges(LBound(ranges))))
     End Property
     
     Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
-        Return SetStatus(GdipSetStringFormatMeasurableCharacterRanges(sf, rangeCount, ranges))
+        Return SetStatus(sf.SetMeasurableCharacterRanges(rangeCount, ranges))
     End Function
     
     Property Get MeasurableCharacterRangeCount() As Long
-        SetStatus(GdipGetStringFormatMeasurableCharacterRangeCount(sf, MeasurableCharacterRangeCount&))
+        SetStatus(sf.GetMeasurableCharacterRangeCount(MeasurableCharacterRangeCount))
     End Property
         
     Protected Property Get Native() As GpStringFormat
@@ -142,8 +142,8 @@ Class StringFormat
     End Sub
         
     Protected Sub Assign(source As StringFormat)
-        GdipDeleteStringFormat(sf)
-        LastStatus = GdipCloneStringFormat(GetNative(source), sf)
+        sf.Delete
+        LastStatus = source.Clone(sf)
     End Sub
     
     ' Used by GenericDefaultStringFormat and GenericTypographicStringFormat
@@ -156,24 +156,69 @@ Class StringFormat
 End Class
 
 Module GdipStringFormat
-    Function StringFormat(ByVal format As GpStringFormatFlags = 0, ByVal language As LANGID = lang_neutral) As StringFormat
-        Return New StringFormat(format, language)
+    Function StringFormat(ByVal flags As GpStringFormatFlags = 0, ByVal language As LANGID = lang_neutral) As StringFormat
+        Return New StringFormat(flags, language)
     End Function
     
     Function GenericDefaultStringFormat() As StringFormat
         Dim nativeSF As GpStringFormat
-        Dim status As GpStatus = GdipStringFormatGetGenericDefault(nativeSF)
+        Dim status As GpStatus = nativeSF.GetGenericDefault()
         Return New StringFormat(nativeSF, status)
     End Function
     
     Function GenericTypographicStringFormat() As StringFormat
         Dim nativeSF As GpStringFormat
-        Dim status As GpStatus = GdipStringFormatGetGenericTypographic(nativeSF)
+        Dim status As GpStatus = nativeSF.GetGenericTypographic()
         Return New StringFormat(nativeSF, status)
     End Function
     
     Type GpStringFormat
         Native As LongPtr
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetGenericDefault Lib "gdiplus" Alias "GdipStringFormatGetGenericDefault" (Me As GpStringFormat) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetGenericTypographic Lib "gdiplus" Alias "GdipStringFormatGetGenericTypographic" (Me As GpStringFormat) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateStringFormat" (ByVal formatAttributes As Long, ByVal language As Integer, format As GpStringFormat) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneStringFormat" (ByVal Me As GpStringFormat, newFormat As GpStringFormat) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteStringFormat" (ByVal Me As GpStringFormat) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetFlags Lib "gdiplus" Alias "GdipSetStringFormatFlags" (ByVal Me As GpStringFormat, ByVal flags As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetFlags Lib "gdiplus" Alias "GdipGetStringFormatFlags" (ByVal Me As GpStringFormat, flags As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetAlign Lib "gdiplus" Alias "GdipSetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetAlign Lib "gdiplus" Alias "GdipGetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetLineAlign Lib "gdiplus" Alias "GdipSetStringFormatLineAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetLineAlign Lib "gdiplus" Alias "GdipGetStringFormatLineAlign" (ByVal Me As GpStringFormat, align As GpStringAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetTrimming Lib "gdiplus" Alias "GdipSetStringFormatTrimming" (ByVal Me As GpStringFormat, ByVal trimming As GpStringTrimming) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetTrimming Lib "gdiplus" Alias "GdipGetStringFormatTrimming" (ByVal Me As GpStringFormat, trimming As GpStringTrimming) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetHotkeyPrefix Lib "gdiplus" Alias "GdipSetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal hotkeyPrefix As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetHotkeyPrefix Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, hotkeyPrefix As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetTabStops Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetTabStops Lib "gdiplus" Alias "GdipGetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetTabStopCount Lib "gdiplus" Alias "GdipGetStringFormatTabStopCount" (ByVal Me As GpStringFormat, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetDigitSubstitution Lib "gdiplus" Alias "GdipSetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, ByVal language As Integer, ByVal substitute As GpStringDigitSubstitute) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetDigitSubstitution Lib "gdiplus" Alias "GdipGetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, language As Integer, substitute As GpStringDigitSubstitute) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetMeasurableCharacterRangeCount Lib "gdiplus" Alias "GdipGetStringFormatMeasurableCharacterRangeCount" (ByVal Me As GpStringFormat, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetMeasurableCharacterRanges Lib "gdiplus" Alias "GdipSetStringFormatMeasurableCharacterRanges" (ByVal Me As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
     End Type
     
     Function GpStringFormat() As GpStringFormat
@@ -181,49 +226,4 @@ Module GdipStringFormat
     End Function
     
     Private Const LANG_NEUTRAL = &H00
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipStringFormatGetGenericDefault Lib "gdiplus" (format As GpStringFormat) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipStringFormatGetGenericTypographic Lib "gdiplus" (format As GpStringFormat) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateStringFormat Lib "gdiplus" (ByVal formatAttributes As Long, ByVal language As Integer, format As GpStringFormat) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCloneStringFormat Lib "gdiplus" (ByVal format As GpStringFormat, newFormat As GpStringFormat) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteStringFormat Lib "gdiplus" (ByVal format As GpStringFormat) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, ByVal flags As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatFlags Lib "gdiplus" (ByVal format As GpStringFormat, flags As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatLineAlign Lib "gdiplus" (ByVal format As GpStringFormat, align As GpStringAlignment) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, ByVal trimming As GpStringTrimming) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatTrimming Lib "gdiplus" (ByVal format As GpStringFormat, trimming As GpStringTrimming) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, ByVal hotkeyPrefix As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatHotkeyPrefix Lib "gdiplus" (ByVal format As GpStringFormat, hotkeyPrefix As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatTabStops Lib "gdiplus" (ByVal format As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatTabStopCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, ByVal language As Integer, ByVal substitute As GpStringDigitSubstitute) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatDigitSubstitution Lib "gdiplus" (ByVal format As GpStringFormat, language As Integer, substitute As GpStringDigitSubstitute) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetStringFormatMeasurableCharacterRangeCount Lib "gdiplus" (ByVal format As GpStringFormat, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetStringFormatMeasurableCharacterRanges Lib "gdiplus" (ByVal format As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
 End Module
