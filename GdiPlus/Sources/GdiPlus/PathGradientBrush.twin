@@ -76,7 +76,7 @@ Class PathGradientBrush
     End Property
     
     Property Get SurroundColorCount() As Long
-        SetStatus(br.GetSurroundColorCount(PointCount))
+        SetStatus(br.GetSurroundColorCount(SurroundColorCount))
     End Property
 
     Property Get SurroundColors() As Color()
@@ -221,6 +221,10 @@ Class PathGradientBrush
     Function GetTransform(outMatrix As Matrix) As GpStatus
         Return SetStatus(br.GetTransform(UnprotectedAccess(outMatrix).mx))
     End Function
+    
+    Function ResetTransform() As GpStatus Implements ITransformable.ResetTransform
+        Return SetStatus(br.ResetTransform())
+    End Function
 
     Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
         If matrix Is Nothing Then Return SetStatus(InvalidParameter)
@@ -239,7 +243,7 @@ Class PathGradientBrush
         Return SetStatus(br.ScaleTransform(sx, sy, order))
     End Function
   
-    Function ScaleTraRotateTransformnsform(ByVal angle!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
+    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
         Return SetStatus(br.RotateTransform(angle, order))
     End Function
     
