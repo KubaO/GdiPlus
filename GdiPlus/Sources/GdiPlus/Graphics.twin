@@ -8,31 +8,31 @@
 Class Graphics
     Inherits GdiPlusBase
     Dim gr As GpGraphics
-                  
+    
     Sub New(ByVal hdc As LongPtr)
-        LastStatus = GdipCreateFromHDC(hdc, gr)
+        LastStatus = gr.CreateFromHDC(hdc)
     End Sub
 
     Sub New(ByVal hdc As LongPtr, ByVal hdevice As LongPtr)
-        LastStatus = GdipCreateFromHDC2(hdc, hdevice, gr)
+        LastStatus = gr.CreateFromHDC(hdc, hdevice)
     End Sub
 
     Sub New(ByVal hwnd As LongPtr, ByVal icm As Boolean)
         If icm Then
-            LastStatus = GdipCreateFromHWNDICM(hwnd, gr)
+            LastStatus = gr.CreateFromHWNDICM(hwnd)
         Else
-            LastStatus = GdipCreateFromHWND(hwnd, gr)
+            LastStatus = gr.CreateFromHWND(hwnd)
         End If
     End Sub
     
     Sub New(image As Image)
         If image IsNot Nothing Then
-            LastStatus = GdipGetImageGraphicsContext(GetNative(image), gr)
+            LastStatus = gr.GetImageGraphicsContext(GetNative(image), gr)
         End If
     End Sub
 
     Sub Class_Terminate()
-        GdipDeleteGraphics(gr)
+        gr.Delete
     End Sub
 
 '#if (GDIPVER >= 0x0110)
@@ -508,7 +508,7 @@ Class Graphics
     
     Function DrawString(ByVal string$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, brush As Brush) As GpStatus
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), GetNative(brush)))
     End Function
     
@@ -520,7 +520,7 @@ Class Graphics
         rect.Height = 0.0!
 
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             rect, GpStringFormat(), GetNative(brush)))
     End Function
     
@@ -536,7 +536,7 @@ Class Graphics
         rect.Height = 0.0!
 
         Return SetStatus(gr.DrawString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             rect, GetNative(stringFormat), GetNative(brush)))
     End Function
     
@@ -547,7 +547,7 @@ Class Graphics
     Function MeasureString(ByVal string$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, _
             boundingBox As GpRectF, Optional codepointsFitted&, Optional linesFilled&) As GpStatus
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), _
             boundingBox, codepointsFitted, linesFilled))
     End Function
@@ -561,7 +561,7 @@ Class Graphics
         End If
         
         SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), boundingBox, _
             codepointsFitted, linesFilled))
         
@@ -575,14 +575,14 @@ Class Graphics
     Function MeasureString(ByVal string$, font As Font, origin As GpPointF, stringFormat As StringFormat, boundingBox As GpRectF) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             rect, GetNative(stringFormat), boundingBox, _
             ByVal 0, 0))
     End Function
 
     Function MeasureString(ByVal string$, font As Font, layoutRect As GpRectF, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             layoutRect, GpStringFormat(), boundingBox, _
             0, 0))
     End Function
@@ -590,7 +590,7 @@ Class Graphics
     Function MeasureString(ByVal string$, font As Font, origin As GpPointF, boundingBox As GpRectF) As GpStatus
         Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
         Return SetStatus(gr.MeasureString( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             rect, GpStringFormat(), boundingBox, _
             0, 0))
     End Function
@@ -608,7 +608,7 @@ Class Graphics
             nativeRegions(i) = GetNative(regions(i))
         Next
         status = SetStatus(gr.MeasureCharacterRanges( _
-            StrPtr(string), Len(string), GetNative(font), _
+            string, Len(string), GetNative(font), _
             layoutRect, GetNative(stringFormat), _
             ArrayLen(regions), nativeRegions(1)))
         Erase nativeRegions
@@ -617,13 +617,13 @@ Class Graphics
     
     Function DrawDriverString(ByVal text$, font As Font, brush As Brush, positions As GpPointF, ByVal flags&, matrix As Matrix) As GpStatus
         Return SetStatus(gr.DrawDriverString( _
-            StrPtr(text), Len(text), GetNative(font), _
+            text, Len(text), GetNative(font), _
             GetNative(brush), positions, flags, GetNative(matrix)))
     End Function
     
     Function MeasureDriverString(ByVal text$, font As Font, positions As GpPointF, ByVal flags&, matrix As Matrix, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureDriverString( _
-            StrPtr(text), Len(text), GetNative(font), _
+            text, Len(text), GetNative(font), _
             positions, flags, GetNative(matrix), boundingBox))
     End Function
     
@@ -1108,7 +1108,7 @@ Class Graphics
     End Function
     
     Function GetHalftonePalette() As LongPtr  ' HPALETTE
-        Return GdipCreateHalftonePalette()
+        Return gr.CreateHalftonePalette()
     End Function
        
     Protected Sub New(ByVal graphics As GpGraphics)
@@ -1164,375 +1164,399 @@ Module GdipGraphics
     
     Type GpGraphics
         Native As LongPtr
-            
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Flush Lib "gdiplus" Alias "GdipFlush" (ByVal Me As GpGraphics, ByVal intention As GpFlushIntention) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetDC Lib "gdiplus" Alias "GdipGetDC" (ByVal Me As GpGraphics, hDC As LongPtr) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function ReleaseDC Lib "gdiplus" Alias "GdipReleaseDC" (ByVal Me As GpGraphics, ByVal hDC As LongPtr) As GpStatus
+        
+        Function CreateFromHDC(ByVal hDC As LongPtr, ByVal hDevice As LongPtr = 0) As GpStatus
+            If hDevice = 0 Then
+                Return Me.CreateFromHDCInto1(hDC, Me)
+            Else
+                Return Me.CreateFromHDCInto2(hDC, hDevice, Me)
+            End If
+        End Function
+        
+        Function CreateFromHWND(ByVal hWND As LongPtr) As GpStatus
+            Return Me.CreateFromHWNDInto(hWND, Me)
+        End Function
+        
+        Function CreateFromHWNDICM(ByVal hWND As LongPtr) As GpStatus
+            Return Me.CreateFromHWNDICMInto(hWND, Me)
+        End Function
+        
+        Function CreateFromImage(image As Image) As GpStatus
+            Dim img As GpImage = GetNative(image)
+            If img.Native = 0 Then Return InvalidParameter
+            Return Me.GetImageGraphicsContext(img, Me)
+        End Function
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetRenderingOrigin Lib "gdiplus" Alias "GdipSetRenderingOrigin" (ByVal Me As GpGraphics, ByVal x&, ByVal y&) As GpStatus
+        Declare PtrSafe Function CreateFromHDCInto1 Lib "gdiplus" Alias "GdipCreateFromHDC" (ByVal hDC As LongPtr, Graphics As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetRenderingOrigin Lib "gdiplus" Alias "GdipGetRenderingOrigin" (ByVal Me As GpGraphics, x&, y&) As GpStatus
+        Declare PtrSafe Function CreateFromHDCInto2 Lib "gdiplus" Alias "GdipCreateFromHDC2" (ByVal hDC As LongPtr, ByVal hDevice As LongPtr, Graphics As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetCompositingMode Lib "gdiplus" Alias "GdipSetCompositingMode" (ByVal Me As GpGraphics, ByVal compositingMode As GpCompositingMode) As GpStatus
+        Declare PtrSafe Function CreateFromHWNDInto Lib "gdiplus" Alias "GdipCreateFromHWND" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetCompositingMode Lib "gdiplus" Alias "GdipGetCompositingMode" (ByVal Me As GpGraphics, compositingMode As GpCompositingMode) As GpStatus
+        Declare PtrSafe Function CreateFromHWNDICMInto Lib "gdiplus" Alias "GdipCreateFromHWNDICM" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
+    
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetCompositingQuality Lib "gdiplus" Alias "GdipSetCompositingQuality" (ByVal Me As GpGraphics, ByVal compositingQuality As GpCompositingQuality) As GpStatus
+        Declare PtrSafe Function CreateHalftonePalette Lib "gdiplus" Alias "GdipCreateHalftonePalette" () As LongPtr
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetCompositingQuality Lib "gdiplus" Alias "GdipGetCompositingQuality" (ByVal Me As GpGraphics, compositingQuality As GpCompositingQuality) As GpStatus
+        Declare PtrSafe Function GetImageGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Image As GpImage, Graphics As GpGraphics) As GpStatus
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetTextRenderingHint Lib "gdiplus" Alias "GdipSetTextRenderingHint" (ByVal Me As GpGraphics, ByVal mode As GpTextRenderingHint) As GpStatus
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteGraphics" (ByVal Me As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetTextRenderingHint Lib "gdiplus" Alias "GdipGetTextRenderingHint" (ByVal Me As GpGraphics, mode As GpTextRenderingHint) As GpStatus
+        Declare PtrSafe Function Flush Lib "gdiplus" Alias "GdipFlush" (ByVal Me As GpGraphics, ByVal intention As GpFlushIntention) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetTextContrast Lib "gdiplus" Alias "GdipSetTextContrast" (ByVal Me As GpGraphics, ByVal contrast&) As GpStatus
+        Declare PtrSafe Function GetDC Lib "gdiplus" Alias "GdipGetDC" (ByVal Me As GpGraphics, hDC As LongPtr) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetTextContrast Lib "gdiplus" Alias "GdipGetTextContrast" (ByVal Me As GpGraphics, contrast&) As GpStatus
+        Declare PtrSafe Function ReleaseDC Lib "gdiplus" Alias "GdipReleaseDC" (ByVal Me As GpGraphics, ByVal hDC As LongPtr) As GpStatus
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetInterpolationMode Lib "gdiplus" Alias "GdipGetInterpolationMode" (ByVal Me As GpGraphics, interpolation As GpInterpolationMode) As GpStatus
+        Declare PtrSafe Function SetRenderingOrigin Lib "gdiplus" Alias "GdipSetRenderingOrigin" (ByVal Me As GpGraphics, ByVal x&, ByVal y&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetInterpolationMode Lib "gdiplus" Alias "GdipSetInterpolationMode" (ByVal Me As GpGraphics, ByVal interpolation As GpInterpolationMode) As GpStatus
+        Declare PtrSafe Function GetRenderingOrigin Lib "gdiplus" Alias "GdipGetRenderingOrigin" (ByVal Me As GpGraphics, x&, y&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCompositingMode Lib "gdiplus" Alias "GdipSetCompositingMode" (ByVal Me As GpGraphics, ByVal compositingMode As GpCompositingMode) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCompositingMode Lib "gdiplus" Alias "GdipGetCompositingMode" (ByVal Me As GpGraphics, compositingMode As GpCompositingMode) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCompositingQuality Lib "gdiplus" Alias "GdipSetCompositingQuality" (ByVal Me As GpGraphics, ByVal compositingQuality As GpCompositingQuality) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCompositingQuality Lib "gdiplus" Alias "GdipGetCompositingQuality" (ByVal Me As GpGraphics, compositingQuality As GpCompositingQuality) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetTextRenderingHint Lib "gdiplus" Alias "GdipSetTextRenderingHint" (ByVal Me As GpGraphics, ByVal mode As GpTextRenderingHint) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetTextRenderingHint Lib "gdiplus" Alias "GdipGetTextRenderingHint" (ByVal Me As GpGraphics, mode As GpTextRenderingHint) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetTextContrast Lib "gdiplus" Alias "GdipSetTextContrast" (ByVal Me As GpGraphics, ByVal contrast&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetTextContrast Lib "gdiplus" Alias "GdipGetTextContrast" (ByVal Me As GpGraphics, contrast&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetInterpolationMode Lib "gdiplus" Alias "GdipGetInterpolationMode" (ByVal Me As GpGraphics, interpolation As GpInterpolationMode) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetInterpolationMode Lib "gdiplus" Alias "GdipSetInterpolationMode" (ByVal Me As GpGraphics, ByVal interpolation As GpInterpolationMode) As GpStatus
         [UseGetLastError(False)]
         [Description("⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
-        Public Declare PtrSafe Function GraphicsSetAbort Lib "gdiplus" Alias "GpGraphicsSetAbort" (ByVal Me As GpGraphics, pIAbort As Any /*GdiplusAbort*/) As GpStatus
+        Declare PtrSafe Function GraphicsSetAbort Lib "gdiplus" Alias "GpGraphicsSetAbort" (ByVal Me As GpGraphics, pIAbort As Any /*GdiplusAbort*/) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetSmoothingMode Lib "gdiplus" Alias "GdipSetSmoothingMode" (ByVal Me As GpGraphics, ByVal smoothingMode As GpSmoothingMode) As GpStatus
+        Declare PtrSafe Function SetSmoothingMode Lib "gdiplus" Alias "GdipSetSmoothingMode" (ByVal Me As GpGraphics, ByVal smoothingMode As GpSmoothingMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetSmoothingMode Lib "gdiplus" Alias "GdipGetSmoothingMode" (ByVal Me As GpGraphics, smoothingMode As GpSmoothingMode) As GpStatus
+        Declare PtrSafe Function GetSmoothingMode Lib "gdiplus" Alias "GdipGetSmoothingMode" (ByVal Me As GpGraphics, smoothingMode As GpSmoothingMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetPixelOffsetMode Lib "gdiplus" Alias "GdipSetPixelOffsetMode" (ByVal Me As GpGraphics, ByVal pixelOffsetMode As GpPixelOffsetMode) As GpStatus
+        Declare PtrSafe Function SetPixelOffsetMode Lib "gdiplus" Alias "GdipSetPixelOffsetMode" (ByVal Me As GpGraphics, ByVal pixelOffsetMode As GpPixelOffsetMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetPixelOffsetMode Lib "gdiplus" Alias "GdipGetPixelOffsetMode" (ByVal Me As GpGraphics, pixelOffsetMode As GpPixelOffsetMode) As GpStatus
+        Declare PtrSafe Function GetPixelOffsetMode Lib "gdiplus" Alias "GdipGetPixelOffsetMode" (ByVal Me As GpGraphics, pixelOffsetMode As GpPixelOffsetMode) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function ResetWorldTransform Lib "gdiplus" Alias "GdipResetWorldTransform" (ByVal Me As GpGraphics) As GpStatus
+        Declare PtrSafe Function ResetWorldTransform Lib "gdiplus" Alias "GdipResetWorldTransform" (ByVal Me As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetWorldTransform Lib "gdiplus" Alias "GdipGetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
+        Declare PtrSafe Function GetWorldTransform Lib "gdiplus" Alias "GdipGetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetWorldTransform Lib "gdiplus" Alias "GdipSetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
+        Declare PtrSafe Function SetWorldTransform Lib "gdiplus" Alias "GdipSetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function MultiplyWorldTransform Lib "gdiplus" Alias "GdipMultiplyWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function MultiplyWorldTransform Lib "gdiplus" Alias "GdipMultiplyWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function ScaleWorldTransform Lib "gdiplus" Alias "GdipScaleWorldTransform" (ByVal Me As GpGraphics, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function ScaleWorldTransform Lib "gdiplus" Alias "GdipScaleWorldTransform" (ByVal Me As GpGraphics, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function TranslateWorldTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function TranslateWorldTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function RotateWorldTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function RotateWorldTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function ResetPageTransform Lib "gdiplus" Alias "GdipResetPageTransform" (ByVal Me As GpGraphics) As GpStatus
+        Declare PtrSafe Function ResetPageTransform Lib "gdiplus" Alias "GdipResetPageTransform" (ByVal Me As GpGraphics) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetPageUnit Lib "gdiplus" Alias "GdipGetPageUnit" (ByVal Me As GpGraphics, unit As GpUnit) As GpStatus
+        Declare PtrSafe Function GetPageUnit Lib "gdiplus" Alias "GdipGetPageUnit" (ByVal Me As GpGraphics, unit As GpUnit) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetPageScale Lib "gdiplus" Alias "GdipGetPageScale" (ByVal Me As GpGraphics, scale!) As GpStatus
+        Declare PtrSafe Function GetPageScale Lib "gdiplus" Alias "GdipGetPageScale" (ByVal Me As GpGraphics, scale!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetPageUnit Lib "gdiplus" Alias "GdipSetPageUnit" (ByVal Me As GpGraphics, ByVal unit As GpUnit) As GpStatus
+        Declare PtrSafe Function SetPageUnit Lib "gdiplus" Alias "GdipSetPageUnit" (ByVal Me As GpGraphics, ByVal unit As GpUnit) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetPageScale Lib "gdiplus" Alias "GdipSetPageScale" (ByVal Me As GpGraphics, ByVal scale!) As GpStatus
+        Declare PtrSafe Function SetPageScale Lib "gdiplus" Alias "GdipSetPageScale" (ByVal Me As GpGraphics, ByVal scale!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetDpiX Lib "gdiplus" Alias "GdipGetDpiX" (ByVal Me As GpGraphics, dpi!) As GpStatus
+        Declare PtrSafe Function GetDpiX Lib "gdiplus" Alias "GdipGetDpiX" (ByVal Me As GpGraphics, dpi!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetDpiY Lib "gdiplus" Alias "GdipGetDpiY" (ByVal Me As GpGraphics, dpi!) As GpStatus
+        Declare PtrSafe Function GetDpiY Lib "gdiplus" Alias "GdipGetDpiY" (ByVal Me As GpGraphics, dpi!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function TransformPoints Lib "gdiplus" Alias "GdipTransformPoints" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function TransformPoints Lib "gdiplus" Alias "GdipTransformPoints" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function TransformPointsI Lib "gdiplus" Alias "GdipTransformPointsI" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function TransformPointsI Lib "gdiplus" Alias "GdipTransformPointsI" (ByVal Me As GpGraphics, ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetNearestColor Lib "gdiplus" Alias "GdipGetNearestColor" (ByVal Me As GpGraphics, argb As Color) As GpStatus
+        Declare PtrSafe Function GetNearestColor Lib "gdiplus" Alias "GdipGetNearestColor" (ByVal Me As GpGraphics, argb As Color) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawLine Lib "gdiplus" Alias "GdipDrawLine" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!) As GpStatus
+        Declare PtrSafe Function DrawLine Lib "gdiplus" Alias "GdipDrawLine" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawLineI Lib "gdiplus" Alias "GdipDrawLineI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1&, ByVal Y1&, ByVal X2&, ByVal Y2&) As GpStatus
+        Declare PtrSafe Function DrawLineI Lib "gdiplus" Alias "GdipDrawLineI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X1&, ByVal Y1&, ByVal X2&, ByVal Y2&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawLines Lib "gdiplus" Alias "GdipDrawLines" (ByVal Me As GpGraphics, ByVal pen As GpPen, points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawLines Lib "gdiplus" Alias "GdipDrawLines" (ByVal Me As GpGraphics, ByVal pen As GpPen, points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawLinesI Lib "gdiplus" Alias "GdipDrawLinesI" (ByVal Me As GpGraphics, ByVal pen As GpPen, points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawLinesI Lib "gdiplus" Alias "GdipDrawLinesI" (ByVal Me As GpGraphics, ByVal pen As GpPen, points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawArc Lib "gdiplus" Alias "GdipDrawArc" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function DrawArc Lib "gdiplus" Alias "GdipDrawArc" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawArcI Lib "gdiplus" Alias "GdipDrawArcI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function DrawArcI Lib "gdiplus" Alias "GdipDrawArcI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawBezier Lib "gdiplus" Alias "GdipDrawBezier" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
+        Declare PtrSafe Function DrawBezier Lib "gdiplus" Alias "GdipDrawBezier" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x1!, ByVal y1!, ByVal x2!, ByVal y2!, ByVal x3!, ByVal y3!, ByVal x4!, ByVal y4!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawBezierI Lib "gdiplus" Alias "GdipDrawBezierI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
+        Declare PtrSafe Function DrawBezierI Lib "gdiplus" Alias "GdipDrawBezierI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawBeziers Lib "gdiplus" Alias "GdipDrawBeziers" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawBeziers Lib "gdiplus" Alias "GdipDrawBeziers" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawBeziersI Lib "gdiplus" Alias "GdipDrawBeziersI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawBeziersI Lib "gdiplus" Alias "GdipDrawBeziersI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawRectangle Lib "gdiplus" Alias "GdipDrawRectangle" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Declare PtrSafe Function DrawRectangle Lib "gdiplus" Alias "GdipDrawRectangle" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawRectangleI Lib "gdiplus" Alias "GdipDrawRectangleI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Declare PtrSafe Function DrawRectangleI Lib "gdiplus" Alias "GdipDrawRectangleI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawRectangles Lib "gdiplus" Alias "GdipDrawRectangles" (ByVal Me As GpGraphics, ByVal pen As GpPen, rects As GpRectF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawRectangles Lib "gdiplus" Alias "GdipDrawRectangles" (ByVal Me As GpGraphics, ByVal pen As GpPen, rects As GpRectF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawRectanglesI Lib "gdiplus" Alias "GdipDrawRectanglesI" (ByVal Me As GpGraphics, ByVal pen As GpPen, rects As GpRect, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawRectanglesI Lib "gdiplus" Alias "GdipDrawRectanglesI" (ByVal Me As GpGraphics, ByVal pen As GpPen, rects As GpRect, ByVal count&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawEllipse Lib "gdiplus" Alias "GdipDrawEllipse" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Declare PtrSafe Function DrawEllipse Lib "gdiplus" Alias "GdipDrawEllipse" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawEllipseI Lib "gdiplus" Alias "GdipDrawEllipseI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Declare PtrSafe Function DrawEllipseI Lib "gdiplus" Alias "GdipDrawEllipseI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawPie Lib "gdiplus" Alias "GdipDrawPie" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function DrawPie Lib "gdiplus" Alias "GdipDrawPie" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawPieI Lib "gdiplus" Alias "GdipDrawPieI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function DrawPieI Lib "gdiplus" Alias "GdipDrawPieI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawPolygon Lib "gdiplus" Alias "GdipDrawPolygon" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawPolygon Lib "gdiplus" Alias "GdipDrawPolygon" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawPolygonI Lib "gdiplus" Alias "GdipDrawPolygonI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawPolygonI Lib "gdiplus" Alias "GdipDrawPolygonI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawPath Lib "gdiplus" Alias "GdipDrawPath" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal Path As GpPath) As GpStatus
+        Declare PtrSafe Function DrawPath Lib "gdiplus" Alias "GdipDrawPath" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal Path As GpPath) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurve Lib "gdiplus" Alias "GdipDrawCurve" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawCurve Lib "gdiplus" Alias "GdipDrawCurve" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurveI Lib "gdiplus" Alias "GdipDrawCurveI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawCurveI Lib "gdiplus" Alias "GdipDrawCurveI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurve2 Lib "gdiplus" Alias "GdipDrawCurve2" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawCurve2 Lib "gdiplus" Alias "GdipDrawCurve2" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurve2I Lib "gdiplus" Alias "GdipDrawCurve2I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawCurve2I Lib "gdiplus" Alias "GdipDrawCurve2I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurve3 Lib "gdiplus" Alias "GdipDrawCurve3" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawCurve3 Lib "gdiplus" Alias "GdipDrawCurve3" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCurve3I Lib "gdiplus" Alias "GdipDrawCurve3I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawCurve3I Lib "gdiplus" Alias "GdipDrawCurve3I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawClosedCurve Lib "gdiplus" Alias "GdipDrawClosedCurve" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawClosedCurve Lib "gdiplus" Alias "GdipDrawClosedCurve" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawClosedCurveI Lib "gdiplus" Alias "GdipDrawClosedCurveI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawClosedCurveI Lib "gdiplus" Alias "GdipDrawClosedCurveI" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawClosedCurve2 Lib "gdiplus" Alias "GdipDrawClosedCurve2" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawClosedCurve2 Lib "gdiplus" Alias "GdipDrawClosedCurve2" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPointF, ByVal count&, ByVal tension!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawClosedCurve2I Lib "gdiplus" Alias "GdipDrawClosedCurve2I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
+        Declare PtrSafe Function DrawClosedCurve2I Lib "gdiplus" Alias "GdipDrawClosedCurve2I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal tension!) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GraphicsClear Lib "gdiplus" Alias "GpGraphicsClear" (ByVal Me As GpGraphics, ByVal color As Color) As GpStatus
+        Declare PtrSafe Function GraphicsClear Lib "gdiplus" Alias "GpGraphicsClear" (ByVal Me As GpGraphics, ByVal color As Color) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillRectangle Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Declare PtrSafe Function FillRectangle Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillRectangles Lib "gdiplus" Alias "GdipFillRectangles" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRectF, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillRectangleSolid Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpSolidFill, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillRectangleI Lib "gdiplus" Alias "GdipFillRectangleI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Declare PtrSafe Function FillRectangles Lib "gdiplus" Alias "GdipFillRectangles" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRectF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillRectanglesI Lib "gdiplus" Alias "GdipFillRectanglesI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRect, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillRectangleI Lib "gdiplus" Alias "GdipFillRectangleI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function FillRectanglesI Lib "gdiplus" Alias "GdipFillRectanglesI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRect, ByVal count&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPolygon Lib "gdiplus" Alias "GdipFillPolygon" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPointF, ByVal count&, ByVal fillMode As GpFillmode) As GpStatus
+        Declare PtrSafe Function FillPolygon Lib "gdiplus" Alias "GdipFillPolygon" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPointF, ByVal count&, ByVal fillMode As GpFillmode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPolygonI Lib "gdiplus" Alias "GdipFillPolygonI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPoint, ByVal count&, ByVal fillMode As GpFillmode) As GpStatus
+        Declare PtrSafe Function FillPolygonI Lib "gdiplus" Alias "GdipFillPolygonI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPoint, ByVal count&, ByVal fillMode As GpFillmode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPolygon2 Lib "gdiplus" Alias "GdipFillPolygon2" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillPolygon2 Lib "gdiplus" Alias "GdipFillPolygon2" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPolygon2I Lib "gdiplus" Alias "GdipFillPolygon2I" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillPolygon2I Lib "gdiplus" Alias "GdipFillPolygon2I" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, Points As GpPoint, ByVal count&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillEllipse Lib "gdiplus" Alias "GdipFillEllipse" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Declare PtrSafe Function FillEllipse Lib "gdiplus" Alias "GdipFillEllipse" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillEllipseI Lib "gdiplus" Alias "GdipFillEllipseI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Declare PtrSafe Function FillEllipseI Lib "gdiplus" Alias "GdipFillEllipseI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPie Lib "gdiplus" Alias "GdipFillPie" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function FillPie Lib "gdiplus" Alias "GdipFillPie" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPieI Lib "gdiplus" Alias "GdipFillPieI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
+        Declare PtrSafe Function FillPieI Lib "gdiplus" Alias "GdipFillPieI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillPath Lib "gdiplus" Alias "GdipFillPath" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal Path As GpPath) As GpStatus
+        Declare PtrSafe Function FillPath Lib "gdiplus" Alias "GdipFillPath" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal Path As GpPath) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillClosedCurve Lib "gdiplus" Alias "GdipFillClosedCurve" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillClosedCurve Lib "gdiplus" Alias "GdipFillClosedCurve" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillClosedCurveI Lib "gdiplus" Alias "GdipFillClosedCurveI" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function FillClosedCurveI Lib "gdiplus" Alias "GdipFillClosedCurveI" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillClosedCurve2 Lib "gdiplus" Alias "GdipFillClosedCurve2" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPointF, ByVal count&, ByVal tension!, ByVal fillMode As GpFillmode) As GpStatus
+        Declare PtrSafe Function FillClosedCurve2 Lib "gdiplus" Alias "GdipFillClosedCurve2" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPointF, ByVal count&, ByVal tension!, ByVal fillMode As GpFillmode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillClosedCurve2I Lib "gdiplus" Alias "GdipFillClosedCurve2I" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPoint, ByVal count&, ByVal tension!, ByVal fillMode As GpFillmode) As GpStatus
+        Declare PtrSafe Function FillClosedCurve2I Lib "gdiplus" Alias "GdipFillClosedCurve2I" (ByVal Me As GpGraphics, ByVal brush As GpBrush, Points As GpPoint, ByVal count&, ByVal tension!, ByVal fillMode As GpFillmode) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function FillRegion Lib "gdiplus" Alias "GdipFillRegion" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal Region As GpRegion) As GpStatus
+        Declare PtrSafe Function FillRegion Lib "gdiplus" Alias "GdipFillRegion" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal Region As GpRegion) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawString Lib "gdiplus" Alias "GdipDrawString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, ByVal Brush As GpBrush) As GpStatus
+        DeclareWide PtrSafe Function DrawString Lib "gdiplus" Alias "GdipDrawString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, ByVal Brush As GpBrush) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function MeasureString Lib "gdiplus" Alias "GdipMeasureString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, boundingBox As GpRectF, codepointsFitted&, linesFilled&) As GpStatus
+        DeclareWide PtrSafe Function MeasureString Lib "gdiplus" Alias "GdipMeasureString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, boundingBox As GpRectF, codepointsFitted&, linesFilled&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function MeasureCharacterRanges Lib "gdiplus" Alias "GdipMeasureCharacterRanges" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, ByVal regionCount&, regions As GpRegion) As GpStatus
+        Declare PtrSafe Function MeasureCharacterRanges Lib "gdiplus" Alias "GdipMeasureCharacterRanges" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, ByVal regionCount&, regions As GpRegion) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawDriverString Lib "gdiplus" Alias "GdipDrawDriverString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, ByVal Brush As GpBrush, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+        DeclareWide PtrSafe Function DrawDriverString Lib "gdiplus" Alias "GdipDrawDriverString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, ByVal Brush As GpBrush, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function MeasureDriverString Lib "gdiplus" Alias "GdipMeasureDriverString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+        DeclareWide PtrSafe Function MeasureDriverString Lib "gdiplus" Alias "GdipMeasureDriverString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawCachedBitmap Lib "gdiplus" Alias "GdipDrawCachedBitmap" (ByVal Me As GpGraphics, ByVal cachedBitmap As GpCachedBitmap, ByVal x&, ByVal y&) As GpStatus
+        Declare PtrSafe Function DrawCachedBitmap Lib "gdiplus" Alias "GdipDrawCachedBitmap" (ByVal Me As GpGraphics, ByVal cachedBitmap As GpCachedBitmap, ByVal x&, ByVal y&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImage Lib "gdiplus" Alias "GdipDrawImage" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!) As GpStatus
+        Declare PtrSafe Function DrawImage Lib "gdiplus" Alias "GdipDrawImage" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageI Lib "gdiplus" Alias "GdipDrawImageI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&) As GpStatus
+        Declare PtrSafe Function DrawImageI Lib "gdiplus" Alias "GdipDrawImageI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageRect Lib "gdiplus" Alias "GdipDrawImageRect" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
+        Declare PtrSafe Function DrawImageRect Lib "gdiplus" Alias "GdipDrawImageRect" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageRectI Lib "gdiplus" Alias "GdipDrawImageRectI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
+        Declare PtrSafe Function DrawImageRectI Lib "gdiplus" Alias "GdipDrawImageRectI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePoints Lib "gdiplus" Alias "GdipDrawImagePoints" (ByVal Me As GpGraphics, ByVal Image As GpImage, dstpoints As GpPointF, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawImagePoints Lib "gdiplus" Alias "GdipDrawImagePoints" (ByVal Me As GpGraphics, ByVal Image As GpImage, dstpoints As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePointsI Lib "gdiplus" Alias "GdipDrawImagePointsI" (ByVal Me As GpGraphics, ByVal Image As GpImage, dstpoints As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function DrawImagePointsI Lib "gdiplus" Alias "GdipDrawImagePointsI" (ByVal Me As GpGraphics, ByVal Image As GpImage, dstpoints As GpPoint, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePointRect Lib "gdiplus" Alias "GdipDrawImagePointRect" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit) As GpStatus
+        Declare PtrSafe Function DrawImagePointRect Lib "gdiplus" Alias "GdipDrawImagePointRect" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X!, ByVal Y!, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePointRectI Lib "gdiplus" Alias "GdipDrawImagePointRectI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&, ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit) As GpStatus
+        Declare PtrSafe Function DrawImagePointRectI Lib "gdiplus" Alias "GdipDrawImagePointRectI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal X&, ByVal Y&, ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageRectRectI Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx&, _
+        Declare PtrSafe Function DrawImageRectRectI Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx&, _
                     ByVal dsty&, ByVal dstwidth&, ByVal dstheight&, _
                     ByVal srcx&, ByVal srcy&, ByVal SrcWidth&, ByVal SrcHeight&, _
                     ByVal srcUnit As GpUnit, ByVal imageAttributes As GpImageAttributes, _
                     Optional ByVal CallBack As LongPtr = 0, Optional ByVal callbackData As LongPtr) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageRectRect Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx!, _
+        Declare PtrSafe Function DrawImageRectRect Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx!, _
                     ByVal dsty!, ByVal dstwidth!, ByVal dstheight!, _
                     ByVal srcx!, ByVal srcy!, ByVal SrcWidth!, ByVal SrcHeight!, _
                     ByVal srcUnit As GpUnit, ByVal imageAttributes As GpImageAttributes, _
                     Optional ByVal CallBack As LongPtr = 0, Optional ByVal callbackData As LongPtr) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePointsRect Lib "gdiplus" Alias "GdipDrawImagePointsRect" (ByVal Me As GpGraphics, _
+        Declare PtrSafe Function DrawImagePointsRect Lib "gdiplus" Alias "GdipDrawImagePointsRect" (ByVal Me As GpGraphics, _
                 ByVal Image As GpImage, points As GpPointF, ByVal count&, _
                 ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit!, _
                 imageAttributes As GpImageAttributes, Optional ByVal callback As LongPtr = 0, Optional ByVal callbackData As LongPtr = 0) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImagePointsRectI Lib "gdiplus" Alias "GdipDrawImagePointsRectI" (ByVal Me As GpGraphics, _
+        Declare PtrSafe Function DrawImagePointsRectI Lib "gdiplus" Alias "GdipDrawImagePointsRectI" (ByVal Me As GpGraphics, _
                 ByVal Image As GpImage, dstpoints As GpPoint, ByVal count&, _
                 ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit, _
                 ByVal imageAttributes As GpImageAttributes, Optional ByVal callback As LongPtr = 0, Optional ByVal callbackData As LongPtr = 0) As GpStatus
     
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function DrawImageFX Lib "gdiplus" Alias "GdipDrawImageFX" (ByVal Me As GpGraphics, ByVal image As GpImage, source As GpRectF, ByVal xForm As GpMatrix, ByVal effect As GpEffect, ByVal imageAttributes As GpImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
+        Declare PtrSafe Function DrawImageFX Lib "gdiplus" Alias "GdipDrawImageFX" (ByVal Me As GpGraphics, ByVal image As GpImage, source As GpRectF, ByVal xForm As GpMatrix, ByVal effect As GpEffect, ByVal imageAttributes As GpImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestPoint Lib "gdiplus" Alias "GdipEnumerateMetafileDestPoint" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPointF, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestPoint Lib "gdiplus" Alias "GdipEnumerateMetafileDestPoint" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPointF, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestPointI Lib "gdiplus" Alias "GdipEnumerateMetafileDestPointI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPoint, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestPointI Lib "gdiplus" Alias "GdipEnumerateMetafileDestPointI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPoint, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestRect Lib "gdiplus" Alias "GdipEnumerateMetafileDestRect" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRectF, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestRect Lib "gdiplus" Alias "GdipEnumerateMetafileDestRect" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRectF, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestRectI Lib "gdiplus" Alias "GdipEnumerateMetafileDestRectI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRect, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestRectI Lib "gdiplus" Alias "GdipEnumerateMetafileDestRectI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRect, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestPoints Lib "gdiplus" Alias "GdipEnumerateMetafileDestPoints" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPointF, ByVal count&, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestPoints Lib "gdiplus" Alias "GdipEnumerateMetafileDestPoints" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPointF, ByVal count&, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileDestPointsI Lib "gdiplus" Alias "GdipEnumerateMetafileDestPointsI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPoint, ByVal count&, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
+        Declare PtrSafe Function EnumerateMetafileDestPointsI Lib "gdiplus" Alias "GdipEnumerateMetafileDestPointsI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPoint, ByVal count&, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestPoint Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPoint" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPointF, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestPoint Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPoint" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPointF, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestPointI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPointI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPoint, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestPointI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPointI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPoint, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestRect Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestRect" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRectF, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestRect Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestRect" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRectF, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestRectI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestRectI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRect, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestRectI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestRectI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRect, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestPoints Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPoints" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPointF, ByVal count&, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestPoints Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPoints" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPointF, ByVal count&, srcRECT As GpRectF, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EnumerateMetafileSrcRectDestPointsI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPointsI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPoint, ByVal count&, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
+        Declare PtrSafe Function EnumerateMetafileSrcRectDestPointsI Lib "gdiplus" Alias "GdipEnumerateMetafileSrcRectDestPointsI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoints As GpPoint, ByVal count&, srcRECT As GpRect, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function PlayMetafileRecord Lib "gdiplus" Alias "GdipPlayMetafileRecord" (ByVal metafile As GpMetafile, ByVal recordType As GpEmfPlusRecordType, ByVal flags&, ByVal dataSize&, data As Byte) As GpStatus
+        Declare PtrSafe Function PlayMetafileRecord Lib "gdiplus" Alias "GdipPlayMetafileRecord" (ByVal metafile As GpMetafile, ByVal recordType As GpEmfPlusRecordType, ByVal flags&, ByVal dataSize&, data As Byte) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipGraphics Lib "gdiplus" Alias "GdipSetClipGraphics" (ByVal Me As GpGraphics, ByVal srcgraphics As GpGraphics, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipGraphics Lib "gdiplus" Alias "GdipSetClipGraphics" (ByVal Me As GpGraphics, ByVal srcgraphics As GpGraphics, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipRect Lib "gdiplus" Alias "GdipSetClipRect" (ByVal Me As GpGraphics, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipRect Lib "gdiplus" Alias "GdipSetClipRect" (ByVal Me As GpGraphics, ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipRectI Lib "gdiplus" Alias "GdipSetClipRectI" (ByVal Me As GpGraphics, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipRectI Lib "gdiplus" Alias "GdipSetClipRectI" (ByVal Me As GpGraphics, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipPath Lib "gdiplus" Alias "GdipSetClipPath" (ByVal Me As GpGraphics, ByVal path As GpPath, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipPath Lib "gdiplus" Alias "GdipSetClipPath" (ByVal Me As GpGraphics, ByVal path As GpPath, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipRegion Lib "gdiplus" Alias "GdipSetClipRegion" (ByVal Me As GpGraphics, ByVal Region As GpRegion, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipRegion Lib "gdiplus" Alias "GdipSetClipRegion" (ByVal Me As GpGraphics, ByVal Region As GpRegion, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetClipHrgn Lib "gdiplus" Alias "GdipSetClipHrgn" (ByVal Me As GpGraphics, ByVal hRgn As LongPtr, ByVal combineMode As GpCombineMode) As GpStatus
+        Declare PtrSafe Function SetClipHrgn Lib "gdiplus" Alias "GdipSetClipHrgn" (ByVal Me As GpGraphics, ByVal hRgn As LongPtr, ByVal combineMode As GpCombineMode) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function ResetClip Lib "gdiplus" Alias "GdipResetClip" (ByVal Me As GpGraphics) As GpStatus
+        Declare PtrSafe Function ResetClip Lib "gdiplus" Alias "GdipResetClip" (ByVal Me As GpGraphics) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function TranslateClip Lib "gdiplus" Alias "GdipTranslateClip" (ByVal Me As GpGraphics, ByVal dx!, ByVal dy!) As GpStatus
+        Declare PtrSafe Function TranslateClip Lib "gdiplus" Alias "GdipTranslateClip" (ByVal Me As GpGraphics, ByVal dx!, ByVal dy!) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function TranslateClipI Lib "gdiplus" Alias "GdipTranslateClipI" (ByVal Me As GpGraphics, ByVal dx&, ByVal dy&) As GpStatus
+        Declare PtrSafe Function TranslateClipI Lib "gdiplus" Alias "GdipTranslateClipI" (ByVal Me As GpGraphics, ByVal dx&, ByVal dy&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetClip Lib "gdiplus" Alias "GdipGetClip" (ByVal Me As GpGraphics, ByVal Region As GpRegion) As GpStatus
+        Declare PtrSafe Function GetClip Lib "gdiplus" Alias "GdipGetClip" (ByVal Me As GpGraphics, ByVal Region As GpRegion) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetClipBounds Lib "gdiplus" Alias "GdipGetClipBounds" (ByVal Me As GpGraphics, rect As GpRectF) As GpStatus
+        Declare PtrSafe Function GetClipBounds Lib "gdiplus" Alias "GdipGetClipBounds" (ByVal Me As GpGraphics, rect As GpRectF) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetClipBoundsI Lib "gdiplus" Alias "GdipGetClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
+        Declare PtrSafe Function GetClipBoundsI Lib "gdiplus" Alias "GdipGetClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsClipEmpty Lib "gdiplus" Alias "GdipIsClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsClipEmpty Lib "gdiplus" Alias "GdipIsClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetVisibleClipBounds Lib "gdiplus" Alias "GdipGetVisibleClipBounds" (ByVal Me As GpGraphics, rect As GpRectF) As GpStatus
+        Declare PtrSafe Function GetVisibleClipBounds Lib "gdiplus" Alias "GdipGetVisibleClipBounds" (ByVal Me As GpGraphics, rect As GpRectF) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetVisibleClipBoundsI Lib "gdiplus" Alias "GdipGetVisibleClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
+        Declare PtrSafe Function GetVisibleClipBoundsI Lib "gdiplus" Alias "GdipGetVisibleClipBoundsI" (ByVal Me As GpGraphics, rect As GpRect) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleClipEmpty Lib "gdiplus" Alias "GdipIsVisibleClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleClipEmpty Lib "gdiplus" Alias "GdipIsVisibleClipEmpty" (ByVal Me As GpGraphics, result As GDIP_BOOL) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePoint Lib "gdiplus" Alias "GdipIsVisiblePoint" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisiblePoint Lib "gdiplus" Alias "GdipIsVisiblePoint" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePointI Lib "gdiplus" Alias "GdipIsVisiblePointI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisiblePointI Lib "gdiplus" Alias "GdipIsVisiblePointI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRect Lib "gdiplus" Alias "GdipIsVisibleRect" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, ByVal width!, ByVal height!, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRect Lib "gdiplus" Alias "GdipIsVisibleRect" (ByVal Me As GpGraphics, ByVal X!, ByVal Y!, ByVal width!, ByVal height!, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRectI Lib "gdiplus" Alias "GdipIsVisibleRectI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, ByVal width&, ByVal height&, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRectI Lib "gdiplus" Alias "GdipIsVisibleRectI" (ByVal Me As GpGraphics, ByVal X&, ByVal Y&, ByVal width&, ByVal height&, result As GDIP_BOOL) As GpStatus
 
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisiblePathPoint Lib "gdiplus" Alias "GdipIsVisiblePathPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionPoint Lib "gdiplus" Alias "GdipIsVisibleRegionPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRegionPoint Lib "gdiplus" Alias "GdipIsVisibleRegionPoint" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionPointI Lib "gdiplus" Alias "GdipIsVisibleRegionPointI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRegionPointI Lib "gdiplus" Alias "GdipIsVisibleRegionPointI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionRect Lib "gdiplus" Alias "GdipIsVisibleRegionRect" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRegionRect Lib "gdiplus" Alias "GdipIsVisibleRegionRect" (ByVal Region As GpRegion, ByVal X!, ByVal Y!, ByVal width As Single, ByVal height As Single, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function IsVisibleRegionRectI Lib "gdiplus" Alias "GdipIsVisibleRegionRectI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
+        Declare PtrSafe Function IsVisibleRegionRectI Lib "gdiplus" Alias "GdipIsVisibleRegionRectI" (ByVal Region As GpRegion, ByVal X&, ByVal Y&, ByVal width As Long, ByVal height As Long, ByVal Graphics As GpGraphics, result As GDIP_BOOL) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SaveGraphics Lib "gdiplus" Alias "GdipSaveGraphics" (ByVal Me As GpGraphics, state&) As GpStatus
+        Declare PtrSafe Function SaveGraphics Lib "gdiplus" Alias "GdipSaveGraphics" (ByVal Me As GpGraphics, state&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function RestoreGraphics Lib "gdiplus" Alias "GdipRestoreGraphics" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
+        Declare PtrSafe Function RestoreGraphics Lib "gdiplus" Alias "GdipRestoreGraphics" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function BeginContainer Lib "gdiplus" Alias "GdipBeginContainer" (ByVal Me As GpGraphics, dstrect As GpRectF, srcrect As GpRectF, ByVal unit As GpUnit, state&) As GpStatus
+        Declare PtrSafe Function BeginContainer Lib "gdiplus" Alias "GdipBeginContainer" (ByVal Me As GpGraphics, dstrect As GpRectF, srcrect As GpRectF, ByVal unit As GpUnit, state&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function BeginContainerI Lib "gdiplus" Alias "GdipBeginContainerI" (ByVal Me As GpGraphics, dstrect As GpRect, srcrect As GpRect, ByVal unit As GpUnit, state&) As GpStatus
+        Declare PtrSafe Function BeginContainerI Lib "gdiplus" Alias "GdipBeginContainerI" (ByVal Me As GpGraphics, dstrect As GpRect, srcrect As GpRect, ByVal unit As GpUnit, state&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function BeginContainer2 Lib "gdiplus" Alias "GdipBeginContainer2" (ByVal Me As GpGraphics, state&) As GpStatus
+        Declare PtrSafe Function BeginContainer2 Lib "gdiplus" Alias "GdipBeginContainer2" (ByVal Me As GpGraphics, state&) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function EndContainer Lib "gdiplus" Alias "GdipEndContainer" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
+        Declare PtrSafe Function EndContainer Lib "gdiplus" Alias "GdipEndContainer" (ByVal Me As GpGraphics, ByVal state&) As GpStatus
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Comment Lib "gdiplus" Alias "GdipComment" (ByVal Me As GpGraphics, ByVal sizeData&, data As Byte) As GpStatus
+        Declare PtrSafe Function Comment Lib "gdiplus" Alias "GdipComment" (ByVal Me As GpGraphics, ByVal sizeData&, data As Byte) As GpStatus
     End Type
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateFromHDC Lib "gdiplus" (ByVal hDC As LongPtr, Graphics As GpGraphics) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateFromHDC2 Lib "gdiplus" (ByVal hDC As LongPtr, ByVal hDevice As LongPtr, Graphics As GpGraphics) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateFromHWND Lib "gdiplus" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateFromHWNDICM Lib "gdiplus" (ByVal hwnd As LongPtr, Graphics As GpGraphics) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteGraphics Lib "gdiplus" (ByVal Me As GpGraphics) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateHalftonePalette Lib "gdiplus" () As LongPtr
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal Image As GpImage, Graphics As GpGraphics) As GpStatus
 End Module
