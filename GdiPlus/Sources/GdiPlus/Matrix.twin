@@ -16,52 +16,44 @@ Class Matrix
         
     [Description("Become an identity matrix by default.")]
     Sub New()
-        Dim nativeMatrix As GpMatrix
-        LastStatus = GdipCreateMatrix(nativeMatrix)
-        SetNativeMatrix(nativeMatrix)
+        LastStatus = mx.CreateInto(mx)
     End Sub
     
     Sub New(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!)
-        Dim nativeMatrix As GpMatrix
-        LastStatus = GdipCreateMatrix2(m11, m12, m21, m22, dx, dy, nativeMatrix)
-        SetNativeMatrix(nativeMatrix)
+        LastStatus = mx.CreateInto2(m11, m12, m21, m22, dx, dy, mx)
     End Sub
     
     Sub New(rect As GpRectF, ByVal dstplg As GpPointF)
-        Dim nativeMatrix As GpMatrix
-        LastStatus = GdipCreateMatrix3(rect, dstplg, nativeMatrix)
-        SetNativeMatrix(nativeMatrix)
+        LastStatus = mx.CreateInto3(rect, dstplg, mx)
     End Sub
 
     Sub New(rect As GpRect, ByVal dstplg As GpPoint)
-        Dim nativeMatrix As GpMatrix
-        LastStatus = GdipCreateMatrix3I(rect, dstplg, nativeMatrix)
-        SetNativeMatrix(nativeMatrix)
+        LastStatus = mx.CreateInto3I(rect, dstplg, mx)
     End Sub
 
     Sub Class_Terminate()
-        GdipDeleteMatrix(mx)
+        mx.Delete
     End Sub
     
     Function Clone() As Matrix
         Dim nativeClone As GpMatrix
-        SetStatus(GdipCloneMatrix(mx, nativeClone))
+        SetStatus(mx.Clone(nativeClone))
         If LastResult = Ok Then Set Clone = New Matrix(nativeClone)
     End Function
         
     Property Get Elements() As Single()
         Dim results!()
         ReDim results(1 To 6)
-        SetStatus(GdipGetMatrixElements(mx, results(1)))
+        SetStatus(mx.GetElements(results(1)))
         If LastStatus = Ok Then Elements = results
     End Property
     
     Function GetElements(m!) As GpStatus
-        Return SetStatus(GdipGetMatrixElements(mx, m))
+        Return SetStatus(mx.GetElements(m))
     End Function
     
     Function SetElements(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!) As GpStatus
-        Return SetStatus(GdipSetMatrixElements(mx, m11, m12, m21, m22, dx, dy))
+        Return SetStatus(mx.SetElements(m11, m12, m21, m22, dx, dy))
     End Function
     
     Property Get OffsetX() As Single
@@ -76,96 +68,96 @@ Class Matrix
     
     [Description("Set to identity matrix")]
     Function Reset() As GpStatus
-        Return SetStatus(GdipSetMatrixElements(mx, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
+        Return SetStatus(mx.SetElements(1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
     End Function
     
     Function Multiply(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipMultiplyMatrix(mx, GetNative(matrix), order))
+        Return SetStatus(mx.Multiply(GetNative(matrix), order))
     End Function
     
     Function Translate(ByVal offsetX!, ByVal offsety!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipTranslateMatrix(mx, offsetX, offsety, order))
+        Return SetStatus(mx.Translate(offsetX, offsety, order))
     End Function
     
     Function Translate(ByVal offset As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipTranslateMatrix(mx, offset.X, offset.Y, order))
+        Return SetStatus(mx.Translate(offset.X, offset.Y, order))
     End Function
     
     Function Scale(ByVal scaleX!, ByVal scaleY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipScaleMatrix(mx, scaleX, scaleY, order))
+        Return SetStatus(mx.Scale(scaleX, scaleY, order))
     End Function
         
     Function Rotate(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipRotateMatrix(mx, angle, order))
+        Return SetStatus(mx.Rotate(angle, order))
     End Function
     
     Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         If order = MatrixOrderPrepend Then
-            SetStatus(GdipTranslateMatrix(mx, center.X, center.Y, order))
-            SetStatus(GdipRotateMatrix(mx, angle, order))
-            Return SetStatus(GdipTranslateMatrix(mx, -center.X, -center.Y, order))
+            SetStatus(mx.Translate(center.X, center.Y, order))
+            SetStatus(mx.Rotate(angle, order))
+            Return SetStatus(mx.Translate(-center.X, -center.Y, order))
         Else
-            SetStatus(GdipTranslateMatrix(mx, -center.X, -center.Y, order))
-            SetStatus(GdipRotateMatrix(mx, angle, order))
-            Return SetStatus(GdipTranslateMatrix(mx, center.X, center.Y, order))
+            SetStatus(mx.Translate(-center.X, -center.Y, order))
+            SetStatus(mx.Rotate(angle, order))
+            Return SetStatus(mx.Translate(center.X, center.Y, order))
         End If
     End Function
     
     Function Shear(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipShearMatrix(mx, shearX, shearY, order))
+        Return SetStatus(mx.Shear(shearX, shearY, order))
     End Function
     
     Function Invert() As GpStatus
-        Return SetStatus(GdipInvertMatrix(mx))
+        Return SetStatus(mx.Invert())
     End Function
     
     Function TransformPoints(pts() As GpPointF) As GpStatus
-        Return SetStatus(GdipTransformMatrixPoints(mx, pts(LBound(pts)), ArrayLen(pts)))
+        Return SetStatus(mx.TransformPoints(pts(LBound(pts)), ArrayLen(pts)))
     End Function
 
     Function TransformPoints(pts() As GpPoint) As GpStatus
-        Return SetStatus(GdipTransformMatrixPointsI(mx, pts(LBound(pts)), ArrayLen(pts)))
+        Return SetStatus(mx.TransformPointsI(pts(LBound(pts)), ArrayLen(pts)))
     End Function
     
-    Function TransformPoints(pts As GpPointF, ByVal count& = 1) As GpStatus
-        Return SetStatus(GdipTransformMatrixPoints(mx, pts, count))
+    Function TransformPoints(pts As GpPointF, ByVal count&) As GpStatus
+        Return SetStatus(mx.TransformPoints(pts, count))
     End Function
     
     Function TransformPoints(pts As GpPoint, ByVal count& = 1) As GpStatus
-        Return SetStatus(GdipTransformMatrixPointsI(mx, pts, count))
+        Return SetStatus(mx.TransformPointsI(pts, count))
     End Function
     
     Function TransformVectors(pts() As GpPointF) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts(LBound(pts)), ArrayLen(pts)))
+        Return SetStatus(mx.VectorTransformPoints(pts(LBound(pts)), ArrayLen(pts)))
     End Function
 
     Function TransformVectors(pts() As GpPoint) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts(LBound(pts)), ArrayLen(pts)))
+        Return SetStatus(mx.VectorTransformPointsI(pts(LBound(pts)), ArrayLen(pts)))
     End Function
     
     Function TransformVectors(pts As GpPointF, ByVal count& = 1) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPoints(mx, pts, count))
+        Return SetStatus(mx.TransformPoints(pts, count))
     End Function
     
     Function TransformVectors(pts As GpPoint, ByVal count& = 1) As GpStatus
-        Return SetStatus(GdipVectorTransformMatrixPointsI(mx, pts, count))
+        Return SetStatus(mx.TransformPointsI(pts, count))
     End Function
     
     Property Get IsInvertible() As Boolean
         Dim result As GDIP_BOOL
-        SetStatus(GdipIsMatrixInvertible(mx, result))
+        SetStatus(mx.IsInvertible(result))
         Return result
     End Property
     
     Property Get IsIdentity() As Boolean
         Dim result As GDIP_BOOL
-        SetStatus(GdipIsMatrixIdentity(mx, result))
+        SetStatus(mx.IsIdentity(result))
         Return result
     End Property
 
     Function Equals(matrix As Matrix) As Boolean
         Dim result As GDIP_BOOL
-        SetStatus(GdipIsMatrixEqual(mx, GetNative(matrix), result))
+        SetStatus(mx.IsEqualTo(GetNative(matrix), result))
         Return result
     End Function
     
@@ -197,53 +189,54 @@ Module GdipMatrix
     
     Type GpMatrix
         Native As LongPtr
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateMatrix" (matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto2 Lib "gdiplus" Alias "GdipCreateMatrix2" (ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single, matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto3 Lib "gdiplus" Alias "GdipCreateMatrix3" (rect As GpRectF, dstplg As GpPointF, matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto3I Lib "gdiplus" Alias "GdipCreateMatrix3I" (rect As GpRect, dstplg As GpPoint, matrix As GpMatrix) As GpStatus
+
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Invert Lib "gdiplus" Alias "GdipInvertMatrix" (ByVal Me As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetElements Lib "gdiplus" Alias "GdipSetMatrixElements" (ByVal Me As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetElements Lib "gdiplus" Alias "GdipGetMatrixElements" (ByVal Me As GpMatrix, matrixOut As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneMatrix" (ByVal Me As GpMatrix, cloneMatrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Multiply Lib "gdiplus" Alias "GdipMultiplyMatrix" (ByVal Me As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Translate Lib "gdiplus" Alias "GdipTranslateMatrix" (ByVal Me As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Rotate Lib "gdiplus" Alias "GdipRotateMatrix" (ByVal Me As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Scale Lib "gdiplus" Alias "GdipScaleMatrix" (ByVal Me As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Shear Lib "gdiplus" Alias "GdipShearMatrix" (ByVal Me As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function IsInvertible Lib "gdiplus" Alias "GdipIsMatrixInvertible" (ByVal Me As GpMatrix, result As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function IsIdentity Lib "gdiplus" Alias "GdipIsMatrixIdentity" (ByVal Me As GpMatrix, result As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function IsEqualTo Lib "gdiplus" Alias "GdipIsMatrixEqual" (ByVal Me As GpMatrix, ByVal matrix2 As GpMatrix, result As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteMatrix" (ByVal Me As GpMatrix) As GpStatus
+    
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function TransformPoints Lib "gdiplus" Alias "GdipTransformMatrixPoints" (ByVal Me As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function VectorTransformPoints Lib "gdiplus" Alias "GdipVectorTransformMatrixPoints" (ByVal Me As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function TransformPointsI Lib "gdiplus" Alias "GdipTransformMatrixPointsI" (ByVal Me As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function VectorTransformPointsI Lib "gdiplus" Alias "GdipVectorTransformMatrixPointsI" (ByVal Me As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
     End Type
     
     Function GpMatrix() As GpMatrix
         GpMatrix.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMatrix Lib "gdiplus" (matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMatrix2 Lib "gdiplus" (ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single, matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMatrix3 Lib "gdiplus" (rect As GpRectF, dstplg As GpPointF, matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateMatrix3I Lib "gdiplus" (rect As GpRect, dstplg As GpPoint, matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipInvertMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetMatrixElements Lib "gdiplus" (ByVal matrix As GpMatrix, matrixOut As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCloneMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, cloneMatrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipMultiplyMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipTranslateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRotateMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipScaleMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipShearMatrix Lib "gdiplus" (ByVal matrix As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixInvertible Lib "gdiplus" (ByVal matrix As GpMatrix, result As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixIdentity Lib "gdiplus" (ByVal matrix As GpMatrix, result As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipIsMatrixEqual Lib "gdiplus" (ByVal matrix1 As GpMatrix, ByVal matrix2 As GpMatrix, result As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteMatrix Lib "gdiplus" (ByVal matrix As GpMatrix) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipVectorTransformMatrixPoints Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPointF, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipVectorTransformMatrixPointsI Lib "gdiplus" (ByVal matrix As GpMatrix, pts As GpPoint, ByVal count As Long) As GpStatus
 End Module
