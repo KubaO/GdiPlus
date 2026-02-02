@@ -10,17 +10,17 @@ Class Bitmap
     
     Sub New(ByVal filename As String, ByVal useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
-            LastStatus = Native.CreateFromFileICMInto(filename, im)
+            SetStatus(Native.CreateFromFileICMInto(filename, im))
         Else
-            LastStatus = Native.CreateFromFileInto(filename, im)
+            SetStatus(Native.CreateFromFileInto(filename, im))
         End If
     End Sub
     
     Sub New(stream As GDIP_IStream, ByVal useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
-            LastStatus = Native.CreateFromStreamICMInto(stream, im)
+            SetStatus(Native.CreateFromStreamICMInto(stream, im))
         Else
-            LastStatus = Native.CreateFromStreamInto(stream, im)
+            SetStatus(Native.CreateFromStreamInto(stream, im))
         End If
     End Sub
 
@@ -49,11 +49,11 @@ Class Bitmap
     End Sub
     
     Private Sub NewImpl1(ByVal width!, ByVal height!, target As Graphics)
-        LastStatus = Native.CreateFromGraphicsInto(width, height, GetNative(target), im)
+        SetStatus(Native.CreateFromGraphicsInto(width, height, GetNative(target), im))
     End Sub
     
     Private Sub NewImpl2(ByVal width!, ByVal height!, ByVal stride&, ByVal format As PixelFormat, scan0 As Byte)
-        LastStatus = Native.CreateFromScan0Into(width, height, stride, format, scan0, im)
+        SetStatus(Native.CreateFromScan0Into(width, height, stride, format, scan0, im))
     End Sub
     
     Function Clone(rect As GpRect, ByVal format As PixelFormat) As Bitmap
@@ -108,7 +108,7 @@ Class Bitmap
         SetStatus(Native.ApplyEffect(GetNative(effect), _
                 roi.AsRECT(), effect.UseAuxData, auxData, auxDataSize))
         effect.SetAuxData(auxData, auxDataSize)
-        Return LastStatus
+        Return LastResult
     End Function
     
     Function GetHistogram(ByVal format As HistogramFormat) As Histogram
@@ -139,23 +139,23 @@ Class Bitmap
     End Function
     
     Sub New(surface As GDIP_IDirectDrawSurface7)
-        LastStatus = Native.CreateFromDirectDrawSurfaceInto(surface, im)
+        SetStatus(Native.CreateFromDirectDrawSurfaceInto(surface, im))
     End Sub
     
     Sub New(gdiBitmapInfo As GDIP_BITMAPINFO, gdiBitmapData As Byte)
-        LastStatus = Native.CreateFromGdiDibInto(gdiBitmapInfo, gdiBitmapData, im)
+        SetStatus(Native.CreateFromGdiDibInto(gdiBitmapInfo, gdiBitmapData, im))
     End Sub
 
     Sub New(ByVal hbm As LongPtr, ByVal hpal As LongPtr)
-        LastStatus = Native.CreateFromHBITMAPInto(hbm, hpal, im)
+        SetStatus(Native.CreateFromHBITMAPInto(hbm, hpal, im))
     End Sub
     
     Sub New(ByVal hicon As LongPtr)
-        LastStatus = Native.CreateFromHICONInto(hicon, im)
+        SetStatus(Native.CreateFromHICONInto(hicon, im))
     End Sub
     
     Sub New(ByVal hInstance As LongPtr, ByVal bitmapName As String)
-        LastStatus = Native.CreateFromResourceInto(hInstance, StrPtr(bitmapName), im)
+        SetStatus(Native.CreateFromResourceInto(hInstance, StrPtr(bitmapName), im))
     End Sub
     
     Function GetHBitmap(ByVal colorBackground As Color, hbmReturn As LongPtr) As GpStatus

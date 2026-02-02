@@ -10,19 +10,19 @@ Class Pen
     Dim pn As GpPen
     
     Sub New(ByVal rgb As Long, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
-        LastStatus = pn.CreateInto1(FromCOLORREF(rgb), width, unit, pn)
+        SetStatus(pn.CreateInto1(FromCOLORREF(rgb), width, unit, pn))
     End Sub
     
     Sub New(ByVal color As Color, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
-        LastStatus = pn.CreateInto1(color, width, unit, pn)
+        SetStatus(pn.CreateInto1(color, width, unit, pn))
     End Sub
     
     Sub New(brush As Brush, ByVal width! = 1.0!)
-        LastStatus = pn.CreateInto2(GetNative(brush), width, UnitWorld, pn)
+        SetStatus(pn.CreateInto2(GetNative(brush), width, UnitWorld, pn))
     End Sub
     
     Sub New(ByVal nativePen As GpPen, status As GpStatus = Ok)
-        LastStatus = status
+        SetStatus(status)
         pn = nativePen
     End Sub
     
@@ -33,7 +33,7 @@ Class Pen
     Function Clone() As Pen
         Dim clonePen As GpPen
         SetStatus(pn.Clone(clonePen))
-        If LastStatus = Ok Then Return New Pen(clonePen.Release(), LastResult)
+        If LastResult = Ok Then Return New Pen(clonePen.Release(), LastResult)
     End Function
     
     Property Let Width(ByVal width!)
@@ -100,7 +100,7 @@ Class Pen
     Property Get CustomStartCap() As LineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomStartCap(customCap))
-        If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
     Property Let CustomEndCap(customCap As LineCap)
@@ -110,7 +110,7 @@ Class Pen
     Property Get CustomEndCap() As LineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomEndCap(customCap))
-        If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
     Property Let MiterLimit(ByVal miterLimit!)

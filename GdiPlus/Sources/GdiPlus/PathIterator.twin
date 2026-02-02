@@ -10,7 +10,7 @@ Class PathIterator
     Dim pi As GpPathIterator
         
     Sub New(path As GraphicsPath)
-        LastStatus = pi.CreateInto(GetNative(path))
+        SetStatus(pi.CreateInto(GetNative(path)))
     End Sub
     
     Sub Class_Terminate()
@@ -138,7 +138,6 @@ Class PathIterator
     End Property
     
     Protected Sub New(ByVal nativeIterator As GpPathIterator)
-        LastStatus = Ok
         SetNativeIterator(nativeIterator)
     End Sub
     

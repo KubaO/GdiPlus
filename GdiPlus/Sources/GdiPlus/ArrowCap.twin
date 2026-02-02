@@ -9,11 +9,11 @@ Class ArrowCap
     Inherits LineCap
         
     Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
-        LastStatus = Native.CreateInto(height, width, isFilled, lc)
+        SetStatus(Native.CreateInto(height, width, isFilled, lc))
     End Sub
     
     Sub New(ByVal size As GpSizeF, ByVal isFilled As Boolean = True)
-        LastStatus = Native.CreateInto(size.Height, size.Width, isFilled, lc)
+        SetStatus(Native.CreateInto(size.Height, size.Width, isFilled, lc))
     End Sub
     
     Property Let Height(ByVal height!)
@@ -55,7 +55,6 @@ Class ArrowCap
     End Property
     
     Protected Sub New(ByVal nativeArrowCap As GpArrowCap)
-        LastStatus = Ok
         SetNativeArrowCap(nativeArrowCap)
     End Sub
     

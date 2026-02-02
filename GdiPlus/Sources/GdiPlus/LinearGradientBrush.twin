@@ -10,88 +10,88 @@ Class LinearGradientBrush
     
     Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, _
-                FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, _
+                FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, color1, color2, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrush(rect.TopLeft, rect.BottomRight, color1, color2, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(point1 As GpPointF, point2 As GpPointF, ByVal rgb1&, ByVal rgb2&)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrush(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrush(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrush(point1, point2, color1, color2, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrush(point1, point2, color1, color2, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(point1 As GpPoint, point2 As GpPoint, ByVal rgb1&, ByVal rgb2&)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushI(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushI(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushI(point1, point2, color1, color2, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushI(point1, point2, color1, color2, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRect(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRect(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRect(rect, color1, color2, mode, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRect(rect, color1, color2, mode, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
 
     Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), mode, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal mode As GpLinearGradientMode)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectI(rect, color1, color2, mode, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectI(rect, color1, color2, mode, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectWithAngle(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
-                angle, isAngleScalable, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectWithAngle(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
+                angle, isAngleScalable, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectWithAngle(rect, color1, color2, angle, isAngleScalable, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectWithAngle(rect, color1, color2, angle, isAngleScalable, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectWithAngleI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
-                angle, isAngleScalable, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectWithAngleI(rect, FromCOLORREF(rgb1), FromCOLORREF(rgb2), _
+                angle, isAngleScalable, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
     Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         Dim brush As GpLineGradient
-        LastStatus = GdipCreateLineBrushFromRectWithAngleI(rect, color1, color2, angle, isAngleScalable, WrapModeTile, brush)
+        SetStatus(GdipCreateLineBrushFromRectWithAngleI(rect, color1, color2, angle, isAngleScalable, WrapModeTile, brush))
         SetNativeLineGradient(brush)
     End Sub
     
@@ -106,13 +106,13 @@ Class LinearGradientBrush
     Property Get LinearRGBs() As Long()
         Dim result(2) As Long
         SetStatus(GdipGetLineColors(br, result(1)))
-        If LastStatus = Ok Then LinearRGBs = result
+        If LastResult = Ok Then LinearRGBs = result
     End Property
     
     Property Get LinearColors() As Color()
         Dim result(2) As Color
         SetStatus(GdipGetLineColors(br, result(1)))
-        If LastStatus = Ok Then LinearColors = result
+        If LastResult = Ok Then LinearColors = result
     End Property
         
     Property Get Rectangle() As GpRectF
@@ -206,7 +206,7 @@ Class LinearGradientBrush
     Property Get Transform() As Matrix
         Dim nativeMatrix As GpMatrix
         SetStatus(GdipGetLineTransform(br, nativeMatrix))
-        If LastStatus = Ok Then Set Transform = New Matrix(nativeMatrix)
+        If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
     End Property
         
     Function ResetTransform() As GpStatus
@@ -242,7 +242,7 @@ Class LinearGradientBrush
     
     ' Used by Pen
     Public Sub New(ByVal nativeGradient As GpLineGradient, ByVal status As GpStatus = Ok)
-        LastStatus = status
+        SetStatus(status)
         SetNativeLineGradient(nativeGradient)
     End Sub
     

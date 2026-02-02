@@ -11,41 +11,41 @@ Class Font
     Protected metrics As Metrics
 
     Sub New(ByVal hdc As LongPtr)
-        LastStatus = ft.CreateFromDCInto(hdc, ft)
+        SetStatus(ft.CreateFromDCInto(hdc, ft))
     End Sub
 
     Sub New(ByVal hdc As LongPtr, ByVal hfont As LongPtr)
         If hfont <> 0 Then
             Dim lf As GDIP_LOGFONTW
             If GetObjectW(hfont, LenB(Of GDIP_LOGFONTW), lf) <> 0 Then
-                LastStatus = ft.CreateFromLogfontWInto(hdc, lf, ft)
+                SetStatus(ft.CreateFromLogfontWInto(hdc, lf, ft))
             Else
-                LastStatus = ft.CreateFromDCInto(hdc, ft)
+                SetStatus(ft.CreateFromDCInto(hdc, ft))
             End If
         Else
-            LastStatus = ft.CreateFromDCInto(hdc, ft)
+            SetStatus(ft.CreateFromDCInto(hdc, ft))
         End If
     End Sub
 
     Sub New(ByVal hdc As LongPtr, logfont As GDIP_LOGFONTA)
         If VarPtr(logfont) <> 0 Then
-            LastStatus = ft.CreateFromLogfontAInto(hdc, logfont, ft)
+            SetStatus(ft.CreateFromLogfontAInto(hdc, logfont, ft))
         Else
-            LastStatus = ft.CreateFromDCInto(hdc, ft)
+            SetStatus(ft.CreateFromDCInto(hdc, ft))
         End If
     End Sub
 
     Sub New(ByVal hdc As LongPtr, logfont As GDIP_LOGFONTW)
         If VarPtr(logfont) <> 0 Then
-            LastStatus = ft.CreateFromLogfontWInto(hdc, logfont, ft)
+            SetStatus(ft.CreateFromLogfontWInto(hdc, logfont, ft))
         Else
-            LastStatus = ft.CreateFromDCInto(hdc, ft)
+            SetStatus(ft.CreateFromDCInto(hdc, ft))
         End If
     End Sub
 
     Sub New(family As FontFamily, ByVal emSize!, ByVal style As GpFontStyle = FontStyleRegular, _
             ByVal unit As GpUnit = UnitPoint)
-        LastStatus = ft.CreateInto(GetNative(family), emSize, style, unit, ft)
+        SetStatus(ft.CreateInto(GetNative(family), emSize, style, unit, ft))
         InitMetrics(GetNative(family))
     End Sub
 
@@ -53,22 +53,22 @@ Class Font
             ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection)
 
         Dim nativeFamily As GpFontFamily
-        LastStatus = nativeFamily.CreateFromNameInto(familyName, GetNative(fontCollection), nativeFamily)
+        SetStatus(nativeFamily.CreateFromNameInto(familyName, GetNative(fontCollection), nativeFamily))
 
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
-            LastStatus = GenericSansSerif().GetLastResult()
+            SetStatus(GenericSansSerif().GetLastResult())
             If LastResult <> Ok Then GoTo Error
         End If
 
-        LastStatus = ft.CreateInto(nativeFamily, emSize, style, unit, ft)
+        SetStatus(ft.CreateInto(nativeFamily, emSize, style, unit, ft))
 
         If LastResult <> Ok Then
             nativeFamily = GetNative(GenericSansSerif())
-            LastStatus = GenericSansSerif().GetLastResult()
+            SetStatus(GenericSansSerif().GetLastResult())
             If LastResult <> Ok Then GoTo Error
 
-            LastStatus = ft.CreateInto(nativeFamily, emSize, style, unit, ft)
+            SetStatus(ft.CreateInto(nativeFamily, emSize, style, unit, ft))
         End If
         
         If LastResult = Ok Then InitMetrics(nativeFamily)
@@ -133,7 +133,7 @@ Class Font
     Property Get Family() As FontFamily
         Dim nativeFamily As GpFontFamily
         SetStatus(ft.GetFamily(nativeFamily))
-        If LastStatus = Ok Then Set Family = New FontFamily(nativeFamily)
+        If LastResult = Ok Then Set Family = New FontFamily(nativeFamily)
     End Property
     
     Property Get Ascent() As Single
@@ -155,7 +155,7 @@ Class Font
     End Property
     
     Protected Sub New(ByVal font As GpFont, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         SetNativeFont(font)
     End Sub
     
@@ -164,7 +164,6 @@ Class Font
     End Property
     
     Protected Sub New(ByVal nativeFont As GpFont)
-        LastStatus = Ok
         SetNativeFont(nativeFont)
     End Sub
     
@@ -197,7 +196,7 @@ Class Font
             SetStatus(nativeFamily.GetCellAscent(myStyle, metrics.ascent))
             SetStatus(nativeFamily.GetCellDescent(myStyle, metrics.descent))
             SetStatus(nativeFamily.GetLineSpacing(myStyle, metrics.lineSpacing))
-            InitMetrics = LastStatus = Ok
+            InitMetrics = (LastResult = Ok)
         End If
     End Function
     

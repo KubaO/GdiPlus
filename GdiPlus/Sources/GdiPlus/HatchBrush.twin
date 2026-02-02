@@ -11,13 +11,13 @@ Class HatchBrush
 
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreRgb&, ByVal backRgb&)
         Dim brush As GpHatch
-        LastStatus = GdipCreateHatchBrush(hatchStyle, FromCOLORREF(foreRgb), FromCOLORREF(backRgb), brush)
+        SetStatus(GdipCreateHatchBrush(hatchStyle, FromCOLORREF(foreRgb), FromCOLORREF(backRgb), brush))
         SetNativeHatch(brush)
     End Sub
     
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreColor As Color, ByVal backColor As Color)
         Dim brush As GpHatch
-        LastStatus = GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush)
+        SetStatus(GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush))
         SetNativeHatch(brush)
     End Sub
     
@@ -34,7 +34,7 @@ Class HatchBrush
     End Property
     
     Public Sub New(ByVal nativeHatch As GpHatch, status As GpStatus = Ok)
-        LastStatus = status
+        SetStatus(status)
         SetNativeHatch(nativeHatch)
     End Sub
 
@@ -45,7 +45,6 @@ Class HatchBrush
     Protected Sub SetNativeHatch(ByVal nativeHatch As GpHatch)
         br.Native = nativeHatch.Native
     End Sub
-    
 End Class
 
 Module GdipHatch

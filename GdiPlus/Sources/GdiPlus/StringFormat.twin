@@ -10,12 +10,12 @@ Class StringFormat
     Dim sf As GpStringFormat
         
     Sub New(ByVal flags As GpStringFormatFlags = 0, ByVal language As LANGID = LANG_NEUTRAL)
-        LastStatus = sf.CreateInto(flags, language, sf)
+        SetStatus(sf.CreateInto(flags, language, sf))
     End Sub
     
     Function Clone() As StringFormat
         Dim nativeClone As GpStringFormat
-        LastStatus = sf.Clone(nativeClone)
+        SetStatus(sf.Clone(nativeClone))
         If LastResult = Ok Then Set Clone = New StringFormat(nativeClone, LastResult)
     End Function
     
@@ -133,7 +133,6 @@ Class StringFormat
     End Property
     
     Protected Sub New(ByVal sf As GpStringFormat)
-        LastStatus = Ok
         SetNativeStringFormat(sf)
     End Sub
     
@@ -143,12 +142,12 @@ Class StringFormat
         
     Protected Sub Assign(source As StringFormat)
         sf.Delete
-        LastStatus = source.Clone(sf)
+        SetStatus(source.Clone(sf))
     End Sub
     
     ' Used by GenericDefaultStringFormat and GenericTypographicStringFormat
     Public Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         sf = clonedStringFormat
     End Sub
     

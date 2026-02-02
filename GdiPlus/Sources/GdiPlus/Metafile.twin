@@ -12,78 +12,78 @@ Class Metafile
     ' If deleteWmf is TRUE, then when the metafile is deleted,
     ' the hWmf will also be deleted.  Otherwise, it won't be.
     Sub New(ByVal hWmf As LongPtr, wmfPlaceableFileHeader As WmfPlaceableFileHeader, ByVal deleteWmf As Boolean = False)
-        LastStatus = Native.CreateFromWmfInto(hWmf, deleteWmf, wmfPlaceableFileHeader, im)
+        SetStatus(Native.CreateFromWmfInto(hWmf, deleteWmf, wmfPlaceableFileHeader, im))
     End Sub
     
     ' Playback a metafile from a HENHMETAFILE
     ' If deleteEmf is TRUE, then when the metafile is deleted,
     ' the hEmf will also be deleted.  Otherwise, it won't be.
     Sub New(ByVal hEmf As LongPtr, ByVal deleteWmf As Boolean = False)
-        LastStatus = Native.CreateFromEmfInto(hEmf, deleteWmf, im)
+        SetStatus(Native.CreateFromEmfInto(hEmf, deleteWmf, im))
     End Sub
     
     Sub New(ByVal filename$)
-        LastStatus = Native.CreateFromFileInto(filename, im)
+        SetStatus(Native.CreateFromFileInto(filename, im))
     End Sub
     
     ' Playback a WMF metafile from a file.
     Sub New(ByVal filename$, wmfPlaceableFileHeader As WmfPlaceableFileHeader)
-        LastStatus = Native.CreateFromWmfFileInto(filename, wmfPlaceableFileHeader, im)
+        SetStatus(Native.CreateFromWmfFileInto(filename, wmfPlaceableFileHeader, im))
     End Sub
     
     Sub New(stream As GDIP_IStream)
-        LastStatus = Native.CreateFromStreamInto(stream, im)
+        SetStatus(Native.CreateFromStreamInto(stream, im))
     End Sub
     
     ' Record a metafile to memory.
     Sub New(ByVal referenceHdc As LongPtr, ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordInto(referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im)
+        SetStatus(Native.RecordInto(referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im))
     End Sub
 
     ' Record a metafile to memory.
     Sub New(ByVal referenceHdc As LongPtr, frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordInto(referenceHdc, type, frameRect, MetafileFrameUnitGdi, description, im)
+        SetStatus(Native.RecordInto(referenceHdc, type, frameRect, MetafileFrameUnitGdi, description, im))
     End Sub
 
     ' Record a metafile to memory.
     Sub New(ByVal referenceHdc As LongPtr, frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordIntoI(referenceHdc, type, frameRect, frameUnit, description, im)
+        SetStatus(Native.RecordIntoI(referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
     
     Sub New(ByVal fileName$, ByVal referenceHdc As LongPtr, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordFileNameInto(fileName, referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im)
+        SetStatus(Native.RecordFileNameInto(fileName, referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im))
     End Sub
     
     Sub New(ByVal fileName$, ByVal referenceHdc As LongPtr, _
             frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordFileNameInto(fileName, referenceHdc, type, frameRect, frameUnit, description, im)
+        SetStatus(Native.RecordFileNameInto(fileName, referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
     
     Sub New(ByVal fileName$, ByVal referenceHdc As LongPtr, _
             frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordFileNameIntoI(fileName, referenceHdc, type, frameRect, frameUnit, description, im)
+        SetStatus(Native.RecordFileNameIntoI(fileName, referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
     
     Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordStreamInto(stream, referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im)
+        SetStatus(Native.RecordStreamInto(stream, referenceHdc, type, ByVal vbNullPtr, MetafileFrameUnitGdi, description, im))
     End Sub
     
     Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             frameRect As GpRectF, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordStreamIntoI(stream, referenceHdc, type, frameRect, frameUnit, description, im)
+        SetStatus(Native.RecordStreamInto(stream, referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
     
     Sub New(stream As GDIP_IStream, ByVal referenceHdc As LongPtr, _
             frameRect As GpRect, ByVal frameUnit As GpMetafileFrameUnit = MetaFileFrameUnitGdi, _
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
-        LastStatus = Native.RecordStreamIntoI(stream, referenceHdc, type, frameRect, frameUnit, description, im)
+        SetStatus(Native.RecordStreamIntoI(stream, referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
 
     Property Get MetafileHeader() As MetafileHeader
@@ -162,7 +162,6 @@ Class Metafile
     End Property
         
     Protected Sub New(ByVal nativeMetafile As GpMetafile)
-        LastStatus = Ok
         SetNativeMetafile(nativeMetafile)
     End Sub
     

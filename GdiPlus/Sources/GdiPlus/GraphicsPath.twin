@@ -10,35 +10,34 @@ Class GraphicsPath
     Protected pa As GpPath
             
     Sub New(ByVal fillMode As GpFillmode = FillModeAlternate)
-        LastStatus = pa.CreateInto(fillMode, pa)
+        SetStatus(pa.CreateInto(fillMode, pa))
     End Sub
     
     Sub New(pathData As PathData, ByVal fillMode As GpFillmode = FillModeAlternate)
-        LastStatus = pa.CreateInto(ByVal pathData.PointsPtr, ByVal pathData.TypesPtr, pathData.Count, fillMode, pa)
+        SetStatus(pa.CreateInto(ByVal pathData.PointsPtr, ByVal pathData.TypesPtr, pathData.Count, fillMode, pa))
     End Sub
 
     Sub New(typedPoints() As TypedPoint, ByVal fillMode As GpFillmode = FillModeAlternate)
         Dim pd As PathData = GdipPathData.PathData(typedPoints)
-        LastStatus = pa.CreateInto(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa)
+        SetStatus(pa.CreateInto(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa))
     End Sub
     
     Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
-        LastStatus = pa.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa)
+        SetStatus(pa.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
     End Sub
     
     Sub New(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
-        LastStatus = pa.CreateInto(points, types, count, fillMode, pa)
+        SetStatus(pa.CreateInto(points, types, count, fillMode, pa))
     End Sub
 
     Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
-        LastStatus = pa.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa)
+        SetStatus(pa.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
     End Sub
     
     Sub New(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate)
-        pa.Native = vbNullPtr
-        LastStatus = pa.CreateIntoI(points, types, count, fillMode, pa)
+        SetStatus(pa.CreateIntoI(points, types, count, fillMode, pa))
     End Sub
     
     Sub Class_Terminate()
@@ -67,7 +66,7 @@ Class GraphicsPath
     Property Get PathData() As PathData
         Dim pd As GpPathData
         SetStatus(pa.GetData(pd))
-        If LastStatus = Ok Then Set PathData = New PathData(pd)
+        If LastResult = Ok Then Set PathData = New PathData(pd)
     End Property
     
     Function StartFigure() As GpStatus

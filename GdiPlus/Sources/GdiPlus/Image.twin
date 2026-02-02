@@ -13,24 +13,24 @@ Class Image
    
     Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
-            LastStatus = im.LoadFromFileICMInto(filename, im)
+            SetStatus(im.LoadFromFileICMInto(filename, im))
         Else
-            LastStatus = im.LoadFromFileInto(filename, im)
+            SetStatus(im.LoadFromFileInto(filename, im))
         End If
     End Sub
 
     Sub New(stream As GDIP_IStream, useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
-            LastStatus = im.LoadFromStreamICMInto(stream, im)
+            SetStatus(im.LoadFromStreamICMInto(stream, im))
         Else
-            LastStatus = im.LoadFromStreamInto(stream, im)
+            SetStatus(im.LoadFromStreamInto(stream, im))
         End If
     End Sub
         
     Function Clone() As Image
         Dim cloneImage As GpImage
         SetStatus(im.Clone(im))
-        Return New Image(cloneImage, LastResult)
+        If LastResult = Ok Then Return New Image(cloneImage, LastResult)
     End Function
         
     Sub Class_Terminate()
@@ -217,7 +217,7 @@ Class Image
     End Sub
     
     Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         im = nativeImage
     End Sub
     

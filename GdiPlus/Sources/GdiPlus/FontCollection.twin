@@ -18,7 +18,7 @@ Class FontCollection
     End Sub
     
     Property Get FamilyCount() As Long
-        fc.GetFamilyCount(FamilyCount&)
+        SetStatus(fc.GetFamilyCount(FamilyCount&))
     End Property
     
     Function Families() As FontFamily()
@@ -27,14 +27,14 @@ Class FontCollection
         Dim numFound& = 0
         Dim nativeFamilies() As GpFontFamily
         ReDim nativeFamilies(1 To numSought)
-        Dim status As GpStatus = fc.GetFamilyList(numSought, nativeFamilies(1), numFound)
-        If status = Ok Then
+        SetStatus(fc.GetFamilyList(numSought, nativeFamilies(1), numFound))
+        If LastResult = Ok Then
             ReDim result(1 To numFound)
             For i As Integer = 1 To numFound
                 Set result(i) = New FontFamily(nativeFamilies(i))
             Next
+            Return result
         End If
-        Return result
     End Function
     
     Protected Property Get Native() As GpFontCollection

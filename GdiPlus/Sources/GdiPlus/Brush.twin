@@ -26,12 +26,12 @@ Class Brush
     End Property
     
     Protected Sub New()
-        LastStatus = NotImplemented
+        SetStatus(NotImplemented)
     End Sub
     
     ' Used by Pen
     Public Sub New(ByVal nativeBrush As GpBrush, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         SetNativeBrush(nativeBrush)
     End Sub
     

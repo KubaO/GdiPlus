@@ -10,24 +10,24 @@ Class Graphics
     Dim gr As GpGraphics
     
     Sub New(ByVal hdc As LongPtr)
-        LastStatus = gr.CreateFromHDC(hdc)
+        SetStatus(gr.CreateFromHDC(hdc))
     End Sub
 
     Sub New(ByVal hdc As LongPtr, ByVal hdevice As LongPtr)
-        LastStatus = gr.CreateFromHDC(hdc, hdevice)
+        SetStatus(gr.CreateFromHDC(hdc, hdevice))
     End Sub
 
     Sub New(ByVal hwnd As LongPtr, ByVal icm As Boolean)
         If icm Then
-            LastStatus = gr.CreateFromHWNDICM(hwnd)
+            SetStatus(gr.CreateFromHWNDICM(hwnd))
         Else
-            LastStatus = gr.CreateFromHWND(hwnd)
+            SetStatus(gr.CreateFromHWND(hwnd))
         End If
     End Sub
     
     Sub New(image As Image)
         If image IsNot Nothing Then
-            LastStatus = gr.GetImageGraphicsContext(GetNative(image), gr)
+            SetStatus(gr.GetImageGraphicsContext(GetNative(image), gr))
         End If
     End Sub
 
@@ -1112,7 +1112,6 @@ Class Graphics
     End Function
        
     Protected Sub New(ByVal graphics As GpGraphics)
-        LastStatus = Ok
         SetNativeGraphics(graphics)
     End Sub
     

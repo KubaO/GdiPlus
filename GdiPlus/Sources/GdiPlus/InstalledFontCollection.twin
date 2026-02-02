@@ -9,7 +9,7 @@ Class InstalledFontCollection
     Inherits FontCollection
     
     Sub New()
-        LastStatus = Native.Create()
+        SetStatus(Native.Create())
     End Sub
     
     Sub Class_Terminate()

@@ -10,7 +10,7 @@ Class CachedBitmap
     Public cb As GpCachedBitmap
 
     Sub New(bitmap As Bitmap, graphics As Graphics)
-        LastStatus = cb.CreateInto(GetNative(bitmap), GetNative(graphics), cb)
+        SetStatus(cb.CreateInto(GetNative(bitmap), GetNative(graphics), cb))
     End Sub
     
     Sub Class_Terminate()

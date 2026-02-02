@@ -11,13 +11,13 @@ Class TextureBrush
         
     ' Used by Pen
     Public Sub New(ByVal nativeTexture As GpTexture, ByVal status As GpStatus = Ok)
-        LastStatus = status
+        SetStatus(status)
         SetNativeTexture(nativeTexture)
     End Sub
     
     Sub New(image As Image, ByVal wrapMode As GpWrapMode = WrapModeTile)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTexture(GetNative(image), wrapMode, texture)
+        SetStatus(GdipCreateTexture(GetNative(image), wrapMode, texture))
         SetNativeTexture(texture)
     End Sub
     
@@ -29,36 +29,36 @@ Class TextureBrush
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstRect As GpRectF)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTexture2(GetNative(image), wrapmode, _
-                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetStatus(GdipCreateTexture2(GetNative(image), wrapmode, _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture))
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, dstRect As GpRectF, Optional imageAttributes As ImageAttributes)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTextureIA(GetNative(image), GetNative(imageAttributes), _
-                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetStatus(GdipCreateTextureIA(GetNative(image), GetNative(imageAttributes), _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture))
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, dstRect As GpRect, Optional imageAttributes As ImageAttributes)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTextureIAI(GetNative(image), GetNative(imageAttributes), _
-                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetStatus(GdipCreateTextureIAI(GetNative(image), GetNative(imageAttributes), _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture))
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, dstRect As GpRect)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTexture2I(GetNative(image), wrapmode, _
-                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture)
+        SetStatus(GdipCreateTexture2I(GetNative(image), wrapmode, _
+                dstRect.X, dstRect.Y, dstRect.Width, dstRect.Height, texture))
         SetNativeTexture(texture)
     End Sub
     
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX!, ByVal dstY!, ByVal dstWidth!, ByVal dstHeight!)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTexture2(GetNative(image), wrapmode, _
-                dstX, dstY, dstWidth, dstHeight, texture)
+        SetStatus(GdipCreateTexture2(GetNative(image), wrapmode, _
+                dstX, dstY, dstWidth, dstHeight, texture))
         SetNativeTexture(texture)
     End Sub
     
@@ -66,8 +66,8 @@ Class TextureBrush
     ' This constructor is called from TextureBrushI, which is disambiguated by a suffix.
     Sub New(image As Image, ByVal wrapmode As GpWrapMode, ByVal dstX&, ByVal dstY&, ByVal dstWidth&, ByVal dstHeight&, ByVal dummy&)
         Dim texture As GpTexture
-        LastStatus = GdipCreateTexture2I(GetNative(image), wrapmode, _
-                dstX, dstY, dstWidth, dstHeight, texture)
+        SetStatus(GdipCreateTexture2I(GetNative(image), wrapmode, _
+                dstX, dstY, dstWidth, dstHeight, texture))
         SetNativeTexture(texture)
     End Sub
     
@@ -120,7 +120,7 @@ Class TextureBrush
     Function GetImage() As Image
         Dim img As GpImage
         SetStatus(GdipGetTextureImage(br, img))
-        If LastStatus = Ok Then Set GetImage = New Image(img, LastResult)
+        If LastResult = Ok Then Set GetImage = New Image(img, LastResult)
     End Function
     
     Protected Sub New()

@@ -11,12 +11,11 @@ Class LineCap
         
     ' Used by Pen
     Public Sub New(ByVal nativeLineCap As GpCustomLineCap)
-        LastStatus = Ok
         SetNativeLineCap(nativeLineCap)
     End Sub
         
     Sub New(fillPath As GraphicsPath, strokePath As GraphicsPath, ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0)
-        LastStatus = lc.CreateInto(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, lc)
+        SetStatus(lc.CreateInto(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, lc))
     End Sub
     
     Overridable Sub Class_Terminate()
@@ -107,7 +106,7 @@ Class LineCap
     End Sub
     
     Protected Sub New(ByVal nativeCapArg As GpCustomLineCap, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         SetNativeLineCap(nativeCapArg)
     End Sub
     
