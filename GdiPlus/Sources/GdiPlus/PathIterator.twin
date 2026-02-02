@@ -10,18 +10,16 @@ Class PathIterator
     Dim pi As GpPathIterator
         
     Sub New(path As GraphicsPath)
-        Dim iter As GpPathIterator
-        LastStatus = GdipCreatePathIter(iter, GetNative(path))
-        SetNativeIterator(iter)
+        LastStatus = pi.CreateInto(GetNative(path))
     End Sub
     
     Sub Class_Terminate()
-        GdipDeletePathIter(pi)
+        pi.Delete
     End Sub
       
     Function NextIndexedSubpath() As IndexedSubPath
         Dim booln As GDIP_BOOL
-        SetStatus(GdipPathIterNextSubpath(pi, _
+        SetStatus(pi.NextSubpath( _
             NextIndexedSubpath.count, NextIndexedSubpath.startIndex, NextIndexedSubpath.endIndex, booln))
         NextIndexedSubpath.isClosed = booln
     End Function
@@ -29,7 +27,7 @@ Class PathIterator
     Function NextPathSubpath() As PathSubPath
         Dim native As GpPath
         Dim booln As GDIP_BOOL
-        SetStatus(GdipPathIterNextSubpathPath(pi, NextPathSubpath.count, native, booln))
+        SetStatus(pi.NextSubpathPath(NextPathSubpath.count, native, booln))
         If LastResult = Ok Then
             NextPathSubpath.path = New GraphicsPath(native)
             NextPathSubpath.isClosed = booln
@@ -37,54 +35,54 @@ Class PathIterator
     End Function
     
     Function NextPathType() As SubPathType
-        SetStatus(GdipPathIterNextPathType(pi, _
+        SetStatus(pi.NextPathType( _
             NextPathType.count, NextPathType.pathType, NextPathType.startIndex, NextPathType.endIndex))
     End Function
     
     Function NextMarker() As SubPathSection
-        SetStatus(GdipPathIterNextMarker(pi, NextMarker.count, NextMarker.startIndex, NextMarker.endIndex))
+        SetStatus(pi.NextMarker(NextMarker.count, NextMarker.startIndex, NextMarker.endIndex))
     End Function
     
     Function NextSubpath(startIndex&, endIndex&, isClosed As Boolean) As Long
         Dim booln As GDIP_BOOL
-        SetStatus(GdipPathIterNextSubpath(pi, NextSubpath, startIndex, endIndex, booln))
+        SetStatus(pi.NextSubpath(NextSubpath, startIndex, endIndex, booln))
         isClosed = booln
     End Function
     
     Function NextSubPath(path As GraphicsPath, isClosed As Boolean) As Long
         Dim booln As GDIP_BOOL
-        SetStatus(GdipPathIterNextSubpathPath(pi, NextSubPath, GetNative(path), booln))
+        SetStatus(pi.NextSubpathPath(NextSubPath, GetNative(path), booln))
         isClosed = booln
     End Function
     
     Function NextPathType(pathType As Byte, startIndex&, endIndex&) As Long
-        SetStatus(GdipPathIterNextPathType(pi, NextPathType, pathType, startIndex, endIndex))
+        SetStatus(pi.NextPathType(NextPathType, pathType, startIndex, endIndex))
     End Function
     
     Function NextMarker(startIndex&, endIndex&) As Long
-        SetStatus(GdipPathIterNextMarker(pi, NextMarker, startIndex, endIndex))
+        SetStatus(pi.NextMarker(NextMarker, startIndex, endIndex))
     End Function
     
     Function NextMarker(path As GraphicsPath) As Long
-        SetStatus(GdipPathIterNextMarkerPath(pi, NextMarker, GetNative(path)))
+        SetStatus(pi.NextMarkerPath(NextMarker, GetNative(path)))
     End Function
     
     Property Get Count() As Long
-        SetStatus(GdipPathIterGetCount(pi, Count))
+        SetStatus(pi.GetCount(Count))
     End Property
     
     Property Get SubpathCount() As Long
-        SetStatus(GdipPathIterGetSubpathCount(pi, SubpathCount))
+        SetStatus(pi.GetSubpathCount(SubpathCount))
     End Property
     
     Property Get HasCurve() As Boolean
         Dim booln As GDIP_BOOL
-        SetStatus(GdipPathIterHasCurve(pi, booln))
+        SetStatus(pi.HasCurve(booln))
         Return booln
     End Property
     
     Function Rewind() As GpStatus
-        SetStatus(GdipPathIterRewind(pi))
+        SetStatus(pi.Rewind())
     End Function
     
     Function Enumerate() As TypedPoint()
@@ -94,7 +92,7 @@ Class PathIterator
         Dim result() As TypedPoint
         ReDim points(1 To count)
         ReDim types(1 To count)
-        SetStatus(GdipPathIterEnumerate(pi, count, points(1), types(1), count))
+        SetStatus(pi.Enumerate(count, points(1), types(1), count))
         If LastResult = Ok Then
             ReDim result(1 To count)
             For i As Integer = 1 To count
@@ -116,7 +114,7 @@ Class PathIterator
         Dim result() As TypedPoint
         ReDim points(1 To count)
         ReDim types(1 To count)
-        SetStatus(GdipPathIterCopyData(pi, count, points(1), types(1), startIndex, endIndex))
+        SetStatus(pi.CopyData(count, points(1), types(1), startIndex, endIndex))
         If LastResult = Ok Then
             ReDim result(1 To count)
             For i As Integer = 1 To count
@@ -128,11 +126,11 @@ Class PathIterator
     End Function
     
     Function Enumerate(points As GpPointF, types As Byte, ByVal count&) As Long
-        SetStatus(GdipPathIterEnumerate(pi, Enumerate, points, types, count))
+        SetStatus(pi.Enumerate(Enumerate, points, types, count))
     End Function
     
     Function CopyData(points As GpPointF, types As Byte, ByVal startIndex&, ByVal endIndex&) As Long
-        SetStatus(GdipPathIterCopyData(pi, CopyData&, points, types, startIndex, endIndex))
+        SetStatus(pi.CopyData(CopyData, points, types, startIndex, endIndex))
     End Function
         
     Protected Property Get Native() As GpPathIterator
@@ -156,6 +154,39 @@ Module GdipPathIterator
     
     Type GpPathIterator
         Native As LongPtr
+        
+        Function Create(ByVal path As GpPath) As GpStatus
+            Return Me.CreateInto(path)
+        End Function
+            
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreatePathIter" (Me As GpPathIterator, ByVal Path As GpPath) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePathIter" (ByVal Me As GpPathIterator) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function NextSubpath Lib "gdiplus" Alias "GdipPathIterNextSubpath" (ByVal Me As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long, isClosed As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function NextSubpathPath Lib "gdiplus" Alias "GdipPathIterNextSubpathPath" (ByVal Me As GpPathIterator, resultCount As Long, ByVal path As GpPath, isClosed As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function NextPathType Lib "gdiplus" Alias "GdipPathIterNextPathType" (ByVal Me As GpPathIterator, resultCount As Long, pathType As Byte, startIndex As Long, endIndex As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function NextMarker Lib "gdiplus" Alias "GdipPathIterNextMarker" (ByVal Me As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function NextMarkerPath Lib "gdiplus" Alias "GdipPathIterNextMarkerPath" (ByVal Me As GpPathIterator, resultCount As Long, ByVal path As GpPath) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCount Lib "gdiplus" Alias "GdipPathIterGetCount" (ByVal Me As GpPathIterator, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetSubpathCount Lib "gdiplus" Alias "GdipPathIterGetSubpathCount" (ByVal Me As GpPathIterator, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function IsValid Lib "gdiplus" Alias "GdipPathIterIsValid" (ByVal Me As GpPathIterator, valid As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function HasCurve Lib "gdiplus" Alias "GdipPathIterHasCurve" (ByVal Me As GpPathIterator, hasCurve As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Rewind Lib "gdiplus" Alias "GdipPathIterRewind" (ByVal Me As GpPathIterator) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Enumerate Lib "gdiplus" Alias "GdipPathIterEnumerate" (ByVal Me As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CopyData Lib "gdiplus" Alias "GdipPathIterCopyData" (ByVal Me As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal startIndex As Long, ByVal endIndex As Long) As GpStatus
     End Type
     
     Function GpPathIterator() As GpPathIterator
@@ -192,33 +223,4 @@ Module GdipPathIterator
         isClosed As Boolean
         count&
     End Type
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePathIter Lib "gdiplus" (iterator As GpPathIterator, ByVal Path As GpPath) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeletePathIter Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterNextSubpath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long, isClosed As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterNextSubpathPath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, ByVal path As GpPath, isClosed As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterNextPathType Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, pathType As Byte, startIndex As Long, endIndex As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterNextMarker Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, startIndex As Long, endIndex As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterNextMarkerPath Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, ByVal path As GpPath) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterGetCount Lib "gdiplus" (ByVal iterator As GpPathIterator, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterGetSubpathCount Lib "gdiplus" (ByVal iterator As GpPathIterator, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterIsValid Lib "gdiplus" (ByVal iterator As GpPathIterator, valid As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterHasCurve Lib "gdiplus" (ByVal iterator As GpPathIterator, hasCurve As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterRewind Lib "gdiplus" (ByVal iterator As GpPathIterator) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterEnumerate Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipPathIterCopyData Lib "gdiplus" (ByVal iterator As GpPathIterator, resultCount As Long, points As GpPointF, types As Byte, ByVal startIndex As Long, ByVal endIndex As Long) As GpStatus
 End Module
