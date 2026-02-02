@@ -10,11 +10,11 @@ Class CachedBitmap
     Public cb As GpCachedBitmap
 
     Sub New(bitmap As Bitmap, graphics As Graphics)
-        LastStatus = GdipCreateCachedBitmap(GetNative(bitmap), GetNative(graphics), cb)
+        LastStatus = cb.CreateInto(GetNative(bitmap), GetNative(graphics), cb)
     End Sub
     
     Sub Class_Terminate()
-        GdipDeleteCachedBitmap(cb)
+        cb.Delete
     End Sub
     
     Protected Property Get Native() As GpCachedBitmap
@@ -29,14 +29,18 @@ Module GdipCachedBitmap
     
     Type GpCachedBitmap
         Native As LongPtr
+        
+        Function Create(ByVal bitmap As GpBitmap, ByVal graphics As GpGraphics) As GpStatus
+            Return Me.CreateInto(bitmap, graphics, Me)
+        End Function
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateCachedBitmap" (ByVal bitmap As GpBitmap, ByVal Graphics As GpGraphics, cachedBitmap As GpCachedBitmap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteCachedBitmap" (ByVal Me As GpCachedBitmap) As GpStatus
     End Type
     
     Function GpCachedBitmap() As GpCachedBitmap
         GpCachedBitmap.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateCachedBitmap Lib "gdiplus" (ByVal bitmap As GpBitmap, ByVal Graphics As GpGraphics, cachedBitmap As GpCachedBitmap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteCachedBitmap Lib "gdiplus" (ByVal cachedBitmap As GpCachedBitmap) As GpStatus
 End Module
