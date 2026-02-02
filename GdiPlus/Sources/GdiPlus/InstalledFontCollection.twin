@@ -9,7 +9,7 @@ Class InstalledFontCollection
     Inherits FontCollection
     
     Sub New()
-        LastStatus = GdipNewInstalledFontCollection(fc)
+        LastStatus = Native.Create()
     End Sub
     
     Sub Class_Terminate()
@@ -40,12 +40,12 @@ Module GdipInstalledFontCollection
     Type GpInstalledFontCollection
         ' Inherits GpFontCollection
         Native As LongPtr
+
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipNewInstalledFontCollection" (Me As GpInstalledFontCollection) As GpStatus
     End Type
     
     Function GpInstalledFontCollection() As GpInstalledFontCollection
         GpInstalledFontCollection.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipNewInstalledFontCollection Lib "gdiplus" (fontCollection As GpInstalledFontCollection) As GpStatus
 End Module
