@@ -485,7 +485,7 @@ Class GraphicsPath
     
     Function IsOutlineVisible(point As GpPoint, pen As Pen, Optional g As Graphics) As Boolean
         ' sic
-        Return IsOutlineVisible(point.X, point.Y, pen, g)
+        Return IsOutlineVisibleI(point.X, point.Y, pen, g)
     End Function
     
     Function IsOutlineVisibleI(ByVal x&, ByVal y&, pen As Pen, Optional g As Graphics) As Boolean
