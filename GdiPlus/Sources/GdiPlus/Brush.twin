@@ -11,18 +11,18 @@ Class Brush
     Protected br As GpBrush
         
     Sub Class_Terminate()
-        GdipDeleteBrush(br)
+        br.Delete
     End Sub
     
     Overridable Function Clone() As Brush
         Dim brush As GpBrush
-        SetStatus(GdipCloneBrush(br, brush))
+        SetStatus(br.Clone(brush))
         If LastResult = Ok Then Set Clone = New Brush(brush, LastResult)
     End Function
     
     Property Get Type() As GpBrushType
         Type = -1
-        SetStatus(GdipGetBrushType(br, Type))
+        SetStatus(br.GetType(Type))
     End Property
     
     Protected Sub New()
@@ -51,16 +51,21 @@ End Class
 Module GdipBrush
     Type GpBrush
         Native As LongPtr
+        
+        Function Release() As GpBrush
+            Release.Native = Me.Native
+            Me.Native = 0
+        End Function
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpBrush) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
     End Type
     
     Function GpBrush() As GpBrush
         GpBrush.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeleteBrush Lib "gdiplus" (ByVal Me As GpBrush) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCloneBrush Lib "gdiplus" (ByVal Me As GpBrush, cloneBrush As GpBrush) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetBrushType Lib "gdiplus" (ByVal Me As GpBrush, type As GpBrushType) As GpStatus
 End Module
