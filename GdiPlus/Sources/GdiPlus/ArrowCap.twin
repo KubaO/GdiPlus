@@ -9,48 +9,44 @@ Class ArrowCap
     Inherits LineCap
         
     Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
-        Dim cap  As GpArrowCap
-        LastStatus = GdipCreateAdjustableArrowCap(height, width, isFilled, cap)
-        SetNativeArrowCap(cap)
+        LastStatus = Native.CreateInto(height, width, isFilled, lc)
     End Sub
     
     Sub New(ByVal size As GpSizeF, ByVal isFilled As Boolean = True)
-        Dim cap  As GpArrowCap
-        LastStatus = GdipCreateAdjustableArrowCap(size.Height, size.Width, isFilled, cap)
-        SetNativeArrowCap(cap)
+        LastStatus = Native.CreateInto(size.Height, size.Width, isFilled, lc)
     End Sub
     
     Property Let Height(ByVal height!)
-        SetStatus(GdipSetAdjustableArrowCapHeight(Native, height))
+        SetStatus(Native.SetHeight(height))
     End Property
     
     Property Get Height() As Single
-        SetStatus(GdipGetAdjustableArrowCapHeight(Native, Height))
+        SetStatus(Native.GetHeight(Height))
     End Property
 
     Property Let Width(ByVal width!)
-        SetStatus(GdipSetAdjustableArrowCapWidth(Native, width))
+        SetStatus(Native.SetWidth(width))
     End Property
     
     Property Get Width() As Single
-        SetStatus(GdipGetAdjustableArrowCapWidth(Native, Width))
+        SetStatus(Native.GetWidth(Width))
     End Property
     
     Property Let MiddleInset(ByVal middleInset!)
-        SetStatus(GdipSetAdjustableArrowCapMiddleInset(Native, middleInset))
+        SetStatus(Native.SetMiddleInset(middleInset))
     End Property
     
     Property Get MiddleInset() As Single
-        SetStatus(GdipGetAdjustableArrowCapMiddleInset(Native, Width))
+        SetStatus(Native.GetMiddleInset(Width))
     End Property
     
     Property Let FillState(ByVal isFilled As Boolean)
-        SetStatus(GdipSetAdjustableArrowCapMiddleInset(Native, isFilled))
+        SetStatus(Native.SetFillState(isFilled))
     End Property
     
     Property Get IsFilled() As Boolean
         Dim booln As GDIP_BOOL
-        SetStatus(GdipGetAdjustableArrowCapFillState(Native, booln))
+        SetStatus(Native.GetFillState(booln))
         Return booln
     End Property
     
@@ -83,28 +79,28 @@ Module GdipArrowCap
     Type GpArrowCap
         ' Inherits GpCustomLineCap
         Native As LongPtr
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateAdjustableArrowCap" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpArrowCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetHeight Lib "gdiplus" Alias "GdipSetAdjustableArrowCapHeight" (ByVal Me As GpArrowCap, ByVal height As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetHeight Lib "gdiplus" Alias "GdipGetAdjustableArrowCapHeight" (ByVal Me As GpArrowCap, height As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetWidth Lib "gdiplus" Alias "GdipSetAdjustableArrowCapWidth" (ByVal Me As GpArrowCap, ByVal width As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetWidth Lib "gdiplus" Alias "GdipGetAdjustableArrowCapWidth" (ByVal Me As GpArrowCap, width As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetMiddleInset Lib "gdiplus" Alias "GdipSetAdjustableArrowCapMiddleInset" (ByVal Me As GpArrowCap, ByVal middleInset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetMiddleInset Lib "gdiplus" Alias "GdipGetAdjustableArrowCapMiddleInset" (ByVal Me As GpArrowCap, middleInset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetFillState Lib "gdiplus" Alias "GdipSetAdjustableArrowCapFillState" (ByVal Me As GpArrowCap, ByVal fillState As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetFillState Lib "gdiplus" Alias "GdipGetAdjustableArrowCapFillState" (ByVal Me As GpArrowCap, fillState As GDIP_BOOL) As GpStatus
     End Type
     
     Function GpArrowCap() As GpArrowCap
         GpArrowCap.Native = 0
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateAdjustableArrowCap Lib "gdiplus" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpArrowCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal height As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapHeight Lib "gdiplus" (ByVal Me As GpArrowCap, height As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal width As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapWidth Lib "gdiplus" (ByVal Me As GpArrowCap, width As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal middleInset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapMiddleInset Lib "gdiplus" (ByVal Me As GpArrowCap, middleInset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, ByVal fillState As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetAdjustableArrowCapFillState Lib "gdiplus" (ByVal Me As GpArrowCap, fillState As GDIP_BOOL) As GpStatus
 End Module
