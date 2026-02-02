@@ -207,12 +207,12 @@ Class Pen
         SetStatus(pn.SetDashStyle(dashStyle))
     End Property
     
-    Property Get DashOffset() As GpDashStyle
-        SetStatus(pn.GetDashOffset(DashStyle))
+    Property Get DashOffset() As Single
+        SetStatus(pn.GetDashOffset(DashOffset))
     End Property
     
-    Property Let DashOffset(ByVal dashStyle As GpDashStyle)
-        SetStatus(pn.SetDashOffset(dashStyle))
+    Property Let DashOffset(ByVal offset!)
+        SetStatus(pn.SetDashOffset(offset))
     End Property
     
     Property Get DashPatternCount() As Long
