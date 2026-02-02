@@ -7,35 +7,62 @@
 [COMCreatable(False)]
 [Description("Hatch Brush Object")]
 Class HatchBrush
-    Inherits Brush
+    Inherits GdiPlusBase
+    Implements IBrush
+    Protected br As GpHatch
 
+    Public Function Clone() As HatchBrush
+        Dim newBrush As GpHatch
+        SetStatus(br.Clone(newBrush))
+        If LastResult = Ok Then Return New HatchBrush(newBrush, True)
+    End Function
+    
+    Protected Sub New(ByVal native As GpHatch, ByVal tag As Boolean)
+        SetNativeHatch(native.Release())
+    End Sub
+    
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreRgb&, ByVal backRgb&)
-        Dim brush As GpHatch
-        SetStatus(GdipCreateHatchBrush(hatchStyle, FromCOLORREF(foreRgb), FromCOLORREF(backRgb), brush))
-        SetNativeHatch(brush)
+        SetStatus(br.CreateInto(hatchStyle, FromCOLORREF(foreRgb), FromCOLORREF(backRgb), br))
     End Sub
     
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreColor As Color, ByVal backColor As Color)
-        Dim brush As GpHatch
-        SetStatus(GdipCreateHatchBrush(hatchStyle, foreColor, backColor, brush))
-        SetNativeHatch(brush)
+        SetStatus(br.CreateInto(hatchStyle, foreColor, backColor, br))
     End Sub
     
+    Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
+        NativeBrush.Native = br.Native
+    End Property
+    
+    Private Sub Class_Terminate()
+        br.Delete
+    End Sub
+    
+    Function CloneBrush() As IBrush Implements IBrush.CloneBrush
+        Return Clone()
+    End Function
+    
+    Property Get Type() As GpBrushType Implements IBrush.Type
+        Dim ty As GpBrushType
+        SetStatus(br.GetType(ty))
+        Debug.Assert ty = BrushTypeHatchFill OrElse LastResult <> Ok
+        Return ty
+    End Property
+        
     Property Get HatchStyle() As GpHatchStyle
-        SetStatus(GdipGetHatchStyle(br, HatchStyle))
+        SetStatus(br.GetStyle(HatchStyle))
     End Property
     
     Property Get ForegroundColor() As Color
-        SetStatus(GdipGetHatchForegroundColor(br, ForegroundColor))
+        SetStatus(br.GetForegroundColor(ForegroundColor))
     End Property
     
     Property Get BackgroundColor() As Color
-        SetStatus(GdipGetHatchBackgroundColor(br, BackgroundColor))
+        SetStatus(br.GetBackgroundColor(BackgroundColor))
     End Property
     
     Public Sub New(ByVal nativeHatch As GpHatch, status As GpStatus = Ok)
         SetStatus(status)
-        SetNativeHatch(nativeHatch)
+        SetNativeHatch(nativeHatch.Release())
     End Sub
 
     Protected Property Get Native() As GpHatch
@@ -43,7 +70,7 @@ Class HatchBrush
     End Property
     
     Protected Sub SetNativeHatch(ByVal nativeHatch As GpHatch)
-        br.Native = nativeHatch.Native
+        br = nativeHatch
     End Sub
 End Class
 
@@ -59,6 +86,31 @@ Module GdipHatch
     Type GpHatch
         'Inherits GpBrush
         Native As LongPtr
+        
+        Function Create(ByVal style As GpHatchStyle, ByVal forecolr As Color, ByVal backcolr As Color) As GpStatus
+            Return Me.CreateInto(style, forecolr, backcolr, Me)
+        End Function
+        
+        Function Release() As GpHatch
+            Release.Native = Me.Native
+            Me.Native = 0
+        End Function
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateHatchBrush" (ByVal style As GpHatchStyle, ByVal forecolr As Color, ByVal backcolr As Color, Brush As GpHatch) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpHatch) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpHatch, cloneBrush As GpHatch) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpHatch, type As GpBrushType) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetStyle Lib "gdiplus" Alias "GdipGetHatchStyle" (ByVal Me As GpHatch, style As GpHatchStyle) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetForegroundColor Lib "gdiplus" Alias "GdipGetHatchForegroundColor" (ByVal Me As GpHatch, forecol As Color) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetBackgroundColor Lib "gdiplus" Alias "GdipGetHatchBackgroundColor" (ByVal Me As GpHatch, backcol As Color) As GpStatus
     End Type
     
     Function GpHatch() As GpHatch
@@ -68,13 +120,4 @@ Module GdipHatch
     Function GpHatch(nativeBrush As GpBrush) As GpHatch
         GpHatch.Native = nativeBrush.Native
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreateHatchBrush Lib "gdiplus" (ByVal style As GpHatchStyle, ByVal forecolr As Color, ByVal backcolr As Color, Brush As GpBrush) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetHatchStyle Lib "gdiplus" (ByVal brush As GpBrush, style As GpHatchStyle) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetHatchForegroundColor Lib "gdiplus" (ByVal brush As GpBrush, forecol As Color) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetHatchBackgroundColor Lib "gdiplus" (ByVal brush As GpBrush, backcol As Color) As GpStatus
 End Module
