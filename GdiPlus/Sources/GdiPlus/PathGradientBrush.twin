@@ -6,63 +6,84 @@
 
 [COMCreatable(False)]
 Class PathGradientBrush
-    Inherits Brush
+    Inherits GdiPlusBase
+    Implements IBrush
+    Protected br As GpPathGradient
 
+    Function Clone() As PathGradientBrush
+        Dim newBrush As GpPathGradient
+        SetStatus(br.Clone(newBrush))
+        If LastResult = Ok Then Return New PathGradientBrush(newBrush, True)
+    End Function
+    
+    Protected Sub New(ByVal native As GpPathGradient, ByVal tag As Boolean)
+        SetNativePathGradient(native.Release())
+    End Sub
+    
     Sub New(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        Dim brush As GpPathGradient
-        SetStatus(GdipCreatePathGradient(points(LBound(points)), ArrayLen(points), wrapMode, brush))
-        SetNativePathGradient(brush)
+        SetStatus(br.CreateInto(points(LBound(points)), ArrayLen(points), wrapMode, br))
     End Sub
     
     Sub New(points As GpPointF, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        Dim brush As GpPathGradient
-        SetStatus(GdipCreatePathGradient(points, count, wrapMode, brush))
-        SetNativePathGradient(brush)
+        SetStatus(br.CreateInto(points, count, wrapMode, br))
     End Sub
 
     Sub New(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        Dim brush As GpPathGradient
-        SetStatus(GdipCreatePathGradientI(points(LBound(points)), ArrayLen(points), wrapMode, brush))
-        SetNativePathGradient(brush)
+        SetStatus(br.CreateIntoI(points(LBound(points)), ArrayLen(points), wrapMode, br))
     End Sub
     
     Sub New(points As GpPoint, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        Dim brush As GpPathGradient
-        SetStatus(GdipCreatePathGradientI(points, count, wrapMode, brush))
-        SetNativePathGradient(brush)
+        SetStatus(br.CreateIntoI(points, count, wrapMode, br))
     End Sub
     
     Sub New(path As GraphicsPath)
-        Dim brush As GpPathGradient
-        SetStatus(GdipCreatePathGradientFromPath(GetNative(path), brush))
-        SetNativePathGradient(brush)
+        SetStatus(br.CreateFromPathInto(GetNative(path), br))
     End Sub
     
+    Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
+        NativeBrush.Native = br.Native
+    End Property
+    
+    Private Sub Class_Terminate()
+        br.Delete
+    End Sub
+    
+    Function CloneBrush() As IBrush Implements IBrush.CloneBrush
+        Return Clone()
+    End Function
+    
+    Property Get Type() As GpBrushType Implements IBrush.Type
+        Dim ty As GpBrushType
+        SetStatus(br.GetType(ty))
+        Debug.Assert ty = BrushTypeLinearGradient OrElse LastResult <> Ok
+        Return ty
+    End Property
+    
     Property Get CenterColor() As Color
-        SetStatus(GdipGetPathGradientCenterColor(Native, CenterColor))
+        SetStatus(br.GetCenterColor(CenterColor))
     End Property
     
     Property Let CenterColor(ByVal color As Color)
-        SetStatus(GdipSetPathGradientCenterColor(Native, color))
+        SetStatus(br.SetCenterColor(color))
     End Property
 
     Property Let CenterRGB(ByVal rgb&)
-        SetStatus(GdipSetPathGradientCenterColor(Native, FromCOLORREF(rgb)))
+        SetStatus(br.SetCenterColor(FromCOLORREF(rgb)))
     End Property
     
     Property Get PointCount() As Long
-        SetStatus(GdipGetPathGradientPointCount(Native, PointCount))
+        SetStatus(br.GetPointCount(PointCount))
     End Property
     
     Property Get SurroundColorCount() As Long
-        SetStatus(GdipGetPathGradientSurroundColorCount(Native, PointCount))
+        SetStatus(br.GetSurroundColorCount(PointCount))
     End Property
 
     Property Get SurroundColors() As Color()
         Dim count& = SurroundColorCount
         If LastResult <> Ok Then Exit Property
         ReDim SurroundColors(1 To count)
-        SetStatus(GdipGetPathGradientSurroundColorsWithCount(Native, SurroundColors(1), count))
+        SetStatus(br.GetSurroundColorsWithCount(SurroundColors(1), count))
     End Property
     
     Property Let SurroundColors(colors() As Color)
@@ -72,55 +93,55 @@ Class PathGradientBrush
             SetStatus(InvalidParameter)
         End If
         count = ArrayLen(colors)
-        SetStatus(GdipSetPathGradientSurroundColorsWithCount(Native, colors(LBound(colors)), count))
+        SetStatus(br.SetSurroundColorsWithCount(colors(LBound(colors)), count))
     End Property
     
     Property Get GraphicsPath() As GraphicsPath
         Dim nativePath As GpPath
-        SetStatus(GdipGetPathGradientPath(Native, nativePath))
+        SetStatus(br.GetPath(nativePath))
         If LastResult = Ok Then Set GraphicsPath = New GraphicsPath(nativePath)
     End Property
     
     Property Let GraphicsPath(path As GraphicsPath)
-        SetStatus(GdipSetPathGradientPath(Native, GetNative(path)))
+        SetStatus(br.SetPath(GetNative(path)))
     End Property
         
     Property Get CenterPoint() As GpPointF
-        SetStatus(GdipGetPathGradientCenterPoint(Native, CenterPoint))
+        SetStatus(br.GetCenterPoint(CenterPoint))
     End Property
     
     Property Let CenterPoint(point As GpPointF)
-        SetStatus(GdipSetPathGradientCenterPoint(Native, point))
+        SetStatus(br.SetCenterPoint(point))
     End Property
     
     Property Get CenterPointI() As GpPoint
-        SetStatus(GdipGetPathGradientCenterPointI(Native, CenterPointI))
+        SetStatus(br.GetCenterPointI(CenterPointI))
     End Property
     
     Property Let CenterPointI(point As GpPoint)
-        SetStatus(GdipSetPathGradientCenterPointI(Native, point))
+        SetStatus(br.SetCenterPointI(point))
     End Property
         
     Property Get Rectangle() As GpRectF
-        SetStatus(GdipGetPathGradientRect(Native, Rectangle))
+        SetStatus(br.GetRect(Rectangle))
     End Property
     
     Property Get RectangleI() As GpRect
-        SetStatus(GdipGetPathGradientRectI(Native, RectangleI))
+        SetStatus(br.GetRectI(RectangleI))
     End Property
 
     Property Let GammaCorrection(ByVal useGammaCorrection As Boolean)
-        SetStatus(GdipSetPathGradientGammaCorrection(Native, useGammaCorrection))
+        SetStatus(br.SetGammaCorrection(useGammaCorrection))
     End Property
     
     Property Get GammaCorrection() As Boolean
         Dim booln As GDIP_BOOL
-        SetStatus(GdipGetPathGradientGammaCorrection(Native, booln))
+        SetStatus(br.GetGammaCorrection(booln))
         Return booln
     End Property
         
     Property Get BlendCount() As Long
-       SetStatus(GdipGetPathGradientBlendCount(Native, BlendCount))
+       SetStatus(br.GetBlendCount(BlendCount))
     End Property
 
     Function GetBlend(blendFactors() As Single, blendPositions() As Single) As GpStatus
@@ -129,34 +150,34 @@ Class PathGradientBrush
         If LastResult <> Ok Then Return LastResult
         ReDim blendFactors(1 To count)
         ReDim blendPositions(1 To count)
-        Return SetStatus(GdipGetPathGradientBlend(Native, blendFactors(1), blendPositions(1), count))
+        Return SetStatus(br.GetBlend(blendFactors(1), blendPositions(1), count))
     End Function
     
     Function SetBlend(blendFactors() As Single, blendPositions() As Single) As GpStatus
         Dim count& = ArrayLen(blendFactors)
         If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipSetPathGradientBlend(Native, _
+        Return SetStatus(br.SetBlend( _
             blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
     End Function
 
     Function GetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
         If count > BlendCount Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipGetPathGradientBlend(Native, blendFactors, blendPositions, count))
+        Return SetStatus(br.GetBlend(blendFactors, blendPositions, count))
     End Function
     
     Function SetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
-        Return SetStatus(GdipSetPathGradientBlend(Native, blendFactors, blendPositions, count))
+        Return SetStatus(br.SetBlend(blendFactors, blendPositions, count))
     End Function
     
     Property Get InterpolationColorCount() As Long
-        SetStatus(GdipGetPathGradientPresetBlendCount(Native, InterpolationColorCount))
+        SetStatus(br.GetPresetBlendCount(InterpolationColorCount))
     End Property
    
     Function SetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
         If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Then Return SetStatus(InvalidParameter)
         Dim count& = ArrayLen(presetColors)
         If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipSetPathGradientPresetBlend(Native, _
+        Return SetStatus(br.SetPresetBlend( _
             presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
     End Function
 
@@ -165,75 +186,82 @@ Class PathGradientBrush
         Dim count& = InterpolationColorCount
         ReDim presetColors(1 To count)
         ReDim blendPositions(1 To count)
-        Return SetStatus(GdipGetPathGradientPresetBlend(Native, presetColors(1), blendPositions(1), count))
+        Return SetStatus(br.GetPresetBlend(presetColors(1), blendPositions(1), count))
     End Function
     
     Function SetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
         If count <= 0 Or VarPtr(presetColors) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipSetPathGradientPresetBlend(Native, presetColors, blendPositions, count))
+        Return SetStatus(br.SetPresetBlend(presetColors, blendPositions, count))
     End Function
     
     Function GetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
         If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Or count <= 0 Then Return (InvalidParameter)
-        Return SetStatus(GdipGetPathGradientPresetBlend(Native, presetColors, blendPositions, count))
+        Return SetStatus(br.GetPresetBlend(presetColors, blendPositions, count))
     End Function
     
     Function SetBlendBellShape(ByVal focus!, scale! = 1.0) As GpStatus
-        Return SetStatus(GdipSetPathGradientSigmaBlend(Native, focus, scale))
+        Return SetStatus(br.SetSigmaBlend(focus, scale))
     End Function
     
     Function SetBlendTriangularShape(ByVal focus!, scale! = 1.0) As GpStatus
-        Return SetStatus(GdipSetPathGradientLinearBlend(Native, focus, scale))
+        Return SetStatus(br.SetLinearBlend(focus, scale))
     End Function
 
     Property Get Transform() As Matrix
         Dim nativeTransform As GpMatrix
-        SetStatus(GdipGetPathGradientTransform(Native, nativeTransform))
+        SetStatus(br.GetTransform(nativeTransform))
         If LastResult = Ok Then Set Transform = New Matrix()
     End Property
     
     Property Let Transform(matrix As Matrix)
         If matrix Is Nothing Then SetStatus(InvalidParameter)
-        SetStatus(GdipSetPathGradientTransform(Native, GetNative(matrix)))
+        SetStatus(br.SetTransform(GetNative(matrix)))
     End Property
+    
+    Function GetTransform(outMatrix As Matrix) As GpStatus
+        Return SetStatus(br.GetTransform(UnprotectedAccess(outMatrix).mx))
+    End Function
 
     Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
         If matrix Is Nothing Then Return SetStatus(InvalidParameter)
-        Return SetStatus(GdipMultiplyPathGradientTransform(Native, GetNative(matrix), order))
+        Return SetStatus(br.MultiplyTransform(GetNative(matrix), order))
+    End Function
+    
+    Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Return SetStatus(br.TranslateTransform(delta.X, delta.Y, order))
     End Function
     
     Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
-        Return SetStatus(GdipTranslatePathGradientTransform(Native, dx, dy, order))
+        Return SetStatus(br.TranslateTransform(dx, dy, order))
     End Function
     
     Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
-        Return SetStatus(GdipScalePathGradientTransform(Native, sx, sy, order))
+        Return SetStatus(br.ScaleTransform(sx, sy, order))
     End Function
   
     Function ScaleTraRotateTransformnsform(ByVal angle!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
-        Return SetStatus(GdipRotatePathGradientTransform(Native, angle, order))
+        Return SetStatus(br.RotateTransform(angle, order))
     End Function
     
     Function GetFocusScales(xScale!, yScale!) As GpStatus
-        Return SetStatus(GdipGetPathGradientFocusScales(Native, xScale, yScale))
+        Return SetStatus(br.GetFocusScales(xScale, yScale))
     End Function
     
     Function SetFocusScales(ByVal xScale!, ByVal yScale!) As GpStatus
-        Return SetStatus(GdipSetPathGradientFocusScales(Native, xScale, yScale))
+        Return SetStatus(br.SetFocusScales(xScale, yScale))
     End Function
     
     Property Get WrapMode() As GpWrapMode
-        SetStatus(GdipGetPathGradientWrapMode(Native, WrapMode))
+        SetStatus(br.GetWrapMode(WrapMode))
     End Property
     
     Property Let WrapMode(ByVal wrapmode As GpWrapMode)
-        SetStatus(GdipSetPathGradientWrapMode(Native, wrapmode))
+        SetStatus(br.SetWrapMode(wrapmode))
     End Property
     
     Protected Sub New()
     End Sub
     
-    ' Used by Pen
     Public Sub New(ByVal nativeGradient As GpPathGradient, ByVal lastStatus&)
         SetStatus(lastStatus)
         SetNativePathGradient(nativeGradient)
@@ -276,6 +304,111 @@ Module GdipPathGradient
     Type GpPathGradient
         'Inherits GpBrush
         Native As LongPtr
+        
+        Function Release() As GpPathGradient
+            Release.Native = Me.Native
+            Me.Native = 0
+        End Function
+        
+        Function Create(points As GpPointF, ByVal count As Long, ByVal wrapMode As GpWrapMode) As GpStatus
+            Me.CreateInto(points, count, wrapMode, Me)
+        End Function
+        
+        Function CreateI(points As GpPoint, ByVal count As Long, ByVal wrapMode As GpWrapMode) As GpStatus
+            Me.CreateIntoI(points, count, wrapMode, Me)
+        End Function
+        
+        Function CreateFromPath(ByVal path As GpPath) As GpStatus
+            Me.CreateFromPathInto(path, Me)
+        End Function
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreatePathGradient" (points As GpPointF, ByVal count As Long, ByVal wrapMode As GpWrapMode, polyGradient As GpPathGradient) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateIntoI Lib "gdiplus" Alias "GdipCreatePathGradientI" (points As GpPoint, ByVal count As Long, ByVal wrapMode As GpWrapMode, polyGradient As GpPathGradient) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateFromPathInto Lib "gdiplus" Alias "GdipCreatePathGradientFromPath" (ByVal Path As GpPath, polyGradient As GpPathGradient) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpPathGradient) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneBrush" (ByVal Me As GpPathGradient, cloneBrush As GpPathGradient) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetBrushType" (ByVal Me As GpPathGradient, type As GpBrushType) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCenterColor Lib "gdiplus" Alias "GdipGetPathGradientCenterColor" (ByVal Me As GpPathGradient, colors As Color) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCenterColor Lib "gdiplus" Alias "GdipSetPathGradientCenterColor" (ByVal Me As GpPathGradient, ByVal colors As Color) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetSurroundColorsWithCount Lib "gdiplus" Alias "GdipGetPathGradientSurroundColorsWithCount" (ByVal Me As GpPathGradient, colors As Color, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetSurroundColorsWithCount Lib "gdiplus" Alias "GdipSetPathGradientSurroundColorsWithCount" (ByVal Me As GpPathGradient, colors As Color, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPath Lib "gdiplus" Alias "GdipGetPathGradientPath" (ByVal Me As GpPathGradient, ByVal path As GpPath) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetPath Lib "gdiplus" Alias "GdipSetPathGradientPath" (ByVal Me As GpPathGradient, ByVal path As GpPath) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetRect Lib "gdiplus" Alias "GdipGetPathGradientRect" (ByVal Me As GpPathGradient, rect As GpRectF) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetRectI Lib "gdiplus" Alias "GdipGetPathGradientRectI" (ByVal Me As GpPathGradient, rect As GpRect) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPointCount Lib "gdiplus" Alias "GdipGetPathGradientPointCount" (ByVal Me As GpPathGradient, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetSurroundColorCount Lib "gdiplus" Alias "GdipGetPathGradientSurroundColorCount" (ByVal Me As GpPathGradient, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetGammaCorrection Lib "gdiplus" Alias "GdipSetPathGradientGammaCorrection" (ByVal Me As GpPathGradient, ByVal useGammaCorrection As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetGammaCorrection Lib "gdiplus" Alias "GdipGetPathGradientGammaCorrection" (ByVal Me As GpPathGradient, useGammaCorrection As GDIP_BOOL) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetBlendCount Lib "gdiplus" Alias "GdipGetPathGradientBlendCount" (ByVal Me As GpPathGradient, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetBlend Lib "gdiplus" Alias "GdipGetPathGradientBlend" (ByVal Me As GpPathGradient, blend As Single, positions As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetBlend Lib "gdiplus" Alias "GdipSetPathGradientBlend" (ByVal Me As GpPathGradient, blend As Single, positions As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPresetBlendCount Lib "gdiplus" Alias "GdipGetPathGradientPresetBlendCount" (ByVal Me As GpPathGradient, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPresetBlend Lib "gdiplus" Alias "GdipGetPathGradientPresetBlend" (ByVal Me As GpPathGradient, blend As Color, positions As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetPresetBlend Lib "gdiplus" Alias "GdipSetPathGradientPresetBlend" (ByVal Me As GpPathGradient, blend As Color, positions As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetSigmaBlend Lib "gdiplus" Alias "GdipSetPathGradientSigmaBlend" (ByVal Me As GpPathGradient, ByVal focus As Single, ByVal scale As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetLinearBlend Lib "gdiplus" Alias "GdipSetPathGradientLinearBlend" (ByVal Me As GpPathGradient, ByVal focus As Single, ByVal scale As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetWrapMode Lib "gdiplus" Alias "GdipSetPathGradientWrapMode" (ByVal Me As GpPathGradient, ByVal wrapMode As GpWrapMode) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetWrapMode Lib "gdiplus" Alias "GdipGetPathGradientWrapMode" (ByVal Me As GpPathGradient, wrapMode As GpWrapMode) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetTransform Lib "gdiplus" Alias "GdipSetPathGradientTransform" (ByVal Me As GpPathGradient, ByVal matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetTransform Lib "gdiplus" Alias "GdipGetPathGradientTransform" (ByVal Me As GpPathGradient, ByVal matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function ResetTransform Lib "gdiplus" Alias "GdipResetPathGradientTransform" (ByVal Me As GpPathGradient) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function MultiplyTransform Lib "gdiplus" Alias "GdipMultiplyPathGradientTransform" (ByVal Me As GpPathGradient, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function TranslateTransform Lib "gdiplus" Alias "GdipTranslatePathGradientTransform" (ByVal Me As GpPathGradient, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function ScaleTransform Lib "gdiplus" Alias "GdipScalePathGradientTransform" (ByVal Me As GpPathGradient, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotatePathGradientTransform" (ByVal Me As GpPathGradient, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetFocusScales Lib "gdiplus" Alias "GdipSetPathGradientFocusScales" (ByVal Me As GpPathGradient, ByVal xScale As Single, ByVal yScale As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetFocusScales Lib "gdiplus" Alias "GdipGetPathGradientFocusScales" (ByVal Me As GpPathGradient, xScale As Single, yScale As Single) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCenterPoint Lib "gdiplus" Alias "GdipGetPathGradientCenterPoint" (ByVal Me As GpPathGradient, Points As GpPointF) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCenterPoint Lib "gdiplus" Alias "GdipSetPathGradientCenterPoint" (ByVal Me As GpPathGradient, Points As GpPointF) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCenterPointI Lib "gdiplus" Alias "GdipGetPathGradientCenterPointI" (ByVal Me As GpPathGradient, Points As GpPoint) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCenterPointI Lib "gdiplus" Alias "GdipSetPathGradientCenterPointI" (ByVal Me As GpPathGradient, Points As GpPoint) As GpStatus
     End Type
     
     Function GpPathGradient() As GpPathGradient
@@ -285,84 +418,4 @@ Module GdipPathGradient
     Function GpPathGradient(nativeBrush As GpBrush) As GpPathGradient
         GpPathGradient.Native = nativeBrush.Native
     End Function
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePathGradient Lib "gdiplus" (points As GpPointF, ByVal count As Long, ByVal wrapMode As GpWrapMode, polyGradient As GpPathGradient) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePathGradientI Lib "gdiplus" (points As GpPoint, ByVal count As Long, ByVal wrapMode As GpWrapMode, polyGradient As GpPathGradient) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePathGradientFromPath Lib "gdiplus" (ByVal Path As GpPath, polyGradient As GpPathGradient) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientCenterColor Lib "gdiplus" (ByVal brush As GpPathGradient, colors As Color) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientCenterColor Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal colors As Color) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientSurroundColorsWithCount Lib "gdiplus" (ByVal brush As GpPathGradient, colors As Color, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientSurroundColorsWithCount Lib "gdiplus" (ByVal brush As GpPathGradient, colors As Color, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientPath Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal path As GpPath) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientPath Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal path As GpPath) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientRect Lib "gdiplus" (ByVal brush As GpPathGradient, rect As GpRectF) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientRectI Lib "gdiplus" (ByVal brush As GpPathGradient, rect As GpRect) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientPointCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientSurroundColorCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal useGammaCorrection As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientGammaCorrection Lib "gdiplus" (ByVal brush As GpPathGradient, useGammaCorrection As GDIP_BOOL) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientBlendCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientBlend Lib "gdiplus" (ByVal brush As GpPathGradient, blend As Single, positions As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientBlend Lib "gdiplus" (ByVal brush As GpPathGradient, blend As Single, positions As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientPresetBlendCount Lib "gdiplus" (ByVal brush As GpPathGradient, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientPresetBlend Lib "gdiplus" (ByVal brush As GpPathGradient, blend As Color, positions As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientPresetBlend Lib "gdiplus" (ByVal brush As GpPathGradient, blend As Color, positions As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientSigmaBlend Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal focus As Single, ByVal scale As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientLinearBlend Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal focus As Single, ByVal scale As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientWrapMode Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal wrapMode As GpWrapMode) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientWrapMode Lib "gdiplus" (ByVal brush As GpPathGradient, wrapMode As GpWrapMode) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipResetPathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipMultiplyPathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipTranslatePathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipScalePathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRotatePathGradientTransform Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientFocusScales Lib "gdiplus" (ByVal brush As GpPathGradient, ByVal xScale As Single, ByVal yScale As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientFocusScales Lib "gdiplus" (ByVal brush As GpPathGradient, xScale As Single, yScale As Single) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientCenterPoint Lib "gdiplus" (ByVal Brush As GpPathGradient, Points As GpPointF) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientCenterPoint Lib "gdiplus" (ByVal Brush As GpPathGradient, Points As GpPointF) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPathGradientCenterPointI Lib "gdiplus" (ByVal Brush As GpPathGradient, Points As GpPoint) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPathGradientCenterPointI Lib "gdiplus" (ByVal Brush As GpPathGradient, Points As GpPoint) As GpStatus
 End Module

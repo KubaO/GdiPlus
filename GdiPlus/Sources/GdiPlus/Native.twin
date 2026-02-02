@@ -30,7 +30,7 @@ Module Native
     End Function
     
     Function GetNative(for As Brush) As GpBrush
-        If for IsNot Nothing Then GetNative = UnprotectedAccess(for).Native
+        If for IsNot Nothing Then GetNative = UnprotectedAccess(for).NativeBrush
     End Function
     
     Public Function GetNative(for As Font) As GpFont

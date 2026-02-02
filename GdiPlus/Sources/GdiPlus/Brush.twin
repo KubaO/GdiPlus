@@ -4,51 +4,34 @@
 ' Modeled after code and descriptions (c) Microsoft, taken from SDK headers and official documentation.
 ' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
-[COMCreatable(False)]
-[Description("Abstract base class for various brush types")]
-Class Brush
-    Inherits GdiPlusBase
-    Protected br As GpBrush
-        
-    Sub Class_Terminate()
-        br.Delete
-    End Sub
-    
-    Overridable Function Clone() As Brush
-        Dim brush As GpBrush
-        SetStatus(br.Clone(brush))
-        If LastResult = Ok Then Set Clone = New Brush(brush, LastResult)
-    End Function
-    
+Interface IBrush Extends IUnknown
+    Function CloneBrush() As IBrush
+    Property Get NativeBrush() As GpBrush
     Property Get Type() As GpBrushType
-        Type = -1
-        SetStatus(br.GetType(Type))
-    End Property
-    
-    Protected Sub New()
-        SetStatus(NotImplemented)
-    End Sub
-    
-    ' Used by Pen
-    Public Sub New(ByVal nativeBrush As GpBrush, ByVal status As GpStatus)
-        SetStatus(status)
-        SetNativeBrush(nativeBrush)
-    End Sub
-    
-    Protected Sub New(ByVal nativeBrush As GpBrush)
-        SetNativeBrush(nativeBrush)
-    End Sub
-    
-    Protected Property Get Native() As GpBrush
-        Return br
-    End Property
-    
-    Protected Sub SetNativeBrush(ByVal nativeBrush As GpBrush)
-        br = nativeBrush
-    End Sub
-End Class
+End Interface
+
+Alias Brush As IBrush
 
 Module GdipBrush
+    Function BrushFrom(ByVal native As GpBrush) As IBrush
+        Dim Type As GpBrushType
+        Dim lastResult As GpStatus = native.GetType(Type)
+        Select Case Type
+            Case PenTypeSolidColor
+                Set BrushFrom = CType(Of Brush)(New SolidBrush(GpSolidFill(native.Release()), lastResult))
+            Case PenTypeHatchFill
+                Set BrushFrom = CType(Of Brush)(New HatchBrush(GpHatch(native.Release()), lastResult))
+            Case PenTypeTextureFill
+                Set BrushFrom = CType(Of Brush)(New TextureBrush(GpTexture(native.Release()), lastResult))
+            Case PenTypePathGradient
+                Set BrushFrom = CType(Of Brush)(New PathGradientBrush(GpPathGradient(native.Release()), lastResult))
+            Case PenTypeLinearGradient
+                Set BrushFrom = CType(Of Brush)(New LinearGradientBrush(GpLineGradient(native.Release()), lastResult))
+            Case Else
+                native.Delete
+        End Select
+    End Function
+
     Type GpBrush
         Native As LongPtr
         

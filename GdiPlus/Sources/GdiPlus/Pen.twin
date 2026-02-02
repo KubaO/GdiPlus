@@ -193,24 +193,10 @@ Class Pen
         SetStatus(pn.SetBrushFill(GetNative(brush)))
     End Property
     
-    [IgnoreWarnings(TB0020)]
     Property Get Brush() As Brush
-        Dim type As GpPenType = PenType
         Dim nativeBrush As GpBrush
         SetStatus(pn.GetBrushFill(nativeBrush))
-        Select Case type
-            Case PenTypeSolidColor
-                Set Brush = New SolidBrush(GpSolidFill(nativeBrush), LastResult)
-            Case PenTypeHatchFill
-                Set Brush = New HatchBrush(GpHatch(nativeBrush), LastResult)
-            Case PenTypeTextureFill
-                Set Brush = New TextureBrush(GpTexture(nativeBrush), LastResult)
-            Case PenTypePathGradient
-                Set Brush = New PathGradientBrush(GpPathGradient(nativeBrush), LastResult)
-            Case PenTypeLinearGradient
-                Set Brush = New LinearGradientBrush(GpLineGradient(nativeBrush), LastResult)
-        End Select
-        If Brush Is Nothing Then nativeBrush.Delete
+        If LastResult = Ok Then Set Brush = BrushFrom(nativeBrush)
     End Property
 
     Property Get DashStyle() As GpDashStyle
