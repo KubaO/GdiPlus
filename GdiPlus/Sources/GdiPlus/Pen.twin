@@ -10,38 +10,38 @@ Class Pen
     Dim pn As GpPen
     
     Sub New(ByVal rgb As Long, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
-        LastStatus = GdipCreatePen1(FromCOLORREF(rgb), width, unit, pn)
+        LastStatus = pn.CreateInto1(FromCOLORREF(rgb), width, unit, pn)
     End Sub
     
     Sub New(ByVal color As Color, ByVal width! = 1.0!, ByVal unit As GpUnit = UnitWorld)
-        LastStatus = GdipCreatePen1(color, width, unit, pn)
+        LastStatus = pn.CreateInto1(color, width, unit, pn)
     End Sub
     
     Sub New(brush As Brush, ByVal width! = 1.0!)
-        LastStatus = GdipCreatePen2(GetNative(brush), width, UnitWorld, pn)
+        LastStatus = pn.CreateInto2(GetNative(brush), width, UnitWorld, pn)
     End Sub
     
     Sub New(ByVal nativePen As GpPen, status As GpStatus = Ok)
         LastStatus = status
-        SetNativePen(nativePen)
+        pn = nativePen
     End Sub
     
     Sub Class_Terminate()
-        GdipDeletePen(pn)
+        pn.Delete
     End Sub
     
     Function Clone() As Pen
         Dim clonePen As GpPen
-        SetStatus(GdipClonePen(pn, clonePen))
-        If LastStatus = Ok Then Return New Pen(clonePen, LastResult)
+        SetStatus(pn.Clone(clonePen))
+        If LastStatus = Ok Then Return New Pen(clonePen.Release(), LastResult)
     End Function
     
     Property Let Width(ByVal width!)
-        SetStatus(GdipSetPenWidth(pn, width))
+        SetStatus(pn.SetWidth(width))
     End Property
     
     Property Get Width() As Single
-        SetStatus(GdipGetPenWidth(pn, Width))
+        SetStatus(pn.GetWidth(Width))
     End Property
     
     Sub Set(ByVal color As Color, ByVal width!)
@@ -58,146 +58,146 @@ Class Pen
     ' Line cap and join APIs by using LineCap and LineJoin enums.
     
     Function SetLineCap(ByVal startCap As GpLineCap, ByVal endCap As GpLineCap, ByVal dashCap As GpDashCap) As GpStatus
-        Return SetStatus(GdipSetPenLineCap197819(pn, startCap, endCap, dashCap))
+        Return SetStatus(pn.SetLineCap(startCap, endCap, dashCap))
     End Function
 
     Property Let StartCap(ByVal startCap As GpLineCap)
-        SetStatus(GdipSetPenStartCap(pn, startCap))
+        SetStatus(pn.SetStartCap(startCap))
     End Property
     
-    Property Let EndCap(ByVal startCap As GpLineCap)
-        SetStatus(GdipSetPenEndCap(pn, startCap))
+    Property Let EndCap(ByVal endCap As GpLineCap)
+        SetStatus(pn.SetEndCap(endCap))
     End Property
     
-    Property Let DashCap(ByVal startCap As GpLineCap)
-        SetStatus(GdipSetPenDashCap197819(pn, startCap))
+    Property Let DashCap(ByVal dashCap As GpLineCap)
+        SetStatus(pn.SetDashCap(dashCap))
     End Property
     
     Property Get StartCap() As GpLineCap
-        SetStatus(GdipGetPenStartCap(pn, StartCap))
+        SetStatus(pn.GetStartCap(StartCap))
     End Property
 
     Property Get EndCap() As GpLineCap
-        SetStatus(GdipGetPenEndCap(pn, EndCap))
+        SetStatus(pn.GetEndCap(EndCap))
     End Property
     
     Property Get DashCap() As GpLineCap
-        SetStatus(GdipGetPenDashCap197819(pn, DashCap))
+        SetStatus(pn.GetDashCap(DashCap))
     End Property
     
     Property Let LineJoin(ByVal lineJoin As GpLineJoin)
-        SetStatus(GdipSetPenLineJoin(pn, lineJoin))
+        SetStatus(pn.SetLineJoin(lineJoin))
     End Property
     
     Property Get LineJoin() As GpLineJoin
-        SetStatus(GdipGetPenLineJoin(pn, LineJoin))
+        SetStatus(pn.GetLineJoin(LineJoin))
     End Property
         
     Property Let CustomStartCap(customCap As LineCap)
-        SetStatus(GdipSetPenCustomStartCap(pn, GetNative(customCap)))
+        SetStatus(pn.SetCustomStartCap(GetNative(customCap)))
     End Property
     
     Property Get CustomStartCap() As LineCap
         Dim customCap As GpCustomLineCap
-        SetStatus(GdipGetPenCustomStartCap(pn, customCap))
+        SetStatus(pn.GetCustomStartCap(customCap))
         If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
     Property Let CustomEndCap(customCap As LineCap)
-        SetStatus(GdipSetPenCustomEndCap(pn, GetNative(customCap)))
+        SetStatus(pn.SetCustomEndCap(GetNative(customCap)))
     End Property
     
     Property Get CustomEndCap() As LineCap
         Dim customCap As GpCustomLineCap
-        SetStatus(GdipGetPenCustomEndCap(pn, customCap))
+        SetStatus(pn.GetCustomEndCap(customCap))
         If LastStatus = Ok Then Set CustomStartCap = New LineCap(customCap)
     End Property
     
     Property Let MiterLimit(ByVal miterLimit!)
-        SetStatus(GdipSetPenMiterLimit(pn, miterLimit))
+        SetStatus(pn.SetMiterLimit(miterLimit))
     End Property
     
     Property Get MiterLimit() As Single
-        SetStatus(GdipGetPenMiterLimit(pn, MiterLimit))
+        SetStatus(pn.GetMiterLimit(MiterLimit))
     End Property
     
     Property Let Alignment(ByVal penAlignment As GpPenAlignment)
-        SetStatus(GdipSetPenMode(pn, penAlignment))
+        SetStatus(pn.SetAlignment(penAlignment))
     End Property
     
     Property Get Alignment() As GpPenAlignment
-        SetStatus(GdipGetPenMode(pn, Alignment))
+        SetStatus(pn.GetAlignment(Alignment))
     End Property
 
     Property Let Transform(matrix As Matrix)
-        SetStatus(GdipSetPenTransform(pn, GetNative(matrix)))
+        SetStatus(pn.SetTransform(GetNative(matrix)))
     End Property
     
     Property Get Transform() As Matrix
         Dim nativeMatrix As GpMatrix
-        SetStatus(GdipGetPenTransform(pn, nativeMatrix))
+        SetStatus(pn.GetTransform(nativeMatrix))
         If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
     End Property
         
     Function ResetTransform() As GpStatus
-        Return SetStatus(GdipResetPenTransform(pn))
+        Return SetStatus(pn.ResetTransform)
     End Function
     
     Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipMultiplyPenTransform(pn, GetNative(matrix), order))
+        Return SetStatus(pn.MultiplyTransform(GetNative(matrix), order))
     End Function
     
     Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipTranslatePenTransform(pn, delta.X, delta.Y, order))
+        Return SetStatus(pn.TranslateTransform(delta.X, delta.Y, order))
     End Function
     
     Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipTranslatePenTransform(pn, dx, dy, order))
+        Return SetStatus(pn.TranslateTransform(dx, dy, order))
     End Function
     
     Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipScalePenTransform(pn, sx, sy, order))
+        Return SetStatus(pn.ScaleTransform(sx, sy, order))
     End Function
     
     Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        Return SetStatus(GdipRotatePenTransform(pn, angle, order))
+        Return SetStatus(pn.RotateTransform(angle, order))
     End Function
 
     Property Get PenType() As GpPenType
-        SetStatus(GdipGetPenFillType(pn, PenType))
+        SetStatus(pn.GetFillType(PenType))
     End Property
     
     Property Let RGB(ByVal rgb&)
-        SetStatus(GdipSetPenColor(pn, FromCOLORREF(rgb)))
+        SetStatus(pn.SetColor(FromCOLORREF(rgb)))
     End Property
     
     Property Get RGB() As Long
         Dim clr As Color
-        SetStatus(GdipSetPenColor(pn, clr))
+        SetStatus(pn.GetColor(clr))
         Return clr.argb And &h00FF_FFFF
     End Property
     
     Property Let Color(ByVal color As Color)
-        SetStatus(GdipSetPenColor(pn, color))
+        SetStatus(pn.SetColor(color))
     End Property
     
     Property Get Color() As Color
         If PenType = PenTypeSolidColor Then
             Dim temp As Color
-            SetStatus(GdipGetPenColor(pn, temp))
+            SetStatus(pn.GetColor(temp))
             If LastResult = Ok Then Color = temp
         End If
     End Property
     
     Property Let Brush(brush As Brush)
-        SetStatus(GdipSetPenBrushFill(pn, UnprotectedAccess(brush).br))
+        SetStatus(pn.SetBrushFill(GetNative(brush)))
     End Property
     
     [IgnoreWarnings(TB0020)]
     Property Get Brush() As Brush
         Dim type As GpPenType = PenType
         Dim nativeBrush As GpBrush
-        SetStatus(GdipGetPenBrushFill(pn, nativeBrush))
+        SetStatus(pn.GetBrushFill(nativeBrush))
         Select Case type
             Case PenTypeSolidColor
                 Set Brush = New SolidBrush(GpSolidFill(nativeBrush), LastResult)
@@ -210,53 +210,53 @@ Class Pen
             Case PenTypeLinearGradient
                 Set Brush = New LinearGradientBrush(GpLineGradient(nativeBrush), LastResult)
         End Select
-        If Brush Is Nothing Then GdipDeleteBrush(nativeBrush)
+        If Brush Is Nothing Then nativeBrush.Delete
     End Property
 
     Property Get DashStyle() As GpDashStyle
-        SetStatus(GdipGetPenDashStyle(pn, DashStyle))
+        SetStatus(pn.GetDashStyle(DashStyle))
     End Property
     
     Property Let DashStyle(ByVal dashStyle As GpDashStyle)
-        SetStatus(GdipSetPenDashStyle(pn, dashStyle))
+        SetStatus(pn.SetDashStyle(dashStyle))
     End Property
     
     Property Get DashOffset() As GpDashStyle
-        SetStatus(GdipGetPenDashOffset(pn, DashStyle))
+        SetStatus(pn.GetDashOffset(DashStyle))
     End Property
     
     Property Let DashOffset(ByVal dashStyle As GpDashStyle)
-        SetStatus(GdipSetPenDashOffset(pn, dashStyle))
+        SetStatus(pn.SetDashOffset(dashStyle))
     End Property
     
     Property Get DashPatternCount() As Long
-        SetStatus(GdipGetPenDashCount(pn, DashPatternCount))
+        SetStatus(pn.GetDashCount(DashPatternCount))
     End Property
     
     Property Let DashPattern(dashArray!())
-        SetStatus(GdipSetPenDashArray(pn, dashArray(LBound(dashArray)), ArrayLen(dashArray)))
+        SetStatus(pn.SetDashArray(dashArray(LBound(dashArray)), ArrayLen(dashArray)))
     End Property
         
     Property Get DashPattern() As Single()
         If DashPatternCount > 0 Then
             ReDim DashPattern(1 To DashPatternCount)
-            SetStatus(GdipGetPenDashArray(pn, DashPattern(1), DashPatternCount))
+            SetStatus(pn.GetDashArray(DashPattern(1), DashPatternCount))
         End If
     End Property
 
     Property Get CompoundArrayCount() As Long
-        SetStatus(GdipGetPenCompoundCount(pn, CompoundArrayCount))
+        SetStatus(pn.GetCompoundCount(CompoundArrayCount))
     End Property
     
     Property Get CompoundArray() As Single()
         If CompoundArrayCount > 0 Then
             ReDim CompoundArray(1 To CompoundArrayCount&)
-            SetStatus(GdipSetPenCompoundArray(pn, CompoundArray(1), CompoundArrayCount))
+            SetStatus(pn.GetCompoundArray(CompoundArray(1), CompoundArrayCount))
         End If
     End Property
     
     Property Let CompoundArray(compoundArray() As Single)
-        SetStatus(GdipSetPenCompoundArray(pn, compoundArray(LBound(compoundArray)), ArrayLen(compoundArray)))
+        SetStatus(pn.SetCompoundArray(compoundArray(LBound(compoundArray)), ArrayLen(compoundArray)))
     End Property
     
     Protected Property Get Native() As GpPen
@@ -283,109 +283,127 @@ Module GdipPen
     
     Type GpPen
         Native As LongPtr
+        
+        Function Create1(ByVal color As Color, ByVal width!, ByVal unit As GpUnit = UnitWorld) As GpStatus
+            Return GpPen.CreateInto1(color, width, unit, Me)
+        End Function
+        
+        Function Create2(ByVal brush As GpBrush, ByVal width!, ByVal unit As GpUnit = UnitWorld) As GpStatus
+            Return GpPen.CreateInto2(brush, width, unit, Me)
+        End Function
+               
+        Function Release() As GpPen
+            Release.Native = Me.Native
+            Me.Native = 0
+        End Function
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateInto1 Lib "gdiplus" Alias "GdipCreatePen1" (ByVal Color As Color, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function CreateInto2 Lib "gdiplus" Alias "GdipCreatePen2" (ByVal brush As GpBrush, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipClonePen" (ByVal Me As GpPen, clonepen As GpPen) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePen" (ByVal Me As GpPen) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetDashStyle Lib "gdiplus" Alias "GdipSetPenDashStyle" (ByVal Me As GpPen, ByVal dashStyle As GpDashStyle) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDashStyle Lib "gdiplus" Alias "GdipGetPenDashStyle" (ByVal Me As GpPen, dashStyle As GpDashStyle) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDashCount Lib "gdiplus" Alias "GdipGetPenDashCount" (ByVal Me As GpPen, count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetDashArray Lib "gdiplus" Alias "GdipSetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDashArray Lib "gdiplus" Alias "GdipGetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCompoundCount Lib "gdiplus" Alias "GdipGetPenCompoundCount" (ByVal Me As GpPen, count As Long) As GpStatus
+        [UseGetLastError(False)]
+         Declare PtrSafe Function SetCompoundArray Lib "gdiplus" Alias "GdipSetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCompoundArray Lib "gdiplus" Alias "GdipGetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetWidth Lib "gdiplus" Alias "GdipSetPenWidth" (ByVal Me As GpPen, ByVal width As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetWidth Lib "gdiplus" Alias "GdipGetPenWidth" (ByVal Me As GpPen, width As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetDashOffset Lib "gdiplus" Alias "GdipSetPenDashOffset" (ByVal Me As GpPen, ByVal offset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDashOffset Lib "gdiplus" Alias "GdipGetPenDashOffset" (ByVal Me As GpPen, offset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetUnit Lib "gdiplus" Alias "GdipSetPenUnit" (ByVal Me As GpPen, ByVal unit As GpUnit) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetUnit Lib "gdiplus" Alias "GdipGetPenUnit" (ByVal Me As GpPen, unit As GpUnit) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetFillType Lib "gdiplus" Alias "GdipGetPenFillType" (ByVal Me As GpPen, type As GpPenType) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetStartCap Lib "gdiplus" Alias "GdipSetPenStartCap" (ByVal Me As GpPen, ByVal startCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetEndCap Lib "gdiplus" Alias "GdipSetPenEndCap" (ByVal Me As GpPen, ByVal endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetStartCap Lib "gdiplus" Alias "GdipGetPenStartCap" (ByVal Me As GpPen, startCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetEndCap Lib "gdiplus" Alias "GdipGetPenEndCap" (ByVal Me As GpPen, endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCustomStartCap Lib "gdiplus" Alias "GdipGetPenCustomStartCap" (ByVal Me As GpPen, customCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetCustomEndCap Lib "gdiplus" Alias "GdipGetPenCustomEndCap" (ByVal Me As GpPen, customCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetLineJoin Lib "gdiplus" Alias "GdipSetPenLineJoin" (ByVal Me As GpPen, ByVal lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetLineJoin Lib "gdiplus" Alias "GdipGetPenLineJoin" (ByVal Me As GpPen, lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetLineCap Lib "gdiplus" Alias "GdipSetPenLineCap197819" (ByVal Me As GpPen, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap, ByVal dashCap As GpDashCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetDashCap Lib "gdiplus" Alias "GdipSetPenDashCap197819" (ByVal Me As GpPen, ByVal dashCap As GpDashCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDashCap Lib "gdiplus" Alias "GdipGetPenDashCap197819" (ByVal Me As GpPen, dashCap As GpDashCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetMiterLimit Lib "gdiplus" Alias "GdipSetPenMiterLimit" (ByVal Me As GpPen, ByVal miterLimit As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetMiterLimit Lib "gdiplus" Alias "GdipGetPenMiterLimit" (ByVal Me As GpPen, miterLimit As Single) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetColor Lib "gdiplus" Alias "GdipSetPenColor" (ByVal Me As GpPen, ByVal color As Color) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetColor Lib "gdiplus" Alias "GdipGetPenColor" (ByVal Me As GpPen, color As Color) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCustomStartCap Lib "gdiplus" Alias "GdipSetPenCustomStartCap" (ByVal Me As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetCustomEndCap Lib "gdiplus" Alias "GdipSetPenCustomEndCap" (ByVal Me As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetMode Lib "gdiplus" Alias "GdipSetPenMode" (ByVal Me As GpPen, ByVal penMode As GpPenAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetMode Lib "gdiplus" Alias "GdipGetPenMode" (ByVal Me As GpPen, penMode As GpPenAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetAlignment Lib "gdiplus" Alias "GdipSetPenMode" (ByVal Me As GpPen, ByVal penMode As GpPenAlignment) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetAlignment Lib "gdiplus" Alias "GdipGetPenMode" (ByVal Me As GpPen, penMode As GpPenAlignment) As GpStatus
+            
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetTransform Lib "gdiplus" Alias "GdipSetPenTransform" (ByVal Me As GpPen, ByVal matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetTransform Lib "gdiplus" Alias "GdipGetPenTransform" (ByVal Me As GpPen, ByVal matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function ResetTransform Lib "gdiplus" Alias "GdipResetPenTransform" (ByVal Me As GpPen) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function MultiplyTransform Lib "gdiplus" Alias "GdipMultiplyPenTransform" (ByVal Me As GpPen, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function TranslateTransform Lib "gdiplus" Alias "GdipTranslatePenTransform" (ByVal Me As GpPen, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function ScaleTransform Lib "gdiplus" Alias "GdipScalePenTransform" (ByVal Me As GpPen, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotatePenTransform" (ByVal Me As GpPen, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetBrushFill Lib "gdiplus" Alias "GdipSetPenBrushFill" (ByVal Me As GpPen, ByVal Brush As GpBrush) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetBrushFill Lib "gdiplus" Alias "GdipGetPenBrushFill" (ByVal Me As GpPen, Brush As GpBrush) As GpStatus
     End Type
     
     Function GpPen() As GpPen
         GpPen.Native = 0
     End Function
-        
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePen1 Lib "gdiplus" (ByVal Color As Color, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipCreatePen2 Lib "gdiplus" (ByVal brush As GpBrush, ByVal Width As Single, ByVal unit As GpUnit, pen As GpPen) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipClonePen Lib "gdiplus" (ByVal pen As GpPen, clonepen As GpPen) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipDeletePen Lib "gdiplus" (ByVal pen As GpPen) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenDashStyle Lib "gdiplus" (ByVal pen As GpPen, ByVal dashStyle As GpDashStyle) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenDashStyle Lib "gdiplus" (ByVal pen As GpPen, dashStyle As GpDashStyle) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenDashCount Lib "gdiplus" (ByVal pen As GpPen, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenDashArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenDashArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenCompoundCount Lib "gdiplus" (ByVal pen As GpPen, count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenCompoundArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenCompoundArray Lib "gdiplus" (ByVal pen As GpPen, dash As Single, ByVal count As Long) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenWidth Lib "gdiplus" (ByVal pen As GpPen, ByVal width As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenWidth Lib "gdiplus" (ByVal pen As GpPen, width As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenDashOffset Lib "gdiplus" (ByVal pen As GpPen, ByVal offset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenDashOffset Lib "gdiplus" (ByVal pen As GpPen, offset As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenUnit Lib "gdiplus" (ByVal pen As GpPen, ByVal unit As GpUnit) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenUnit Lib "gdiplus" (ByVal pen As GpPen, unit As GpUnit) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenFillType Lib "gdiplus" (ByVal pen As GpPen, type As GpPenType) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenStartCap Lib "gdiplus" (ByVal pen As GpPen, ByVal startCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenEndCap Lib "gdiplus" (ByVal pen As GpPen, ByVal endCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenStartCap Lib "gdiplus" (ByVal pen As GpPen, startCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenEndCap Lib "gdiplus" (ByVal pen As GpPen, endCap As GpLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenCustomStartCap Lib "gdiplus" (ByVal pen As GpPen, customCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenCustomEndCap Lib "gdiplus" (ByVal pen As GpPen, customCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenLineJoin Lib "gdiplus" (ByVal pen As GpPen, ByVal lineJoin As GpLineJoin) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenLineJoin Lib "gdiplus" (ByVal pen As GpPen, lineJoin As GpLineJoin) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenLineCap197819 Lib "gdiplus" (ByVal pen As GpPen, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap, ByVal dashCap As GpDashCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenDashCap197819 Lib "gdiplus" (ByVal pen As GpPen, ByVal dashCap As GpDashCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenDashCap197819 Lib "gdiplus" (ByVal pen As GpPen, dashCap As GpDashCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenMiterLimit Lib "gdiplus" (ByVal pen As GpPen, ByVal miterLimit As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenMiterLimit Lib "gdiplus" (ByVal pen As GpPen, miterLimit As Single) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenColor Lib "gdiplus" (ByVal pen As GpPen, ByVal color As Color) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenColor Lib "gdiplus" (ByVal pen As GpPen, color As Color) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenCustomStartCap Lib "gdiplus" (ByVal pen As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenCustomEndCap Lib "gdiplus" (ByVal pen As GpPen, ByVal customCap As GpCustomLineCap) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenMode Lib "gdiplus" (ByVal pen As GpPen, ByVal penMode As GpPenAlignment) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenMode Lib "gdiplus" (ByVal pen As GpPen, penMode As GpPenAlignment) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipResetPenTransform Lib "gdiplus" (ByVal pen As GpPen) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipMultiplyPenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipTranslatePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal dx As Single, ByVal dy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipScalePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipRotatePenTransform Lib "gdiplus" (ByVal pen As GpPen, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
-    
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipSetPenBrushFill Lib "gdiplus" (ByVal pen As GpPen, ByVal Brush As GpBrush) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetPenBrushFill Lib "gdiplus" (ByVal pen As GpPen, Brush As GpBrush) As GpStatus
 End Module
