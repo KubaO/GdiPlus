@@ -7,8 +7,9 @@
 [COMCreatable(False)]
 Class Graphics
     Inherits GdiPlusBase
-    Implements ITransformable
+    Implements ITransformable, IDeviceContext
     Dim gr As GpGraphics
+    Dim nativeHDC As LongPtr
     
     Sub New(ByVal hdc As LongPtr)
         SetStatus(gr.CreateFromHDC(hdc))
@@ -34,6 +35,7 @@ Class Graphics
 
     Sub Class_Terminate()
         gr.Delete
+        If nativeHDC <> 0 Then ReleaseHDC()
     End Sub
 
 '#if (GDIPVER >= 0x0110)
@@ -45,16 +47,22 @@ Class Graphics
     ' GDI Interop methods
     '------------------------------------------------------------------------
     
-    ' Locks the graphics until ReleaseDC is called
-    Function GetHDC() As LongPtr
+    ' Locks the graphics until ReleaseHDC is called
+    Function GetHDC() As LongPtr Implements IDeviceContext.GetHdc
         GetHDC = 0
         SetStatus(gr.GetDC(GetHDC))
+        nativeHDC = GetHDC
     End Function
     
     Sub ReleaseHDC(ByVal hdc As LongPtr)
         SetStatus(gr.ReleaseDC(hdc))
     End Sub
 
+    Sub ReleaseHDC() Implements IDeviceContext.ReleaseHdc
+        SetStatus(gr.ReleaseDC(nativeHDC))
+        nativeHDC = 0
+    End Sub
+    
     '------------------------------------------------------------------------
     ' Rendering modes
     '------------------------------------------------------------------------

@@ -11,6 +11,11 @@ Interface GdiPlusAbort
     Function Abort() As Long
 End Interface
 
+Interface IDeviceContext Extends IUnknown
+    Function GetHdc() As LongPtr
+    Sub ReleaseHdc()
+End Interface
+
 Interface ITransformable Extends IUnknown
     Property Get Transform() As Matrix
     Property Let Transform(matrix As Matrix)
