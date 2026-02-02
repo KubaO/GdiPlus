@@ -25,16 +25,16 @@ Class Pen
         SetStatus(status)
         pn = nativePen
     End Sub
-    
-    Sub Class_Terminate()
-        pn.Delete
-    End Sub
-    
+        
     Function Clone() As Pen
         Dim clonePen As GpPen
         SetStatus(pn.Clone(clonePen))
         If LastResult = Ok Then Return New Pen(clonePen.Release(), LastResult)
     End Function
+    
+    Private Sub Class_Terminate()
+        pn.Delete
+    End Sub
     
     Property Let Width(ByVal width!)
         SetStatus(pn.SetWidth(width))
