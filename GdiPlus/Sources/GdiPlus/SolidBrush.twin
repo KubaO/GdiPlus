@@ -10,11 +10,11 @@ Class SolidBrush
     Inherits Brush
     
     Sub New(ByVal rgb&)
-        LastStatus = GdipSolidBrush.GdipCreateSolidFill(FromCOLORREF(rgb), br)
+        SetStatus(GdipSolidBrush.GdipCreateSolidFill(FromCOLORREF(rgb), br))
     End Sub
     
     Sub New(ByVal color As Color)
-        LastStatus = GdipSolidBrush.GdipCreateSolidFill(color, br)
+        SetStatus(GdipSolidBrush.GdipCreateSolidFill(color, br))
     End Sub
     
     Property Get Color() As Color
@@ -30,7 +30,7 @@ Class SolidBrush
     End Property
     
     Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
-        lastStatus = lastStatus
+        SetStatus(lastStatus)
         SetNativeSolid(nativeBrush)
     End Sub
     

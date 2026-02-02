@@ -10,27 +10,27 @@ Class Region
     Dim rg As GpRegion
     
     Sub New()
-        LastStatus = rg.CreateInto(rg)
+        SetStatus(rg.CreateInto(rg))
     End Sub
     
     Sub New(rect As GpRectF)
-        LastStatus = rg.CreateRectInto(rect, rg)
+        SetStatus(rg.CreateRectInto(rect, rg))
     End Sub
 
     Sub New(rect As GpRect)
-        LastStatus = rg.CreateRectIntoI(rect, rg)
+        SetStatus(rg.CreateRectIntoI(rect, rg))
     End Sub
 
     Sub New(path As GraphicsPath)
-        LastStatus = rg.CreatePathInto(GetNative(path), rg)
+        SetStatus(rg.CreatePathInto(GetNative(path), rg))
     End Sub
     
     Sub New(regionData As Byte, ByVal size&)
-        LastStatus = rg.CreateRgnDataInto(regionData, size, rg)
+        SetStatus(rg.CreateRgnDataInto(regionData, size, rg))
     End Sub
     
     Sub New(ByVal hRgn As LongPtr)
-        LastStatus = rg.CreateHrgnInto(hRgn, rg)
+        SetStatus(rg.CreateHrgnInto(hRgn, rg))
     End Sub
 
     Sub Class_Terminate()

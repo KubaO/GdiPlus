@@ -14,7 +14,7 @@ Class FontFamily
     End Sub
     
     Sub New(ByVal name$, Optional fontCollection As FontCollection)
-        LastStatus = ff.CreateFromNameInto(name, GetNative(fontCollection), ff)
+        SetStatus(ff.CreateFromNameInto(name, GetNative(fontCollection), ff))
     End Sub
         
     Sub Class_Terminate()
@@ -29,7 +29,7 @@ Class FontFamily
     Function Clone() As FontFamily
         Dim clonedFamily As GpFontFamily
         SetStatus(ff.Clone(clonedFamily))
-        If LastStatus = Ok Then Set Clone = New FontFamily(clonedFamily, LastResult)
+        If LastResult = Ok Then Set Clone = New FontFamily(clonedFamily, LastResult)
     End Function
     
     Property Get IsAvailable() As Boolean
@@ -59,7 +59,7 @@ Class FontFamily
     Function IsStyleAvailable(ByVal style As GpFontStyle) As Boolean
         Dim booln As GDIP_BOOL
         SetStatus(ff.IsStyleAvailable(style, booln))
-        If LastStatus = Ok Then IsStyleAvailable = booln
+        If LastResult = Ok Then IsStyleAvailable = booln
     End Function
     
     Property Get EmHeight(ByVal style&) As Integer
@@ -88,13 +88,12 @@ Class FontFamily
     
     ' Used in Font
     Public Sub New(ByVal nativeFamily As GpFontFamily)
-        LastStatus = Ok
         SetNativeFontFamily(nativeFamily)
     End Sub
     
     ' Used in FontFamilyModule
     Public Sub New(ByVal nativeFamily As GpFontFamily, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         SetNativeFontFamily(nativeFamily)
     End Sub
     

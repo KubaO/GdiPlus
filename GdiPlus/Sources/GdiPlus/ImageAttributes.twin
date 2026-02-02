@@ -28,7 +28,7 @@ Class ImageAttributes
     Dim ia As GpImageAttributes
     
     Sub New()
-        LastStatus = ia.CreateInto(ia)
+        SetStatus(ia.CreateInto(ia))
     End Sub
     
     Sub Class_Terminate()
@@ -170,7 +170,7 @@ Class ImageAttributes
     End Sub
     
     Protected Sub New(ByVal imageAttr As GpImageAttributes, ByVal status As GpStatus)
-        LastStatus = status
+        SetStatus(status)
         SetNativeAttributes(imageAttr)
     End Sub
 End Class

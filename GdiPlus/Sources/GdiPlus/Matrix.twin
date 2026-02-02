@@ -10,25 +10,24 @@ Class Matrix
     Protected mx As GpMatrix
     
     Sub New(ByVal nativeMatrix As GpMatrix)
-        LastStatus = Ok
         SetNativeMatrix(nativeMatrix)
     End Sub
         
     [Description("Become an identity matrix by default.")]
     Sub New()
-        LastStatus = mx.CreateInto(mx)
+        SetStatus(mx.CreateInto(mx))
     End Sub
     
     Sub New(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!)
-        LastStatus = mx.CreateInto2(m11, m12, m21, m22, dx, dy, mx)
+        SetStatus(mx.CreateInto2(m11, m12, m21, m22, dx, dy, mx))
     End Sub
     
     Sub New(rect As GpRectF, ByVal dstplg As GpPointF)
-        LastStatus = mx.CreateInto3(rect, dstplg, mx)
+        SetStatus(mx.CreateInto3(rect, dstplg, mx))
     End Sub
 
     Sub New(rect As GpRect, ByVal dstplg As GpPoint)
-        LastStatus = mx.CreateInto3I(rect, dstplg, mx)
+        SetStatus(mx.CreateInto3I(rect, dstplg, mx))
     End Sub
 
     Sub Class_Terminate()
@@ -45,7 +44,7 @@ Class Matrix
         Dim results!()
         ReDim results(1 To 6)
         SetStatus(mx.GetElements(results(1)))
-        If LastStatus = Ok Then Elements = results
+        If LastResult = Ok Then Elements = results
     End Property
     
     Function GetElements(m!) As GpStatus
