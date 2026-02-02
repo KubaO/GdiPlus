@@ -10,21 +10,21 @@ Class GdiPlusUser
 
     Sub New()
         gdiPlusRefCount += 1
-        If gdiPlusRefCount = 1 Or gdiPlusToken = -1 Then
+        If gdiPlusRefCount = 1 Or gdiPlusToken.value = -1 Then
             Dim gsi As GdiplusStartupInput
             gsi.GdiplusVersion = 1
-            LastStatus = GdiplusStartup(gdiPlusToken, gsi, 0)
+            SetStatus(gdiPlusToken.Startup(gsi, 0))
         End If
     End Sub
     
     Sub Class_Terminate()
         gdiPlusRefCount -= 1
-        If gdiPlusRefCount <= 0 And gdiPlusToken <> -1 Then
+        If gdiPlusRefCount <= 0 And gdiPlusToken.value <> -1 Then
             Set GenericSansSerifFF = Nothing
             Set GenericSerifFF = Nothing
             Set GenericMonospaceFF = Nothing
-            SetStatus(GdiplusShutdown(gdiPlusToken))
-            gdiPlusToken = -1
+            SetStatus(gdiPlusToken.Shutdown())
+            gdiPlusToken.value = -1
             gdiPlusRefCount = 0
         End If
     End Sub
@@ -42,8 +42,20 @@ Module GdipGdiPlusUser
         SuppressExternalCodecs As GDIP_BOOL
     End Type
     
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdiplusStartup Lib "gdiplus" (token As LongPtr, LInput As GdiplusStartupInput, Optional ByVal lOutPut As LongPtr = 0) As GpStatus
-    [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdiplusShutdown Lib "gdiplus" (ByVal token As LongPtr) As GpStatus
+    Type GpToken
+        value As LongPtr
+        
+        Sub Type_Initialize()
+            Me.value = -1
+        End Sub
+        
+        Sub Release()
+            If Me.value <> -1 Then Me.Shutdown
+        End Sub
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Startup Lib "gdiplus" Alias "GdiplusStartup" (Me As GpToken, lInput As GdiplusStartupInput, Optional ByVal lOutPut As LongPtr = 0) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Shutdown Lib "gdiplus" Alias "GdiplusShutdown" (ByVal Me As GpToken) As GpStatus
+    End Type
 End Module

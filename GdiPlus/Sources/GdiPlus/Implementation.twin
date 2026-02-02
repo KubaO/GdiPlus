@@ -162,7 +162,7 @@ Private Module GdipImplementation
     End Function
     
     Public gdiPlusRefCount& = 0
-    Public gdiPlusToken As LongPtr = -1
+    Public gdiPlusToken As GpToken
     
     Public GenericSansSerifFF As FontFamily
     Public GenericSerifFF As FontFamily
