@@ -112,7 +112,7 @@ Class StringFormat
         SetStatus(sf.SetTrimming(trimming))
     End Property
         
-    Property Get Trimming() As GpHotkeyPrefix
+    Property Get Trimming() As GpStringTrimming
         SetStatus(sf.GetTrimming(Trimming))
     End Property
     
