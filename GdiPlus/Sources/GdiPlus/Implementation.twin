@@ -117,6 +117,72 @@ Private Module GdipImplementation
         Return Ok
     End Function
 
+    Function GdipMin(ByVal a&, ByVal b&) As Long
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+    End Function
+    
+    Function GdipMin(ByVal a!, ByVal b!) As Single
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+    End Function
+
+    Function GdipMin(ByVal a#, ByVal b#) As Double
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+    End Function
+    
+    Function GdipMin(ByVal a&, ByVal b&, ByVal c&) As Long
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+        If c < GdipMin Then GdipMin = c
+    End Function
+    
+    Function GdipMin(ByVal a!, ByVal b!, ByVal c!) As Single
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+        If c < GdipMin Then GdipMin = c
+    End Function
+
+    Function GdipMin(ByVal a#, ByVal b#, ByVal c#) As Double
+        GdipMin = a
+        If b < GdipMin Then GdipMin = b
+        If c < GdipMin Then GdipMin = c
+    End Function
+    
+    Function GdipMax(ByVal a&, ByVal b&) As Long
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+    End Function
+    
+    Function GdipMax(ByVal a!, ByVal b!) As Single
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+    End Function
+    
+    Function GdipMax(ByVal a#, ByVal b#) As Double
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+    End Function
+    
+    Function GdipMax(ByVal a&, ByVal b&, ByVal c&) As Long
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+        If c > GdipMax Then GdipMax = c
+    End Function
+    
+    Function GdipMax(ByVal a!, ByVal b!, ByVal c!) As Single
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+        If c > GdipMax Then GdipMax = c
+    End Function
+    
+    Function GdipMax(ByVal a#, ByVal b#, ByVal c#) As Double
+        GdipMax = a
+        If b > GdipMax Then GdipMax = b
+        If c > GdipMax Then GdipMax = c
+    End Function
+
     Sub RotateAtImpl(Of T)(ByVal obj As T, ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend)
         If order = MatrixOrderPrepend Then
             obj.TranslateTransform(center.X, center.Y, order)
