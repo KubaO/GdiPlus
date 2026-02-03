@@ -160,6 +160,18 @@ Private Module GdipImplementation
         count = newCount
         Return Ok
     End Function
+
+    Sub RotateAtImpl(Of T)(ByVal obj As T, ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend)
+        If order = MatrixOrderPrepend Then
+            obj.TranslateTransform(center.X, center.Y, order)
+            obj.RotateTransform(angle, order)
+            obj.TranslateTransform(-center.X, -center.Y, order)
+        Else
+            obj.TranslateTransform(-center.X, -center.Y, order)
+            obj.RotateTransform(angle, order)
+            obj.TranslateTransform(center.X, center.Y, order)
+        End If
+    End Sub
     
     Public gdiPlusRefCount& = 0
     Public gdiPlusToken As GpToken

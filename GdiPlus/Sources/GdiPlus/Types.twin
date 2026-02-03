@@ -11,6 +11,21 @@ Interface GdiPlusAbort
     Function Abort() As Long
 End Interface
 
+Interface ITransformable Extends IUnknown
+    Property Get Transform() As Matrix
+    Property Let Transform(matrix As Matrix)
+    Function GetTransform(outMatrix As Matrix) As GpStatus
+    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
+	[Description("Set the transform to identity matrix")]
+    Function ResetTransform() As GpStatus
+End Interface
+
 Alias ARGB As Long
 Alias ARGB64 As LongLong
 Alias UINT As Long

@@ -7,6 +7,7 @@
 [COMCreatable(False)]
 Class Graphics
     Inherits GdiPlusBase
+    Implements ITransformable
     Dim gr As GpGraphics
     
     Sub New(ByVal hdc As LongPtr)
@@ -134,34 +135,66 @@ Class Graphics
     ' Manipulate current world transform
     '------------------------------------------------------------------------
 
-    Property Let Transform(matrix As Matrix)
+    Property Let Transform(matrix As Matrix) _
+        Implements ITransformable.Transform
         SetStatus(gr.SetWorldTransform(GetNative(matrix)))
     End Property
     
-    Property Get Transform() As Matrix
+    Property Get Transform() As Matrix _
+        Implements ITransformable.Transform
         Dim nativeMatrix As GpMatrix
         SetStatus(gr.GetWorldTransform(nativeMatrix))
         If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
     End Property
     
-    Function ResetTransform() As GpStatus
+    Function GetTransform(matrix As Matrix) As GpStatus _
+        Implements ITransformable.GetTransform
+        Return SetStatus(gr.GetWorldTransform(GetNative(matrix)))
+    End Function
+    
+    Function ResetTransform() As GpStatus _
+        Implements ITransformable.ResetTransform
         Return SetStatus(gr.ResetWorldTransform())
     End Function
     
-    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.MultiplyTransform
         Return SetStatus(gr.MultiplyWorldTransform(GetNative(matrix), order))
     End Function
     
-    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
         Return SetStatus(gr.TranslateWorldTransform(dx, dy, order))
     End Function
     
-    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal offset As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
+        Return SetStatus(gr.TranslateWorldTransformP(offset, order))
+    End Function
+    
+    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ScaleTransform
         Return SetStatus(gr.ScaleWorldTransform(sx, sy, order))
     End Function
     
-    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransform
         Return SetStatus(gr.RotateWorldTransform(angle, order))
+    End Function
+    
+    Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransformAt
+        RotateAtImpl(gr, angle, center, order)
+        Return LastResult
+    End Function
+    
+    Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ShearTransform
+        Dim transform As GpMatrix
+        SetStatus(gr.GetWorldTransform(transform))
+        SetStatus(transform.Shear(shearX, shearY, order))
+        SetStatus(gr.SetWorldTransform(transform))
+        Return LastResult
     End Function
     
     Property Let PageUnit(ByVal unit As GpUnit)
@@ -1252,13 +1285,20 @@ Module GdipGraphics
         [UseGetLastError(False)]
         Declare PtrSafe Function SetWorldTransform Lib "gdiplus" Alias "GdipSetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function MultiplyWorldTransform Lib "gdiplus" Alias "GdipMultiplyWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function MultiplyWorldTransform Lib "gdiplus" Alias "GdipMultiplyWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function ScaleWorldTransform Lib "gdiplus" Alias "GdipScaleWorldTransform" (ByVal Me As GpGraphics, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function ScaleWorldTransform Lib "gdiplus" Alias "GdipScaleWorldTransform" (ByVal Me As GpGraphics, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function TranslateWorldTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function TranslateWorldTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function RotateWorldTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
+        Declare PtrSafe Function RotateWorldTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        
+        ' Aliases for RotateAtImpl
+        [UseGetLastError(False)]
+        Declare PtrSafe Function TranslateTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function ResetPageTransform Lib "gdiplus" Alias "GdipResetPageTransform" (ByVal Me As GpGraphics) As GpStatus
         
