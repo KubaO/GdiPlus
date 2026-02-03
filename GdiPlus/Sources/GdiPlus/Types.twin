@@ -44,30 +44,6 @@ Alias GraphicsState As Long
 Alias GraphicsContainer As Long
 
 Module Types
-    Function GDIPLUS_MIN(ByVal a#, ByVal b#) As Double
-        Return If(a < b, a, b)
-    End Function
-    
-    Function GDIPLUS_MIN(ByVal a!, ByVal b!) As Single
-        Return If(a < b, a, b)
-    End Function
-
-    Function GDIPLUS_MIN(ByVal a&, ByVal b&) As Long
-        Return If(a < b, a, b)
-    End Function
-    
-    Function GDIPLUS_MAX(ByVal a#, ByVal b#) As Double
-        Return If(a > b, a, b)
-    End Function
-    
-    Function GDIPLUS_MAX(ByVal a!, ByVal b!) As Single
-        Return If(a > b, a, b)
-    End Function
-    
-    Function GDIPLUS_MAX(ByVal a&, ByVal b&) As Long
-        Return If(a > b, a, b)
-    End Function
-    
     '--------------------------------------------------------------------------
     ' Callback functions
     '--------------------------------------------------------------------------
@@ -484,10 +460,10 @@ Module Types
     End Function
     
     Private Function Intersect(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MIN(a.Right, b.Right)
-        Dim bottom! = GDIPLUS_MIN(a.Bottom, b.Bottom)
-        Dim left! = GDIPLUS_MAX(a.Left, b.Left)
-        Dim top! = GDIPLUS_MAX(a.Top, b.Top)
+        Dim right! = GdipMin(a.Right, b.Right)
+        Dim bottom! = GdipMin(a.Bottom, b.Bottom)
+        Dim left! = GdipMax(a.Left, b.Left)
+        Dim top! = GdipMax(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -497,10 +473,10 @@ Module Types
     End Function
     
     Private Function Union(c As GpRectF, a As GpRectF, b As GpRectF) As Boolean
-        Dim right! = GDIPLUS_MAX(a.Right, b.Right)
-        Dim bottom! = GDIPLUS_MAX(a.Bottom, b.Bottom)
-        Dim left! = GDIPLUS_MIN(a.Left, b.Left)
-        Dim top! = GDIPLUS_MIN(a.Top, b.Top)
+        Dim right! = GdipMax(a.Right, b.Right)
+        Dim bottom! = GdipMax(a.Bottom, b.Bottom)
+        Dim left! = GdipMin(a.Left, b.Left)
+        Dim top! = GdipMin(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -690,10 +666,10 @@ Module Types
     End Function
     
     Function Intersect(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MIN(a.Right, b.Right)
-        Dim bottom! = GDIPLUS_MIN(a.Bottom, b.Bottom)
-        Dim left! = GDIPLUS_MAX(a.Left, b.Left)
-        Dim top! = GDIPLUS_MAX(a.Top, b.Top)
+        Dim right! = GdipMin(a.Right, b.Right)
+        Dim bottom! = GdipMin(a.Bottom, b.Bottom)
+        Dim left! = GdipMax(a.Left, b.Left)
+        Dim top! = GdipMax(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -703,10 +679,10 @@ Module Types
     End Function
     
     Function Union(c As GpRect, a As GpRect, b As GpRect) As Boolean
-        Dim right! = GDIPLUS_MAX(a.Right, b.Right)
-        Dim bottom! = GDIPLUS_MAX(a.Bottom, b.Bottom)
-        Dim left! = GDIPLUS_MIN(a.Left, b.Left)
-        Dim top! = GDIPLUS_MIN(a.Top, b.Top)
+        Dim right! = GdipMax(a.Right, b.Right)
+        Dim bottom! = GdipMax(a.Bottom, b.Bottom)
+        Dim left! = GdipMin(a.Left, b.Left)
+        Dim top! = GdipMin(a.Top, b.Top)
 
         c.X = left
         c.Y = top
@@ -752,7 +728,7 @@ Module Types
     
     Function ColorPalette(ByVal flags As PaletteFlags, entries() As Long) As ColorPalette
         ColorPalette.flags = flags
-        ColorPalette.count = GDIPLUS_MIN(256, ArrayLen(entries))
+        ColorPalette.count = GdipMin(256, ArrayLen(entries))
         vbaCopyBytesRef(ColorPalette.count * LenB(Of Color), ColorPalette.entries, entries(LBound(entries)))
     End Function
 End Module
