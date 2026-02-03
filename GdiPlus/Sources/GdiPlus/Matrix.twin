@@ -7,6 +7,7 @@
 [COMCreatable(False)]
 Class Matrix
     Inherits GdiPlusBase
+    Implements ITransformable
     Protected mx As GpMatrix
     
     Sub New(ByVal nativeMatrix As GpMatrix)
@@ -65,44 +66,64 @@ Class Matrix
         If GetElements(elements(1)) = Ok Then OffsetY = elements(6)
     End Property
     
+    Property Get Me() As Matrix _
+        Implements ITransformable.Transform
+        Return Me
+    End Property
+    
+    Property Let Me(newValue As Matrix) _
+        Implements ITransformable.Transform
+        Dim elts(6) As Single
+        newValue.GetElements(elts(1))
+        Me.SetElements(elts(1), elts(2), elts(3), elts(4), elts(5), elts(6))
+    End Property
+    
+    Function Get(output As Matrix) As GpStatus _
+        Implements ITransformable.GetTransform
+        Dim elts(6) As Single
+        Me.GetElements(elts(1))
+        output.SetElements(elts(1), elts(2), elts(3), elts(4), elts(5), elts(6))
+    End Function
+    
     [Description("Set to identity matrix")]
-    Function Reset() As GpStatus
+    Function Reset() As GpStatus _
+        Implements ITransformable.ResetTransform
         Return SetStatus(mx.SetElements(1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
     End Function
     
-    Function Multiply(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Multiply(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.MultiplyTransform
         Return SetStatus(mx.Multiply(GetNative(matrix), order))
     End Function
     
-    Function Translate(ByVal offsetX!, ByVal offsety!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Translate(ByVal offsetX!, ByVal offsety!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
         Return SetStatus(mx.Translate(offsetX, offsety, order))
     End Function
     
-    Function Translate(ByVal offset As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Translate(ByVal offset As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
         Return SetStatus(mx.Translate(offset.X, offset.Y, order))
     End Function
     
-    Function Scale(ByVal scaleX!, ByVal scaleY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Scale(ByVal scaleX!, ByVal scaleY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ScaleTransform
         Return SetStatus(mx.Scale(scaleX, scaleY, order))
     End Function
         
-    Function Rotate(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Rotate(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransform
         Return SetStatus(mx.Rotate(angle, order))
     End Function
     
-    Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
-        If order = MatrixOrderPrepend Then
-            SetStatus(mx.Translate(center.X, center.Y, order))
-            SetStatus(mx.Rotate(angle, order))
-            Return SetStatus(mx.Translate(-center.X, -center.Y, order))
-        Else
-            SetStatus(mx.Translate(-center.X, -center.Y, order))
-            SetStatus(mx.Rotate(angle, order))
-            Return SetStatus(mx.Translate(center.X, center.Y, order))
-        End If
+    Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransformAt
+        RotateAtImpl(mx, angle, center, order)
+        Return LastResult
     End Function
     
-    Function Shear(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function Shear(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ShearTransform
         Return SetStatus(mx.Shear(shearX, shearY, order))
     End Function
     
@@ -201,21 +222,26 @@ Module GdipMatrix
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Invert Lib "gdiplus" Alias "GdipInvertMatrix" (ByVal Me As GpMatrix) As GpStatus
         [UseGetLastError(False)]
+        Public Declare PtrSafe Function Multiply Lib "gdiplus" Alias "GdipMultiplyMatrix" (ByVal Me As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Translate Lib "gdiplus" Alias "GdipTranslateMatrix" (ByVal Me As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Rotate Lib "gdiplus" Alias "GdipRotateMatrix" (ByVal Me As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Scale Lib "gdiplus" Alias "GdipScaleMatrix" (ByVal Me As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Shear Lib "gdiplus" Alias "GdipShearMatrix" (ByVal Me As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+		
+        ' Aliases for RotateAtImpl
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function TranslateTransform Lib "gdiplus" Alias "GdipTranslateMatrix" (ByVal Me As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotateMatrix" (ByVal Me As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+
+        [UseGetLastError(False)]
         Public Declare PtrSafe Function SetElements Lib "gdiplus" Alias "GdipSetMatrixElements" (ByVal Me As GpMatrix, ByVal m11 As Single, ByVal m12 As Single, ByVal m21 As Single, ByVal m22 As Single, ByVal Dx As Single, ByVal Dy As Single) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetElements Lib "gdiplus" Alias "GdipGetMatrixElements" (ByVal Me As GpMatrix, matrixOut As Single) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneMatrix" (ByVal Me As GpMatrix, cloneMatrix As GpMatrix) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Multiply Lib "gdiplus" Alias "GdipMultiplyMatrix" (ByVal Me As GpMatrix, ByVal matrix2 As GpMatrix, ByVal order As GpMatrixOrder) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Translate Lib "gdiplus" Alias "GdipTranslateMatrix" (ByVal Me As GpMatrix, ByVal offsetX As Single, ByVal offsetY As Single, ByVal order As GpMatrixOrder) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Rotate Lib "gdiplus" Alias "GdipRotateMatrix" (ByVal Me As GpMatrix, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Scale Lib "gdiplus" Alias "GdipScaleMatrix" (ByVal Me As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Shear Lib "gdiplus" Alias "GdipShearMatrix" (ByVal Me As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function IsInvertible Lib "gdiplus" Alias "GdipIsMatrixInvertible" (ByVal Me As GpMatrix, result As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]

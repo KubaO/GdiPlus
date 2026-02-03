@@ -7,7 +7,7 @@
 [COMCreatable(False)]
 Class LinearGradientBrush
     Inherits GdiPlusBase
-    Implements IBrush
+    Implements IBrush, ITransformable
     Protected br As GpLineGradient
     
     Function Clone() As LinearGradientBrush
@@ -202,42 +202,66 @@ Class LinearGradientBrush
         Return SetStatus(br.SetBlendTriangularShape(focus, scale))
     End Function
     
-    Property Let Transform(matrix As Matrix)
+    Property Let Transform(matrix As Matrix) _
+        Implements ITransformable.Transform
         SetStatus(br.SetTransform(GetNative(matrix)))
     End Property
     
-    Property Get Transform() As Matrix
+    Property Get Transform() As Matrix _
+        Implements ITransformable.Transform
         Dim nativeMatrix As GpMatrix
         SetStatus(br.GetTransform(nativeMatrix))
         If LastResult = Ok Then Set Transform = New Matrix(nativeMatrix)
     End Property
         
-    Function GetTransform(outMatrix As Matrix) As GpStatus
+    Function GetTransform(outMatrix As Matrix) As GpStatus _
+        Implements ITransformable.GetTransform
         Return SetStatus(br.GetTransform(UnprotectedAccess(outMatrix).mx))
     End Function
     
-    Function ResetTransform() As GpStatus
+    Function ResetTransform() As GpStatus _
+        Implements ITransformable.ResetTransform
         Return SetStatus(br.ResetTransform())
     End Function
     
-    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function MultiplyTransform(matrix As Matrix, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.MultiplyTransform
         Return SetStatus(br.MultiplyTransform(GetNative(matrix), order))
     End Function
-
-    Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    
+    Function TranslateTransform(ByVal delta As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
         Return SetStatus(br.TranslateTransform(delta.X, delta.Y, order))
     End Function
     
-    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function TranslateTransform(ByVal dx!, ByVal dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.TranslateTransform
         Return SetStatus(br.TranslateTransform(dx, dy, order))
     End Function
     
-    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function ScaleTransform(ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ScaleTransform
         Return SetStatus(br.ScaleTransform(sx, sy, order))
     End Function
     
-    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+    Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransform
         Return SetStatus(br.RotateTransform(angle, order))
+    End Function
+    
+    Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.RotateTransformAt
+        RotateAtImpl(br, angle, center, order)
+        Return LastResult
+    End Function
+    
+    Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
+        Implements ITransformable.ShearTransform
+        Dim transform As GpMatrix
+        SetStatus(br.GetTransform(transform))
+        SetStatus(transform.Shear(shearX, shearY, order))
+        SetStatus(br.SetTransform(transform))
+        Return LastResult
     End Function
     
     Property Let WrapMode(ByVal wrapMode As GpWrapMode)
