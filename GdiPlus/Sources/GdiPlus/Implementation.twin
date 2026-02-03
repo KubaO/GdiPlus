@@ -12,6 +12,8 @@ Private Module GdipImplementation
         Return 1 + UBound(array) - LBound(array)
     End Function
     
+    [Description("Sets sa to be a 1D static view into data. Existing value of sa, if any, is discarded." & vbCrLf _
+        & "If sa was previously pointing to dynamically allocated data, that memory will be leaked.")]
     Sub SetStaticSA(ByRef sa As GDIP_SAFEARRAY1D, ByVal elementSize&, ByVal data As LongPtr, ByVal count&)
         sa.cDims = 1
         sa.fFeatures = FADF_STATIC + FADF_FIXEDSIZE
@@ -25,8 +27,8 @@ Private Module GdipImplementation
     Private Sub SetCElements(ByRef sa As GDIP_SAFEARRAY1D, ByVal count&)
         sa.Bounds.cElements = count
     End Sub
-
-    [Description("Returns a static SAFEARRAY1D that refers to data.")]
+    
+    [Description("Returns a static 1D view of data.")]
     Function StaticSA(Of T)(ByVal data As LongPtr, ByVal count&) As T()
         Dim saPtr As LongPtr
         GdipImplementation.SafeArrayAllocDescriptor(1, StaticSA)
@@ -34,7 +36,7 @@ Private Module GdipImplementation
         SetStaticSA(ByVal saPtr, LenB(Of T), data, count)
     End Function
 
-    [Description("Redims an array from lbound to ubound." & vbcrlf & _
+    [Description("Redims an array from lbound to ubound." & vbCrLf & _
         "Ensures that total allocated size is at least requiredByteSize.")]
     Sub ReDimOversized(Of T)(array() As T, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&)
         Dim numElements& = ubound - lbound + 1
@@ -50,24 +52,30 @@ Private Module GdipImplementation
         SetCElements(ByVal arrayAddr, numElements)
         ' The SAFEARRAY structure's bounds reflect the number of elements.
         ' The allocated memory for the structure is potentially larger and can hold at 
-        ' least requiredbyteSize bytes.
+        ' least requiredByteSize bytes.
     End Sub
     
     Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
         Return ((ptr + alignment& - 1) / alignment) * alignment
     End Function
     
+    [Description("Sets up a static 1D view of data in the same allocation as the data." & vbCrLf _
+        & "Assumes that there is enough extra space after the data to fit a STATICARRAY1D header." & vbCrLf _
+        & "Does not allocate memory.")]
     Sub InitStaticTrailingSA(ByVal data As LongPtr, ByVal elementSize&, ByVal count As LongPtr)
         Dim alignedSize As LongPtr = AlignTo(count * elementSize, 8)
         SetStaticSA(ByVal (data + alignedSize), elementSize, data, CLng(count))
     End Sub
-
+    
+    [Description("Returs the static 1D view of data that was previously set up using InitStaticTrailingSA." & vbCrLf _
+        & "Does not allocate memory.")]
     Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count As LongPtr) As T()
         Dim alignedSize As LongPtr = AlignTo(count * LenB(Of T), 8)
         PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
     End Function
     
-    [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it.")]
+    [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it." & vbCrLf _
+        & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
     Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count&) As GpStatus
         Dim alignedSize As LongPtr
         
@@ -87,7 +95,8 @@ Private Module GdipImplementation
         Return Ok
     End Function
     
-    [Description("Allocates two areas for data, each followed by a trailing static SAFEARRAY describing it.")]
+    [Description("Allocates two areas for data, or equal number of elements, each followed by a trailing static SAFEARRAY1D describing it." & vbCrLf _
+        & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
     Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, ByRef count&) As GpStatus
         Dim alignedSize1 As LongPtr, alignedSize2 As LongPtr
                     
