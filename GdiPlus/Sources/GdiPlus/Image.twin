@@ -9,7 +9,7 @@
 Class Image
     Inherits GdiPlusBase
     Protected im As GpImage
-    Protected LoadStatus As GpStatus
+    Protected loadStatus As GpStatus
    
     Sub New(ByVal filename$, useEmbeddedColorManagement As Boolean = False)
         If useEmbeddedColorManagement Then
@@ -29,7 +29,7 @@ Class Image
         
     Function Clone() As Image
         Dim cloneImage As GpImage
-        SetStatus(im.Clone(im))
+        SetStatus(im.Clone(cloneImage))
         If LastResult = Ok Then Return New Image(cloneImage, LastResult)
     End Function
         
