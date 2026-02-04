@@ -38,14 +38,18 @@ Private Module GdipImplementation
 
     [Description("Redims an array from lbound to ubound." & vbCrLf & _
         "Ensures that total allocated size is at least requiredByteSize.")]
-    Sub ReDimOversized(Of T)(array() As T, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&)
+    Sub ReDimOversized(Of T)(array() As T, ByVal lbound&, ByVal ubound&, ByVal requiredByteSize&, ByVal preserve As Boolean = False)
         Dim numElements& = ubound - lbound + 1
         Dim itemSize& = LenB(Of T)
         
         Dim arrayCount& = ((requiredByteSize + itemSize - 1) / itemSize)
         If arrayCount < numElements Then arrayCount = numElements
                 
-        ReDim array(lbound To lbound + arrayCount - 1)
+        If preserve Then
+            ReDim Preserve array(lbound To lbound + arrayCount - 1)
+        Else
+            ReDim array(lbound To lbound + arrayCount - 1)
+        End If
         Dim arrayAddr As LongPtr
         GetMemPtr(VarPtr(array), arrayAddr)
         
@@ -55,6 +59,15 @@ Private Module GdipImplementation
         ' least requiredByteSize bytes.
     End Sub
     
+    Sub SetOversizedCount(Of T)(array() As T, ByVal count&)
+        Dim arrayAddr As LongPtr
+        GetMemPtr(VarPtr(array), arrayAddr)
+        
+        SetCElements(ByVal arrayAddr, count&)
+        ' The SAFEARRAY structure's bounds reflect the number of elements.
+        ' The allocated memory for the structure is potentially larger.
+    End Sub
+        
     Function AlignTo(ByVal ptr As LongPtr, ByVal alignment&) As LongPtr
         Return ((ptr + alignment& - 1) / alignment) * alignment
     End Function
@@ -76,39 +89,33 @@ Private Module GdipImplementation
     
     [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it." & vbCrLf _
         & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
-    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, ByRef count&) As GpStatus
+    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, Optional ByRef count&) As GpStatus
         Dim alignedSize As LongPtr
         
-        If dataPtr <> 0 Then
-            GdipFree(dataPtr)
-            dataPtr = 0
-        End If
-        count = 0
+        GdipFree(dataPtr)
+        dataPtr = 0
+        If Not IsMissing(count) Then count = 0
         If newCount = 0 Then Return Ok
         alignedSize = AlignTo(newCount * elementSize, 8)
         dataPtr = GdipAlloc(alignedSize + LenB(Of GDIP_SAFEARRAY1D))
         If dataPtr = 0 Then
             Return OutOfMemory
         End If
-        InitStaticTrailingSA(dataPtr, elementSize, count)
-        count = newCount
+        InitStaticTrailingSA(dataPtr, elementSize, newCount)
+        If Not IsMissing(count) Then count = newCount
         Return Ok
     End Function
     
     [Description("Allocates two areas for data, or equal number of elements, each followed by a trailing static SAFEARRAY1D describing it." & vbCrLf _
         & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
-    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, ByRef count&) As GpStatus
+    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, Optional ByRef count&) As GpStatus
         Dim alignedSize1 As LongPtr, alignedSize2 As LongPtr
                     
-        If dataPtr1 <> 0 Then
-            GdipFree(dataPtr1)
-            dataPtr1 = 0
-        End If
-        If dataPtr2 <> 0 Then
-            GdipFree(dataPtr2)
-            dataPtr2 = 0
-        End If
-        count = 0
+        GdipFree(dataPtr1)
+        GdipFree(dataPtr2)
+        dataPtr1 = 0
+        dataPtr2 = 0
+        If Not IsMissing(count) Then count = 0
         If newCount = 0 Then Return Ok
         alignedSize1 = AlignTo(newCount * elementSize1, 8)
         dataPtr1 = GdipAlloc(alignedSize1 + LenB(Of GDIP_SAFEARRAY1D))
@@ -120,9 +127,9 @@ Private Module GdipImplementation
             dataPtr1 = 0
             Return OutOfMemory
         End If
-        InitStaticTrailingSA(dataPtr1, elementSize1, count)
-        InitStaticTrailingSA(dataPtr2, elementSize2, count)
-        count = newCount
+        InitStaticTrailingSA(dataPtr1, elementSize1, newCount)
+        InitStaticTrailingSA(dataPtr2, elementSize2, newCount)
+        If Not IsMissing(count) Then count = newCount
         Return Ok
     End Function
     
@@ -241,6 +248,104 @@ Private Module GdipImplementation
             obj.TranslateTransform(center.X, center.Y, order)
         End If
     End Sub
+    
+    Sub TGetMem1(Of T)(ByVal from As LongPtr, ByRef to As T)
+        Debug.Assert LenB(Of T) >= 1
+        GetMem1(from, ByVal VarPtr(to))
+    End Sub
+    
+    Sub TGetMem2(Of T)(ByVal from As LongPtr, ByRef to As T)
+        Debug.Assert LenB(Of T) >= 2
+        GetMem2(from, ByVal VarPtr(to))
+    End Sub
+
+    Sub TGetMem4(Of T)(ByVal from As LongPtr, ByRef to As T)
+        Debug.Assert LenB(Of T) >= 4
+        GetMem4(from, ByVal VarPtr(to))
+    End Sub
+    
+    Sub TGetMem8(Of T)(ByVal from As LongPtr, ByRef to As T)
+        Debug.Assert LenB(Of T) >= 8
+        GetMem8(from, ByVal VarPtr(to))
+    End Sub
+    
+    Sub TGetMemPtr(Of T)(ByVal from As LongPtr, ByRef to As T)
+        Debug.Assert LenB(Of T) >= LenB(Of LongPtr)
+        GetMemPtr(from, ByVal VarPtr(to))
+    End Sub
+    
+    Sub TPutMem1(Of T)(ByVal to As LongPtr, ByVal from As T)
+        Debug.Assert LenB(Of T) >= 1
+        Dim value As Byte
+        GetMem1(VarPtr(from), value)
+        PutMem1(to, value)
+    End Sub
+
+    Sub TPutMem2(Of T)(ByVal to As LongPtr, ByVal from As T)
+        Debug.Assert LenB(Of T) >= 2
+        Dim value%
+        GetMem2(VarPtr(from), value)
+        PutMem2(to, value)
+    End Sub
+
+    Sub TPutMem4(Of T)(ByVal to As LongPtr, ByVal from As T)
+        Debug.Assert LenB(Of T) >= 4
+        Dim value&
+        GetMem4(VarPtr(from), value)
+        PutMem4(to, value)
+    End Sub
+
+    Sub TPutMem8(Of T)(ByVal to As LongPtr, ByVal from As T)
+        Debug.Assert LenB(Of T) >= 8
+        Dim value As currency
+        GetMem8(VarPtr(from), value)
+        PutMem8(to, value)
+    End Sub
+
+    Sub TPutMemPtr(Of T)(ByVal to As LongPtr, ByVal from As T)
+        Debug.Assert LenB(Of T) >= LenB(Of LongPtr)
+        Dim value As LongPtr
+        GetMemPtr(VarPtr(from), value)
+        PutMemPtr(to, value)
+    End Sub
+    
+    Function ASCIIToString(ByVal address As LongPtr, ByVal length As Long = -1) As String
+        Dim bytes() As Byte
+        If length < 0 Then length = CStrLen(address)
+        ReDim bytes(1 To length + 1)
+        vbaCopyBytes(length, VarPtr(bytes(1)), address)
+        Return StrConv(bytes, vbFromUTF8)
+    End Function
+    
+    Function WCharToString(ByVal address As LongPtr, ByVal length As Long = -1) As String
+        If length < 0 Then length = WCStrLen(address)
+        WCharToString = String$(length, 0)
+        vbaCopyBytes(length * 2, StrPtr(WCharToString), address)
+    End Function
+    
+    Function CStrLen(ByVal address As LongPtr) As Long
+        Dim ch As Byte
+        Dim length As Long = 0
+        While True
+            GetMem1(address, ch)
+            length += 1
+            address += 1
+            If ch = 0 Then Exit While
+        Wend
+        Return length
+    End Function
+    
+    Function WCStrLen(ByVal address As LongPtr) As Long
+        Dim ch%
+        Dim length As Long = 0
+        While True
+            GetMem2(address, ch)
+            length += 1
+            address += 2
+            If ch = 0 Then Exit While
+        Wend
+        Return length
+    End Function
     
     Public gdiPlusRefCount& = 0
     Public gdiPlusToken As GpToken

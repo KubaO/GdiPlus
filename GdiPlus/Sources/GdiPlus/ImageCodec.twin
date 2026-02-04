@@ -9,48 +9,32 @@ Module GdipImageCodec
     ' Codec Management APIs
     '--------------------------------------------------------------------------
 
-    Function GetImageDecoders() As ImageCodecInfo()
+    Function GetImageDecoders() As GpImageCodecInfo()
         Dim status As GpStatus
         Dim numDecoders As UINT, arraySize As UINT
-        status = GdipGetImageDecodersSize(numDecoders, arraySize)
+        status = GetImageDecodersSize(numDecoders, arraySize)
         If status <> Ok Then Exit Function
         ReDimOversized(GetImageDecoders, 1, numDecoders, arraySize)
-        status = GdipGetImageDecoders(numDecoders, arraySize, GetImageDecoders)
+        status = GetImageDecoders(numDecoders, arraySize, GetImageDecoders)
         If status <> Ok Then Erase GetImageDecoders
     End Function
     
-    Function GetImageEncoders() As ImageCodecInfo()
+    Function GetImageEncoders() As GpImageCodecInfo()
         Dim status As GpStatus
         Dim numEncoders As UINT, arraySize As UINT
-        status = GdipGetImageEncodersSize(numEncoders, arraySize)
+        status = GetImageEncodersSize(numEncoders, arraySize)
         If status <> Ok Then Exit Function
         ReDimOversized(GetImageEncoders, 1, numEncoders, arraySize)
-        status = GdipGetImageEncoders(numEncoders, arraySize, GetImageEncoders)
+        status = GetImageEncoders(numEncoders, arraySize, GetImageEncoders)
         If status <> Ok Then Erase GetImageEncoders
     End Function
     
-    Function GetImageDecodersSize(numDecoders As UINT, size As UINT) As GpStatus
-        Return GdipGetImageDecodersSize(numDecoders, size)
-    End Function
-    
-    Function GetImageDecoders(ByVal numDecoders As UINT, ByVal size As UINT, decoders As ImageCodecInfo) As GpStatus
-        Return GdipGetImageDecoders(numDecoders, size, decoders)
-    End Function
-    
-    Function GetImageEncodersSize(numEncoders As UINT, size As UINT) As GpStatus
-        Return GdipGetImageEncodersSize(numEncoders, size)
-    End Function
-    
-    Function GetImageEncoders(numEncoders As UINT, size As UINT, encoders As ImageCodecInfo) As GpStatus
-        Return GdipGetImageEncoders(numEncoders, size, encoders)
-    End Function
-    
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetImageDecodersSize Lib "gdiplus" (numDecoders&, size&) As GpStatus
+    Public Declare PtrSafe Function GetImageDecodersSize Lib "gdiplus" Alias "GdipGetImageDecodersSize" (numDecoders As UINT, size As UINT) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetImageDecoders Lib "gdiplus" (ByVal numDecoders&, ByVal size&, decoders As Any) As GpStatus
+    Public Declare PtrSafe Function GetImageDecoders Lib "gdiplus" Alias "GdipGetImageDecoders" (ByVal numDecoders As UINT, ByVal size As UINT, decoders As Any) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetImageEncodersSize Lib "gdiplus" (numEncoders&, size&) As GpStatus
+    Public Declare PtrSafe Function GetImageEncodersSize Lib "gdiplus" Alias "GdipGetImageEncodersSize" (numEncoders As UINT, size As UINT) As GpStatus
     [UseGetLastError(False)]
-    Public Declare PtrSafe Function GdipGetImageEncoders Lib "gdiplus" (ByVal numEncoders&, ByVal size&, encoders As Any) As GpStatus
+    Public Declare PtrSafe Function GetImageEncoders Lib "gdiplus" Alias "GdipGetImageEncoders" (ByVal numEncoders As UINT, ByVal size As UINT, encoders As Any) As GpStatus
 End Module

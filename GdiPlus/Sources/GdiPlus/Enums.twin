@@ -983,6 +983,9 @@ Module GdipEnums
     '#if (GDIPVER >= &h0110)
         EncoderParameterValueTypePointer = 9        ' a pointer to a parameter defined data.
     '#endif //(GDIPVER >= &h0110)
+    
+        MinEncoderParameterValueType = 0
+        MaxEncoderParameterValueType = EncoderParameterValueTypePointer
     End Enum
 
     '---------------------------------------------------------------------------

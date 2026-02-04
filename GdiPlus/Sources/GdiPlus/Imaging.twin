@@ -231,30 +231,95 @@ Module GdipImaging
     End Function
 
     '--------------------------------------------------------------------------
-    ' ImageCodecInfo structure
+    ' GpImageCodecInfo structure
     '--------------------------------------------------------------------------
 
-    Public Type ImageCodecInfo
+    Public Type GpImageCodecInfo
         Clsid As GDIP_UUID
         FormatID As GDIP_UUID
-        CodecName As LongPtr
-        DllName As LongPtr
-        FormatDescription As LongPtr
-        FilenameExtension As LongPtr
-        MimeType As LongPtr
-        Flags As ImageCodecFlags
+        _codecName As LongPtr
+        _dllName As LongPtr
+        _formatDescription As LongPtr
+        _filenameExtension As LongPtr
+        _mimeType As LongPtr
+        Flags As GpImageCodecFlags
         Version As Long
-        SigCount As Long
-        SigSize As Long
-        SigPattern As LongPtr
-        SigMask As LongPtr
+        _sigCount As Long
+        _sigSize As Long
+        _sigPattern As LongPtr
+        _sigMask As LongPtr
+        
+        Property Get CodecName() As String
+            Return WCharToString(Me._codecName)
+        End Property
+        
+        Property Get DllName() As String
+            Return WCharToString(Me._dllName)
+        End Property
+        
+        Property Get FormatDescription() As String
+            Return WCharToString(Me._formatDescription)
+        End Property
+        
+        Property Get FilenameExtension() As String
+            Return WCharToString(Me._filenameExtension)
+        End Property
+        
+        Property Get MimeType() As String
+            Return WCharToString(Me._mimeType)
+        End Property
+        
+        Property Get IsEncoder() As Boolean
+            Return Me.Flags And ImageCodecFlagsEncoder
+        End Property
+        
+        Property Get IsDecoder() As Boolean
+            Return Me.Flags And ImageCodecFlagsDecoder
+        End Property
+
+        Property Get IsSupportBitmap() As Boolean
+            Return Me.Flags And ImageCodecFlagsSupportBitmap
+        End Property
+
+        Property Get IsSupportVector() As Boolean
+            Return Me.Flags And ImageCodecFlagsSupportVector
+        End Property
+
+        Property Get IsSeekableEncode() As Boolean
+            Return Me.Flags And ImageCodecFlagsSeekableEncode
+        End Property
+
+        Property Get IsBlockingDecode() As Boolean
+            Return Me.Flags And ImageCodecFlagsBlockingDecode
+        End Property
+
+        Property Get IsBuiltin() As Boolean
+            Return Me.Flags And ImageCodecFlagsBuiltin
+        End Property
+
+        Property Get IsSystem() As Boolean
+            Return Me.Flags And ImageCodecFlagsSystem
+        End Property
+        
+        Property Get IsUser() As Boolean
+            Return Me.Flags And ImageCodecFlagsUser
+        End Property
+                
+        Property Get SigPattern(ByVal index&) As Byte()
+            Return StaticSA(Of Byte)(Me._sigPattern + (index - 1) * Me._sigSize, Me._sigSize)
+        End Property
+        
+        Property Get SigMask(ByVal index&) As Byte()
+            Return StaticSA(Of Byte)(Me._sigMask + (index - 1) * Me._sigSize, Me._sigSize)
+        End Property
     End Type
     
     '--------------------------------------------------------------------------
     ' Information flags about image codecs
     '--------------------------------------------------------------------------
     
-    Public Enum ImageCodecFlags
+    [Flags]
+    Public Enum GpImageCodecFlags
         ImageCodecFlagsEncoder = &H00000001
         ImageCodecFlagsDecoder = &H00000002
         ImageCodecFlagsSupportBitmap = &H00000004
@@ -269,6 +334,8 @@ Module GdipImaging
     '---------------------------------------------------------------------------
     ' Access modes used when calling Image::LockBits
     '---------------------------------------------------------------------------
+    
+    [Flags]
     Public Enum ImageLockMode
         ImageLockModeRead = &H0001
         ImageLockModeWrite = &H0002
@@ -340,21 +407,153 @@ Module GdipImaging
     ' Encoder Parameter structure
     '---------------------------------------------------------------------------
     
-    Public Type EncoderParameter
-        Guid As GDIP_UUID                   ' GUID of the parameter
-        NumberOfValues As Long              ' Number of the parameter values
-        Type As GpEncoderParameterValueType ' Value type, like ValueTypeLONG  etc.
-        Value As LongPtr                    ' A pointer to the parameter values
+    Public Type GpEncoderParameter
+        Guid As GDIP_UUID                    ' GUID of the parameter
+        _count As Long                       ' Number of the parameter values
+        _type As GpEncoderParameterValueType ' Value type, like ValueTypeLONG  etc.
+        _address As LongPtr                  ' A pointer to the parameter values
+        
+        Property Get Type() As GpEncoderParameterValueType
+            Return CType(Of GpEncoderParameterValueType)(Me._type)
+        End Property
+        
+        Property Get Count() As Long
+            Return Me._count
+        End Property
+        
+        '---------------------------------------------------------------'
+        
+        Property Get IsASCII() As Boolean
+            Return Me.Type = EncoderParameterValueTypeASCII
+        End Property
+        
+        Property Get IsByte() As Boolean
+            Return Me.Type = EncoderParameterValueTypeByte
+        End Property
+        Property Get IsShort() As Boolean
+            Return Me.Type = EncoderParameterValueTypeShort
+        End Property
+        Property Get IsLong() As Boolean
+            Return Me.Type = EncoderParameterValueTypeLong
+        End Property
+        Property Get IsRational() As Boolean
+            Return Me.Type = EncoderParameterValueTypeRational
+        End Property
+        Property Get IsLongRange() As Boolean
+            Return Me.Type = EncoderParameterValueTypeLongRange
+        End Property
+        Property Get IsRationalRange() As Boolean
+            Return Me.Type = EncoderParameterValueTypeRationalRange
+        End Property
+        Property Get IsBinary() As Boolean
+            Return Me.Type = EncoderParameterValueTypePointer
+        End Property
+        
+        Property Get IsUndefined() As Boolean
+            Return Me._type < MinEncoderParameterValueType OrElse _
+                Me.Type = EncoderParameterValueTypeUndefined OrElse _
+                Me.Type > MaxEncoderParameterValueType
+        End Property
+        
+        '---------------------------------------------------------------'
+        
+        Property Get ASCII(ByVal index&) As String
+            If Me.IsASCII And index <= Me._count Then
+                Dim str As LongPtr
+                GetMemPtr(Me._address + (index - 1) * LenB(Of LongPtr), str)
+                Return ASCIIToString(str)
+            End If
+        End Property
+        
+        Property Get Byte(ByVal index&) As Integer  ' unsigned
+            If Me.IsByte Then TGetMem1(Me._address + (index - 1) * 1, Byte)
+        End Property
+        
+        Property Get Short(ByVal index&) As Long     ' unsigned
+            If Me.IsShort Then TGetMem2(Me._address + (index - 1) * 2, Short)
+        End Property
+        
+        Property Get Long(ByVal index&) As LongLong  ' unsigned
+            If Me.IsLong Then TGetMem4(Me._address + (index - 1) * 4, Long)
+        End Property
+        
+        Property Get Rational(ByVal index&) As Double
+            If Me.IsRational Then
+                Dim address As LongPtr = Me._address + (index - 1) * 8
+                Dim num As LongLong, denom As LongLong
+                TGetMem4(address + 0, num)
+                TGetMem4(address + 4, denom)
+                Return CDbl(num) / CDbl(denom)
+            End If
+        End Property
+
+        Property Get LongRange(ByVal index&) As LongLong()
+            If Me.IsLongRange Then
+                Return GetLongRange_Impl(Me, index)
+            End If
+        End Property
+        
+        Property Get RationalRange(ByVal index&) As Double()
+            If Me.IsRationalRange Then
+                Return GetRationalRange_Impl(Me, index)
+            End If
+        End Property
+        
+        Property Get Binary(ByVal index&) As LongPtr
+            If Me.IsBinary Then
+                Dim address As LongPtr = Me._address + (index - 1) * LenB(Of LongPtr)
+                GetMemPtr(address, Binary)
+            End If
+        End Property
+                
+        Property Get AsDouble(ByVal index&) As Double
+            If Me.IsByte Then Return Me.Byte(index)
+            If Me.IsShort Then Return Me.Short(index)
+            If Me.IsLong Then Return CDbl(Me.Long(index))
+            If Me.IsRational Then Return Me.Rational(index)
+        End Property
+        
+        '---------------------------------------------------------------'
+
+        Sub GetRational(ByVal index&, num As LongLong, denom As LongLong)
+            If Me.IsRational Then
+                ' this zero-expands into num and denom, since they are *unsigned* longs
+                Dim address As LongPtr = Me._address + (index - 1) * 8
+                TGetMem4(address + 0, num)
+                TGetMem4(address + 4, denom)
+            End If
+        End Sub
+        
+        Sub GetLongRange(ByVal index&, from As LongLong, to As LongLong)
+            If Me.IsLongRange Then
+                Dim address As LongPtr = Me._address + (index - 1) * 8
+                ' this zero-expands into from and to, since they are *unsigned* longs
+                TGetMem4(address + 0, from)
+                TGetMem4(address + 4, to)
+            End If
+        End Sub
+        
+        Sub GetRationalRange(ByVal index&, numdenoms() As LongLong)
+            If Me.IsRationalRange Then
+                Dim address As LongPtr = Me._address + (index - 1) * 16
+                ReDim numdenoms(1 To 4)
+                ' this zero-expands into num and denom, since they are *unsigned* longs
+                TGetMem4(address + 0, numdenoms(1))
+                TGetMem4(address + 4, numdenoms(2))
+                TGetMem4(address + 8, numdenoms(3))
+                TGetMem4(address + 12, numdenoms(4))
+            End If
+        End Sub
     End Type
     
     '---------------------------------------------------------------------------
     ' Encoder Parameters structure
     '---------------------------------------------------------------------------
-    
-    [Description("IMPORTANT: Buffered C-Style Variable Array: LenB is invalid.")]
-    Public Type EncoderParameters
+
+    ' This is a fixed-size struct used to measure relative positions of the fields.
+    Public Type GpEncoderParametersHeader
         Count As Long                       ' Number of parameters in this structure
-        Parameter(63) As EncoderParameter   ' Parameter values
+        Parameter(1) As GpEncoderParameter    ' Parameter values
     End Type
 
     '#if (GDIPVER >= &h0110)
@@ -363,12 +562,12 @@ Module GdipImaging
         ItemDataPositionAfterPalette = &H1
         ItemDataPositionAfterBits = &H2
     End Enum
-    
+        
     '---------------------------------------------------------------------------
     ' External Data Item
     '---------------------------------------------------------------------------
         
-    Public Type ImageItemData
+    Public Type GpImageItemData
         Size As Long        ' size of the structure 
         Position As Long    ' flags describing how the data is to be used.
         Desc As LongPtr     ' description on how the data is to be saved.
@@ -383,28 +582,174 @@ Module GdipImaging
     '#endif '(GDIPVER >= &h0110)
     
     '---------------------------------------------------------------------------
-    ' Property Item
+    ' EXIF Property Item
     '---------------------------------------------------------------------------
     
-    Public Type PropertyItem
-        id As PROPID        ' ID of this property
-        length As Long      ' Length of the property value, in bytes
-        Type As Integer     ' Type of the value, as one of TAG_TYPE_XXX
-                            ' defined above
-        Value As LongPtr    ' property value
+    Public Type GpPropertyItem
+        Id As PROPID        ' ID of this property
+        _length As Long     ' Length of the property value, in bytes
+        _type As Integer    ' Type of the value, as one of PropertyTagTypeXxx
+                            ' defined below
+        _address As LongPtr ' Pointer to property value (or?)
+        
+        Property Get Type() As GpPropertyTagType
+            Return CType(Of GpPropertyTagType)(Me._type)
+        End Property
+        
+        '---------------------------------------------------------------'
+        
+        Property Get IsASCII() As Boolean
+            Return Me.Type = PropertyTagTypeASCII
+        End Property
+        
+        Property Get IsByte() As Boolean
+            Return Me.Type = PropertyTagTypeByte
+        End Property
+        Property Get IsShort() As Boolean
+            Return Me.Type = PropertyTagTypeShort
+        End Property
+        Property Get IsLong() As Boolean
+            Return Me.Type = PropertyTagTypeLong
+        End Property
+        Property Get IsRational() As Boolean
+            Return Me.Type = PropertyTagTypeRational
+        End Property
+        
+        Property Get IsSByte() As Boolean
+            Return Me.Type = PropertyTagTypeSByte
+        End Property
+        Property Get IsSShort() As Boolean
+            Return Me.Type = PropertyTagTypeSShort
+        End Property
+        Property Get IsSLong() As Boolean
+            Return Me.Type = PropertyTagTypeSLong
+        End Property
+        Property Get IsSRational() As Boolean
+            Return Me.Type = PropertyTagTypeSRational
+        End Property
+        
+        Property Get IsSingle() As Boolean
+            Return Me.Type = PropertyTagTypeSingle
+        End Property
+        Property Get IsDouble() As Boolean
+            Return Me.Type = PropertyTagTypeDouble
+        End Property
+        
+        Property Get IsUndefined() As Boolean
+            Return Me._type < MinPropertyTagType OrElse _
+                Me.Type = PropertyTagTypeUndefined OrElse _
+                Me.Type > MaxPropertyTagType
+        End Property
+        
+        '---------------------------------------------------------------'
+        
+        Property Get TheASCII() As String
+            If Me.IsASCII Then Return ASCIIToString(Me._address, Me._length)
+        End Property
+        
+        Property Get TheByte() As Integer  ' unsigned
+            If Me.IsByte Then TGetMem1(Me._address, TheByte)
+        End Property
+        
+        Property Get TheSByte() As Byte
+            If Me.IsByte Then GetMem1(Me._address, TheSByte)
+        End Property
+        
+        Property Get TheShort() As Long	   ' unsigned
+            If Me.IsShort Then TGetMem2(Me._address, TheShort)
+        End Property
+        
+        Property Get TheSShort() As Integer
+            If Me.IsShort Then GetMem2(Me._address, TheSShort)
+        End Property
+        
+        Property Get TheLong() As LongLong  ' unsigned
+            If Me.IsLong Then TGetMem4(Me._address, TheLong)
+        End Property
+        
+        Property Get TheSLong() As Long     ' signed
+            If Me.IsShort Then GetMem4(Me._address, TheSLong)
+        End Property
+        
+        Property Get TheRational() As Double
+            If Me.IsRational Then
+                Dim num As LongLong, denom As LongLong
+                TGetMem4(Me._address, num)
+                TGetMem4(Me._address+ 4, denom)
+                Return CDbl(num) / CDbl(denom)
+            End If
+        End Property
+        
+        Property Get TheSRational() As Double
+            If Me.IsSRational Then
+                Dim num As Long, denom As Long
+                GetMem4(Me._address, num)
+                GetMem4(Me._address+ 4, denom)
+                Return CDbl(num) / CDbl(denom)
+            End If
+        End Property
+        
+        Property Get TheSingle() As Single
+            If Me.IsSingle Then
+                TGetMem4(Me._address, TheSingle)
+            End If
+        End Property
+        
+        Property Get TheDouble() As Double
+            If Me.IsSingle Then
+                TGetMem8(Me._address, TheDouble)
+            End If
+        End Property
+        
+        Property Get AsDouble() As Double
+            If Me.IsByte Then Return Me.TheByte
+            If Me.IsSByte Then Return Me.TheSByte
+            If Me.IsShort Then Return Me.TheShort
+            If Me.IsSShort Then Return Me.TheSShort
+            If Me.IsLong Then Return CDbl(Me.TheLong)
+            If Me.IsSLong Then Return Me.TheSLong
+            If Me.IsSingle Then Return Me.TheSingle
+            If Me.IsDouble Then Return Me.TheDouble
+        End Property
+        
+        '---------------------------------------------------------------'
+        
+        Sub GetRational(num As LongLong, denom As LongLong)
+            If Me.IsRational Then
+                ' this zero-expands into num and denom, since they are *unsigned* longs
+                TGetMem4(Me._address, num)
+                TGetMem4(Me._address+ 4, denom)
+            End If
+        End Sub
+        
+        Sub GetSRational(num As Long, denom As Long)
+            If Me.IsRational Then
+                TGetMem4(Me._address, num)
+                TGetMem4(Me._address+ 4, denom)
+            End If
+        End Sub
     End Type
-    
+        
     '---------------------------------------------------------------------------
     ' Image property types 
     '---------------------------------------------------------------------------
-    Public Const PropertyTagTypeByte  = 1
-    Public Const PropertyTagTypeASCII  = 2
-    Public Const PropertyTagTypeShort  = 3
-    Public Const PropertyTagTypeLong  = 4
-    Public Const PropertyTagTypeRational  = 5
-    Public Const PropertyTagTypeUndefined  = 7
-    Public Const PropertyTagTypeSLONG  = 9
-    Public Const PropertyTagTypeSRational  = 10
+    
+    Enum GpPropertyTagType
+        MinPropertyTagType = PropertyTagTypeByte
+        PropertyTagTypeByte = 1
+        PropertyTagTypeASCII = 2
+        PropertyTagTypeShort = 3
+        PropertyTagTypeLong = 4
+        PropertyTagTypeRational = 5
+        PropertyTagTypeSByte = 6
+        PropertyTagTypeUndefined = 7
+        PropertyTagTypeSShort = 8
+        PropertyTagTypeSLong = 9
+        PropertyTagTypeSRational = 10
+        PropertyTagTypeSingle = 11
+        PropertyTagTypeDouble = 12
+        MaxPropertyTagType = PropertyTagTypeDouble
+    End Enum
 
     '---------------------------------------------------------------------------
     ' Image property ID tags
@@ -671,4 +1016,21 @@ Module GdipImaging
     Public Const PropertyTagGpsAreaInformation  = &H001C
     Public Const PropertyTagGpsDate  = &H001D
     Public Const PropertyTagGpsDifferential  = &H001E
+    
+    Private Function GetLongRange_Impl(Me As GpEncoderParameter, ByVal index&) As LongLong()
+        Dim result(1 To 2) As LongLong
+        TGetMem4(Me._address + (index - 1) * 8 + 0, result(1))
+        TGetMem4(Me._address + (index - 1) * 8 + 4, result(2))
+    End Function
+    
+    Private Function GetRationalRange_Impl(Me As GpEncoderParameter, ByVal index&) As Double()
+        Dim result(1 To 2) As Double
+        Dim num As LongLong, denom As LongLong
+        TGetMem4(Me._address + (index - 1) * 16 + 0, num)
+        TGetMem4(Me._address + (index - 1) * 16 + 4, denom)
+        result(1) = CDbl(num) / CDbl(denom)
+        TGetMem4(Me._address + (index - 1) * 16 + 8, num)
+        TGetMem4(Me._address + (index - 1) * 16 + 12, denom)
+        result(2) = CDbl(num) / CDbl(denom)
+    End Function
 End Module
