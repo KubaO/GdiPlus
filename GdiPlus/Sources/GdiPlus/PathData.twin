@@ -40,38 +40,27 @@ Class PathData
     End Property
     
     Property Get Point(ByVal index&) As GpPointF
-        Dim src As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
-        If index >= pd.count Then Err.Raise GDIP_ERROR_INVALID_PARAMETER
-        #If win64 Then
-            GDIP_CopyMemory(Point, ByVal src, 8)
-        #Else
-            GetMem8(src, ByVal VarPtr(Point))
-        #End If
+        Return pd.Point(index)
     End Property
 
-    Property Get Type(ByVal index&) As Byte
-        Dim src As LongPtr = pd.Types + (index - 1) * LenB(Of Byte)
-        GetMem1(src, Type)
+    Property Get Type(ByVal index&) As PathPointType
+        Return pd.Type(index)
     End Property
         
     Property Get TypedPoint(ByVal index&) As TypedPoint
-        TypedPoint.pos = Point(index)
-        TypedPoint.type = Type(index)
+        Return pd.TypedPoint(index)
     End Property
         
-    Property Let Point(ByVal index&, point As GpPointF)
-        Dim dst As LongPtr = pd.Points + (index - 1) * LenB(Of GpPointF)
-        vbaCopyBytesRef(LenB(Of GpPointF), ByVal dst, point)
+    Property Let Point(ByVal index&, ByVal point As GpPointF)
+        pd.Point(index) = point
     End Property
 
-    Property Let Type(ByVal index&, ByVal type As Byte)
-        Dim dst As LongPtr = pd.Types + (index - 1) * LenB(Of Byte)
-        PutMem1(dst, type)
+    Property Let Type(ByVal index&, ByVal type As PathPointType)
+        pd.Type(index) = type
     End Property
         
     Property Let TypedPoint(ByVal index&, point As TypedPoint)
-        Me.Point(index) = point.pos
-        Me.Type(index) = point.type
+        pd.TypedPoint(index) = point
     End Property
         
     [Description("Returns a view into the points array." & vbCrLf & _
@@ -82,7 +71,7 @@ Class PathData
         
     [Description("Returns a view into the types array." & vbCrLf & _
             "The view is valid only as long as the PathData exists")]
-    Function Types() As Byte()
+    Function Types() As PathPointType()
         Return pd.GetTypes()
     End Function
         
@@ -114,7 +103,7 @@ Module GdipPathData
     Type GpPathData
         count&
         Points As LongPtr ' GpPointF*
-        Types As LongPtr  ' BYTE*
+        Types As LongPtr  ' PathPointType*
         
         Sub Free()
             GdipFree(Me.Points)
@@ -125,22 +114,25 @@ Module GdipPathData
         End Sub
         
         Function Allocate(ByVal newCount&) As GpStatus
-            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of Byte), Me.Types, Me.count)
+            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of PathPointType), Me.Types, Me.count)
         End Function
         
         Property Get Point(ByVal index&) As GpPointF
-            Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
-            If index >= Me.count Then Err.Raise GDIP_ERROR_INVALID_PARAMETER
-            #If win64 Then
-                GDIP_CopyMemory(Point, ByVal src, 8)
-            #Else
-                GetMem8(src, ByVal VarPtr(Point))
-            #End If
+            If index > 0 And index <= Me.count Then
+                Dim src As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
+                #If win64 Then
+                    GDIP_CopyMemory(Point, ByVal src, 8)
+                #Else
+                    GetMem8(src, ByVal VarPtr(Point))
+                #End If
+            End If
         End Property
 
-        Property Get Type(ByVal index&) As Byte
-            Dim src As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
-            GetMem1(src, Type)
+        Property Get Type(ByVal index&) As PathPointType
+            If index > 0 And index <= Me.count Then
+                Dim src As LongPtr = Me.Types + (index - 1) * LenB(Of PathPointType)
+                GetMem1(src, Type._value)
+            End If
         End Property
         
         Property Get TypedPoint(ByVal index&) As TypedPoint
@@ -148,14 +140,14 @@ Module GdipPathData
             TypedPoint.type = Me.Type(index)
         End Property
         
-        Property Let Point(ByVal index&, point As GpPointF)
+        Property Let Point(ByVal index&, ByVal point As GpPointF)
             Dim dst As LongPtr = Me.Points + (index - 1) * LenB(Of GpPointF)
             vbaCopyBytesRef(LenB(Of GpPointF), ByVal dst, point)
         End Property
 
-        Property Let Type(ByVal index&, ByVal type As Byte)
+        Property Let Type(ByVal index&, ByVal type As PathPointType)
             Dim dst As LongPtr = Me.Types + (index - 1) * LenB(Of Byte)
-            PutMem1(dst, type)
+            PutMem1(dst, type._value)
         End Property
         
         Property Let TypedPoint(ByVal index&, point As TypedPoint)
@@ -171,8 +163,8 @@ Module GdipPathData
         
         [Description("Returns a view into the types array." & vbCrLf & _
                 "The view is valid only as long as the PathData exists")]
-        Function GetTypes() As Byte()
-            Return GetStaticTrailingSA(Of Byte)(Me.Types, Me.count)
+        Function GetTypes() As PathPointType()
+            Return GetStaticTrailingSA(Of PathPointType)(Me.Types, Me.count)
         End Function
         
         Function GetTypedPoints() As TypedPoint()
@@ -187,15 +179,15 @@ Module GdipPathData
     End Type
     
     Function GpPathData() As GpPathData
-        GpPathData.count = 0
-        GpPathData.Points = 0
-        GpPathData.Types = 0
+    End Function
+    
+    Function GpPathData(ByVal count&) As GpPathData
+        GpPathData.Allocate(count)
     End Function
     
     Function GpPathData(points() As TypedPoint) As GpPathData
-        Dim i&
         GpPathData.Allocate(ArrayLen(points))
-        For i = 1 To GpPathData.count
+        For i As Long = LBound(points) To UBound(points)
             GpPathData.Point(i) = points(i).pos
             GpPathData.Type(i) = points(i).type
         Next
