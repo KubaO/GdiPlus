@@ -23,6 +23,12 @@ Class StringFormat
         sf.Delete
     End Sub
     
+    '---------------------------------------------------------------'
+    '                                                               '
+    ' Format Flags                                                  '
+    '                                                               '
+    '---------------------------------------------------------------'
+    
     [Description("Use Flags instead")]
     Property Let FormatFlags(ByVal flags As GpStringFormatFlags)
         SetStatus(sf.SetFlags(flags))
@@ -41,105 +47,352 @@ Class StringFormat
         SetStatus(sf.GetFlags(Flags))
     End Property
     
+    Property Get DirectionRightToLeft() As Boolean
+        SetStatus(sf.IsDirectionRightToLeft(DirectionRightToLeft))
+    End Property
+    
+    Property Let DirectionRightToLeft(ByVal value As Boolean)
+        SetStatus(sf.SetDirectionRightToLeft(value))
+    End Property
+
+    Property Get DirectionVertical() As Boolean
+        SetStatus(sf.IsDirectionVertical(DirectionVertical))
+    End Property
+
+    Property Let DirectionVertical(ByVal value As Boolean)
+        SetStatus(sf.SetDirectionVertical(value))
+    End Property
+    
+    Property Get NoFitBlackBox() As Boolean
+        SetStatus(sf.IsNoFitBlackBox(NoFitBlackBox))
+    End Property
+
+    Property Let NoFitBlackBox(ByVal value As Boolean)
+        SetStatus(sf.SetNoFitBlackBox(value))
+    End Property
+    
+    Property Get DisplayFormatControl() As Boolean
+        SetStatus(sf.IsDisplayFormatControl(DisplayFormatControl))
+    End Property
+
+    Property Let DisplayFormatControl(ByVal value As Boolean)
+        SetStatus(sf.SetDisplayFormatControl(value))
+    End Property
+    
+    Property Get NoFontFallback() As Boolean
+        SetStatus(sf.IsNoFontFallback(NoFontFallback))
+    End Property
+
+    Property Let NoFontFallback(ByVal value As Boolean)
+        SetStatus(sf.SetNoFontFallback(value))
+    End Property
+    
+    Property Get MeasureTrailingSpaces() As Boolean
+        SetStatus(sf.IsMeasureTrailingSpaces(MeasureTrailingSpaces))
+    End Property
+
+    Property Let MeasureTrailingSpaces(ByVal value As Boolean)
+        SetStatus(sf.SetMeasureTrailingSpaces(value))
+    End Property
+    
+    Property Get NoWrap() As Boolean
+        SetStatus(sf.IsNoWrap(NoWrap))
+    End Property
+
+    Property Let NoWrap(ByVal value As Boolean)
+        SetStatus(sf.SetNoWrap(value))
+    End Property
+
+    Property Get LineLimit() As Boolean
+        SetStatus(sf.IsLineLimit(LineLimit))
+    End Property
+
+    Property Let LineLimit(ByVal value As Boolean)
+        SetStatus(sf.SetLineLimit(value))
+    End Property
+
+    Property Get NoClip() As Boolean
+        SetStatus(sf.IsNoClip(NoClip))
+    End Property
+
+    Property Let NoClip(ByVal value As Boolean)
+        SetStatus(sf.SetNoClip(value))
+    End Property
+
+    Property Get BypassGDI() As Boolean
+        SetStatus(sf.IsBypassGDI(BypassGDI))
+    End Property
+
+    Property Let BypassGDI(ByVal value As Boolean)
+        SetStatus(sf.SetBypassGDI(value))
+    End Property
+
+    '---------------------------------------------------------------'
+    '                                                               '
+    ' Horizontal Alignment                                          '
+    '                                                               '
+    '---------------------------------------------------------------'
+    
     Property Let Alignment(ByVal align As GpStringAlignment)
-        SetStatus(sf.SetAlign(align))
+        SetStatus(sf.SetAlignment(align))
     End Property
     
     Property Get Alignment() As GpStringAlignment
-        SetStatus(sf.GetAlign(Alignment))
+        SetStatus(sf.GetAlignment(Alignment))
     End Property
-        
+    
+    Property Get IsAlignmentNear() As Boolean
+        SetStatus(sf.IsAlignmentNear(IsAlignmentNear))
+    End Property
+
+    Property Get IsAlignmentCenter() As Boolean
+        SetStatus(sf.IsAlignmentCenter(IsAlignmentCenter))
+    End Property
+    
+    Property Get IsAlignmentFar() As Boolean
+        SetStatus(sf.IsAlignmentFar(IsAlignmentFar))
+    End Property
+    
+    Sub SetAlignmentNear()
+        SetStatus(sf.SetAlignmentNear())
+    End Sub
+    
+    Sub SetAlignmentCenter()
+        SetStatus(sf.SetAlignmentCenter())
+    End Sub
+    
+    Sub SetAlignmentFar()
+        SetStatus(sf.SetAlignmentFar())
+    End Sub
+    
+    '---------------------------------------------------------------'
+    '                                                               '
+    ' Vertical Alignment                                            '
+    '                                                               '
+    '---------------------------------------------------------------'
+    
     Property Let LineAlignment(ByVal align As GpStringAlignment)
-        SetStatus(sf.SetLineAlign(align))
+        SetStatus(sf.SetLineAlignment(align))
     End Property
     
     Property Get LineAlignment() As GpStringAlignment
-        SetStatus(sf.GetLineAlign(LineAlignment))
+        SetStatus(sf.GetLineAlignment(LineAlignment))
     End Property
+    
+    Property Get IsLineAlignmentNear() As Boolean
+        SetStatus(sf.IsLineAlignmentNear(IsLineAlignmentNear))
+    End Property
+
+    Property Get IsLineAlignmentCenter() As Boolean
+        SetStatus(sf.IsLineAlignmentCenter(IsLineAlignmentCenter))
+    End Property
+    
+    Property Get IsLineAlignmentFar() As Boolean
+        SetStatus(sf.IsLineAlignmentFar(IsLineAlignmentFar))
+    End Property
+    
+    Sub SetLineAlignmentNear()
+        SetStatus(sf.SetLineAlignmentNear())
+    End Sub
+    
+    Sub SetLineAlignmentCenter()
+        SetStatus(sf.SetLineAlignmentCenter())
+    End Sub
+    
+    Sub SetLineAlignmentFar()
+        SetStatus(sf.SetLineAlignmentFar())
+    End Sub
+    
+    '---------------------------------------------------------------'
     
     Property Let HotkeyPrefix(ByVal hotkeyPrefix As GpHotkeyPrefix)
         SetStatus(sf.SetHotkeyPrefix(hotkeyPrefix))
     End Property
     
     Property Get HotkeyPrefix() As GpHotkeyPrefix
-        SetStatus(sf.SetHotkeyPrefix(HotkeyPrefix))
+        SetStatus(sf.GetHotkeyPrefix(HotkeyPrefix))
+    End Property
+    
+    Property Get IsHotkeyPrefixNone() As Boolean
+        SetStatus(sf.IsHotkeyPrefixNone(IsHotkeyPrefixNone))
     End Property
 
-    Function SetTabStops(ByVal firstTabOffset!, tabStops!()) As GpStatus
-        Return SetStatus(sf.SetTabStops(firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops))))
-    End Function
+    Property Get IsHotkeyPrefixHide() As Boolean
+        SetStatus(sf.IsHotkeyPrefixHide(IsHotkeyPrefixHide))
+    End Property
     
-    Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
-        Return SetStatus(sf.SetTabStops(firstTabOffset, count, tabStops))
-    End Function
+    Property Get IsHotkeyPrefixShow() As Boolean
+        SetStatus(sf.IsHotkeyPrefixShow(IsHotkeyPrefixShow))
+    End Property
     
+    Sub SetHotkeyPrefixNone()
+        SetStatus(sf.SetHotkeyPrefixNone())
+    End Sub
+    
+    Sub SetHotkeyPrefixShow()
+        SetStatus(sf.SetHotkeyPrefixShow())
+    End Sub
+    
+    Sub SetHotkeyPrefixHide()
+        SetStatus(sf.SetHotkeyPrefixHide())
+    End Sub
+    
+    '---------------------------------------------------------------'
+    
+    Property Get Trimming() As GpStringTrimming
+        SetStatus(sf.GetTrimming(Trimming))
+    End Property
+    
+    Property Let Trimming(ByVal trimming As GpStringTrimming)
+        SetStatus(sf.SetTrimming(trimming))
+    End Property
+    
+    Property Get IsTrimmingNone() As Boolean
+        SetStatus(sf.IsTrimmingNone(IsTrimmingNone))
+    End Property
+    
+    Property Get IsTrimmingCharacter() As Boolean
+        SetStatus(sf.IsTrimmingCharacter(IsTrimmingCharacter))
+    End Property
+    
+    Property Get IsTrimmingWord() As Boolean
+        SetStatus(sf.IsTrimmingWord(IsTrimmingWord))
+    End Property
+    
+    Property Get IsTrimmingEllipsisCharacter() As Boolean
+        SetStatus(sf.IsTrimmingEllipsisCharacter(IsTrimmingEllipsisCharacter))
+    End Property
+    
+    Property Get IsTrimmingEllipsisWord() As Boolean
+        SetStatus(sf.IsTrimmingEllipsisWord(IsTrimmingEllipsisWord))
+    End Property
+    
+    Property Get IsTrimmingEllipsisPath() As Boolean
+        SetStatus(sf.IsTrimmingEllipsisPath(IsTrimmingEllipsisPath))
+    End Property
+    
+    Sub SetTrimmingNone()
+        SetStatus(sf.SetTrimmingNone)
+    End Sub
+    
+    Sub SetTrimmingCharacter()
+        SetStatus(sf.SetTrimmingCharacter)
+    End Sub
+
+    Sub SetTrimmingWord()
+        SetStatus(sf.SetTrimmingWord)
+    End Sub
+    
+    Sub SetTrimmingEllipsisCharacter()
+        SetStatus(sf.SetTrimmingEllipsisCharacter)
+    End Sub
+    
+    Sub SetTrimmingEllipsisWord()
+        SetStatus(sf.SetTrimmingEllipsisWord)
+    End Sub
+    
+    Sub SetTrimmingEllipsisPath()
+        SetStatus(sf.SetTrimmingEllipsisPath)
+    End Sub
+    
+    '---------------------------------------------------------------'
+
     Property Get TabStopCount() As Long
         SetStatus(sf.GetTabStopCount(TabStopCount))
     End Property
+    
+    Function SetTabStops(ByVal firstTabOffset!, tabStops!()) As GpStatus
+        Return SetStatus(sf.SetTabStops(firstTabOffset, tabStops))
+    End Function
 
     Function GetTabStops(firstTabOffset!) As Single()
-        Dim tabStops!()
-        ReDim tabStops(1 To TabStopCount)
-        SetStatus(sf.GetTabStops(ArrayLen(tabStops), firstTabOffset, tabStops(1)))
-        Return tabStops
+        SetStatus(sf.GetTabStops(firstTabOffset, GetTabStops))
+    End Function
+
+    Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
+        Return SetStatus(sf.SetTabStops2(firstTabOffset, count, tabStops))
     End Function
     
     Function GetTabStops(ByVal count&, firstTabOffset!, tabStops!) As GpStatus
-        Return SetStatus(sf.GetTabStops(count, firstTabOffset, tabStops))
+        Return SetStatus(sf.GetTabStops2(count, firstTabOffset, tabStops))
     End Function
     
+    '---------------------------------------------------------------'
+    
     Property Let DigitSubstitutionLanguage(ByVal language As LANGID)
-        SetDigitSubstitution(language, DigitSubstitutionMethod)
+        SetStatus(sf.SetDigitSubstitutionLanguage(language))
     End Property
 
     Property Let DigitSubstitutionMethod(ByVal method As GpStringDigitSubstitute)
         SetDigitSubstitution(DigitSubstitutionLanguage, method)
     End Property
     
+    Sub SetDigitSubstitutionUser()
+        SetStatus(sf.SetDigitSubstitutionUser())
+    End Sub
+    
+    Sub SetDigitSubstitutionNone()
+        SetStatus(sf.SetDigitSubstitutionNone())
+    End Sub
+    
+    Sub SetDigitSubstitutionNational()
+        SetStatus(sf.SetDigitSubstitutionNational())
+    End Sub
+    
+    Sub SetDigitSubstitutionTraditional()
+        SetStatus(sf.SetDigitSubstitutionTraditional())
+    End Sub
+    
     Function SetDigitSubstitution(ByVal language As LANGID, ByVal substitute As GpStringDigitSubstitute) As GpStatus
         Return SetStatus(sf.SetDigitSubstitution(language, substitute))
     End Function
     
     Property Get DigitSubstitutionLanguage() As LANGID
-        SetStatus(sf.GetDigitSubstitution(DigitSubstitutionLanguage, ByVal vbNullPtr))
+        SetStatus(sf.GetDigitSubstitutionLanguage(DigitSubstitutionLanguage))
     End Property
     
     Property Get DigitSubstitutionMethod() As GpStringDigitSubstitute
-        SetStatus(sf.GetDigitSubstitution(ByVal vbNullPtr, DigitSubstitutionMethod))
+        SetStatus(sf.GetDigitSubstitutionMethod(DigitSubstitutionMethod))
     End Property
     
-    Property Let Trimming(ByVal trimming As GpStringTrimming)
-        SetStatus(sf.SetTrimming(trimming))
-    End Property
-        
-    Property Get Trimming() As GpStringTrimming
-        SetStatus(sf.GetTrimming(Trimming))
-    End Property
-    
-    Property Let MeasurableCharacterRanges(ranges() As CharacterRange)
-        SetStatus(sf.SetMeasurableCharacterRanges(ArrayLen(ranges), ranges(LBound(ranges))))
-    End Property
-    
-    Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
-        Return SetStatus(sf.SetMeasurableCharacterRanges(rangeCount, ranges))
+    Function IsDigitSubstitutionUser() As Boolean
+        SetStatus(sf.IsDigitSubstitutionUser(IsDigitSubstitutionUser))
+    End Function
+
+    Function IsDigitSubstitutionNone() As Boolean
+        SetStatus(sf.IsDigitSubstitutionNone(IsDigitSubstitutionNone))
     End Function
     
+    Function IsDigitSubstitutionNational() As Boolean
+        SetStatus(sf.IsDigitSubstitutionNational(IsDigitSubstitutionNational))
+    End Function
+    
+    Function IsDigitSubstitutionTraditional() As Boolean
+        SetStatus(sf.IsDigitSubstitutionTraditional(IsDigitSubstitutionTraditional))
+    End Function
+    
+    '---------------------------------------------------------------'
+
     Property Get MeasurableCharacterRangeCount() As Long
         SetStatus(sf.GetMeasurableCharacterRangeCount(MeasurableCharacterRangeCount))
     End Property
-        
+    
+    Property Let MeasurableCharacterRanges(ranges() As CharacterRange)
+        SetStatus(sf.SetMeasurableCharacterRanges(ranges))
+    End Property
+    
+    Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
+        Return SetStatus(sf.SetMeasurableCharacterRanges2(rangeCount, ranges))
+    End Function
+    
     Protected Property Get Native() As GpStringFormat
         Return sf
     End Property
     
     Protected Sub New(ByVal sf As GpStringFormat)
-        SetNativeStringFormat(sf)
+        Me.sf = sf
     End Sub
-    
-    Protected Sub SetNativeStringFormat(ByVal sf As GpStringFormat)
-        sf = sf
-    End Sub
-        
+            
     Protected Sub Assign(source As StringFormat)
         sf.Delete
         SetStatus(source.Clone(sf))
@@ -173,7 +426,7 @@ Module GdipStringFormat
     
     Type GpStringFormat
         Native As LongPtr
-        
+               
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetGenericDefault Lib "gdiplus" Alias "GdipStringFormatGetGenericDefault" (Me As GpStringFormat) As GpStatus
         [UseGetLastError(False)]
@@ -184,40 +437,365 @@ Module GdipStringFormat
         Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneStringFormat" (ByVal Me As GpStringFormat, newFormat As GpStringFormat) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteStringFormat" (ByVal Me As GpStringFormat) As GpStatus
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetFlags Lib "gdiplus" Alias "GdipSetStringFormatFlags" (ByVal Me As GpStringFormat, ByVal flags As Long) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetFlags Lib "gdiplus" Alias "GdipGetStringFormatFlags" (ByVal Me As GpStringFormat, flags As Long) As GpStatus
+        
+        Function IsDirectionRightToLeft(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsDirectionRightToLeft) And StringFormatFlagsDirectionRightToLeft
+        End Function
+    
+        Function SetDirectionRightToLeft(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsDirectionRightToLeft)
+        End Function
+        
+        Function IsDirectionVertical(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsDirectionVertical) And StringFormatFlagsDirectionVertical
+        End Function
+    
+        Function SetDirectionVertical(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsDirectionVertical)
+        End Function
+
+        Function IsNoFitBlackBox(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsNoFitBlackBox) And StringFormatFlagsNoFitBlackBox
+        End Function
+    
+        Function SetNoFitBlackBox(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsNoFitBlackBox)
+        End Function
+    
+        Function IsDisplayFormatControl(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsDisplayFormatControl) And StringFormatFlagsDisplayFormatControl
+        End Function
+    
+        Function SetDisplayFormatControl(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsDisplayFormatControl)
+        End Function
+
+        Function IsNoFontFallback(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsNoFontFallback) And StringFormatFlagsNoFontFallback
+        End Function
+    
+        Function SetNoFontFallback(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsNoFontFallback)
+        End Function
+
+        Function IsMeasureTrailingSpaces(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsMeasureTrailingSpaces) And StringFormatFlagsMeasureTrailingSpaces
+        End Function
+    
+        Function SetMeasureTrailingSpaces(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsMeasureTrailingSpaces)
+        End Function
+    
+        Function IsNoWrap(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsNoWrap) And StringFormatFlagsNoWrap
+        End Function
+    
+        Function SetNoWrap(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsNoWrap)
+        End Function
+
+        Function IsLineLimit(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsLineLimit) And StringFormatFlagsLineLimit
+        End Function
+    
+        Function SetLineLimit(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsLineLimit)
+        End Function
+
+        Function IsNoClip(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsNoClip) And StringFormatFlagsNoClip
+        End Function
+    
+        Function SetNoClip(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsNoClip)
+        End Function
+
+        Function IsBypassGDI(value As Boolean) As GpStatus
+            value = Me.GetFlagsImpl(IsBypassGDI) And StringFormatFlagsBypassGDI
+        End Function
+    
+        Function SetBypassGDI(ByVal value As Boolean) As GpStatus
+            Return Me.SetFlagsImpl(value, StringFormatFlagsBypassGDI)
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetAlign Lib "gdiplus" Alias "GdipSetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        Public Declare PtrSafe Function SetAlignment Lib "gdiplus" Alias "GdipSetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetAlign Lib "gdiplus" Alias "GdipGetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        Public Declare PtrSafe Function GetAlignment Lib "gdiplus" Alias "GdipGetStringFormatAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+                
+        Function IsAlignmentNear(value As Boolean) As GpStatus
+            value = Me.GetAlignmentImpl(IsAlignmentNear) = StringAlignmentNear
+        End Function
+        
+        Function IsAlignmentCenter(value As Boolean) As GpStatus
+            value = Me.GetAlignmentImpl(IsAlignmentCenter) = StringAlignmentCenter
+        End Function
+        
+        Function IsAlignmentFar(value As Boolean) As GpStatus
+            value = Me.GetAlignmentImpl(IsAlignmentFar) = StringAlignmentFar
+        End Function
+       
+        Function SetAlignmentNear() As GpStatus
+            Return Me.SetAlignment(StringAlignmentNear)
+        End Function
+
+        Function SetAlignmentCenter() As GpStatus
+            Return Me.SetAlignment(StringAlignmentCenter)
+        End Function
+        
+        Function SetAlignmentFar() As GpStatus
+            Return Me.SetAlignment(StringAlignmentFar)
+        End Function
+                
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetLineAlign Lib "gdiplus" Alias "GdipSetStringFormatLineAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
+        Public Declare PtrSafe Function SetLineAlignment Lib "gdiplus" Alias "GdipSetStringFormatLineAlign" (ByVal Me As GpStringFormat, ByVal align As GpStringAlignment) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetLineAlign Lib "gdiplus" Alias "GdipGetStringFormatLineAlign" (ByVal Me As GpStringFormat, align As GpStringAlignment) As GpStatus
+        Public Declare PtrSafe Function GetLineAlignment Lib "gdiplus" Alias "GdipGetStringFormatLineAlign" (ByVal Me As GpStringFormat, align As GpStringAlignment) As GpStatus
+        
+        Function IsLineAlignmentNear(value As Boolean) As GpStatus
+            value = Me.GetLineAlignmentImpl(IsLineAlignmentNear) = StringAlignmentNear
+        End Function
+        
+        Function IsLineAlignmentCenter(value As Boolean) As GpStatus
+            value = Me.GetLineAlignmentImpl(IsLineAlignmentCenter) = StringAlignmentCenter
+        End Function
+        
+        Function IsLineAlignmentFar(value As Boolean) As GpStatus
+            value = Me.GetLineAlignmentImpl(IsLineAlignmentFar) = StringAlignmentFar
+        End Function
+       
+        Function SetLineAlignmentNear() As GpStatus
+            Return Me.SetLineAlignment(StringAlignmentNear)
+        End Function
+
+        Function SetLineAlignmentCenter() As GpStatus
+            Return Me.SetLineAlignment(StringAlignmentCenter)
+        End Function
+        
+        Function SetLineAlignmentFar() As GpStatus
+            Return Me.SetLineAlignment(StringAlignmentFar)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetTrimming Lib "gdiplus" Alias "GdipSetStringFormatTrimming" (ByVal Me As GpStringFormat, ByVal trimming As GpStringTrimming) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetTrimming Lib "gdiplus" Alias "GdipGetStringFormatTrimming" (ByVal Me As GpStringFormat, trimming As GpStringTrimming) As GpStatus
+        
+        Function IsTrimmingNone(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingNone) = StringTrimmingNone
+        End Function
+        
+        Function IsTrimmingCharacter(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingCharacter) = StringTrimmingCharacter
+        End Function
+        
+        Function IsTrimmingWord(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingWord) = StringTrimmingWord
+        End Function
+        
+        Function IsTrimmingEllipsisCharacter(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingEllipsisCharacter) = StringTrimmingEllipsisCharacter
+        End Function
+
+        Function IsTrimmingEllipsisWord(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingEllipsisWord) = StringTrimmingEllipsisWord
+        End Function
+
+        Function IsTrimmingEllipsisPath(value As Boolean) As GpStatus
+            value = Me.GetTrimmingImpl(IsTrimmingEllipsisPath) = StringTrimmingEllipsisPath
+        End Function
+        
+        Function SetTrimmingNone() As GpStatus
+            Return Me.SetTrimming(StringTrimmingNone)
+        End Function
+        
+        Function SetTrimmingCharacter() As GpStatus
+            Return Me.SetTrimming(StringTrimmingCharacter)
+        End Function
+        
+        Function SetTrimmingWord() As GpStatus
+            Return Me.SetTrimming(StringTrimmingWord)
+        End Function
+        
+        Function SetTrimmingEllipsisCharacter() As GpStatus
+            Return Me.SetTrimming(StringTrimmingEllipsisCharacter)
+        End Function
+        
+        Function SetTrimmingEllipsisWord() As GpStatus
+            Return Me.SetTrimming(StringTrimmingEllipsisWord)
+        End Function
+
+        Function SetTrimmingEllipsisPath() As GpStatus
+            Return Me.SetTrimming(StringTrimmingEllipsisPath)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetHotkeyPrefix Lib "gdiplus" Alias "GdipSetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal hotkeyPrefix As Long) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetHotkeyPrefix Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, hotkeyPrefix As Long) As GpStatus
+        
+        Function IsHotkeyPrefixNone(value As Boolean) As GpStatus
+            value = Me.GetHotkeyPrefixImpl(IsHotkeyPrefixNone) = HotkeyPrefixNone
+        End Function
+        
+        Function IsHotkeyPrefixHide(value As Boolean) As GpStatus
+            value = Me.GetHotkeyPrefixImpl(IsHotkeyPrefixHide) = HotkeyPrefixHide
+        End Function
+        
+        Function IsHotkeyPrefixShow(value As Boolean) As GpStatus
+            value = Me.GetHotkeyPrefixImpl(IsHotkeyPrefixShow) = HotkeyPrefixShow
+        End Function
+        
+        Function SetHotkeyPrefixNone() As GpStatus
+            Return Me.SetHotkeyPrefix(HotkeyPrefixNone)
+        End Function
+
+        Function SetHotkeyPrefixHide() As GpStatus
+            Return Me.SetHotkeyPrefix(HotkeyPrefixHide)
+        End Function
+        
+        Function SetHotkeyPrefixShow() As GpStatus
+            Return Me.SetHotkeyPrefix(HotkeyPrefixShow)
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetTabStops Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+        Public Declare PtrSafe Function SetTabStops2 Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetTabStops Lib "gdiplus" Alias "GdipGetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
+        Public Declare PtrSafe Function GetTabStops2 Lib "gdiplus" Alias "GdipGetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetTabStopCount Lib "gdiplus" Alias "GdipGetStringFormatTabStopCount" (ByVal Me As GpStringFormat, count As Long) As GpStatus
+        
+        Function GetTabStops(ByVal firstTabOffset!, tabStops() As Single) As GpStatus
+            Dim count&
+            GetTabStops = Me.GetTabStopCount(count)
+            If GetTabStops = Ok Then
+                ReDim tabStops(1 To count)
+                GetTabStops = Me.GetTabStops2(ArrayLen(tabStops), firstTabOffset, tabStops(1))
+            End If
+        End Function
+        
+        Function SetTabStops(ByVal firstTabOffset!, tabStops() As Single) As GpStatus
+            Return Me.SetTabStops2(firstTabOffset, ArrayLen(tabStops), tabStops(1))
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetDigitSubstitution Lib "gdiplus" Alias "GdipSetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, ByVal language As Integer, ByVal substitute As GpStringDigitSubstitute) As GpStatus
+        Public Declare PtrSafe Function SetDigitSubstitution Lib "gdiplus" Alias "GdipSetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, ByVal language%, ByVal substitute As GpStringDigitSubstitute) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetDigitSubstitution Lib "gdiplus" Alias "GdipGetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, language As Integer, substitute As GpStringDigitSubstitute) As GpStatus
+        Public Declare PtrSafe Function GetDigitSubstitution Lib "gdiplus" Alias "GdipGetStringFormatDigitSubstitution" (ByVal Me As GpStringFormat, language%, substitute As GpStringDigitSubstitute) As GpStatus
+
+        Function GetDigitSubstitutionLanguage(language%) As GpStatus
+            Return Me.GetDigitSubstitutionImpl(language)
+        End Function
+        
+        Function GetDigitSubstitutionMethod(subst As StringDigitSubstitute) As GpStatus
+            Return Me.GetDigitSubstitutionImpl(, subst)
+        End Function
+        
+        Function IsDigitSubstitutionUser(value As Boolean) As GpStatus
+            value = Me.GetDigitSubstitutionImpl1(IsDigitSubstitutionUser) = StringDigitSubstituteUser
+        End Function
+
+        Function IsDigitSubstitutionNone(value As Boolean) As GpStatus
+            value = Me.GetDigitSubstitutionImpl1(IsDigitSubstitutionNone) = StringDigitSubstituteNone
+        End Function
+
+        Function IsDigitSubstitutionNational(value As Boolean) As GpStatus
+            value = Me.GetDigitSubstitutionImpl1(IsDigitSubstitutionNational) = StringDigitSubstituteNational
+        End Function
+        
+        Function IsDigitSubstitutionTraditional(value As Boolean) As GpStatus
+            value = Me.GetDigitSubstitutionImpl1(IsDigitSubstitutionTraditional) = StringDigitSubstituteTraditional
+        End Function
+        
+        Function SetDigitSubstitutionLanguage(ByVal language%) As GpStatus
+            Return Me.SetDigitSubstitutionImpl(language)
+        End Function
+        
+        Function SetDigitSubstitutionMethod(ByVal subst As GpStringDigitSubstitute) As GpStatus
+            Return Me.SetDigitSubstitutionImpl(, subst)
+        End Function
+
+        Function SetDigitSubstitutionUser() As GpStatus
+            Return Me.SetDigitSubstitutionImpl(, StringDigitSubstituteUser)
+        End Function
+        
+        Function SetDigitSubstitutionNone() As GpStatus
+            Return Me.SetDigitSubstitutionImpl(, StringDigitSubstituteNone)
+        End Function
+
+        Function SetDigitSubstitutionNational() As GpStatus
+            Return Me.SetDigitSubstitutionImpl(, StringDigitSubstituteNational)
+        End Function
+
+        Function SetDigitSubstitutionTraditional() As GpStatus
+            Return Me.SetDigitSubstitutionImpl(, StringDigitSubstituteTraditional)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetMeasurableCharacterRangeCount Lib "gdiplus" Alias "GdipGetStringFormatMeasurableCharacterRangeCount" (ByVal Me As GpStringFormat, count As Long) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetMeasurableCharacterRanges Lib "gdiplus" Alias "GdipSetStringFormatMeasurableCharacterRanges" (ByVal Me As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
+        Public Declare PtrSafe Function SetMeasurableCharacterRanges2 Lib "gdiplus" Alias "GdipSetStringFormatMeasurableCharacterRanges" (ByVal Me As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
+        
+        Function SetMeasurableCharacterRanges(ranges() As CharacterRange) As GpStatus
+            Return Me.SetMeasurableCharacterRanges2(ArrayLen(ranges), ranges(LBound(ranges)))
+        End Function
+        
+        '---------------------------------------------------------------'
+        
+        Private Function GetFlagsImpl(status As GpStatus) As StringFormatFlags
+            status = Me.GetFlags(GetFlagsImpl)
+        End Function
+        
+        Private Function SetFlagsImpl(ByVal value As Boolean, ByVal flag As StringFormatFlags) As GpStatus
+            Dim flags As Any = Me.GetFlagsImpl(SetFlagsImpl)
+            If SetFlagsImpl = Ok Then
+                SetFlagsImpl = Me.SetFlags(SetFlag(flags, flag, value))
+            End If
+        End Function
+        
+        Private Function GetAlignmentImpl(status As GpStatus) As GpStringAlignment
+            status = Me.GetAlignment(GetAlignmentImpl)
+        End Function
+        
+        Private Function GetLineAlignmentImpl(status As GpStatus) As GpStringAlignment
+            status = Me.GetLineAlignment(GetLineAlignmentImpl)
+        End Function
+        
+        Private Function GetTrimmingImpl(status As GpStatus) As GpStringTrimming
+            status = Me.GetTrimming(GetTrimmingImpl)
+        End Function
+        
+        Private Function GetHotkeyPrefixImpl(status As GpStatus) As GpHotkeyPrefix
+            status = Me.GetHotkeyPrefix(GetHotkeyPrefixImpl)
+        End Function
+        
+        Private Function GetDigitSubstitutionImpl1(status As GpStatus, Optional language%) As GpStringDigitSubstitute
+            status = Me.GetDigitSubstitutionImpl(language, GetDigitSubstitutionImpl1)
+        End Function
+        
+        Private Function GetDigitSubstitutionImpl(Optional language%, Optional substitute As GpStringDigitSubstitute) As GpStatus
+            Dim lang%, subst As GpStringDigitSubstitute
+            GetDigitSubstitutionImpl = Me.GetDigitSubstitution(lang, subst)
+            If GetDigitSubstitutionImpl = Ok Then
+                If Not IsMissing(language) Then language = lang
+                If Not IsMissing(substitute) Then substitute = subst
+            End If
+        End Function
+        
+        Private Function SetDigitSubstitutionImpl(Optional ByVal language%, Optional ByVal substitute As GpStringDigitSubstitute) As GpStatus
+            Dim lang%, subst As GpStringDigitSubstitute
+            SetDigitSubstitutionImpl = Me.GetDigitSubstitution(lang, subst)
+            If SetDigitSubstitutionImpl = Ok Then
+                If Not IsMissing(substitute) Then subst = substitute
+                If Not IsMissing(language) Then lang = language
+                Return Me.SetDigitSubstitution(lang, subst)
+            End If
+        End Function
     End Type
     
     Function GpStringFormat() As GpStringFormat
