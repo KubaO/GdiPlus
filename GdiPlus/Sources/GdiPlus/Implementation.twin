@@ -125,6 +125,10 @@ Private Module GdipImplementation
         count = newCount
         Return Ok
     End Function
+    
+    Function SetFlag(Of T)(ByVal flags As T, ByVal flag As T, ByVal value As Boolean) As T
+        Return If(value, flags Or flag, flags And (Not flag))
+    End Function
 
     Function GdipMin(ByVal a&, ByVal b&) As Long
         GdipMin = a
