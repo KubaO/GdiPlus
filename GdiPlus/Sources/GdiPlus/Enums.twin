@@ -255,6 +255,10 @@ Module GdipEnums
 
         ' Path types used for advanced path.
         PathPointTypeBezier3 = 3            ' cubic Bezier
+        
+        PathPointTypeReserved = 2
+        PathPointTypeReservedFlag1 = &h08
+        PathPointTypeReservedFlag2 = &h40
     End Enum
 
     '--------------------------------------------------------------------------
