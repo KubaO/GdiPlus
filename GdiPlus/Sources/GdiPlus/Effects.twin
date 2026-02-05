@@ -537,7 +537,7 @@ Module GdipEffects
         End Sub
         
         Function Allocate(ByVal newCount&) As GpStatus
-            Return AllocateArrayInUDT(newCount, LenB(Of GDIP_RECT), Me.areas, Me.numberOfAreas)
+            Return AllocateStaticTrailingSA(newCount, LenB(Of GDIP_RECT), Me.areas, Me.numberOfAreas)
         End Function
         
         Property Get Area(ByVal index&) As GpRect

@@ -114,7 +114,8 @@ Module GdipPathData
         End Sub
         
         Function Allocate(ByVal newCount&) As GpStatus
-            Return AllocateArraysInUDT(newCount, LenB(Of GpPointF), Me.Points, LenB(Of PathPointType), Me.Types, Me.count)
+            Allocate = AllocateStaticTrailingSA(newCount, LenB(Of GpPointF), Me.Points, Me.count)
+            If Allocate = Ok Then Allocate = AllocateStaticTrailingSA(newCount, LenB(Of PathPointType), Me.Types, Me.count)
         End Function
         
         Property Get Point(ByVal index&) As GpPointF

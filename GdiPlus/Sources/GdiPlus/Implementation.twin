@@ -76,60 +76,36 @@ Private Module GdipImplementation
         & "Assumes that there is enough extra space after the data to fit a STATICARRAY1D header." & vbCrLf _
         & "Does not allocate memory.")]
     Sub InitStaticTrailingSA(ByVal data As LongPtr, ByVal elementSize&, ByVal count As LongPtr)
-        Dim alignedSize As LongPtr = AlignTo(count * elementSize, 8)
-        SetStaticSA(ByVal (data + alignedSize), elementSize, data, CLng(count))
+        If data <> 0 And elementSize > 0 And count > 0 Then
+            Dim alignedSize As LongPtr = AlignTo(count * elementSize, 8)
+            SetStaticSA(ByVal (data + alignedSize), elementSize, data, CLng(count))
+        End If
     End Sub
     
     [Description("Returs the static 1D view of data that was previously set up using InitStaticTrailingSA." & vbCrLf _
         & "Does not allocate memory.")]
     Function GetStaticTrailingSA(Of T)(ByVal data As LongPtr, ByVal count As LongPtr) As T()
-        Dim alignedSize As LongPtr = AlignTo(count * LenB(Of T), 8)
-        PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
+        If data <> 0 And count > 0 Then
+            Dim alignedSize As LongPtr = AlignTo(count * LenB(Of T), 8)
+            PutMemPtr(VarPtr(GetStaticTrailingSA), data + alignedSize)
+        End If
     End Function
     
     [Description("Allocates an area for data, followed by a trailing static SAFEARRAY describing it." & vbCrLf _
         & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
-    Function AllocateArrayInUDT(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, Optional ByRef count&) As GpStatus
-        Dim alignedSize As LongPtr
-        
+    Function AllocateStaticTrailingSA(ByVal newCount&, ByVal elementSize&, ByRef dataPtr As LongPtr, Optional ByRef count&) As GpStatus
         GdipFree(dataPtr)
         dataPtr = 0
         If Not IsMissing(count) Then count = 0
-        If newCount = 0 Then Return Ok
-        alignedSize = AlignTo(newCount * elementSize, 8)
-        dataPtr = GdipAlloc(alignedSize + LenB(Of GDIP_SAFEARRAY1D))
-        If dataPtr = 0 Then
-            Return OutOfMemory
+        If newCount <> 0 Then ' if newCount is 0 we don't need to do anything more            
+            Dim alignedSize As LongPtr = AlignTo(newCount * elementSize, 8)
+            dataPtr = GdipAlloc(alignedSize + LenB(Of GDIP_SAFEARRAY1D))
+            If dataPtr = 0 Then
+                Return OutOfMemory
+            End If
+            InitStaticTrailingSA(dataPtr, elementSize, newCount)
+            If Not IsMissing(count) Then count = newCount
         End If
-        InitStaticTrailingSA(dataPtr, elementSize, newCount)
-        If Not IsMissing(count) Then count = newCount
-        Return Ok
-    End Function
-    
-    [Description("Allocates two areas for data, or equal number of elements, each followed by a trailing static SAFEARRAY1D describing it." & vbCrLf _
-        & "The allocation is done using GdipAlloc. Any existing data is first freed using GdipFree.")]
-    Function AllocateArraysInUDT(ByVal newCount&, ByVal elementSize1&, ByRef dataPtr1 As LongPtr, ByVal elementSize2&, ByRef dataPtr2 As LongPtr, Optional ByRef count&) As GpStatus
-        Dim alignedSize1 As LongPtr, alignedSize2 As LongPtr
-                    
-        GdipFree(dataPtr1)
-        GdipFree(dataPtr2)
-        dataPtr1 = 0
-        dataPtr2 = 0
-        If Not IsMissing(count) Then count = 0
-        If newCount = 0 Then Return Ok
-        alignedSize1 = AlignTo(newCount * elementSize1, 8)
-        dataPtr1 = GdipAlloc(alignedSize1 + LenB(Of GDIP_SAFEARRAY1D))
-        If dataPtr1 = 0 Then Return OutOfMemory
-        alignedSize2 = AlignTo(newCount * elementSize2, 8)
-        dataPtr2 = GdipAlloc(alignedSize2 + LenB(Of GDIP_SAFEARRAY1D))
-        If dataPtr2 = 0 Then
-            GdipFree(dataPtr1)
-            dataPtr1 = 0
-            Return OutOfMemory
-        End If
-        InitStaticTrailingSA(dataPtr1, elementSize1, newCount)
-        InitStaticTrailingSA(dataPtr2, elementSize2, newCount)
-        If Not IsMissing(count) Then count = newCount
         Return Ok
     End Function
     
