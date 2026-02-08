@@ -61,13 +61,4 @@ Module GdipColorMatrix
         ColorAdjustTypeCount
         ColorAdjustTypeAny      ' Reserved
     End Enum
-    
-    '----------------------------------------------------------------------------
-    ' Color Map
-    '----------------------------------------------------------------------------
-    
-    Type ColorMapX
-        oldColor As Color
-        newColor As Color
-    End Type
 End Module
