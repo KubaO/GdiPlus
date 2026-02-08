@@ -90,7 +90,7 @@ Class LineCap
     End Property
     
     Property Get BaseInset() As Single
-        Return SetStatus(lc.GetBaseInset(BaseInset))
+        SetStatus(lc.GetBaseInset(BaseInset))
     End Property
         
     Property Let WidthScale(ByVal widthScale!)
