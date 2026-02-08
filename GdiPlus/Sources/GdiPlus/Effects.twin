@@ -667,10 +667,10 @@ Module GdipEffects
     
     Function ColorLutParams(lutB() As Byte, lutG() As Byte, lutR() As Byte, lutA() As Byte) As ColorLUTParams
         If ArrayLen(lutB) = 256 And ArrayLen(lutG) = 256 And ArrayLen(lutR) = 256 And ArrayLen(lutA) = 256 Then
-            vbaCopyBytesRef(256, ColorLutParams.lutB, lutB)
-            vbaCopyBytesRef(256, ColorLutParams.lutG, lutG)
-            vbaCopyBytesRef(256, ColorLutParams.lutR, lutR)
-            vbaCopyBytesRef(256, ColorLutParams.lutA, lutB)
+            vbaCopyBytesRef(256, ColorLutParams.lutB, lutB(LBound(lutB)))
+            vbaCopyBytesRef(256, ColorLutParams.lutG, lutG(LBound(lutG)))
+            vbaCopyBytesRef(256, ColorLutParams.lutR, lutR(LBound(lutR)))
+            vbaCopyBytesRef(256, ColorLutParams.lutA, lutB(LBound(lutA)))
         End If
     End Function
     
