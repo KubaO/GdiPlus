@@ -4,6 +4,11 @@
 ' Modeled after code and descriptions (c) Microsoft, taken from SDK headers and official documentation.
 ' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
+' GetHSL, SetHSL, and HueToColorValue functions only taken from:
+'     https://github.com/jackdp/IGDIPlusMod/tree/master/Demo/ColorWheel/Delphi_XE7
+'     You can do with my code whatever you want without any cost and without any limitations.
+'     https://github.com/jackdp/IGDIPlusMod/tree/master?tab=readme-ov-file#license-for-my-modifications
+
 Module GdipColor
     '----------------------------------------------------------------------------
     ' Color mode
@@ -32,8 +37,14 @@ Module GdipColor
     
     Private Const Black = &H000000
     
+    [ConstantFoldable]
     Public Function Color() As Color
         Color.argb = Black
+    End Function
+    
+    [ConstantFoldable]
+    Public Function NoColor() As Color
+        Color.argb = 0
     End Function
     
     ' Construct an opaque Color object with
@@ -52,15 +63,8 @@ Module GdipColor
     Public Function Color(ByVal argb As ARGB) As Color
         Color.argb = argb
     End Function
-    
-    Private Sub CheckColor()
-        Dim a As Any = Color(&hFFEEDDCC)
-        Debug.Print a.Alpha ; " " ; &hff
-        Debug.Print a.Red ; " " ; &hEE
-        Debug.Print a.Green ; " " ; &hDD
-        Debug.Print a.Blue ; " " ; &hCC
-    End Sub
-    
+       
+    [Description("A color representation with r,g,b,a values having 256 discrete values each.")]
     Type Color
         argb As ARGB
         
@@ -132,6 +136,10 @@ Module GdipColor
             Me.Blue = b
         End Property
         
+        Property Get IsTransparent() As Boolean
+            Return Me.argb = Transparent
+        End Property
+        
         Property Get Value() As ARGB
             Return Me.argb
         End Property
@@ -160,7 +168,201 @@ Module GdipColor
         Property Let BGR(ByVal bgr&)
             Me.argb = MakeARGB(255, RGB_R(bgr), RGB_G(bgr), RGB_B(bgr))
         End Property
+        
+        [Description("Extracts the RGB components. The output range is [0, 255]")]
+        Sub GetRGBB(r As Byte, g As Byte, b As Byte)
+            r = CByte(Me.R)
+            g = CByte(Me.G)
+            b = CByte(Me.B)
+        End Sub
+        
+        [Description("Extracts the RGB components. The output range is [0, 255]")]
+        Sub GetRGBI(r%, g%, b%)
+            r = Me.R
+            g = Me.G
+            b = Me.B
+        End Sub
+        
+        [Description("Extracts the RGB components. The output range is [0, 255]")]
+        Sub GetRGBL(r&, g&, b&)
+            r = Me.R
+            g = Me.G
+            b = Me.B
+        End Sub
+        
+        [Description("Extracts the RGB components. The output range is [0, 100]")]
+        Sub GetRGBS(r!, g!, b!)
+            r = Me.R * (100! / 255!)
+            g = Me.G * (100! / 255!)
+            b = Me.B * (100! / 255!)
+        End Sub
+        
+        [Description("Extracts the RGB components. The output range is [0, 100]")]
+        Sub GetRGBD(r#, g#, b#)
+            r = Me.R * (100# / 255#)
+            g = Me.G * (100# / 255#)
+            b = Me.B * (100# / 255#)
+        End Sub
+                        
+        [Description("Sets the RGB components. The input range is [0, 255]")]
+        Sub SetRGB(ByVal r&, ByVal g&, ByVal b&)
+            Me.argb = MakeARGB(Me.A, _
+                GdipLimitL(0, r, 255), _
+                GdipLimitL(0, g, 255), _
+                GdipLimitL(0, b, 255))
+        End Sub
+
+        [Description("Sets the RGB components. The input range is [0.0, 100.0]")]
+        Sub SetRGBD(ByVal r#, ByVal g#, ByVal b#)
+            Me.argb = MakeARGB(Me.A, _
+                GdipLimitL(0, CLng(Round(r * 2.55)), 255), _
+                GdipLimitL(0, CLng(Round(g * 2.55)), 255), _
+                GdipLimitL(0, CLng(Round(b * 2.55)), 255))
+        End Sub
+        
+        [Description("Returns the color with its hue rotated/shifted a given number of degrees.")]
+        Function RotatedHue(ByVal by!) As Color
+            If by <> 0! Then
+                Dim h!, s!, l!
+                Me.GetHSL(h, s, l)
+                h = GdipModS(h + by, 360!)
+                If h < 0! Then h += 360!
+                RotatedHue.SetHSL(h, s, l)
+            Else
+                RotatedHue.argb = Me.argb
+            End If
+        End Function
+        
+        [Description("Rotates/shifts the color's hue by a given number of degrees.")]
+        Sub RotateHue(ByVal by!)
+            Me.argb = Me.RotatedHue(by).argb
+        End Sub
+        
+        [Description("Gets the inverse of the color, i.e. with hue rotated 180°")]
+        Property Get Inverse() As Color
+            Inverse.argb = Me.argb Xor &h00FF_FFFF
+        End Property
+        
+        [Description("Sets the color to an inverse of the given color.")]
+        Property Let Inverse(ByVal invColor As Color)
+            Me.argb = invColor.Inverse.argb
+        End Property
+        
+        [Description("Inverts the color, i.e. rotates the hue by 180°")]
+        Sub Invert()
+            Me.argb = Me.Inverse.argb
+        End Sub
+        
+        [Description("Gets the color as ""#rrggbb"", where r, g, and b are hexadecimal.")]
+        Function AsHexRGB() As String
+            Dim r$ = Hex$(Me.R), g$ = Hex$(Me.G), b$ = Hex$(Me.B)
+            If Len(r) < 2 Then r = "0" & r
+            If Len(g) < 2 Then g = "0" & g
+            If Len(b) < 2 Then b = "0" & b
+            Return "#" & r & g & b
+        End Function
+        
+        [Description("Gets the color as ""#rrggbbaa"", where r, g, b, and a are hexadecimal.")]
+        Function AsHexRGBA() As String
+            Dim a$ = Hex$(Me.A)
+            If Len(a) < 2 Then a = "0" & a
+            Return Me.AsHexRGB() & a
+        End Function
+        
+        [Description("Gets hue in [0.0°, 360.0°), and saturation and lightness in [0.0, 100.0].")]
+        Sub GetHSL(hOut!, sOut!, lOut!)
+            Dim R!, G!, B!, Δ!, Cmax!, Cmin!, H!, S!, L!
+            Me.GetRGBS(R, G, B)
+            R *= 1! / 100!
+            G *= 1! / 100!
+            B *= 1! / 100!
+
+            Cmax = GdipMax(R, G, B)
+            Cmin = GdipMin(R, G, B)
+            L = (Cmax + Cmin) / 2!
+            If Cmax <> Cmin Then
+                Δ = Cmax - Cmin
+                ' saturation
+                If L < 0.5! Then
+                    S = Δ / (Cmax + Cmin)
+                Else
+                    S = Δ / (2! - Cmax - Cmin)
+                End If
+                ' hue
+                If R = Cmax Then
+                    H = (G - B) / Δ
+                ElseIf G = Cmax Then
+                    H = 2! + (B - R) / Δ
+                Else
+                    H = 4! + (R - G) / Δ
+                End If
+                H = H * (1! / 6!)
+                If H < 0! Then H = H + 1!
+            End If
+            hOut = GdipLimitS(0!, H, 1!) * 360!
+            sOut = GdipLimitS(0!, S, 1!) * 100!
+            lOut = GdipLimitS(0!, L, 1!) * 100!
+        End Sub
+        
+        [Description("Gets hue in degrees i.e. [0.0°, 360.0°), and saturation, lightness and alpha in [0.0, 100.0].")]
+        Sub GetHSLA(hOut!, sOut!, lOut!, aOut!)
+            Me.GetHSL(hOut, sOut, lOut)
+            aOut = Me.A * (100! / 255!)
+        End Sub
+        
+        [Description("Sets hue from [0.0°, 360.0°), and saturation and lightness from [0.0, 100.0].")]
+        Sub SetHSL(ByVal H!, ByVal S!, ByVal L!)
+            Dim M1!, M2!
+            Dim R!, G!, B!
+            H = GdipLimitS(0!, H * (1! / 360!), 1!)
+            S = GdipLimitS(0!, S * 0.01!, 1!)
+            L = GdipLimitS(0!, L * 0.01!, 1!)
+            
+            If S = 0! Then   ' fully desaturated -> lightness only
+                R = L
+                G = L
+                B = L
+            Else
+                If L <= 0.5 Then
+                    M2 = L * (1 + S)
+                Else
+                    M2 = L + S - L * S
+                End If
+                M1 = 2 * L - M2
+                R = HueToValue(H + (1! / 3!), M1, M2)
+                G = HueToValue(H, M1, M2)
+                B = HueToValue(H - (1! / 3!), M1, M2)
+            End If
+            Me.SetRGBD(R * 100.0, G * 100.0, B * 100.0)
+        End Sub
+        
+        [Description("Sets hue from [0°, 360°), and saturation, lightness and alpha from [0, 100].")]
+        Sub SetHSLA(ByVal h!, ByVal s!, ByVal l!, ByVal a!)
+            Me.SetHSL(h, s, l)
+            Me.A = CByte(GdipLimitL(0, CLng(Round(a * 2.55)), 255))
+        End Sub
     End Type
+    
+    [DebugOnly]
+    Private Sub CheckColor()
+        Dim a As Any = Color(&hFFEEDDCC)
+        Debug.Print a.Alpha ; " " ; &hFF
+        Debug.Print a.Red ; " " ; &hEE
+        Debug.Print a.Green ; " " ; &hDD
+        Debug.Print a.Blue ; " " ; &hCC
+    End Sub
+    
+    [DebugOnly]
+    Private Sub CheckHSL()
+        Dim c As Color, h!, s!, l!, a!
+        c.SetHSLA(170!, 40!, 50!, 60!)
+        Debug.Print c.R, c.G, c.B, c.A
+        c.GetHSLA(h, s, l, a)
+        Debug.Print 170 - h, 40 - s, 50 - l, 60 - a
+        c.Invert
+        c.GetHSLA(h, s, l, a)
+        Debug.Print (170 + 180 - h), 40 - s, 50 - l, 60 - a
+    End Sub
     
     Function FromCOLORREF(ByVal rgb As Long) As Color
         FromCOLORREF.SetFromCOLORREF(rgb)
@@ -171,6 +373,23 @@ Module GdipColor
                 ((g And &hFF) << GreenShift) Or _
                 ((r And &hFF) << RedShift) Or _
                 ((a And &hFF) << AlphaShift)
+    End Function
+    
+    Function HueToValue(ByVal hue!, ByVal M1!, ByVal M2!) As Single
+        If hue < 0! Then
+            hue += 1!
+        ElseIf hue > 1! Then
+            hue -= 1!
+        End If
+        If hue < (1! / 6!) Then
+            HueToValue = M1 + (M2 - M1) * hue * 6!
+        ElseIf hue < (1! / 2!) Then
+            HueToValue = M2
+        ElseIf hue < (2! / 3!) Then
+            HueToValue = M1 + (M2 - M1) * (2! / 3! - hue) * 6!
+        Else
+            HueToValue = M1
+        End If
     End Function
     
     '----------------------------------------------------------------------------

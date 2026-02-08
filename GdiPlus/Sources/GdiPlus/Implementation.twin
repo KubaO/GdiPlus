@@ -191,6 +191,40 @@ Private Module GdipImplementation
         If b > GdipMax Then GdipMax = b
         If c > GdipMax Then GdipMax = c
     End Function
+    
+    [DebugOnly]
+    Sub CheckModS()
+        Debug.Print GdipModS(0, 100), GdipModS(10, 100), GdipModS(99, 100), GdipModS(100, 100), GdipModS(599, 100)
+        Debug.Print GdipModS(-0, 100), GdipModS(-10, 100), GdipModS(-99, 100), GdipModS(-100, 100), GdipModS(-599, 100)
+    End Sub
+    
+    [Description("Modulo, but floating point")]
+    Function GdipModS(ByVal a!, ByVal by!) As Single
+        Return a - (CLngLng(a / by) * by)
+    End Function
+    
+    [Description("Modulo, but floating point")]
+    Function GdipModD(ByVal a#, ByVal by#) As Single
+        Return a - (CLng(a / by) * by)
+    End Function
+
+    Function GdipLimitL(ByVal min&, ByVal val&, ByVal max&) As Long
+        If val < min Then Return min
+        If val > max Then Return max
+        Return val
+    End Function
+    
+    Function GdipLimitS(ByVal min!, ByVal val!, ByVal max!) As Single
+        If val < min Then Return min
+        If val > max Then Return max
+        Return val
+    End Function
+    
+    Function GdipLimitD(ByVal min#, ByVal val#, ByVal max#) As Double
+        If val < min Then Return min
+        If val > max Then Return max
+        Return val
+    End Function
 
     Sub RotateAtImpl(Of T)(ByVal obj As T, ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend)
         If order = MatrixOrderPrepend Then
