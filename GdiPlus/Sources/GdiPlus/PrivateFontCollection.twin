@@ -21,7 +21,7 @@ Class PrivateFontCollection
     End Function
     
     Function AddMemoryFont(ByVal memAddress As LongPtr, ByVal length&) As GpStatus
-        Return SetStatus(Native.AddMemoryFont(memAddress, length))
+        Return SetStatus(Native.AddMemoryFont(ByVal memAddress, length))
     End Function
     
     Protected Property Get Native() As GpPrivateFontCollection
@@ -30,13 +30,7 @@ Class PrivateFontCollection
     End Property
     
     Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection)
-        SetNativePrivateFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativePrivateFontCollection(ByVal nativeCollection As GpPrivateFontCollection)
-        Dim nativeBase As GpFontCollection
-        nativeBase.Native = nativeCollection.Native
-        SetNativeFontCollection(nativeBase)
+        fc.Native = nativeCollection.Native
     End Sub
 End Class
 
@@ -57,6 +51,15 @@ Module GdipPrivateFontCollection
         Public DeclareWide PtrSafe Function AddFontFile Lib "gdiplus" Alias "GdipPrivateAddFontFile" (ByVal Me As GpPrivateFontCollection, ByVal FileName$) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function AddMemoryFont Lib "gdiplus" Alias "GdipPrivateAddMemoryFont" (ByVal Me As GpPrivateFontCollection, memory As Any, ByVal length&) As GpStatus
+        
+        ' Inherited from GpFontCollection
+        
+        Function GetFamilyList(list() As GpFontFamily) As GpStatus
+            Return GetFamilyListImpl(Me.Native, list)
+        End Function
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetFamilyCount Lib "gdiplus" Alias "GdipGetFontCollectionFamilyCount" (ByVal Me As GpPrivateFontCollection, numFound&) As GpStatus
     End Type
     
     Function GpPrivateFontCollection() As GpPrivateFontCollection

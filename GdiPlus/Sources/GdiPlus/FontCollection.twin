@@ -23,14 +23,11 @@ Class FontCollection
     
     Function Families() As FontFamily()
         Dim result() As FontFamily
-        Dim numSought& = FamilyCount
-        Dim numFound& = 0
         Dim nativeFamilies() As GpFontFamily
-        ReDim nativeFamilies(1 To numSought)
-        SetStatus(fc.GetFamilyList(numSought, nativeFamilies(1), numFound))
+        SetStatus(fc.GetFamilyList(nativeFamilies))
         If LastResult = Ok Then
-            ReDim result(1 To numFound)
-            For i As Integer = 1 To numFound
+            ReDim result(LBound(nativeFamilies) To UBound(nativeFamilies))
+            For i As Integer = LBound(nativeFamilies) To UBound(nativeFamilies)
                 Set result(i) = New FontFamily(nativeFamilies(i))
             Next
             Return result
@@ -42,10 +39,6 @@ Class FontCollection
     End Property
     
     Protected Sub New(ByVal nativeCollection As GpFontCollection)
-        SetNativeFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativeFontCollection(ByVal nativeCollection As GpFontCollection)
         fc = nativeCollection
     End Sub
 End Class
@@ -54,13 +47,33 @@ Module GdipFontCollection
     Type GpFontCollection
         Native As LongPtr
         
+        Function GetFamilyList(list() As GpFontFamily) As GpStatus
+            Return GetFamilyListImpl(Me.Native, list)
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetFamilyCount Lib "gdiplus" Alias "GdipGetFontCollectionFamilyCount" (ByVal Me As GpFontCollection, numFound As Long) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetFamilyList Lib "gdiplus" Alias "GdipGetFontCollectionFamilyList" (ByVal Me As GpFontCollection, ByVal numSought As Long, gpfamilies As GpFontFamily, numFound As Long) As GpStatus
+        Public Declare PtrSafe Function GetFamilyCount Lib "gdiplus" Alias "GdipGetFontCollectionFamilyCount" (ByVal Me As GpFontCollection, numFound&) As GpStatus
     End Type
     
     Function GpFontCollection() As GpFontCollection
         GpFontCollection.Native = 0
     End Function
+    
+    Function GetFamilyListImpl(ByVal Me As LongPtr, list() As GpFontFamily) As GpStatus
+        Dim numSought&, numFound&
+
+        GdipGetFontCollectionFamilyCount(Me, numSought)
+        ReDim list(1 To numSought)
+        Dim status As Any = GdipGetFontCollectionFamilyList(Me, numSought, list(1), numFound)
+        If status = Ok Then
+            ReDim Preserve list(1 To numFound)
+        Else
+            Erase list
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal Me As LongPtr, numFound&) As GpStatus
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal Me As LongPtr, ByVal numSought&, gpfamilies As GpFontFamily, numFound&) As GpStatus
 End Module

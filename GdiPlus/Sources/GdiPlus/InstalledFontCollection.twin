@@ -22,13 +22,7 @@ Class InstalledFontCollection
     End Property
     
     Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
-        SetNativeInatalledFontCollection(nativeCollection)
-    End Sub
-    
-    Protected Sub SetNativeInatalledFontCollection(ByVal nativeCollection As GpInstalledFontCollection)
-        Dim nativeBase As GpFontCollection
-        nativeBase.Native = nativeCollection.Native
-        SetNativeFontCollection(nativeBase)
+        fc.Native = nativeCollection.Native
     End Sub
 End Class
 
@@ -43,6 +37,15 @@ Module GdipInstalledFontCollection
 
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipNewInstalledFontCollection" (Me As GpInstalledFontCollection) As GpStatus
+        
+        ' Inherited from GpFontCollection
+        
+        Function GetFamilyList(list() As GpFontFamily) As GpStatus
+            Return GetFamilyListImpl(Me.Native, list)
+        End Function
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetFamilyCount Lib "gdiplus" Alias "GdipGetFontCollectionFamilyCount" (ByVal Me As GpFontCollection, numFound&) As GpStatus
     End Type
     
     Function GpInstalledFontCollection() As GpInstalledFontCollection

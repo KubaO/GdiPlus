@@ -15,16 +15,7 @@ Class Font
     End Sub
 
     Sub New(ByVal hdc As LongPtr, ByVal hfont As LongPtr)
-        If hfont <> 0 Then
-            Dim lf As GDIP_LOGFONTW
-            If GetObjectW(hfont, LenB(Of GDIP_LOGFONTW), lf) <> 0 Then
-                SetStatus(ft.CreateFromLogfontWInto(hdc, lf, ft))
-            Else
-                SetStatus(ft.CreateFromDCInto(hdc, ft))
-            End If
-        Else
-            SetStatus(ft.CreateFromDCInto(hdc, ft))
-        End If
+        SetStatus(ft.CreateFrom(hdc, hfont))
     End Sub
 
     Sub New(ByVal hdc As LongPtr, logfont As GDIP_LOGFONTA)
@@ -53,27 +44,8 @@ Class Font
             ByVal unit As GpUnit = UnitPoint, Optional fontCollection As FontCollection)
 
         Dim nativeFamily As GpFontFamily
-        SetStatus(nativeFamily.CreateFromNameInto(familyName, GetNative(fontCollection), nativeFamily))
-
-        If LastResult <> Ok Then
-            nativeFamily = GetNative(GenericSansSerif())
-            SetStatus(GenericSansSerif().GetLastResult())
-            If LastResult <> Ok Then GoTo Error
-        End If
-
-        SetStatus(ft.CreateInto(nativeFamily, emSize, style, unit, ft))
-
-        If LastResult <> Ok Then
-            nativeFamily = GetNative(GenericSansSerif())
-            SetStatus(GenericSansSerif().GetLastResult())
-            If LastResult <> Ok Then GoTo Error
-
-            SetStatus(ft.CreateInto(nativeFamily, emSize, style, unit, ft))
-        End If
-        
+        SetStatus(ft.Create(familyName, emSize, GetNative(fontCollection), nativeFamily, style, unit))
         If LastResult = Ok Then InitMetrics(nativeFamily)
-        
-        Error:
         nativeFamily.Delete
     End Sub
 
@@ -156,7 +128,7 @@ Class Font
     
     Protected Sub New(ByVal font As GpFont, ByVal status As GpStatus)
         SetStatus(status)
-        SetNativeFont(font)
+        ft = font
     End Sub
     
     Protected Property Get Native() As GpFont
@@ -164,10 +136,6 @@ Class Font
     End Property
     
     Protected Sub New(ByVal nativeFont As GpFont)
-        SetNativeFont(nativeFont)
-    End Sub
-    
-    Protected Sub SetNativeFont(ByVal nativeFont As GpFont)
         ft = nativeFont
     End Sub
 
@@ -243,6 +211,37 @@ Module GdipFont
     
     Type GpFont
         Native As LongPtr
+        
+        Function CreateFrom(ByVal hdc As LongPtr, ByVal hfont As LongPtr) As GpStatus
+            If hfont <> 0 Then
+                Dim lf As GDIP_LOGFONTW
+                If GetObjectW(hfont, LenB(Of GDIP_LOGFONTW), lf) <> 0 Then
+                    Return Me.CreateFromLogfontWInto(hdc, lf, Me)
+                Else
+                    Return Me.CreateFromDCInto(hdc, Me)
+                End If
+            Else
+                Return Me.CreateFromDCInto(hdc, Me)
+            End If
+        End Function
+        
+        Function Create(ByVal familyName$, ByVal emSize!, fontCollection As GpFontCollection, nativeFamily As GpFontFamily, _
+                ByVal style As GpFontStyle = FontStyleRegular, ByVal unit As GpUnit = UnitPoint) As GpStatus
+            Dim status As GpStatus
+            
+            ' Create from the given family
+            status = nativeFamily.CreateFromNameInto(familyName, fontCollection, nativeFamily)
+            If status = Ok Then status = Me.CreateInto(nativeFamily, emSize, style, unit, Me)
+            If status = Ok Then Return status
+            
+            nativeFamily.Delete
+            nativeFamily.Native = 0
+            
+            ' Create from a fallback family
+            status = GdipGetGenericFontFamilySansSerif(nativeFamily)
+            If status = Ok Then status = Me.CreateInto(nativeFamily, emSize, style, unit, Me)
+            Return status
+        End Function
         
         [UseGetLastError(False)]
         Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateFont" (ByVal fontFamily As GpFontFamily, ByVal emSize As Single, ByVal style As Long, ByVal unit As GpUnit, font As GpFont) As GpStatus

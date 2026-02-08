@@ -8,10 +8,6 @@
 Class FontFamily
     Inherits GdiPlusBase
     Dim ff As GpFontFamily
-        
-    Sub New()
-        ' empty
-    End Sub
     
     Sub New(ByVal name$, Optional fontCollection As FontCollection)
         SetStatus(ff.CreateFromNameInto(name, GetNative(fontCollection), ff))
@@ -22,7 +18,6 @@ Class FontFamily
     End Sub
     
     Property Get FamilyName(ByVal language As LANGID = 0) As String
-        FamilyName = Space$(LF_FACESIZE)
         SetStatus(ff.GetFamilyName(FamilyName, language))
     End Property
         
@@ -37,29 +32,27 @@ Class FontFamily
     End Property
     
     Property Get IsBoldAvailable() As Boolean
-        Return IsStyleAvailable(FontStyleBold)
+        SetStatus(ff.IsBoldAvailable(IsBoldAvailable))
     End Property
 
     Property Get IsItalicAvailable() As Boolean
-        Return IsStyleAvailable(FontStyleItalic)
+        SetStatus(ff.IsItalicAvailable(IsItalicAvailable))
     End Property
 
     Property Get IsBoldItalicAvailable() As Boolean
-        Return IsStyleAvailable(FontStyleBoldItalic)
+        SetStatus(ff.IsBoldItalicAvailable(IsBoldItalicAvailable))
     End Property
     
     Property Get IsUnderlinedAvailable() As Boolean
-        Return IsStyleAvailable(FontStyleUnderline)
+        SetStatus(ff.IsUnderlinedAvailable(IsUnderlinedAvailable))
     End Property
 
     Property Get IsStrikeoutAvailable() As Boolean
-        Return IsStyleAvailable(FontStyleStrikeout)
+        SetStatus(ff.IsStrikeoutAvailable(IsStrikeoutAvailable))
     End Property
     
     Function IsStyleAvailable(ByVal style As GpFontStyle) As Boolean
-        Dim booln As GDIP_BOOL
-        SetStatus(ff.IsStyleAvailable(style, booln))
-        If LastResult = Ok Then IsStyleAvailable = booln
+        SetStatus(ff.IsStyleAvailable(style, IsStyleAvailable))
     End Function
     
     Property Get EmHeight(ByVal style&) As Integer
@@ -81,28 +74,21 @@ Class FontFamily
     Protected Property Get Native() As GpFontFamily
         Return ff
     End Property
-        
-    Protected Sub SetNativeFontFamily(ByVal nativeFamily As GpFontFamily)
-        ff = nativeFamily
-    End Sub
     
     ' Used in Font
     Public Sub New(ByVal nativeFamily As GpFontFamily)
-        SetNativeFontFamily(nativeFamily)
+        ff = nativeFamily
     End Sub
     
     ' Used in FontFamilyModule
     Public Sub New(ByVal nativeFamily As GpFontFamily, ByVal status As GpStatus)
         SetStatus(status)
-        SetNativeFontFamily(nativeFamily)
+        ff = nativeFamily
     End Sub
     
     Private Const LF_FACESIZE = 32
     Private Const LF_FULLFACESIZE = 64
 End Class
-
-Alias WORD As Integer
-Alias LANGID As Integer  ' WORD
 
 Module GdipFontFamily
     Function FontFamily(ByVal name$, Optional fontCollection As FontCollection) As FontFamily
@@ -119,10 +105,41 @@ Module GdipFontFamily
         Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteFontFamily" (ByVal Me As GpFontFamily) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneFontFamily" (ByVal Me As GpFontFamily, clonedFontFamily As GpFontFamily) As GpStatus
-        [UseGetLastError(False)]
-        DeclareWide PtrSafe Function GetFamilyName Lib "gdiplus" Alias "GdipGetFamilyName" (ByVal Me As GpFontFamily, ByVal Name As String, ByVal language As Integer) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function IsStyleAvailable Lib "gdiplus" Alias "GdipIsStyleAvailable" (ByVal Me As GpFontFamily, ByVal style As Long, IsStyleAvailable As GDIP_BOOL) As GpStatus
+        
+        Function GetFamilyName(name$, ByVal language% = 0) As GpStatus
+            Dim result$ = Space$(LF_FACESIZE)
+            Dim status As Any = Me.GetFamilyName2(result, language)
+            If status = Ok Then name = RTrim$(result)
+            Return status
+        End Function
+        
+        Function IsStyleAvailable(ByVal style As GpFontStyle, result As Boolean) As GpStatus
+            Dim booln As GDIP_BOOL
+            Dim status As Any = Me.IsStyleAvailable2(style, booln)
+            If status = Ok Then result = booln
+            Return status
+        End Function
+        
+        Function IsBoldAvailable(result As Boolean) As GpStatus
+            Return Me.IsStyleAvailable(FontStyleBold, result)
+        End Function
+
+        Function IsItalicAvailable(result As Boolean) As GpStatus
+            Return Me.IsStyleAvailable(FontStyleItalic, result)
+        End Function
+        
+        Function IsBoldItalicAvailable(result As Boolean) As GpStatus
+            Return Me.IsStyleAvailable(FontStyleBoldItalic, result)
+        End Function
+        
+        Function IsUnderlinedAvailable(result As Boolean) As GpStatus
+            Return Me.IsStyleAvailable(FontStyleUnderline, result)
+        End Function
+        
+        Function IsStrikeoutAvailable(result As Boolean) As GpStatus
+            Return Me.IsStyleAvailable(FontStyleStrikeout, result)
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function GetEmHeight Lib "gdiplus" Alias "GdipGetEmHeight" (ByVal Me As GpFontFamily, ByVal style As Long, EmHeight As Integer) As GpStatus
         [UseGetLastError(False)]
@@ -131,6 +148,11 @@ Module GdipFontFamily
         Declare PtrSafe Function GetCellDescent Lib "gdiplus" Alias "GdipGetCellDescent" (ByVal Me As GpFontFamily, ByVal style As Long, CellDescent As Integer) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetLineSpacing Lib "gdiplus" Alias "GdipGetLineSpacing" (ByVal Me As GpFontFamily, ByVal style As Long, LineSpacing As Integer) As GpStatus
+
+        [UseGetLastError(False)]
+        DeclareWide PtrSafe Function GetFamilyName2 Lib "gdiplus" Alias "GdipGetFamilyName" (ByVal Me As GpFontFamily, ByVal Name As String, ByVal language As Integer) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function IsStyleAvailable2 Lib "gdiplus" Alias "GdipIsStyleAvailable" (ByVal Me As GpFontFamily, ByVal style As Long, IsStyleAvailable As GDIP_BOOL) As GpStatus
     End Type
     
     Function GpFontFamily() As GpFontFamily
@@ -171,3 +193,6 @@ Module GdipFontFamily
     [UseGetLastError(False)]
     Declare PtrSafe Function GdipGetGenericFontFamilyMonospace Lib "gdiplus" (Me As GpFontFamily) As GpStatus
 End Module
+
+Alias WORD As Integer
+Alias LANGID As WORD
