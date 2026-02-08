@@ -8,12 +8,37 @@
 Class GdiPlusUser
     Inherits GdiPlusBase
 
-    Sub New()
+    Sub New(ByRef input As GdiplusStartupInput)
+        NewImpl1(input, ByVal vbNullPtr)
+    End Sub
+    
+    Sub New(ByRef input As GdiplusStartupInput, ByRef output As GdiplusStartupOutput)
+        NewImpl1(input, output)
+    End Sub
+    
+    Sub New(ByVal startupParams As GdiplusStartupParams = GdiplusStartupDefault)
+        NewImpl2(startupParams)
+    End Sub
+    
+    Private Sub NewImpl1(ByRef input As GdiplusStartupInput, /* optional */ ByRef output As GdiplusStartupOutput)
+        gdiPlusRefCount += 1
+        If gdiPlusRefCount = 1 Or gdiPlusToken.value = -1 Then
+            SetStatus(gdiPlusToken.Startup(input, output))
+        End If
+    End Sub
+    
+    Private Sub NewImpl2(ByVal startupParams As GdiplusStartupParams)
         gdiPlusRefCount += 1
         If gdiPlusRefCount = 1 Or gdiPlusToken.value = -1 Then
             Dim gsi As GdiplusStartupInput
-            gsi.GdiplusVersion = 1
-            SetStatus(gdiPlusToken.Startup(gsi, 0))
+            ' First try the version available on win10 build 20348
+            gsi.GdiplusVersion = 2
+            SetStatus(gdiPlusToken.Startup(gsi, ByVal vbNullPtr))
+            If LastResult = UnsupportedGdiplusVersion Then
+                ' fall back to version 1 available from XP up
+                gsi.GdiplusVersion = 1
+                SetStatus(gdiPlusToken.Startup(gsi, ByVal vbNullPtr))
+            End If
         End If
     End Sub
     
@@ -31,16 +56,94 @@ Class GdiPlusUser
 End Class
 
 Module GdipGdiPlusUser
-    Function GdiPlusUser() As GdiPlusUser
-        Return New GdiPlusUser
+    Function GdiPlusUser(ByVal startupParams As GdiplusStartupParams = GdiplusStartupDefault) As GdiPlusUser
+        Return New GdiPlusUser(startupParams)
+    End Function
+
+    Function GdiPlusUser(ByRef input As GdiplusStartupInput) As GdiPlusUser
+        Return New GdiPlusUser(input)
+    End Function
+    
+    Function GdiPlusUser(ByRef input As GdiplusStartupInput, ByRef output As GdiplusStartupOutput) As GdiPlusUser
+        Return New GdiPlusUser(input, output)
     End Function
     
     Public Type GdiplusStartupInput
+        [Description("Currently supported are versions 1, 2 and 3." & vbCrLf _
+            & "- version 1: available in Windows XP and up" & vbCrLf _
+            & "- version 2: available on some Windows 10 and up" & vbCrLf _
+            & "- version 3: enables Heif and Avif image codecs. These two codecs require COM to be initiailized.")]
         GdiplusVersion As Long
-        DebugEventCallback As LongPtr
+        DebugEventCallback As DebugEventProc
+        [Description("FALSE unless you're prepared to call the hook/unhook functions properly")]
         SuppressBackgroundThread As GDIP_BOOL
+        [Description("FALSE unless you want GDI+ only to use its internal image codecs.")]
         SuppressExternalCodecs As GDIP_BOOL
+        StartupParameters As GdiplusStartupParams    ' only used when version>=2, supported from win10 build 20348
     End Type
+    
+    Function GdiplusStartupInput( _
+        Optional debugEventCallback As DebugEventProc, _
+        ByVal suppressBackgroundThread As Boolean = False, _
+        ByVal suppressExternalCodecs As Boolean = False) As GdiplusStartupInput
+        GdiplusStartupInput.GdiplusVersion = 1
+        GdiplusStartupInput.DebugEventCallback = debugEventCallback
+        GdiplusStartupInput.SuppressBackgroundThread = suppressBackgroundThread
+        GdiplusStartupInput.SuppressExternalCodecs = suppressExternalCodecs
+    End Function
+    
+    Function GdiplusStartupInput( _
+        ByVal startupParameters As GdiplusStartupParams = 0, _
+        Optional debugEventCallback As DebugEventProc, _
+        ByVal suppressBackgroundThread As Boolean = False, _
+        ByVal suppressExternalCodecs As Boolean = False) As GdiplusStartupInput
+        GdiplusStartupInput.GdiplusVersion = 2
+        GdiplusStartupInput.DebugEventCallback = debugEventCallback
+        GdiplusStartupInput.SuppressBackgroundThread = suppressBackgroundThread
+        GdiplusStartupInput.SuppressExternalCodecs = suppressExternalCodecs
+        GdiplusStartupInput.StartupParameters = startupParameters
+    End Function
+    
+    Function GdiplusStartupInput( _
+        ByVal gdiplusVersion As UINT, _
+        ByVal startupParameters As GdiplusStartupParams = 0, _
+        Optional debugEventCallback As DebugEventProc, _
+        ByVal suppressBackgroundThread As Boolean = False, _
+        ByVal suppressExternalCodecs As Boolean = False) As GdiplusStartupInput
+        GdiplusStartupInput.GdiplusVersion = gdiplusVersion
+        GdiplusStartupInput.DebugEventCallback = debugEventCallback
+        GdiplusStartupInput.SuppressBackgroundThread = suppressBackgroundThread
+        GdiplusStartupInput.SuppressExternalCodecs = suppressExternalCodecs
+        GdiplusStartupInput.StartupParameters = startupParameters
+    End Function
+    
+    Enum GdiplusStartupParams
+        GdiplusStartupDefault = 0
+        GdiplusStartupNoSetRound = 1
+        GdiplusStartupSetPSValue = 2
+        GdiplusStartupReserved0 = 4
+        GdiplusStartupReserved1
+        GdiplusStartupReserved2
+        GdiplusStartupTransparencyMask = &hFF00_0000
+    End Enum
+    
+    [Description("Notification functions which the user must call appropriately if SuppressBackgroundThread is set.")]
+    Public Type GdiplusStartupOutput
+        NotificationHook As NotificationHookProc
+        NotificationUnhook As NotificationUnhookProc
+    End Type
+    
+    Enum GdiplusDebugEventLevel
+        DebugEventLevelFatal
+        DebugEventLevelWarning
+    End Enum
+    
+    [Description("Callback Function that GDI+ can call, on debug builds, for assertions and warnings.")]
+    Public Delegate PtrSafe Sub DebugEventProc (ByVal level As GdiplusDebugEventLevel, ByRef charMessage As Any)
+    
+    ' Notification functions which the user must call appropriately if SuppressBackgroundThread is set.
+    Public Delegate PtrSafe Function NotificationHookProc (ByRef token As ULONG) As GpStatus
+    Public Delegate PtrSafe Sub NotificationUnhookProc (ByVal token As ULONG)
     
     Type GpToken
         value As LongPtr
@@ -54,7 +157,7 @@ Module GdipGdiPlusUser
         End Sub
         
         [UseGetLastError(False)]
-        Declare PtrSafe Function Startup Lib "gdiplus" Alias "GdiplusStartup" (Me As GpToken, lInput As GdiplusStartupInput, Optional ByVal lOutPut As LongPtr = 0) As GpStatus
+        Declare PtrSafe Function Startup Lib "gdiplus" Alias "GdiplusStartup" (Me As GpToken, input As GdiplusStartupInput, /*Optional*/ output As GdiplusStartupOutput) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function Shutdown Lib "gdiplus" Alias "GdiplusShutdown" (ByVal Me As GpToken) As GpStatus
     End Type
