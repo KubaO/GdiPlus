@@ -4,9 +4,12 @@
 ' Modeled after code and descriptions (c) Microsoft, taken from SDK headers and official documentation.
 ' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
+Alias AdjustableArrowCap As ArrowCap
+Alias GpAdjustableArrowCap As GpArrowCap
+
 [COMCreatable(False)]
 Class ArrowCap
-    Inherits LineCap
+    Inherits CustomLineCap
         
     Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
         SetStatus(Native.CreateInto(height, width, isFilled, lc))
@@ -15,6 +18,14 @@ Class ArrowCap
     Sub New(ByVal size As GpSizeF, ByVal isFilled As Boolean = True)
         SetStatus(Native.CreateInto(size.Height, size.Width, isFilled, lc))
     End Sub
+    
+    Property Let Size(ByVal newSize As GpSizeF)
+        SetStatus(Native.SetSize(newSize))
+    End Property
+
+    Property Get Size() As GpSizeF
+        SetStatus(Native.GetSize(Size))
+    End Property
     
     Property Let Height(ByVal height!)
         SetStatus(Native.SetHeight(height))
@@ -40,16 +51,14 @@ Class ArrowCap
         SetStatus(Native.GetMiddleInset(Width))
     End Property
     
+    Property Get FillState() As Boolean
+        SetStatus(Native.GetFillState(FillState))
+    End Property
+    
     Property Let FillState(ByVal isFilled As Boolean)
         SetStatus(Native.SetFillState(isFilled))
     End Property
-    
-    Property Get IsFilled() As Boolean
-        Dim booln As GDIP_BOOL
-        SetStatus(Native.GetFillState(booln))
-        Return booln
-    End Property
-    
+        
     Protected Property Get Native() As GpArrowCap
         Native.Native = lc.Native
     End Property
@@ -62,9 +71,6 @@ Class ArrowCap
         Native.Native = nativeArrowCap.Native
     End Sub
 End Class
-
-Alias AdjustableArrowCap As ArrowCap
-Alias GpAdjustableArrowCap As GpArrowCap
 
 Module GdipArrowCap
     Function ArrowCap(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True) As ArrowCap
@@ -81,6 +87,17 @@ Module GdipArrowCap
         
         [UseGetLastError(False)]
         Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateAdjustableArrowCap" (ByVal Height As Single, ByVal Width As Single, ByVal isFilled As Long, cap As GpArrowCap) As GpStatus
+                
+        Function SetSize(ByVal newSize As GpSizeF) As GpStatus
+            SetSize = Me.SetHeight(newSize.Height)
+            If SetSize = Ok Then SetSize = Me.SetWidth(newSize.Width)
+        End Function
+
+        Function GetSize(size As GpSizeF) As GpStatus
+            GetSize = Me.GetHeight(size.Height)
+            If GetSize = Ok Then GetSize = Me.GetWidth(size.Width)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetHeight Lib "gdiplus" Alias "GdipSetAdjustableArrowCapHeight" (ByVal Me As GpArrowCap, ByVal height As Single) As GpStatus
         [UseGetLastError(False)]
@@ -93,10 +110,61 @@ Module GdipArrowCap
         Public Declare PtrSafe Function SetMiddleInset Lib "gdiplus" Alias "GdipSetAdjustableArrowCapMiddleInset" (ByVal Me As GpArrowCap, ByVal middleInset As Single) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetMiddleInset Lib "gdiplus" Alias "GdipGetAdjustableArrowCapMiddleInset" (ByVal Me As GpArrowCap, middleInset As Single) As GpStatus
+        
+        Function GetFillState(fillState As Boolean) As GpStatus
+            Dim booln As GDIP_BOOL
+            GetFillState = Me.GetFillState2(booln)
+            fillState = booln
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetFillState Lib "gdiplus" Alias "GdipSetAdjustableArrowCapFillState" (ByVal Me As GpArrowCap, ByVal fillState As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetFillState Lib "gdiplus" Alias "GdipGetAdjustableArrowCapFillState" (ByVal Me As GpArrowCap, fillState As GDIP_BOOL) As GpStatus
+        Public Declare PtrSafe Function GetFillState2 Lib "gdiplus" Alias "GdipGetAdjustableArrowCapFillState" (ByVal Me As GpArrowCap, fillState As GDIP_BOOL) As GpStatus
+        
+        ' Inherited from GpCustomLineCap
+        
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateCustomLineCap" (ByVal fillPath As GpPath, ByVal strokePath As GpPath, ByVal baseCap As GpLineCap, ByVal baseInset As Single, customCap As GpArrowCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteCustomLineCap" (ByVal Me As GpArrowCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneCustomLineCap" (ByVal Me As GpArrowCap, clonedCap As GpArrowCap) As GpStatus
+        
+        Function SetStrokeCap(ByVal cap As GpLineCap) As GpStatus
+            Return Me.SetStrokeCaps2(cap, cap)
+        End Function
+        
+        Function SetStrokeCaps(ByVal startCap As GpLineCap = -1, ByVal endCap As GpLineCap = -1) As GpStatus
+            Return SetStrokeCapsImpl(Me, startCap, endCap)
+        End Function
+        
+        Function GetStrokeCaps(Optional startCap As GpLineCap, Optional endCap As GpLineCap) As GpStatus
+            Return GetStrokeCapsImpl(Me, startCap, endCap)
+        End Function
+    
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetCustomLineCapType" (ByVal Me As GpArrowCap, capType As GpCustomLineCapType) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetStrokeCaps2 Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeCaps" (ByVal Me As GpArrowCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetStrokeCaps2 Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeCaps" (ByVal Me As GpArrowCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetStrokeJoin Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeJoin" (ByVal Me As GpArrowCap, ByVal lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetStrokeJoin Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeJoin" (ByVal Me As GpArrowCap, lineJoin As GpLineJoin) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetBaseCap Lib "gdiplus" Alias "GdipSetCustomLineCapBaseCap" (ByVal Me As GpArrowCap, ByVal baseCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetBaseCap Lib "gdiplus" Alias "GdipGetCustomLineCapBaseCap" (ByVal Me As GpArrowCap, baseCap As GpLineCap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetBaseInset Lib "gdiplus" Alias "GdipSetCustomLineCapBaseInset" (ByVal Me As GpArrowCap, ByVal inset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetBaseInset Lib "gdiplus" Alias "GdipGetCustomLineCapBaseInset" (ByVal Me As GpArrowCap, inset As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetWidthScale Lib "gdiplus" Alias "GdipSetCustomLineCapWidthScale" (ByVal Me As GpArrowCap, ByVal widthScale As Single) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function GetWidthScale Lib "gdiplus" Alias "GdipGetCustomLineCapWidthScale" (ByVal Me As GpArrowCap, widthScale As Single) As GpStatus
     End Type
     
     Function GpArrowCap() As GpArrowCap

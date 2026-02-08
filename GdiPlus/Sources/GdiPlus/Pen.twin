@@ -93,24 +93,24 @@ Class Pen
         SetStatus(pn.GetLineJoin(LineJoin))
     End Property
         
-    Property Let CustomStartCap(customCap As LineCap)
+    Property Let CustomStartCap(customCap As CustomLineCap)
         SetStatus(pn.SetCustomStartCap(GetNative(customCap)))
     End Property
     
-    Property Get CustomStartCap() As LineCap
+    Property Get CustomStartCap() As CustomLineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomStartCap(customCap))
-        If LastResult = Ok Then Set CustomStartCap = New LineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = New CustomLineCap(customCap)
     End Property
     
-    Property Let CustomEndCap(customCap As LineCap)
+    Property Let CustomEndCap(customCap As CustomLineCap)
         SetStatus(pn.SetCustomEndCap(GetNative(customCap)))
     End Property
     
-    Property Get CustomEndCap() As LineCap
+    Property Get CustomEndCap() As CustomLineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomEndCap(customCap))
-        If LastResult = Ok Then Set CustomStartCap = New LineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = New CustomLineCap(customCap)
     End Property
     
     Property Let MiterLimit(ByVal miterLimit!)

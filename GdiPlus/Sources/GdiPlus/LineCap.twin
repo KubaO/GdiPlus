@@ -5,15 +5,10 @@
 ' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
 
 [COMCreatable(False)]
-Class LineCap
+Class CustomLineCap
     Inherits GdiPlusBase
     Protected lc As GpCustomLineCap
-        
-    ' Used by Pen
-    Public Sub New(ByVal nativeLineCap As GpCustomLineCap)
-        SetNativeLineCap(nativeLineCap)
-    End Sub
-        
+                
     Sub New(fillPath As GraphicsPath, strokePath As GraphicsPath, ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0)
         SetStatus(lc.CreateInto(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, lc))
     End Sub
@@ -22,50 +17,38 @@ Class LineCap
         lc.Delete
     End Sub
     
-    Function Clone() As LineCap
+    Function Clone() As CustomLineCap
         Dim newNativeLineCap As GpCustomLineCap
         SetStatus(lc.Clone(newNativeLineCap))
-        If LastResult = Ok Then Set Clone = New LineCap(newNativeLineCap, LastResult)
+        If LastResult = Ok Then Set Clone = New CustomLineCap(newNativeLineCap, LastResult)
     End Function
     
     ' This changes both the start and end cap.
     Property Let StrokeCap(ByVal strokeCap As GpLineCap)
-        SetStrokeCaps(strokeCap, strokeCap)
+        SetStatus(lc.SetStrokeCap(strokeCap))
     End Property
     
     Property Let StartStrokeCap(ByVal startCap As GpLineCap)
-        Dim dummyCap As GpLineCap
-        Dim endCap As GpLineCap
-        SetStatus(lc.GetStrokeCaps(dummyCap, endCap))
-        If LastResult = Ok Then
-            SetStatus(lc.SetStrokeCaps(startCap, endCap))
-        End If
+        SetStatus(lc.SetStrokeCaps(startCap))
     End Property
     
     Property Let EndStrokeCap(ByVal endCap As GpLineCap)
-        Dim startCap As GpLineCap
-        Dim dummyCap As GpLineCap
-        SetStatus(lc.GetStrokeCaps(startCap, dummyCap))
-        If LastResult = Ok Then
-            SetStatus(lc.SetStrokeCaps(startCap, endCap))
-        End If
+        SetStatus(lc.SetStrokeCaps(, endCap))
     End Property
 
     Property Get StartStrokeCap() As GpLineCap
-        Dim dummyCap As GpLineCap
-        SetStatus(lc.GetStrokeCaps(StartStrokeCap, dummyCap))
+        SetStatus(lc.GetStrokeCaps(StartStrokeCap))
     End Property
 
     Property Get EndStrokeCap() As GpLineCap
-        Dim dummyCap As GpLineCap
-        SetStatus(lc.GetStrokeCaps(dummyCap, EndStrokeCap))
+        SetStatus(lc.GetStrokeCaps(, EndStrokeCap))
     End Property
     
-    Function SetStrokeCaps(ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+    Function SetStrokeCaps(ByVal startCap As GpLineCap = -1, ByVal endCap As GpLineCap = -1) As GpStatus
         Return SetStatus(lc.SetStrokeCaps(startCap, endCap))
     End Function
     
-    Function GetStrokeCaps(startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+    Function GetStrokeCaps(Optional startCap As GpLineCap, Optional endCap As GpLineCap) As GpStatus
         Return SetStatus(lc.GetStrokeCaps(startCap, endCap))
     End Function
 
@@ -100,30 +83,40 @@ Class LineCap
     Property Get WidthScale() As Single
         SetStatus(lc.GetWidthScale(WidthScale))
     End Property
-   
-    Protected Sub New()
-        lc.Native = vbNullPtr
+
+    ' Used by Pen
+    Public Sub New(ByVal nativeLineCap As GpCustomLineCap)
+        lc = nativeLineCap
     End Sub
     
-    Protected Sub New(ByVal nativeCapArg As GpCustomLineCap, ByVal status As GpStatus)
+    Protected Sub New(ByVal nativeCap As GpCustomLineCap, ByVal status As GpStatus)
         SetStatus(status)
-        SetNativeLineCap(nativeCapArg)
+        lc = nativeCap
     End Sub
     
     Protected Property Get Native() As GpCustomLineCap
         Return lc
     End Property
-    
-    Protected Sub SetNativeLineCap(ByVal nativeLineCap As GpCustomLineCap)
-        lc = nativeLineCap
-    End Sub
 End Class
 
-Alias CustomLineCap As LineCap
-
 Module GdipLineCap
-    Function LineCap(fillPath As GraphicsPath, strokePath As GraphicsPath, ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0) As LineCap
-        Return New LineCap(fillPath, strokePath, baseCap, baseInset)
+    Function CustomLineCap(fillPath As GraphicsPath, strokePath As GraphicsPath, _
+            ByVal baseCap As GpLineCap = linecapflat, ByVal baseInset& = 0) As CustomLineCap
+        Return New CustomLineCap(fillPath, strokePath, baseCap, baseInset)
+    End Function
+    
+    Function CustomLineCap(ByVal native As GpCustomLineCap) As CustomLineCap
+        Dim capType As GpCustomLineCapType
+        Dim status As Any = native.GetType(capType)
+        If status = Ok Then
+            If capType = CustomLineCapTypeAdjustableArrow Then
+                Dim nativeArrow As GpArrowCap
+                nativeArrow.Native = native.Native
+                Return CType(Of CustomLineCap)(New ArrowCap(nativeArrow))
+            ElseIf capType = CustomLineCapTypeDefault Then
+                Return New CustomLineCap(native)
+            End If
+        End If
     End Function
     
     Type GpCustomLineCap
@@ -135,12 +128,25 @@ Module GdipLineCap
         Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteCustomLineCap" (ByVal Me As GpCustomLineCap) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneCustomLineCap" (ByVal Me As GpCustomLineCap, clonedCap As GpCustomLineCap) As GpStatus
+        
+        Function SetStrokeCap(ByVal cap As GpLineCap) As GpStatus
+            Return Me.SetStrokeCaps2(cap, cap)
+        End Function
+        
+        Function SetStrokeCaps(ByVal startCap As GpLineCap = -1, ByVal endCap As GpLineCap = -1) As GpStatus
+            Return SetStrokeCapsImpl(Me, startCap, endCap)
+        End Function
+        
+        Function GetStrokeCaps(Optional startCap As GpLineCap, Optional endCap As GpLineCap) As GpStatus
+            Return GetStrokeCapsImpl(Me, startCap, endCap)
+        End Function
+    
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetCustomLineCapType" (ByVal Me As GpCustomLineCap, capType As GpCustomLineCapType) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetStrokeCaps Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
+        Public Declare PtrSafe Function SetStrokeCaps2 Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, ByVal startCap As GpLineCap, ByVal endCap As GpLineCap) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetStrokeCaps Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
+        Public Declare PtrSafe Function GetStrokeCaps2 Lib "gdiplus" Alias "GdipGetCustomLineCapStrokeCaps" (ByVal Me As GpCustomLineCap, startCap As GpLineCap, endCap As GpLineCap) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function SetStrokeJoin Lib "gdiplus" Alias "GdipSetCustomLineCapStrokeJoin" (ByVal Me As GpCustomLineCap, ByVal lineJoin As GpLineJoin) As GpStatus
         [UseGetLastError(False)]
@@ -161,5 +167,29 @@ Module GdipLineCap
     
     Function GpCustomLineCap() As GpCustomLineCap
         GpCustomLineCap.Native = 0
+    End Function
+    
+    Function SetStrokeCapsImpl(Of T)(ByVal Me As T, ByVal startCap As GpLineCap = -1, ByVal endCap As GpLineCap = -1) As GpStatus
+        Dim dummyCap As GpLineCap
+        Dim status As GpStatus
+        If Not (startCap = -1 AndAlso endCap = -1) Then
+            If startCap = -1 Then
+                status = Me.GetStrokeCaps(startCap, dummyCap)
+            ElseIf endCap = -1 Then
+                status = Me.GetStrokeCaps(dummyCap, endCap)
+            End If
+            If status = Ok Then status = Me.SetStrokeCaps(startCap, endCap)
+        End If
+        Return status
+    End Function
+        
+    Function GetStrokeCapsImpl(Of T)(ByVal Me As T, Optional startCap As GpLineCap, Optional endCap As GpLineCap) As GpStatus
+        Dim cap1 As GpLineCap, cap2 As GpLineCap
+        Dim status As Any = Me.GetStrokeCaps2(cap1, cap2)
+        If status = Ok Then
+            If Not IsMissing(startCap) Then startCap = cap1
+            If Not IsMissing(endCap) Then endCap = cap2
+        End If
+        Return status
     End Function
 End Module
