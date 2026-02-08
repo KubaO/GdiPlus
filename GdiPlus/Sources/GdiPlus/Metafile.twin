@@ -145,28 +145,20 @@ Class Metafile
         If metafile.Native <> 0 Then
             If status = Ok Then
                 im.Dispose
-                SetNativeMetafile(metafile)
+                im.Native = metafile.Native
             Else
                 metafile.Dispose
             End If
         End If
     End Sub
 '#endif // (GDIPVER >= 0x0110)
-
-    Protected Sub New()
-        ' empty
-    End Sub
     
     Protected Property Get Native() As GpMetafile
         Native.Native = im.Native
     End Property
         
     Protected Sub New(ByVal nativeMetafile As GpMetafile)
-        SetNativeMetafile(nativeMetafile)
-    End Sub
-    
-    Protected Sub SetNativeMetafile(ByVal nativeMetafile As GpMetafile)
-        Native.Native = nativeMetafile.Native
+        im.Native = nativeMetafile.Native
     End Sub
 End Class
 
@@ -243,6 +235,7 @@ Module GdipMetafile
     End Function
     
     Type GpMetafile
+        ' Inherits GpImage
         Native As LongPtr
         
         [UseGetLastError(False)]
@@ -286,10 +279,146 @@ Module GdipMetafile
         Public Declare PtrSafe Function ConvertToEmfPlusToFile Lib "gdiplus" Alias "GdipConvertToEmfPlusToFile" (ByVal refGraphics As GpGraphics, ByVal metafile As GpMetafile, conversionFailureFlag As Long, ByVal filename As LongPtr, ByVal emfType As GpEmfType, ByVal description As LongPtr, out_metafile As GpMetafile) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function ConvertToEmfPlus Lib "gdiplus" Alias "GdipConvertToEmfPlus" (ByVal refGraphics As GpGraphics, ByVal metafile As GpMetafile, conversionFailureFlag As Long, ByVal emfType As GpEmfType, ByVal description As LongPtr, out_metafile As GpMetafile) As GpStatus
+        
+        ' Inherited from GpImage
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Dispose Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpMetafile) As GpStatus
+        DeclareWide PtrSafe Function LoadFromFileInto Lib "gdiplus" Alias "GdipLoadImageFromFile" (ByVal FileName$, ByRef Image As GpMetafile) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpMetafile) As GpStatus
+        DeclareWide PtrSafe Function LoadFromFileICMInto Lib "gdiplus" Alias "GdipLoadImageFromFileICM" (ByVal FileName$, ByRef Image As GpMetafile) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function LoadFromStreamInto Lib "gdiplus" Alias "GdipLoadImageFromStream" (ByVal stream As GDIP_IStream, ByRef Image As GpMetafile) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function LoadFromStreamICMInto Lib "gdiplus" Alias "GdipLoadImageFromStreamICM" (ByVal stream As GDIP_IStream, ByRef Image As GpMetafile) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneImage" (ByVal Me As GpMetafile, cloneImage As GpMetafile) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Dispose Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpMetafile) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDisposeImage" (ByVal Me As GpMetafile) As GpStatus
+
+        [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+        Function SaveToFile(ByVal FileName$, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
+            Return SaveToFileImpl(Me.Native, FileName, clsidEncoder, encoderParams)
+        End Function
+        
+        [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+        Function SaveToStream(ByVal stream As GDIP_IStream, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
+            Return SaveToStreamImpl(Me.Native, stream, clsidEncoder, encoderParams)
+        End Function
+        
+        [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+        Function SaveAdd(encoderParams() As GpEncoderParameter) As GpStatus
+            Return SaveAddImpl(Me.Native, encoderParams)
+        End Function
+
+        [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+        Function SaveAddImage(ByVal newImage As GpMetafile, encoderParams() As GpEncoderParameter) As GpStatus
+            Return SaveAddImageImpl(Me.Native, newImage.Native, encoderParams)
+        End Function
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetImageType" (ByVal Me As GpMetafile, type As GpImageType) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetDimension Lib "gdiplus" Alias "GdipGetImageDimension" (ByVal Me As GpMetafile, ByRef Width!, ByRef Height!) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetBounds Lib "gdiplus" Alias "GdipGetImageBounds" (ByVal Me As GpMetafile, srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetHeight Lib "gdiplus" Alias "GdipGetImageHeight" (ByVal Me As GpMetafile, Height As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetWidth Lib "gdiplus" Alias "GdipGetImageWidth" (ByVal Me As GpMetafile, Width As Long) As GpStatus
+        
+        Function GetSize(size As GpSize) As GpStatus
+            Return GetSizeImpl(Me, size)
+        End Function
+    
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetHorizontalResolution Lib "gdiplus" Alias "GdipGetImageHorizontalResolution" (ByVal Me As GpMetafile, resolution!) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetVerticalResolution Lib "gdiplus" Alias "GdipGetImageVerticalResolution" (ByVal Me As GpMetafile, resolution!) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetFlags Lib "gdiplus" Alias "GdipGetImageFlags" (ByVal Me As GpMetafile, flags&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetRawFormat Lib "gdiplus" Alias "GdipGetImageRawFormat" (ByVal Me As GpMetafile, Format As GDIP_UUID) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPixelFormat Lib "gdiplus" Alias "GdipGetImagePixelFormat" (ByVal Me As GpMetafile, format As PixelFormat) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPaletteSize Lib "gdiplus" Alias "GdipGetImagePaletteSize" (ByVal Me As GpMetafile, size As Long) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPalette Lib "gdiplus" Alias "GdipGetImagePalette" (ByVal Me As GpMetafile, palette As ColorPalette, ByVal size&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetPalette Lib "gdiplus" Alias "GdipSetImagePalette" (ByVal Me As GpMetafile, palette As ColorPalette) As GpStatus
+        
+        Function GetThumbnail(ByVal thumbSize As GpSize, thumbImage As GpMetafile, ByVal callback As LongPtr, callbackData As LongPtr) As GpStatus
+            Return Me.GetThumbnail2(thumbSize.Width, thumbSize.Height, thumbImage, callback, callbackData)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetThumbnail2 Lib "gdiplus" Alias "GdipGetImageThumbnail" (ByVal Me As GpMetafile, ByVal thumbWidth&, ByVal thumbHeight&, thumbImage As GpImage, ByVal callback As LongPtr, callbackData As Any) As GpStatus
+        
+        Function GetFrameDimensionsList(dims As GDIP_UUID()) As GpStatus
+            Return GetFrameDimensionsListImpl(Me.Native, dims)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetFrameDimensionsCount Lib "gdiplus" Alias "GdipImageGetFrameDimensionsCount" (ByVal Me As GpMetafile, count&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetFrameCount Lib "gdiplus" Alias "GdipImageGetFrameCount" (ByVal Me As GpMetafile, dimensionID As GDIP_UUID, count&) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SelectActiveFrame Lib "gdiplus" Alias "GdipImageSelectActiveFrame" (ByVal Me As GpMetafile, ByRef dimensionID As GDIP_UUID, ByVal frameIndex&) As GpStatus
+
+        [UseGetLastError(False)]
+        Declare PtrSafe Function RotateFlip Lib "gdiplus" Alias "GdipImageRotateFlip" (ByVal Me As GpMetafile, ByVal rfType As RotateFlipType) As GpStatus
+    
+        Function GetPropertyIdList(propIDs() As PROPID) As GpStatus
+            Return GetPropertyIdListImpl(Me.Native, propIDs)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPropertyCount Lib "gdiplus" Alias "GdipGetPropertyCount" (ByVal Me As GpMetafile, numOfProperty&) As GpStatus
+        
+        ' The simplest way to return a ref-counted item is to wrap it in an array.
+        ' That forgoes the need for a class that represents the item.
+        Function GetPropertyItem(ByVal propID As PROPID, item() As GpPropertyItem) As GpStatus
+            Return GetPropertyItemImpl(Me.Native, propID, item)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetPropertyItem Lib "gdiplus" Alias "GdipSetPropertyItem" (ByVal Me As GpMetafile, item As GpPropertyItem) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPropertyItemSize Lib "gdiplus" Alias "GdipGetPropertyItemSize" (ByVal Me As GpMetafile, ByVal propId&, ByRef Size&) As GpStatus
+        
+        Function GetAllPropertyItems(items() As GpPropertyItem) As GpStatus
+            Return GetAllPropertyItemsImpl(Me.Native, items)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetPropertySize Lib "gdiplus" Alias "GdipGetPropertySize" (ByVal Me As GpMetafile, totalBufferSize&, numProperties&) As GpStatus
+        
+        [UseGetLastError(False)]
+        Declare PtrSafe Function RemovePropertyItem Lib "gdiplus" Alias "GdipRemovePropertyItem" (ByVal Me As GpMetafile, ByVal propId As PROPID) As GpStatus
+
+        [Description("Returns an array with parameters. The array starts at index 1 even though LBound(params)=0")]
+        Function GetEncoderParameterList(ByVal clsidencoder As GDIP_UUID, params() As GpEncoderParameter) As GpStatus
+            Return GetEncoderParameterListImpl(Me.Native, clsidencoder, params)
+        End Function
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetEncoderParameterListSize Lib "gdiplus" Alias "GdipGetEncoderParameterListSize" (ByVal Me As GpMetafile, clsidEncoder As GDIP_UUID, size&) As GpStatus
+    
+        Function FindFirstItem(item() As GpImageItemData) As GpStatus
+            Return FindFirstItemImpl(Me.Native, item)
+        End Function
+        
+        Function FindNextItem(item() As GpImageItemData) As GpStatus
+            Return FindNextItemImpl(Me.Native, item)
+        End Function
+        
+        Function GetItemData(item() As GpImageItemData) As GpStatus
+            Return GetItemDataImpl(Me.Native, item)
+        End Function
+                
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpMetafile, ByVal Graphics As GpGraphics) As GpStatus
+        [UseGetLastError(False)]
+        [Description("⛔This API is not implemented in GdiPlus 1.0 nor 1.1." & vbCrLf _
+            & "⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
+        Declare PtrSafe Function SetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpMetafile, pIAbort As Any /*GdiplusAbort*/) As GpStatus
     End Type
     
     Function GpMetafile() As GpMetafile

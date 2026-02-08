@@ -269,48 +269,28 @@ Module GdipImage
 
         [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
         Function SaveToFile(ByVal FileName$, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
-            If LBound(encoderParams) <> 0 Then Return InvalidParameter
-            Dim stencil As GpEncoderParametersHeader
-            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
-            Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
-            PutMem4(countAddress, UBound(encoderParams))
-            Return Me.SaveToFile2(FileName, clsidEncoder, ByVal countAddress)
+            Return SaveToFileImpl(Me.Native, FileName, clsidEncoder, encoderParams)
         End Function
         
         [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
         Function SaveToStream(ByVal stream As GDIP_IStream, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
-            If LBound(encoderParams) <> 0 Then Return InvalidParameter
-            Dim stencil As GpEncoderParametersHeader
-            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
-            Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
-            PutMem4(countAddress, UBound(encoderParams))
-            Return Me.SaveToStream2(stream, clsidEncoder, ByVal countAddress)
+            Return SaveToStreamImpl(Me.Native, stream, clsidEncoder, encoderParams)
         End Function
         
         [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
         Function SaveAdd(encoderParams() As GpEncoderParameter) As GpStatus
-            If LBound(encoderParams) <> 0 Then Return InvalidParameter
-            Dim stencil As GpEncoderParametersHeader
-            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
-            Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
-            PutMem4(countAddress, UBound(encoderParams))
-            Return Me.SaveAdd2(ByVal countAddress)
+            Return SaveAddImpl(Me.Native, encoderParams)
         End Function
 
         [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
         Function SaveAddImage(ByVal newImage As GpImage, encoderParams() As GpEncoderParameter) As GpStatus
-            If LBound(encoderParams) <> 0 Then Return InvalidParameter
-            Dim stencil As GpEncoderParametersHeader
-            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
-            Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
-            PutMem4(countAddress, UBound(encoderParams))
-            Return Me.SaveAddImage2(newImage, ByVal countAddress)
+            Return SaveAddImageImpl(Me.Native, newImage.Native, encoderParams)
         End Function
         
         [UseGetLastError(False)]
         Declare PtrSafe Function GetType Lib "gdiplus" Alias "GdipGetImageType" (ByVal Me As GpImage, type As GpImageType) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetDimension Lib "gdiplus" Alias "GdipGetImageDimension" (ByVal Me As GpImage, ByRef Width As Single, ByRef Height As Single) As GpStatus
+        Declare PtrSafe Function GetDimension Lib "gdiplus" Alias "GdipGetImageDimension" (ByVal Me As GpImage, ByRef Width!, ByRef Height!) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetBounds Lib "gdiplus" Alias "GdipGetImageBounds" (ByVal Me As GpImage, srcRect As GpRectF, srcUnit As GpUnit) As GpStatus
         [UseGetLastError(False)]
@@ -319,17 +299,15 @@ Module GdipImage
         Declare PtrSafe Function GetWidth Lib "gdiplus" Alias "GdipGetImageWidth" (ByVal Me As GpImage, Width As Long) As GpStatus
         
         Function GetSize(size As GpSize) As GpStatus
-            Dim status As Any = Me.GetHeight(size.Height)
-            If status = Ok Then status = Me.GetWidth(size.Width)
-            Return status
+            Return GetSizeImpl(Me, size)
         End Function
     
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetHorizontalResolution Lib "gdiplus" Alias "GdipGetImageHorizontalResolution" (ByVal Me As GpImage, resolution As Single) As GpStatus
+        Declare PtrSafe Function GetHorizontalResolution Lib "gdiplus" Alias "GdipGetImageHorizontalResolution" (ByVal Me As GpImage, resolution!) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetVerticalResolution Lib "gdiplus" Alias "GdipGetImageVerticalResolution" (ByVal Me As GpImage, resolution As Single) As GpStatus
+        Declare PtrSafe Function GetVerticalResolution Lib "gdiplus" Alias "GdipGetImageVerticalResolution" (ByVal Me As GpImage, resolution!) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetFlags Lib "gdiplus" Alias "GdipGetImageFlags" (ByVal Me As GpImage, flags As Long) As GpStatus
+        Declare PtrSafe Function GetFlags Lib "gdiplus" Alias "GdipGetImageFlags" (ByVal Me As GpImage, flags&) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetRawFormat Lib "gdiplus" Alias "GdipGetImageRawFormat" (ByVal Me As GpImage, Format As GDIP_UUID) As GpStatus
         [UseGetLastError(False)]
@@ -338,7 +316,7 @@ Module GdipImage
         [UseGetLastError(False)]
         Declare PtrSafe Function GetPaletteSize Lib "gdiplus" Alias "GdipGetImagePaletteSize" (ByVal Me As GpImage, size As Long) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetPalette Lib "gdiplus" Alias "GdipGetImagePalette" (ByVal Me As GpImage, palette As ColorPalette, ByVal size As Long) As GpStatus
+        Declare PtrSafe Function GetPalette Lib "gdiplus" Alias "GdipGetImagePalette" (ByVal Me As GpImage, palette As ColorPalette, ByVal size&) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function SetPalette Lib "gdiplus" Alias "GdipSetImagePalette" (ByVal Me As GpImage, palette As ColorPalette) As GpStatus
         
@@ -346,169 +324,262 @@ Module GdipImage
             Return Me.GetThumbnail2(thumbSize.Width, thumbSize.Height, thumbImage, callback, callbackData)
         End Function
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetThumbnail2 Lib "gdiplus" Alias "GdipGetImageThumbnail" (ByVal Me As GpImage, ByVal thumbWidth As Long, ByVal thumbHeight As Long, thumbImage As GpImage, ByVal callback As LongPtr, callbackData As Any) As GpStatus
+        Declare PtrSafe Function GetThumbnail2 Lib "gdiplus" Alias "GdipGetImageThumbnail" (ByVal Me As GpImage, ByVal thumbWidth&, ByVal thumbHeight&, thumbImage As GpImage, ByVal callback As LongPtr, callbackData As Any) As GpStatus
         
         Function GetFrameDimensionsList(dims As GDIP_UUID()) As GpStatus
-            Dim count&
-            Dim status As Any = Me.GetFrameDimensionsCount(count)
-            If status = Ok Then
-                ReDim dims(1 To count&)
-                status = Me.GetFrameDimensionsList2(dims(1), count)
-                If status <> Ok Then Erase dims
-            End If
-            Return status
+            Return GetFrameDimensionsListImpl(Me.Native, dims)
         End Function
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetFrameDimensionsCount Lib "gdiplus" Alias "GdipImageGetFrameDimensionsCount" (ByVal Me As GpImage, count As Long) As GpStatus
+        Declare PtrSafe Function GetFrameDimensionsCount Lib "gdiplus" Alias "GdipImageGetFrameDimensionsCount" (ByVal Me As GpImage, count&) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetFrameCount Lib "gdiplus" Alias "GdipImageGetFrameCount" (ByVal Me As GpImage, dimensionID As GDIP_UUID, count As Long) As GpStatus
+        Declare PtrSafe Function GetFrameCount Lib "gdiplus" Alias "GdipImageGetFrameCount" (ByVal Me As GpImage, dimensionID As GDIP_UUID, count&) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function SelectActiveFrame Lib "gdiplus" Alias "GdipImageSelectActiveFrame" (ByVal Me As GpImage, ByRef dimensionID As GDIP_UUID, ByVal frameIndex As Long) As GpStatus
+        Declare PtrSafe Function SelectActiveFrame Lib "gdiplus" Alias "GdipImageSelectActiveFrame" (ByVal Me As GpImage, ByRef dimensionID As GDIP_UUID, ByVal frameIndex&) As GpStatus
 
         [UseGetLastError(False)]
         Declare PtrSafe Function RotateFlip Lib "gdiplus" Alias "GdipImageRotateFlip" (ByVal Me As GpImage, ByVal rfType As RotateFlipType) As GpStatus
     
         Function GetPropertyIdList(propIDs() As PROPID) As GpStatus
-            Dim count&
-            Dim status As Any = Me.GetPropertyCount(count)
-            If status = Ok Then
-                ReDim propIDs(1 To count)
-                status = Me.GetPropertyIdList2(count, propIDs(1))
-                If status <> Ok Then Erase propIDs
-            End If
-            Return status
+            Return GetPropertyIdListImpl(Me.Native, propIDs)
         End Function
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetPropertyCount Lib "gdiplus" Alias "GdipGetPropertyCount" (ByVal Me As GpImage, numOfProperty As Long) As GpStatus
+        Declare PtrSafe Function GetPropertyCount Lib "gdiplus" Alias "GdipGetPropertyCount" (ByVal Me As GpImage, numOfProperty&) As GpStatus
         
         ' The simplest way to return a ref-counted item is to wrap it in an array.
         ' That forgoes the need for a class that represents the item.
         Function GetPropertyItem(ByVal propID As PROPID, item() As GpPropertyItem) As GpStatus
-            Dim size&
-            Dim status As Any = Me.GetPropertyItemSize(propID, size)
-            If status = Ok Then
-                ReDimOversized(item, 1, 1, size)
-                status = Me.GetPropertyItem2(propID, size, item(1))
-                If status <> Ok Then Erase item
-            End If
-            Return status
+            Return GetPropertyItemImpl(Me.Native, propID, item)
         End Function
         [UseGetLastError(False)]
         Declare PtrSafe Function SetPropertyItem Lib "gdiplus" Alias "GdipSetPropertyItem" (ByVal Me As GpImage, item As GpPropertyItem) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetPropertyItemSize Lib "gdiplus" Alias "GdipGetPropertyItemSize" (ByVal Me As GpImage, ByVal propId As Long, ByRef Size As Long) As GpStatus
+        Declare PtrSafe Function GetPropertyItemSize Lib "gdiplus" Alias "GdipGetPropertyItemSize" (ByVal Me As GpImage, ByVal propId&, ByRef Size&) As GpStatus
         
         Function GetAllPropertyItems(items() As GpPropertyItem) As GpStatus
-            Dim size&, count&
-            Dim status As Any = Me.GetPropertySize(size, count)
-            Const elementSize& = lenB(Of GpPropertyItem)
-            If status = Ok Then
-                ReDimOversized(items, 1, count, size)
-                status = Me.GetAllPropertyItems2(size, count, items(1))
-                If status <> Ok Then Erase items
-            End If
-            Return status
+            Return GetAllPropertyItemsImpl(Me.Native, items)
         End Function
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetPropertySize Lib "gdiplus" Alias "GdipGetPropertySize" (ByVal Me As GpImage, totalBufferSize As Long, numProperties As Long) As GpStatus
+        Declare PtrSafe Function GetPropertySize Lib "gdiplus" Alias "GdipGetPropertySize" (ByVal Me As GpImage, totalBufferSize&, numProperties&) As GpStatus
         
         [UseGetLastError(False)]
         Declare PtrSafe Function RemovePropertyItem Lib "gdiplus" Alias "GdipRemovePropertyItem" (ByVal Me As GpImage, ByVal propId As PROPID) As GpStatus
 
         [Description("Returns an array with parameters. The array starts at index 1 even though LBound(params)=0")]
         Function GetEncoderParameterList(ByVal clsidencoder As GDIP_UUID, params() As GpEncoderParameter) As GpStatus
-            Dim size&
-            Dim status As Any = Me.GetEncoderParameterListSize(clsidencoder, size)
-            If status = Ok Then
-                Dim stencil As GpEncoderParametersHeader
-                Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
-                Dim count&
-                ReDimOversized(params, 0, 1, size + LenB(Of GpEncoderParameter))
-                status = Me.GetEncoderParameterList2(clsidencoder, size, VarPtr(params(1)) - offset)
-                If status = Ok Then
-                    GetMem4(VarPtr(params(1)) - offset, count)
-                    SetOversizedCount(params, count + 1)
-                    ' The extra element is element 0 that stores the count, not an actual parameter
-                Else
-                    Erase params
-                End If
-            End If
-            Return status
+            Return GetEncoderParameterListImpl(Me.Native, clsidencoder, params)
         End Function
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetEncoderParameterListSize Lib "gdiplus" Alias "GdipGetEncoderParameterListSize" (ByVal Me As GpImage, clsidEncoder As GDIP_UUID, size As Long) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetEncoderParameterList2 Lib "gdiplus" Alias "GdipGetEncoderParameterList" (ByVal Me As GpImage, clsidEncoder As GDIP_UUID, ByVal size As Long, buffer As Any) As GpStatus
+        Declare PtrSafe Function GetEncoderParameterListSize Lib "gdiplus" Alias "GdipGetEncoderParameterListSize" (ByVal Me As GpImage, clsidEncoder As GDIP_UUID, size&) As GpStatus
     
         Function FindFirstItem(item() As GpImageItemData) As GpStatus
-            Const byteSize&= LenB(Of GpImageItemData) + 11
-            ReDimOversized(item, 1, 1, byteSize)
-            item(1).Size = byteSize
-            item(1).DescSize = 11
-            item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
-            Return Me.FindFirstItem2(item(1))
+            Return FindFirstItemImpl(Me.Native, item)
         End Function
         
         Function FindNextItem(item() As GpImageItemData) As GpStatus
-            Const byteSize&= LenB(Of GpImageItemData) + 11
-            ReDimOversized(item, 1, 1, byteSize)
-            item(1).Size = byteSize
-            item(1).DescSize = 11
-            item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
-            Return Me.FindNextItem2(item(1))
+            Return FindNextItemImpl(Me.Native, item)
         End Function
         
         Function GetItemData(item() As GpImageItemData) As GpStatus
-            Dim byteSize&= LenB(Of GpImageItemData) + 11
-            Dim status As GpStatus
-            item(1).Data = 0
-            status = Me.GetItemData2(item(1))   ' sets DataSize
-            If status = Ok Then
-                If item(1).DataSize < 1 Then Return WrongState
-                byteSize += item(1).DataSize
-                ReDimOversized(item, 1, 1, byteSize)
-                item(1).Size = byteSize
-                item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
-                item(1).Data = VarPtr(item(1)) + LenB(Of GpImageItemData) + item(1).DescSize
-                status = Me.GetItemData2(item(1))   ' populates data
-            End If
-            Return status
+            Return GetItemDataImpl(Me.Native, item)
         End Function
-        
-        [UseGetLastError(False)]
-        DeclareWide PtrSafe Function SaveToFile2 Lib "gdiplus" Alias "GdipSaveImageToFile" (ByVal Me As GpImage, ByVal FileName$, clsidEncoder As GDIP_UUID, encoderParams As Any) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function SaveToStream2 Lib "gdiplus" Alias "GdipSaveImageToStream" (ByVal Me As GpImage, ByVal stream As GDIP_IStream, clsidEncoder As GDIP_UUID, encoderParams As Any) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function SaveAdd2 Lib "gdiplus" Alias "GdipSaveAdd" (ByVal Me As GpImage, encoderParams As Any) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function SaveAddImage2 Lib "gdiplus" Alias "GdipSaveAddImage" (ByVal Me As GpImage, ByVal newImage As GpImage, encoderParams As Any) As GpStatus
-        
-        [UseGetLastError(False)]
-        Declare PtrSafe Function FindFirstItem2 Lib "gdiplus" Alias "GdipFindFirstImageItem" (ByVal Me As GpImage, item As GpImageItemData) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function FindNextItem2 Lib "gdiplus" Alias "GdipFindNextImageItem" (ByVal Me As GpImage, item As GpImageItemData) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetItemData2 Lib "gdiplus" Alias "GdipGetImageItemData" (ByVal Me As GpImage, item As GpImageItemData) As GpStatus
-        
+                
         [UseGetLastError(False)]
         Declare PtrSafe Function GetGraphicsContext Lib "gdiplus" Alias "GdipGetImageGraphicsContext" (ByVal Me As GpImage, ByVal Graphics As GpGraphics) As GpStatus
         [UseGetLastError(False)]
         [Description("⛔This API is not implemented in GdiPlus 1.0 nor 1.1." & vbCrLf _
             & "⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
         Declare PtrSafe Function SetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetFrameDimensionsList2 Lib "gdiplus" Alias "GdipImageGetFrameDimensionsList" (ByVal Me As GpImage, dimensionIDs As GDIP_UUID, ByVal count As Long) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetPropertyIdList2 Lib "gdiplus" Alias "GdipGetPropertyIdList" (ByVal Me As GpImage, ByVal numOfProperty As Long, list As Long) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetPropertyItem2 Lib "gdiplus" Alias "GdipGetPropertyItem" (ByVal Me As GpImage, ByVal propId As Long, ByVal propSize As Long, ByRef buffer As Any) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function GetAllPropertyItems2 Lib "gdiplus" Alias "GdipGetAllPropertyItems" (ByVal Me As GpImage, ByVal totalBufferSize As Long, ByVal numProperties As Long, allItems As Any) As GpStatus
     End Type
     
     Function GpImage() As GpImage
         GpImage.Native = 0
     End Function
+    
+    '---------------------------------------------------------------'
+    '                                                               '
+    ' Implementation Details                                        '
+    '                                                               '
+    '---------------------------------------------------------------'
+    
+    [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+    Function SaveToFileImpl(ByVal Me As LongPtr, ByVal FileName$, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
+        If LBound(encoderParams) <> 0 Then Return InvalidParameter
+        Dim stencil As GpEncoderParametersHeader
+        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
+        PutMem4(countAddress, UBound(encoderParams))
+        Return GdipSaveImageToFile(Me, FileName, clsidEncoder, ByVal countAddress)
+    End Function
+    [UseGetLastError(False)]
+    DeclareWide PtrSafe Function GdipSaveImageToFile Lib "gdiplus" (ByVal Me As LongPtr, ByVal FileName$, clsidEncoder As GDIP_UUID, encoderParams As Any) As GpStatus
+        
+    [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+    Function SaveToStreamImpl(ByVal Me As LongPtr, ByVal stream As GDIP_IStream, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
+        If LBound(encoderParams) <> 0 Then Return InvalidParameter
+        Dim stencil As GpEncoderParametersHeader
+        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
+        PutMem4(countAddress, UBound(encoderParams))
+        Return GdipSaveImageToStream(Me, stream, clsidEncoder, ByVal countAddress)
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipSaveImageToStream Lib "gdiplus" (ByVal Me As LongPtr, ByVal stream As GDIP_IStream, clsidEncoder As GDIP_UUID, encoderParams As Any) As GpStatus
+            
+    [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+    Function SaveAddImpl(ByVal Me As LongPtr, encoderParams() As GpEncoderParameter) As GpStatus
+        If LBound(encoderParams) <> 0 Then Return InvalidParameter
+        Dim stencil As GpEncoderParametersHeader
+        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
+        PutMem4(countAddress, UBound(encoderParams))
+        Return GdipSaveAdd(Me, ByVal countAddress)
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipSaveAdd Lib "gdiplus" (ByVal Me As LongPtr, encoderParams As Any) As GpStatus
+        
+    [Description("There should be a dummy encoderParams(0) that's not filled in. It's used internally.")]
+    Function SaveAddImageImpl(ByVal Me As LongPtr, ByVal newImage As LongPtr, encoderParams() As GpEncoderParameter) As GpStatus
+        If LBound(encoderParams) <> 0 Then Return InvalidParameter
+        Dim stencil As GpEncoderParametersHeader
+        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
+        PutMem4(countAddress, UBound(encoderParams))
+        Return GdipSaveAddImage(Me, newImage, ByVal countAddress)
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipSaveAddImage Lib "gdiplus" (ByVal Me As LongPtr, ByVal newImage As LongPtr, encoderParams As Any) As GpStatus
+    
+    Function GetSizeImpl(Of T)(Me As T, size As GpSize) As GpStatus
+        Dim status As Any = Me.GetHeight(size.Height)
+        If status = Ok Then status = Me.GetWidth(size.Width)
+        Return status
+    End Function
+    
+    Function GetFrameDimensionsListImpl(ByVal Me As LongPtr, dims As GDIP_UUID()) As GpStatus
+        Dim count&
+        Dim status As Any = GdipImageGetFrameDimensionsCount(Me, count)
+        If status = Ok Then
+            ReDim dims(1 To count&)
+            status = GdipImageGetFrameDimensionsList(Me, dims(1), count)
+            If status <> Ok Then Erase dims
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipImageGetFrameDimensionsCount Lib "gdiplus" (ByVal Me As LongPtr, count As Long) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipImageGetFrameDimensionsList Lib "gdiplus" (ByVal Me As LongPtr, dimensionIDs As GDIP_UUID, ByVal count As Long) As GpStatus
+        
+    Function GetPropertyIdListImpl(ByVal Me As LongPtr, propIDs() As PROPID) As GpStatus
+        Dim count&
+        Dim status As Any = GdipGetPropertyCount(Me, count)
+        If status = Ok Then
+            ReDim propIDs(1 To count)
+            status = GdipGetPropertyIdList(Me, count, propIDs(1))
+            If status <> Ok Then Erase propIDs
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetPropertyCount Lib "gdiplus" (ByVal Me As LongPtr, numOfProperty&) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetPropertyIdList Lib "gdiplus" (ByVal Me As LongPtr, ByVal numOfProperty&, list&) As GpStatus
+    
+    Function GetPropertyItemImpl(ByVal Me As LongPtr, ByVal propID As PROPID, item() As GpPropertyItem) As GpStatus
+        Dim size&
+        Dim status As Any = GdipGetPropertyItemSize(Me, propID, size)
+        If status = Ok Then
+            ReDimOversized(item, 1, 1, size)
+            status = GdipGetPropertyItem(Me, propID, size, item(1))
+            If status <> Ok Then Erase item
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetPropertyItemSize Lib "gdiplus" (ByVal Me As LongPtr, ByVal propId&, Size&) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetPropertyItem Lib "gdiplus" (ByVal Me As LongPtr, ByVal propId&, ByVal propSize&, ByRef buffer As Any) As GpStatus
+
+   
+    Function GetAllPropertyItemsImpl(ByVal Me As LongPtr, items() As GpPropertyItem) As GpStatus
+        Dim size&, count&
+        Dim status As Any = GdipGetPropertySize(Me, size, count)
+        If status = Ok Then
+            ReDimOversized(items, 1, count, size)
+            status = GdipGetAllPropertyItems(Me, size, count, items(1))
+            If status <> Ok Then Erase items
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetPropertySize Lib "gdiplus" (ByVal Me As LongPtr, totalBufferSize&, numProperties&) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetAllPropertyItems Lib "gdiplus" (ByVal Me As LongPtr, ByVal totalBufferSize&, ByVal numProperties&, allItems As Any) As GpStatus
+    
+    [Description("Returns an array with parameters. The array starts at index 1 even though LBound(params)=0")]
+    Function GetEncoderParameterListImpl(ByVal Me As LongPtr, ByVal clsidencoder As GDIP_UUID, params() As GpEncoderParameter) As GpStatus
+        Dim size&
+        Dim status As Any = GdipGetEncoderParameterListSize(Me, clsidencoder, size)
+        If status = Ok Then
+            Dim stencil As GpEncoderParametersHeader
+            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+            Dim count&
+            ReDimOversized(params, 0, 1, size + LenB(Of GpEncoderParameter))
+            status = GdipGetEncoderParameterList(Me, clsidencoder, size, VarPtr(params(1)) - offset)
+            If status = Ok Then
+                GetMem4(VarPtr(params(1)) - offset, count)
+                SetOversizedCount(params, count + 1)
+                ' The extra element is element 0 that stores the count, not an actual parameter
+            Else
+                Erase params
+            End If
+        End If
+        Return status
+    End Function
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetEncoderParameterListSize Lib "gdiplus" (ByVal Me As LongPtr, clsidEncoder As GDIP_UUID, size&) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetEncoderParameterList Lib "gdiplus" (ByVal Me As LongPtr, clsidEncoder As GDIP_UUID, ByVal size&, buffer As Any) As GpStatus
+    
+    Function FindFirstItemImpl(ByVal Me As LongPtr, item() As GpImageItemData) As GpStatus
+        Dim byteSize&= LenB(Of GpImageItemData) + 11
+        ReDimOversized(item, 1, 1, byteSize)
+        item(1).Size = byteSize
+        item(1).DescSize = 11
+        item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
+        Return GdipFindFirstImageItem(Me, item(1))
+    End Function
+        
+    Function FindNextItemImpl(ByVal Me As LongPtr, item() As GpImageItemData) As GpStatus
+        Dim byteSize&= LenB(Of GpImageItemData) + 11
+        ReDimOversized(item, 1, 1, byteSize)
+        item(1).Size = byteSize
+        item(1).DescSize = 11
+        item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
+        Return GdipFindNextImageItem(Me, item(1))
+    End Function
+        
+    Function GetItemDataImpl(ByVal Me As LongPtr, item() As GpImageItemData) As GpStatus
+        Dim byteSize&= LenB(Of GpImageItemData) + 11
+        Dim status As GpStatus
+        item(1).Data = 0
+        status = GdipGetImageItemData(Me, item(1))   ' sets DataSize
+        If status = Ok Then
+            If item(1).DataSize < 1 Then Return WrongState
+            byteSize += item(1).DataSize
+            ReDimOversized(item, 1, 1, byteSize)
+            item(1).Size = byteSize
+            item(1).Desc = VarPtr(item(1)) + LenB(Of GpImageItemData)
+            item(1).Data = VarPtr(item(1)) + LenB(Of GpImageItemData) + item(1).DescSize
+            status = GdipGetImageItemData(Me, item(1))   ' populates data
+        End If
+        Return status
+    End Function
+    
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipFindFirstImageItem Lib "gdiplus" (ByVal Me As LongPtr, item As GpImageItemData) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipFindNextImageItem Lib "gdiplus" (ByVal Me As LongPtr, item As GpImageItemData) As GpStatus
+    [UseGetLastError(False)]
+    Declare PtrSafe Function GdipGetImageItemData Lib "gdiplus" (ByVal Me As LongPtr, item As GpImageItemData) As GpStatus
 End Module
