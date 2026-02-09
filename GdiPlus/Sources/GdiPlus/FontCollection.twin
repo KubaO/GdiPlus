@@ -22,23 +22,17 @@ Class FontCollection
     End Property
     
     Function Families() As FontFamily()
-        Dim result() As FontFamily
         Dim nativeFamilies() As GpFontFamily
         SetStatus(fc.GetFamilyList(nativeFamilies))
-        If LastResult = Ok Then
-            ReDim result(LBound(nativeFamilies) To UBound(nativeFamilies))
-            For i As Integer = LBound(nativeFamilies) To UBound(nativeFamilies)
-                Set result(i) = New FontFamily(nativeFamilies(i))
-            Next
-            Return result
-        End If
+        If LastResult = Ok Then Return GpArrayToObjArray(Of FontFamily)(nativeFamilies)
     End Function
     
     Protected Property Get Native() As GpFontCollection
         Return fc
     End Property
     
-    Protected Sub New(ByVal nativeCollection As GpFontCollection)
+    Protected Sub New(ByVal nativeCollection As GpFontCollection, ByVal status As GpStatus = Ok)
+        SetStatus(status)
         fc = nativeCollection
     End Sub
 End Class

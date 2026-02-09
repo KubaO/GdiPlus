@@ -21,7 +21,8 @@ Class InstalledFontCollection
         Native.Native = fc.Native
     End Property
     
-    Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection)
+    Protected Sub New(ByVal nativeCollection As GpInstalledFontCollection, ByVal status As GpStatus = Ok)
+        SetStatus(status)
         fc.Native = nativeCollection.Native
     End Sub
 End Class

@@ -29,7 +29,8 @@ Class PrivateFontCollection
         Native.Native = fc.Native
     End Property
     
-    Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection)
+    Protected Sub New(ByVal nativeCollection As GpPrivateFontCollection, ByVal status As GpStatus = Ok)
+        SetStatus(status)
         fc.Native = nativeCollection.Native
     End Sub
 End Class

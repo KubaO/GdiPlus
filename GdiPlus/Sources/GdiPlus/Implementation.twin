@@ -332,6 +332,15 @@ Private Module GdipImplementation
         Return natives
     End Function
     
+    Function GpArrayToObjArray(Of T, U)(natives() As U) As T()
+        Dim objects() As T
+        ReDim objects(LBound(natives) To UBound(natives))
+        For i As Long = LBound(natives) To UBound(natives)
+            Set objects(i) = New T(natives(i))
+        Next i
+        Return objects
+    End Function
+    
     Public gdiPlusRefCount& = 0
     Public gdiPlusToken As GpToken
     
