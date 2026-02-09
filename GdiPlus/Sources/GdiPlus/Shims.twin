@@ -32,6 +32,9 @@ Module GdipShims
     Public Const GDIP_ERROR_INVALID_PARAMETER = ERROR_INVALID_PARAMETER
     Public Const GDIP_FW_DONTCARE = FW_DONTCARE
     Public Const GDIP_MM_ANISOTROPIC = MM_ANISOTROPIC
+    
+    Public Const GDIP_CTRUE = CLng(CTRUE)
+    Public Const GDIP_CFALSE = CLng(CFALSE)
 End Module
 
 #Else
@@ -50,9 +53,15 @@ End Interface
 Interface GDIP_IDirectDrawSurface7
 End Interface
 
-Alias GDIP_BOOL As Long
+Enum GDIP_BOOL
+    GDIP_CFALSE
+    GDIP_CTRUE
+End Enum
 
 Module GdipShims
+    Public Const GDIP_CTRUE = CTRUE
+    Public Const GDIP_CFALSE = CFALSE
+    
     Type GDIP_BITMAPINFO
         dummy&
     End Type
