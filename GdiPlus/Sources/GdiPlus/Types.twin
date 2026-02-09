@@ -27,7 +27,7 @@ Interface ITransformable Extends IUnknown
     Function RotateTransform(ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
     Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
     Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = matrixorderprepend) As GpStatus
-	[Description("Set the transform to identity matrix")]
+    [Description("Set the transform to identity matrix")]
     Function ResetTransform() As GpStatus
 End Interface
 
@@ -100,6 +100,7 @@ Module Types
         '#if (GDIPVER >= 0x0110)        
         ProfileNotFound = 21
         '#endif //(GDIPVER >= 0x0110)
+        LastGpStatus = 21
     End Enum
     
     Function AsText(ByVal status As GpStatus) As String
@@ -188,6 +189,21 @@ Module Types
         
         Function Empty() As Boolean
             Return Me.Width = 0 AndAlso Me.Height = 0
+        End Function
+        
+        Function ToSIZE() As GDIP_SIZE
+            ToSIZE.cx = Me.Width
+            ToSIZE.cy = Me.Height
+        End Function
+        
+        Function ToRECT() As GDIP_RECT
+            ToRECT.Right = Me.Width
+            ToRECT.Bottom = Me.Height
+        End Function
+        
+        Function ToGpRect() As GpRect
+            ToGpRect.Width = Me.Width
+            ToGpRect.Height = Me.Height
         End Function
     End Type
     
@@ -353,12 +369,34 @@ Module Types
             Me.Width = CSng(src.Right - src.Left)
             Me.Height = CSng(src.Bottom - src.Top)
         End Sub
+
+        Sub ToRECT(dst As GDIP_RECT)
+            dst.Left = CLng(Me.X)
+            dst.Right = CLng(Me.X + Me.Width)
+            dst.Top = CLng(Me.Y)
+            dst.Bottom = CLng(Me.Y + Me.Height)
+        End Sub
         
-        Sub ToRECT(dst As GDIP_RECTF)
+        Sub ToRECTF(dst As GDIP_RECTF)
             dst.Left = Me.X
             dst.Right = Me.X + Me.Width
             dst.Top = Me.Y
             dst.Bottom = Me.Y + Me.Height
+        End Sub
+        
+        Function AsRECT() As GDIP_RECT
+            Me.ToRECT(AsRECT)
+        End Function
+
+        Function AsRECTF() As GDIP_RECTF
+            Me.ToRECTF(AsRECTF)
+        End Function
+        
+        Sub SetFrom(src As GpRect)
+            Me.X = CSng(src.X)
+            Me.Y = CSng(src.Y)
+            Me.Width = CSng(src.Width)
+            Me.Height = CSng(src.Height)
         End Sub
         
         Sub SetFrom(src As GpRectF)
@@ -422,13 +460,6 @@ Module Types
             Me.X += dx
             Me.Y += dy
         End Sub
-        
-        Function AsRECTF() As GDIP_RECTF
-            AsRECTF.Left = Me.X
-            AsRECTF.Right = Me.X + Me.Width
-            AsRECTF.Top = Me.Y
-            AsRECTF.Bottom = Me.Y + Me.Width
-        End Function
     End Type
     
     Function GpRectF() As GpRectF
@@ -563,6 +594,14 @@ Module Types
             dst.Bottom = CSng(Me.Y + Me.Height)
         End Sub
         
+        Function AsRECT() As GDIP_RECT
+            Me.ToRECT(AsRECT)
+        End Function
+        
+        Function AsRECTF() As GDIP_RECTF
+            Me.ToRECTF(AsRECTF)
+        End Function
+        
         Sub SetFrom(src As GpRect)
             Me.X = src.X
             Me.Y = src.Y
@@ -628,13 +667,6 @@ Module Types
             Me.X += dx
             Me.Y += dy
         End Sub
-        
-        Function AsRECT() As GDIP_RECT
-            AsRECT.Left = Me.X
-            AsRECT.Right = Me.X + Me.Width
-            AsRECT.Top = Me.Y
-            AsRECT.Bottom = Me.Y + Me.Width
-        End Function
     End Type
     
     Function GpRect() As GpRect
