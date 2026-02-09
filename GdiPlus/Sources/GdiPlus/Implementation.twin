@@ -9,7 +9,7 @@ Private Module GdipImplementation
     Private Const FADF_FIXEDSIZE = &H10%
 
     Function ArrayLen(Of T)(array() As T) As Long
-        Return 1 + UBound(array) - LBound(array)
+        Return If(IsArrayInitialized(array), 1 + UBound(array) - LBound(array), 0)
     End Function
     
     [Description("Sets sa to be a 1D static view into data. Existing value of sa, if any, is discarded." & vbCrLf _
@@ -213,17 +213,28 @@ Private Module GdipImplementation
         Return val
     End Function
 
-    Sub RotateAtImpl(Of T)(ByVal obj As T, ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend)
+    Function RotateAtImpl(Of T)(ByVal obj As T, ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Dim status As GpStatus
         If order = MatrixOrderPrepend Then
-            obj.TranslateTransform(center.X, center.Y, order)
-            obj.RotateTransform(angle, order)
-            obj.TranslateTransform(-center.X, -center.Y, order)
+            status = obj.TranslateTransform(center.X, center.Y, order)
+            If status = Ok Then status = obj.RotateTransform(angle, order)
+            If status = Ok Then status = obj.TranslateTransform(-center.X, -center.Y, order)
         Else
-            obj.TranslateTransform(-center.X, -center.Y, order)
-            obj.RotateTransform(angle, order)
-            obj.TranslateTransform(center.X, center.Y, order)
+            status = obj.TranslateTransform(-center.X, -center.Y, order)
+            If status = Ok Then status = obj.RotateTransform(angle, order)
+            If status = Ok Then status = obj.TranslateTransform(center.X, center.Y, order)
         End If
-    End Sub
+        Return status
+    End Function
+    
+    Function ShearImpl(Of T)(ByVal obj As T, ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+        Dim status As GpStatus
+        Dim transform As GpMatrix
+        status = obj.GetWorldTransform(transform)
+        If status = Ok Then status = transform.Shear(shearX, shearY, order)
+        If status = Ok Then status = obj.SetWorldTransform(transform)
+        Return status
+    End Function
     
     Sub TGetMem1(Of T)(ByVal from As LongPtr, ByRef to As T)
         Debug.Assert LenB(Of T) >= 1
