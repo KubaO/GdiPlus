@@ -9,8 +9,11 @@
 Alias GDIP_IDirectDrawSurface7 As IDirectDrawSurface7
 Alias GDIP_IStream As IStream
 
+Alias GDIP_eSHOWWINDOW As eSHOWWINDOW
 Alias GDIP_FontWeight As FontWeight
 Alias GDIP_MappingModes As MappingModes
+Alias GDIP_WindowStyles As WindowStyles
+Alias GDIP_WindowStylesEx As WindowStylesEx
     
 Alias GDIP_BITMAPINFO As BITMAPINFO
 Alias GDIP_BOOL As BOOL
@@ -18,12 +21,17 @@ Alias GDIP_ENHMETAHEADER3 As ENHMETAHEADER3
 Alias GDIP_LOGFONTA As LOGFONTA
 Alias GDIP_LOGFONTW As LOGFONTW
 Alias GDIP_METAHEADER As METAHEADER
+Alias GDIP_MSG As MSG
+Alias GDIP_PAINTSTRUCT As PAINTSTRUCT
 Alias GDIP_RECT As RECT
 Alias GDIP_RECTF As RECTF
 Alias GDIP_SAFEARRAY1D As SAFEARRAY1D
 Alias GDIP_SAFEARRAYBOUND As SAFEARRAYBOUND
+Alias GDIP_SIZE As SIZE
+Alias GDIP_SYSTEMTIME As SYSTEMTIME
 Alias GDIP_UUID As UUID
-    
+Alias GDIP_WNDCLASS As WNDCLASS
+
 Module GdipShims
     Public Sub GDIPDEF_UUID(Name As GDIP_UUID, L As Long, w1 As Integer, w2 As Integer, b0 As Byte, b1 As Byte, b2 As Byte, b3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
         DEFINE_UUID(Name, L, w1, w2, b0, b1, b2, b3, b4, b5, b6, b7)
@@ -43,9 +51,9 @@ End Module
 ' It is useful in ensuring that the types and prototypes that we want to use are actually
 ' used.
 
-' This is ONLY A SHIM. It is not meant to be functional, just to have matching declarations.
+' This is ONLY A SHIM. It is not meant to be fully functional, just to have matching declarations.
 ' The GDIP_HAS_WINDEVLIB=0 option would be typically used in "pure" VB projects, where the
-' hDC comes from the Form or Picture and there's no need for the use of WINAPI directly.
+' hDC or hWnd comes from the Form or Picture and there's no need for the use of WINAPI directly.
 
 Interface GDIP_IStream
 End Interface
@@ -66,6 +74,15 @@ Module GdipShims
         dummy&
     End Type
 
+    Public Enum GDIP_ClassStyles
+        CS_VREDRAW = &H0001
+        CS_HREDRAW = &H0002
+    End Enum
+   
+    Public Enum GDIP_DefCursors
+        IDC_ARROW = 32512&
+    End Enum
+    
     Public Type GDIP_ENHMETAHEADER3
         iType As Long           ' Record type EMR_HEADER
         nSize As Long           ' Record size in bytes.  This may be greater
@@ -87,6 +104,10 @@ Module GdipShims
         szlDevice As GpSize     ' Size of the reference device in pels
         szlMillimeters As GpSize' Size of the reference device in millimeters
     End Type
+    
+    Public Enum GDIP_eSHOWWINDOW
+        SW_SHOWNORMAL = 1
+    End Enum
     
     Public Enum GDIP_FontWeight
         GDIP_FW_DONTCARE = 0
@@ -136,6 +157,29 @@ Module GdipShims
         dummy&
     End Type
     
+    Public Type GDIP_MSG
+        hWnd        As LongPtr
+        message     As Long
+        wParam      As LongPtr
+        lParam      As LongPtr
+        Time        As Long
+        PT          As GDIP_POINT
+    End Type
+    
+    Public Type GDIP_POINT
+        x As Long
+        y As Long
+    End Type
+    
+    Public Type GDIP_PAINTSTRUCT
+        hdc                  As LongPtr
+        fErase               As Long
+        rcPaint              As GDIP_RECT
+        fRestore             As Long
+        fIncUpdate           As Long
+        rgbReserved(0 To 31) As Byte
+    End Type
+    
     Public Type GDIP_RECT
         Left As Long
         Top As Long
@@ -144,9 +188,9 @@ Module GdipShims
     End Type
     
     Public Type GDIP_RECTF
-        Left As Single
-        Top As Single
-        Right As Single
+        Left   As Single
+        Top    As Single
+        Right  As Single
         Bottom As Single
     End Type
     
@@ -164,11 +208,65 @@ Module GdipShims
         lLbound   As Long
     End Type
     
+    Public Type GDIP_SIZE
+        cx As Long
+        cy As Long
+    End Type
+    
+    Public Type GDIP_SYSTEMTIME
+        wYear%
+        wMonth%
+        wDayOfWeek%
+        wDay%
+        wHour%
+        wMinute%
+        wSecond%
+        wMilliseconds%
+    End Type
+    
     Public Type GDIP_UUID
         Data1 As Long
         Data2 As Integer
         Data3 As Integer
         Data4 (0 To 7) As Byte
+    End Type
+    
+    Public Enum GDIP_WindowMessages
+        WM_CREATE = &H0001
+        WM_DESTROY = &H0002
+        WM_ERASEBKGND = &H0014
+        WM_PAINT = &H000F
+        WM_SIZE = &H0005
+        WM_TIMER = &H0113
+    End Enum
+    
+    Public Enum GDIP_WindowStyles
+        WS_OVERLAPPED = &H00000000
+        WS_BORDER = &H00800000
+        WS_DLGFRAME = &H00400000
+        WS_SYSMENU = &H00080000
+        WS_THICKFRAME = &H00040000
+        WS_MINIMIZEBOX = &H00020000
+        WS_MAXIMIZEBOX = &H00010000
+        WS_CAPTION = (WS_BORDER Or WS_DLGFRAME)
+        WS_OVERLAPPEDWINDOW = WS_OVERLAPPED Or WS_CAPTION Or WS_SYSMENU Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX
+    End Enum
+    
+    Public Enum GDIP_WindowStylesEx
+        WS_EX_COMPOSITED = &H02000000
+    End Enum
+    
+    Public Type GDIP_WNDCLASS
+        style As GDIP_ClassStyles
+        lpfnWndProc As LongPtr
+        cbClsExtra As Long
+        cbWndExtra As Long
+        hInstance As LongPtr
+        hIcon As LongPtr
+        hCursor As LongPtr
+        hbrBackground As LongPtr
+        lpszMenuName As LongPtr
+        lpszClassName As LongPtr
     End Type
         
     Public Sub GDIPDEF_UUID(Name As GDIP_UUID, L As Long, w1 As Integer, w2 As Integer, b0 As Byte, b1 As Byte, b2 As Byte, b3 As Byte, b4 As Byte, b5 As Byte, b6 As Byte, b7 As Byte)
@@ -182,6 +280,32 @@ Module GdipShims
     End Sub
 
     [Description("The parameter is incorrect.")] Public Const GDIP_ERROR_INVALID_PARAMETER As Long = 87
+    Public Const CW_USEDEFAULT = &H80000000&
+    
+    Public DeclareWide PtrSafe Function GetModuleHandle Lib "kernel32" Alias "GetModuleHandleW" (Optional ByVal lpModuleName As String) As LongPtr
+    Public DeclareWide PtrSafe Function LoadCursor Lib "user32" Alias "LoadCursorW" (ByVal hInstance As LongPtr, [TypeHint(GDIP_DefCursors)] ByVal lpCursorName As Any) As LongPtr
+    Public DeclareWide PtrSafe Function RegisterClass Lib "user32" Alias "RegisterClassW" (lpWndClass As GDIP_WNDCLASS) As Integer
+    Public DeclareWide PtrSafe Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As GDIP_WindowStylesEx, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As GDIP_WindowStyles, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, lpParam As Any) As LongPtr
+    Public Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hWnd As LongPtr, ByVal nCmdShow As GDIP_eSHOWWINDOW) As GDIP_BOOL
+    Public Declare PtrSafe Function UpdateWindow Lib "user32" (ByVal hWnd As LongPtr) As GDIP_BOOL
+    Public Declare PtrSafe Function timeBeginPeriod Lib "winmm" (ByVal uPeriod As Long) As Long
+    Public Declare PtrSafe Function timeEndPeriod Lib "winmm" (ByVal uPeriod As Long) As Long
+    Public DeclareWide PtrSafe Function GetMessage Lib "user32" Alias "GetMessageW" (lpMsg As GDIP_MSG, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long) As Long
+    Public Declare PtrSafe Function TranslateMessage Lib "user32" (ByRef lpmsg As GDIP_MSG) As GDIP_BOOL
+    Public DeclareWide PtrSafe Function DispatchMessage Lib "user32" Alias "DispatchMessageW" (ByRef lpmsg As GDIP_MSG) As LongPtr
+    Public DeclareWide PtrSafe Function UnregisterClass Lib "user32" Alias "UnregisterClassW" (ByVal lpClassName As String, Optional ByVal hInstance As LongPtr) As Long
+    Public Declare PtrSafe Sub GetLocalTime Lib "kernel32" (lpSystemTime As GDIP_SYSTEMTIME)
+    Public Declare PtrSafe Function BeginPaint Lib "user32" (ByVal hWnd As LongPtr, lpPaint As GDIP_PAINTSTRUCT) As LongPtr
+    Public Declare PtrSafe Function EndPaint Lib "user32" (ByVal hWnd As LongPtr, lpPaint As GDIP_PAINTSTRUCT) As GDIP_BOOL
+    Public Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As GDIP_RECT) As GDIP_BOOL
+    Public Declare PtrSafe Function SetTimer Lib "user32" (ByVal hwnd As LongPtr, ByVal nIDEvent As LongPtr, ByVal uElapse As Long, ByVal lpTimerFunc As LongPtr) As LongPtr
+    Public Declare PtrSafe Function InvalidateRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As GDIP_RECT, ByVal bErase As GDIP_BOOL) As GDIP_BOOL
+    Public Declare PtrSafe Sub PostQuitMessage Lib "user32" (ByVal nExitCode As Long)
+    Public DeclareWide PtrSafe Function DefWindowProc Lib "user32" Alias "DefWindowProcW" (ByVal hWnd As LongPtr, ByVal Msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+    Public Declare PtrSafe Function BufferedPaintInit Lib "uxtheme" () As Long
+    Public Declare PtrSafe Function BufferedPaintUnInit Lib "uxtheme" () As Long
+    Public Declare PtrSafe Function BeginBufferedPaint Lib "uxtheme" (ByVal hdcTarget As LongPtr, prcTarget As GDIP_RECT, ByVal dwFormat As BP_BUFFERFORMAT, pPaintParams As Any, phdc As LongPtr) As LongPtr
+    Public Declare PtrSafe Function EndBufferedPaint Lib "uxtheme" (ByVal hBufferedPaint As LongPtr, ByVal fUpdateTarget As Long) As Long
 End Module
 
 #End If

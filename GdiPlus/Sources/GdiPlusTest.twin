@@ -1,13 +1,18 @@
 Module ModMain
-    Dim bmp As Bitmap
     Dim pBrush As SolidBrush
+    Dim pPen As Pen
+    Dim pFont As Font
+    Dim pFormat As StringFormat
     Const tickMS% = 5
     
     Sub Main()
         Dim user As Any = GdiPlusUser()
-        Dim class As WNDCLASS
+        Dim class As GDIP_WNDCLASS
         
         Set pBrush = SolidBrush(White)
+        Set pPen = Pen(0)
+        Set pFont = Font(GenericSansSerif(), 10)
+        Set pFormat = StringFormat()
         
         With class
             .style = CS_HREDRAW Or CS_VREDRAW
@@ -18,62 +23,65 @@ Module ModMain
             .lpfnWndProc = AddressOf WndProc
         End With
         
+        timeBeginPeriod(tickMS)
         RegisterClass(class)
+        BufferedPaintInit()
         
-        Dim hWnd As LongPtr = CreateWindow( _
-                "AnalogClock", "Analog Clock", _
+        Dim hWnd As LongPtr = CreateWindowEx( _
+                0, "AnalogClock", "Analog Clock", _
                 WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1050, _
                 0, 0, GetModuleHandle(), 0)
 
         ShowWindow(hWnd, SW_SHOWNORMAL)
         UpdateWindow(hWnd)
         
-        timeBeginPeriod(tickMS)
-        
-        Dim msg As MSG
+        Dim msg As GDIP_MSG
         While GetMessage(msg, 0, 0, 0)
             TranslateMessage(msg)
             DispatchMessage(msg)
         Wend
-        
+
+        timeEndPeriod(tickMS)
+        BufferedPaintUnInit()
         UnregisterClass(class.lpszClassName)
         
-        timeEndPeriod(tickMS)
-        
-        Set bmp = Nothing
         Set pBrush = Nothing
+        Set pPen = Nothing
+        Set pFont = Nothing
+        Set pFormat = Nothing
         Set user = Nothing
     End Sub
     
     Function Timer() As Single
-        Dim st As SYSTEMTIME
+        Dim st As GDIP_SYSTEMTIME
         GetLocalTime(st)
         Return st.wHour * 3600.0 + st.wMinute * 60.0 + st.wSecond + st.wMilliseconds * 0.001
     End Function
     
-    [IgnoreWarnings(TB0020)]
-    Sub Draw()
-        If bmp Is Nothing Then Exit Sub
-
+    Sub Draw(gr As Graphics, rect As GpRectF)
+        Dim side! = If(rect.Width > rect.Height, rect.Height, rect.Width)
         Dim tSeconds! = Timer
         Dim time$
         Dim i%, phi!
-        Dim pPen As Any = Pen(0)
-        Dim pFont As Any = Font(GenericSansSerif(), 10)
-        Dim pFormat As Any = StringFormat()
-        Dim rect As Any = GpRect(0, 0, bmp.Width, bmp.Height)
         
-        Dim size& = If(rect.Width < rect.Height, rect.Width, rect.Height)
+        pBrush.RGB = White
+        If rect.Width > side Then
+            gr.FillRectangle(pBrush, 0, 0, (rect.Width - side) / 2 + 1, rect.Height)
+            gr.FillRectangle(pBrush, (rect.Width + side) / 2 - 1, 0, (rect.Width - side) / 2 + 2, rect.Height)
+        Else
+            gr.FillRectangle(pBrush, 0, 0, rect.Width, (rect.Height - side) / 2 + 1)
+            gr.FillRectangle(pBrush, 0, (rect.Height + side) / 2 - 1, rect.Width, (rect.Height - side) / 2 + 2)
+        End If
         
-        Dim gr As Any = GraphicsFromImage(bmp)
-                
+        gr.TranslateTransform((rect.Width - side) / 2, (rect.Height - side) / 2)
+        
         pBrush.RGB = White
         gr.SmoothingMode = SmoothingModeAntiAlias
-        gr.FillRectangle(pBrush, 0, 0, rect.Width, rect.Height)
+        gr.FillRectangle(pBrush, 0, 0, side, side)
         
         ' Set drawing area to be -100, -100 to 100, 100
-        gr.TranslateTransform(bmp.Width / 2, bmp.Height / 2)
-        gr.ScaleTransform(size / 200, size / 200)
+        gr.TranslateTransform(side / 2, side / 2)
+        gr.ScaleTransform(side / 200, side / 200)
         
         ' Face
         pBrush.RGB = Coral
@@ -135,63 +143,35 @@ Module ModMain
         gr.DrawLine(pPen, -10, 0, 100, 0)
     End Sub
     
-    [IgnoreWarnings(TB0020)]
-    Sub Paint(ByVal hWnd As LongPtr)
-        Dim rect As Any = ClientRect(hWnd)
-        Dim side! = If(rect.Width > rect.Height, rect.Height, rect.Width)
-        If bmp Is Nothing Then
-            Set bmp = Bitmap(side, side)
-            Draw()
-        End If
-        Dim ps As PAINTSTRUCT
-        Dim hDC As LongPtr = BeginPaint(hWnd, ps)
-        Dim wgr As Any = Graphics(hDC)
-        pBrush.RGB = White
-        If rect.Width > bmp.Width Then
-            wgr.FillRectangle(pBrush, 0, 0, (rect.Width - side) / 2 + 1, rect.Height)
-            wgr.FillRectangle(pBrush, (rect.Width + side) / 2 - 1, 0, (rect.Width - side) / 2 + 2, rect.Height)
-        Else
-            wgr.FillRectangle(pBrush, 0, 0, rect.Width, (rect.Height - side) / 2 + 1)
-            wgr.FillRectangle(pBrush, 0, (rect.Height + side) / 2 - 1, rect.Width, (rect.Height - side) / 2 + 2)
-        End If
-        wgr.DrawImage(bmp, (rect.Width - side) / 2, (rect.Height - side) / 2)
-        Set wgr = Nothing
-        EndPaint(hWnd, ps)
+    Sub Paint(ByVal hWnd As LongPtr, wndRect As RECT)
+        Dim rect As GpRectF
+        rect.SetFromRECT(wndRect)
+
+        Dim gr As Any = BufferedGraphicsFromHWND(hWnd)
+        Draw(gr, rect)
     End Sub
     
     Function ClientRect(hWnd As LongPtr) As GpRect
-        Dim rect As RECT
-        wdAPI.GetClientRect(hWnd, rect)
+        Dim rect As GDIP_RECT
+        GetClientRect(hWnd, rect)
         Return GpRect(rect)
     End Function
     
-    Sub CenterSquare(r As RECT)
-        Dim width% = r.Right - r.Left
-        Dim height% = r.Bottom - r.Top
-        If width >= height Then
-            r.Left = (width - height) / 2 - 1
-            r.Right = (width + height) / 2 + 1
-        Else
-            r.Top = (height - width) / 2 - 1
-            r.Bottom = (height + width) / 2 + 1
-        End If
-    End Sub
-    
     Function WndProc(ByVal hWnd&, ByVal message&, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
-        Dim rect As RECT
+        Dim rect As GDIP_RECT
         Select Case message
             Case WM_CREATE
                 SetTimer(hWnd, 0, tickMS, 0)
             Case WM_ERASEBKGND
                 Return True
             Case WM_SIZE
-                Set bmp = Nothing
-            Case WM_PAINT
-                Paint(hWnd)
-            Case WM_TIMER
-                Draw()
                 GetClientRect(hWnd, rect)
-                CenterSquare(rect)
+                InvalidateRect(hWnd, rect, False)
+            Case WM_PAINT
+                GetClientRect(hWnd, rect)
+                Paint(hWnd, rect)
+            Case WM_TIMER
+                GetClientRect(hWnd, rect)
                 InvalidateRect(hWnd, rect, False)
             Case WM_DESTROY:
                 PostQuitMessage(0)
