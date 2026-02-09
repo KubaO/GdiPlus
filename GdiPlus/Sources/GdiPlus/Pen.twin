@@ -43,13 +43,11 @@ Class Pen
     End Property
     
     Sub Set(ByVal color As Color, ByVal width!)
-        Me.Color = color
-        Me.Width = width
+        SetStatus(pn.Set2(color, width))
     End Sub
 
     Sub Set(ByVal rgb&, ByVal width!)
-        Me.RGB = rgb
-        Me.Width = width
+        SetStatus(pn.SetRGB2(rgb, width))
     End Sub
     
     ' Set/get line caps: start, End, and dash
@@ -59,6 +57,10 @@ Class Pen
         Return SetStatus(pn.SetLineCap(startCap, endCap, dashCap))
     End Function
 
+    Property Let Caps(ByVal bothCaps As GpLineCap)
+        SetStatus(pn.SetCaps(bothCaps))
+    End Property
+    
     Property Let StartCap(ByVal startCap As GpLineCap)
         SetStatus(pn.SetStartCap(startCap))
     End Property
@@ -98,7 +100,7 @@ Class Pen
     Property Get CustomStartCap() As CustomLineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomStartCap(customCap))
-        If LastResult = Ok Then Set CustomStartCap = New CustomLineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = CustomLineCap(customCap)
     End Property
     
     Property Let CustomEndCap(customCap As CustomLineCap)
@@ -108,7 +110,7 @@ Class Pen
     Property Get CustomEndCap() As CustomLineCap
         Dim customCap As GpCustomLineCap
         SetStatus(pn.GetCustomEndCap(customCap))
-        If LastResult = Ok Then Set CustomStartCap = New CustomLineCap(customCap)
+        If LastResult = Ok Then Set CustomStartCap = CustomLineCap(customCap)
     End Property
     
     Property Let MiterLimit(ByVal miterLimit!)
@@ -166,13 +168,11 @@ Class Pen
     End Property
     
     Property Let RGB(ByVal rgb&)
-        SetStatus(pn.SetColor(FromCOLORREF(rgb)))
+        SetStatus(pn.SetRGB(rgb))
     End Property
     
     Property Get RGB() As Long
-        Dim clr As Color
-        SetStatus(pn.GetColor(clr))
-        Return clr.argb And &h00FF_FFFF
+        SetStatus(pn.GetRGB(RGB))
     End Property
     
     Property Let Color(ByVal color As Color)
@@ -218,14 +218,11 @@ Class Pen
     End Property
     
     Property Let DashPattern(dashArray!())
-        SetStatus(pn.SetDashArray(dashArray(LBound(dashArray)), ArrayLen(dashArray)))
+        SetStatus(pn.SetDashPattern(dashArray))
     End Property
         
     Property Get DashPattern() As Single()
-        If DashPatternCount > 0 Then
-            ReDim DashPattern(1 To DashPatternCount)
-            SetStatus(pn.GetDashArray(DashPattern(1), DashPatternCount))
-        End If
+        SetStatus(pn.GetDashPattern(DashPattern))
     End Property
 
     Property Get CompoundArrayCount() As Long
@@ -233,14 +230,11 @@ Class Pen
     End Property
     
     Property Get CompoundArray() As Single()
-        If CompoundArrayCount > 0 Then
-            ReDim CompoundArray(1 To CompoundArrayCount&)
-            SetStatus(pn.GetCompoundArray(CompoundArray(1), CompoundArrayCount))
-        End If
+        SetStatus(pn.GetCompoundArray(CompoundArray))
     End Property
     
     Property Let CompoundArray(compoundArray() As Single)
-        SetStatus(pn.SetCompoundArray(compoundArray(LBound(compoundArray)), ArrayLen(compoundArray)))
+        SetStatus(pn.SetCompoundArray(compoundArray))
     End Property
     
     Protected Property Get Native() As GpPen
@@ -297,16 +291,46 @@ Module GdipPen
         Declare PtrSafe Function GetDashStyle Lib "gdiplus" Alias "GdipGetPenDashStyle" (ByVal Me As GpPen, dashStyle As GpDashStyle) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetDashCount Lib "gdiplus" Alias "GdipGetPenDashCount" (ByVal Me As GpPen, count As Long) As GpStatus
+        
+        Function GetDashPattern(pattern() As Single) As GpStatus
+            Dim count&
+            Dim status As Any = Me.GetDashCount(count)
+            If status = Ok AndAlso count > 0 Then
+                ReDim pattern(1 To count)
+                status = Me.GetDashArray(pattern(1), count)
+            End If
+            Return status
+        End Function
+        
+        Function SetDashPattern(pattern() As Single) As GpStatus
+            Return Me.SetDashArray(pattern(LBound(pattern)), ArrayLen(pattern))
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetDashArray Lib "gdiplus" Alias "GdipSetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetDashArray Lib "gdiplus" Alias "GdipGetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        
+        Function GetCompoundArray(array As Single()) As GpStatus
+            Dim count&
+            Dim status As Any = Me.GetCompoundCount(count)
+            If status = Ok And count > 0 Then
+                ReDim array(1 To count&)
+                status = Me.GetCompoundArrayX(array(1), count&)
+            End If
+            Return status
+        End Function
+    
+        Function SetCompoundArray(array() As Single) As GpStatus
+            Return Me.SetCompoundArrayX(array(LBound(array)), ArrayLen(array))
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function GetCompoundCount Lib "gdiplus" Alias "GdipGetPenCompoundCount" (ByVal Me As GpPen, count As Long) As GpStatus
         [UseGetLastError(False)]
-         Declare PtrSafe Function SetCompoundArray Lib "gdiplus" Alias "GdipSetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+         Declare PtrSafe Function SetCompoundArrayX Lib "gdiplus" Alias "GdipSetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetCompoundArray Lib "gdiplus" Alias "GdipGetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        Declare PtrSafe Function GetCompoundArrayX Lib "gdiplus" Alias "GdipGetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function SetWidth Lib "gdiplus" Alias "GdipSetPenWidth" (ByVal Me As GpPen, ByVal width As Single) As GpStatus
         [UseGetLastError(False)]
@@ -322,6 +346,12 @@ Module GdipPen
         [UseGetLastError(False)]
         Declare PtrSafe Function GetFillType Lib "gdiplus" Alias "GdipGetPenFillType" (ByVal Me As GpPen, type As GpPenType) As GpStatus
     
+        Function SetCaps(ByVal bothCaps As GpLineCap) As GpStatus
+            Dim status As Any = Me.SetStartCap(bothCaps)
+            If status = Ok Then status = Me.SetEndCap(bothCaps)
+            Return status
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetStartCap Lib "gdiplus" Alias "GdipSetPenStartCap" (ByVal Me As GpPen, ByVal startCap As GpLineCap) As GpStatus
         [UseGetLastError(False)]
@@ -348,6 +378,29 @@ Module GdipPen
         Declare PtrSafe Function SetMiterLimit Lib "gdiplus" Alias "GdipSetPenMiterLimit" (ByVal Me As GpPen, ByVal miterLimit As Single) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetMiterLimit Lib "gdiplus" Alias "GdipGetPenMiterLimit" (ByVal Me As GpPen, miterLimit As Single) As GpStatus
+        
+        Function SetRGB(ByVal rgb&) As GpStatus
+            Return Me.SetColor(FromCOLORREF(rgb))
+        End Function
+    
+        Function GetRGB(rgb&) As GpStatus
+            Dim clr As Color
+            GetRGB = Me.GetColor(clr)
+            rgb = clr.argb And &h00FF_FFFF
+        End Function
+        
+        Function Set2(ByVal color As Color, ByVal width!) As GpStatus
+            Dim status As Any = Me.SetColor(color)
+            If status = Ok Then status = Me.SetWidth(width)
+            Return status
+        End Function
+
+        Function SetRGB2(ByVal rgb&, ByVal width!) As GpStatus
+            Dim status As Any = Me.SetColor(FromCOLORREF(rgb))
+            If status = Ok Then status = Me.SetWidth(width)
+            Return status
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetColor Lib "gdiplus" Alias "GdipSetPenColor" (ByVal Me As GpPen, ByVal color As Color) As GpStatus
         [UseGetLastError(False)]
