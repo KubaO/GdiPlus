@@ -85,6 +85,10 @@ Class Metafile
             ByVal type As GpEmfType = EmfTypeEmfPlusDual, Optional ByVal description$)
         SetStatus(Native.RecordStreamIntoI(stream, referenceHdc, type, frameRect, frameUnit, description, im))
     End Sub
+    
+    Function Clone() As Metafile
+        Return CloneImpl2(Of Metafile, GpMetafile)(im)
+    End Function
 
     Property Get MetafileHeader() As MetafileHeader
         SetStatus(Native.GetHeaderFromMetafile(MetafileHeader))
@@ -157,7 +161,8 @@ Class Metafile
         Native.Native = im.Native
     End Property
         
-    Protected Sub New(ByVal nativeMetafile As GpMetafile)
+    Sub New(ByVal nativeMetafile As GpMetafile, ByVal status As GpStatus = ok)
+        SetStatus(status)
         im.Native = nativeMetafile.Native
     End Sub
 End Class

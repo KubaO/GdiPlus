@@ -27,9 +27,7 @@ Class Pen
     End Sub
         
     Function Clone() As Pen
-        Dim clonePen As GpPen
-        SetStatus(pn.Clone(clonePen))
-        If LastResult = Ok Then Return New Pen(clonePen.Release(), LastResult)
+        Return CloneImpl(Of Pen)(pn)
     End Function
     
     Private Sub Class_Terminate()

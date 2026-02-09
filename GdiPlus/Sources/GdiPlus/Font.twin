@@ -49,6 +49,15 @@ Class Font
         nativeFamily.Delete
     End Sub
 
+    Function Clone() As Font
+        Set Clone = CloneImpl(Of Font)(ft)
+        If Clone IsNot Nothing Then CloneMetricsTo(Clone)
+    End Function
+    
+    Sub Class_Terminate()
+        ft.Delete
+    End Sub
+    
     Function GetLogFontA(g As Graphics) As GDIP_LOGFONTA
         SetStatus(ft.GetLogFontA(GetNative(g), GetLogFontA))
     End Function
@@ -64,19 +73,6 @@ Class Font
     Function GetLogFontW(g As Graphics, logfontw As GDIP_LOGFONTW) As GpStatus
         Return SetStatus(ft.GetLogFontW(GetNative(g), logfontw))
     End Function
-
-    Function Clone() As Font
-        Dim cloneFont As GpFont
-        SetStatus(ft.Clone(cloneFont))
-        If LastResult = Ok Then
-            Set Clone = New Font(cloneFont, LastResult)
-            CloneMetricsTo(Clone)
-        End If
-    End Function
-    
-    Sub Class_Terminate()
-        ft.Delete
-    End Sub
 
     Property Get IsAvailable() As Boolean
         Return ft.Native <> 0
@@ -126,7 +122,7 @@ Class Font
         End If
     End Property
     
-    Protected Sub New(ByVal font As GpFont, ByVal status As GpStatus)
+    Sub New(ByVal font As GpFont, ByVal status As GpStatus = Ok)
         SetStatus(status)
         ft = font
     End Sub
@@ -134,10 +130,6 @@ Class Font
     Protected Property Get Native() As GpFont
         Return ft
     End Property
-    
-    Protected Sub New(ByVal nativeFont As GpFont)
-        ft = nativeFont
-    End Sub
 
     Protected Type Metrics
         emHeight%

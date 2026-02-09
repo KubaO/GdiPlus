@@ -10,7 +10,7 @@ Alias GpAdjustableArrowCap As GpArrowCap
 [COMCreatable(False)]
 Class ArrowCap
     Inherits CustomLineCap
-        
+    
     Sub New(ByVal height!, ByVal width!, ByVal isFilled As Boolean = True)
         SetStatus(Native.CreateInto(height, width, isFilled, lc))
     End Sub
@@ -18,6 +18,10 @@ Class ArrowCap
     Sub New(ByVal size As GpSizeF, ByVal isFilled As Boolean = True)
         SetStatus(Native.CreateInto(size.Height, size.Width, isFilled, lc))
     End Sub
+    
+    Function Clone() As ArrowCap
+        Return CloneImpl2(Of ArrowCap, GpArrowCap)(lc)
+    End Function
     
     Property Let Size(ByVal newSize As GpSizeF)
         SetStatus(Native.SetSize(newSize))
@@ -58,18 +62,15 @@ Class ArrowCap
     Property Let FillState(ByVal isFilled As Boolean)
         SetStatus(Native.SetFillState(isFilled))
     End Property
-        
+            
+    Sub New(ByVal nativeArrowCap As GpArrowCap, ByVal status As GpStatus = Ok)
+        SetStatus(status)
+        Native.Native = nativeArrowCap.Native
+    End Sub
+    
     Protected Property Get Native() As GpArrowCap
         Native.Native = lc.Native
     End Property
-    
-    Protected Sub New(ByVal nativeArrowCap As GpArrowCap)
-        SetNativeArrowCap(nativeArrowCap)
-    End Sub
-    
-    Protected Sub SetNativeArrowCap(ByVal nativeArrowCap As GpArrowCap)
-        Native.Native = nativeArrowCap.Native
-    End Sub
 End Class
 
 Module GdipArrowCap

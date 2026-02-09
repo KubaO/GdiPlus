@@ -12,7 +12,11 @@ Class FontFamily
     Sub New(ByVal name$, Optional fontCollection As FontCollection)
         SetStatus(ff.CreateFromNameInto(name, GetNative(fontCollection), ff))
     End Sub
-        
+    
+    Function Clone() As FontFamily
+        Return CloneImpl(Of FontFamily)(ff)
+    End Function
+    
     Sub Class_Terminate()
         ff.Delete()
     End Sub
@@ -20,12 +24,6 @@ Class FontFamily
     Property Get FamilyName(ByVal language As LANGID = 0) As String
         SetStatus(ff.GetFamilyName(FamilyName, language))
     End Property
-        
-    Function Clone() As FontFamily
-        Dim clonedFamily As GpFontFamily
-        SetStatus(ff.Clone(clonedFamily))
-        If LastResult = Ok Then Set Clone = New FontFamily(clonedFamily, LastResult)
-    End Function
     
     Property Get IsAvailable() As Boolean
         Return ff.Native <> vbNullPtr

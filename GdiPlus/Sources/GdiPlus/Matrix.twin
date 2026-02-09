@@ -29,15 +29,13 @@ Class Matrix
         SetStatus(mx.CreateFromRectPointIntoI(rect, dstplg, mx))
     End Sub
 
+    Function Clone() As Matrix
+        Return CloneImpl(Of Matrix)(mx)
+    End Function
+    
     Sub Class_Terminate()
         mx.Delete
     End Sub
-    
-    Function Clone() As Matrix
-        Dim nativeClone As GpMatrix
-        SetStatus(mx.Clone(nativeClone))
-        If LastResult = Ok Then Set Clone = New Matrix(nativeClone)
-    End Function
         
     Property Get Elements() As Single()
         SetStatus(mx.GetElementsArray(Elements))
@@ -203,7 +201,8 @@ Class Matrix
         SetStatus(mx.IsEqualTo(GetNative(matrix), IsEqualTo))
     End Function
     
-    Sub New(ByVal nativeMatrix As GpMatrix)
+    Sub New(ByVal nativeMatrix As GpMatrix, ByVal status As GpStatus = ok)
+        SetStatus(status)
         mx = nativeMatrix
     End Sub
     

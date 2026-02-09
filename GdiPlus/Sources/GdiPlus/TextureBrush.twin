@@ -10,21 +10,6 @@ Class TextureBrush
     Inherits GdiPlusBase
     Implements IBrush, ITransformable
     Protected br As GpTexture
-        
-    Function Clone() As TextureBrush
-        Dim newBrush As GpTexture
-        SetStatus(br.Clone(newBrush))
-        If LastResult = Ok Then Return New TextureBrush(newBrush, True)
-    End Function
-    
-    Protected Sub New(ByVal native As GpTexture, ByVal tag As Boolean)
-        SetNativeTexture(native.Release())
-    End Sub
-    
-    Public Sub New(ByVal nativeTexture As GpTexture, ByVal status As GpStatus = Ok)
-        SetStatus(status)
-        SetNativeTexture(nativeTexture)
-    End Sub
     
     Sub New(image As Image, ByVal wrapMode As GpWrapMode = WrapModeTile)
         SetStatus(br.CreateInto(GetNative(image), wrapMode, br))
@@ -67,6 +52,10 @@ Class TextureBrush
         SetStatus(br.CreateIntoI(GetNative(image), wrapmode, _
                 dstX, dstY, dstWidth, dstHeight, br))
     End Sub
+    
+    Function Clone() As TextureBrush
+        Return CloneImpl(Of TextureBrush)(br)
+    End Function
     
     Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
         NativeBrush.Native = br.Native
@@ -162,17 +151,15 @@ Class TextureBrush
         SetStatus(br.GetImage(img))
         If LastResult = Ok Then Set GetImage = New Image(img, LastResult)
     End Function
-    
-    Protected Sub New()
+        
+    Public Sub New(ByVal nativeBrush As GpTexture, ByVal status As GpStatus = Ok)
+        SetStatus(status)
+        br = nativeBrush
     End Sub
     
     Protected Property Get Native() As GpTexture
         Native.Native = br.Native
     End Property
-    
-    Protected Sub SetNativeTexture(ByVal nativeTexture As GpTexture)
-        br.Native = nativeTexture.Native
-    End Sub
 End Class
 
 Module GdipTexture
@@ -207,11 +194,6 @@ Module GdipTexture
     Type GpTexture
         'Inherits GpBrush
         Native As LongPtr
-        
-        Function Release() As GpTexture
-            Release.Native = Me.Native
-            Me.Native = 0
-        End Function
         
         [UseGetLastError(False)]
         Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeleteBrush" (ByVal Me As GpTexture) As GpStatus

@@ -10,16 +10,6 @@ Class HatchBrush
     Inherits GdiPlusBase
     Implements IBrush
     Protected br As GpHatch
-
-    Public Function Clone() As HatchBrush
-        Dim newBrush As GpHatch
-        SetStatus(br.Clone(newBrush))
-        If LastResult = Ok Then Return New HatchBrush(newBrush, True)
-    End Function
-    
-    Protected Sub New(ByVal native As GpHatch, ByVal tag As Boolean)
-        SetNativeHatch(native.Release())
-    End Sub
     
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreRgb&, ByVal backRgb&)
         SetStatus(br.CreateInto(hatchStyle, FromCOLORREF(foreRgb), FromCOLORREF(backRgb), br))
@@ -28,6 +18,10 @@ Class HatchBrush
     Sub New(ByVal hatchStyle As GpHatchStyle, ByVal foreColor As Color, ByVal backColor As Color)
         SetStatus(br.CreateInto(hatchStyle, foreColor, backColor, br))
     End Sub
+    
+    Public Function Clone() As HatchBrush
+        Return CloneImpl(Of HatchBrush)(br)
+    End Function
     
     Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
         NativeBrush.Native = br.Native
@@ -60,18 +54,14 @@ Class HatchBrush
         SetStatus(br.GetBackgroundColor(BackgroundColor))
     End Property
     
-    Public Sub New(ByVal nativeHatch As GpHatch, status As GpStatus = Ok)
+    Sub New(ByVal nativeBrush As GpHatch, ByVal status As GpStatus = ok)
         SetStatus(status)
-        SetNativeHatch(nativeHatch.Release())
+        br = nativeBrush
     End Sub
-
+    
     Protected Property Get Native() As GpHatch
         Native.Native = br.Native
     End Property
-    
-    Protected Sub SetNativeHatch(ByVal nativeHatch As GpHatch)
-        br = nativeHatch
-    End Sub
 End Class
 
 Module GdipHatch

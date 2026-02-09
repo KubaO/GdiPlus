@@ -9,16 +9,6 @@ Class PathGradientBrush
     Inherits GdiPlusBase
     Implements IBrush, ITransformable
     Protected br As GpPathGradient
-
-    Function Clone() As PathGradientBrush
-        Dim newBrush As GpPathGradient
-        SetStatus(br.Clone(newBrush))
-        If LastResult = Ok Then Return New PathGradientBrush(newBrush, True)
-    End Function
-    
-    Protected Sub New(ByVal native As GpPathGradient, ByVal tag As Boolean)
-        SetNativePathGradient(native.Release())
-    End Sub
     
     Sub New(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp)
         SetStatus(br.CreateInto(points(LBound(points)), ArrayLen(points), wrapMode, br))
@@ -39,6 +29,10 @@ Class PathGradientBrush
     Sub New(path As GraphicsPath)
         SetStatus(br.CreateFromPathInto(GetNative(path), br))
     End Sub
+    
+    Function Clone() As PathGradientBrush
+        Return CloneImpl(Of PathGradientBrush)(br)
+    End Function
     
     Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
         NativeBrush.Native = br.Native
@@ -286,26 +280,15 @@ Class PathGradientBrush
     Property Let WrapMode(ByVal wrapmode As GpWrapMode)
         SetStatus(br.SetWrapMode(wrapmode))
     End Property
-    
-    Protected Sub New()
-    End Sub
-    
-    Public Sub New(ByVal nativeGradient As GpPathGradient, ByVal lastStatus&)
-        SetStatus(lastStatus)
-        SetNativePathGradient(nativeGradient)
+        
+    Sub New(ByVal nativeBrush As GpPathGradient, ByVal status As GpStatus = ok)
+        SetStatus(status)
+        br = nativeBrush
     End Sub
     
     Protected Property Get Native() As GpPathGradient
         Native.Native = br.Native
     End Property
-        
-    Protected Sub New(ByVal nativeGradient As GpPathGradient)
-        SetNativePathGradient(nativeGradient)
-    End Sub
-    
-    Protected Sub SetNativePathGradient(ByVal nativeGradient As GpPathGradient)
-        br.Native = nativeGradient.Native
-    End Sub
 End Class
 
 Module GdipPathGradient

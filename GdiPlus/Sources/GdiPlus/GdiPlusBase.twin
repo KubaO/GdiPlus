@@ -39,6 +39,23 @@ Class GdiPlusBase
     Property Get StatusNL() As String
         Return AsText$(LastStatus) & vbCrLf
     End Property
+    
+    Protected Function CloneImpl(Of T, N)(ByVal native As N) As T
+        Dim cloned As N
+        SetStatus(native.Clone(cloned))
+        If LastResult = Ok Then
+            Return New T(cloned)
+        End If
+    End Function
+    
+    Protected Function CloneImpl2(Of T, N, Nin)(ByVal native As Nin) As T
+        Dim cloned As N, from As N
+        from.Native = native.Native
+        SetStatus(from.Clone(cloned))
+        If LastResult = Ok Then
+            Return New T(cloned)
+        End If
+    End Function
 End Class
 
 Module GdipModule

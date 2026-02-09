@@ -14,9 +14,7 @@ Class StringFormat
     End Sub
     
     Function Clone() As StringFormat
-        Dim nativeClone As GpStringFormat
-        SetStatus(sf.Clone(nativeClone))
-        If LastResult = Ok Then Set Clone = New StringFormat(nativeClone, LastResult)
+        Return CloneImpl(Of StringFormat)(sf)
     End Function
     
     Sub Class_Terminate()
@@ -384,25 +382,20 @@ Class StringFormat
     Function SetMeasurableCharacterRanges(ByVal rangeCount&, ranges As CharacterRange) As GpStatus
         Return SetStatus(sf.SetMeasurableCharacterRanges2(rangeCount, ranges))
     End Function
-    
-    Protected Property Get Native() As GpStringFormat
-        Return sf
-    End Property
-    
-    Protected Sub New(ByVal sf As GpStringFormat)
-        Me.sf = sf
-    End Sub
-            
+                    
     Protected Sub Assign(source As StringFormat)
         sf.Delete
         SetStatus(source.Clone(sf))
     End Sub
     
-    ' Used by GenericDefaultStringFormat and GenericTypographicStringFormat
-    Public Sub New(ByVal clonedStringFormat As GpStringFormat, ByVal status As GpStatus)
+    Sub New(ByVal sf As GpStringFormat, ByVal status As GpStatus = ok)
         SetStatus(status)
-        sf = clonedStringFormat
+        sf = sf
     End Sub
+    
+    Protected Property Get Native() As GpStringFormat
+        Return sf
+    End Property
     
     Private Const LANG_NEUTRAL = &H00
 End Class

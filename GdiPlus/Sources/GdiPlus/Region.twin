@@ -32,16 +32,14 @@ Class Region
         SetStatus(rg.CreateFromHrgnInto(hRgn, rg))
     End Sub
 
+    Function Clone() As Region
+        Return CloneImpl(Of Region)(rg)
+    End Function
+    
     Sub Class_Terminate()
         rg.Delete
     End Sub
-    
-    Function Clone() As Region
-        Dim nativeClone As GpRegion
-        SetStatus(rg.Clone(nativeClone))
-        If LastResult = Ok Then Set Clone = New Region(nativeClone)
-    End Function
-    
+        
     Function MakeInfinite() As GpStatus
         Return SetStatus(rg.SetInfinite())
     End Function

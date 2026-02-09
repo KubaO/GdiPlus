@@ -28,9 +28,7 @@ Class Image
     End Sub
         
     Function Clone() As Image
-        Dim cloneImage As GpImage
-        SetStatus(im.Clone(cloneImage))
-        If LastResult = Ok Then Return New Image(cloneImage, LastResult)
+        Return CloneImpl(Of Image)(im)
     End Function
         
     Sub Class_Terminate()
@@ -211,10 +209,7 @@ Class Image
     End Function
     '#endif //(GDIPVER >= 0x0110)  
     
-    Protected Sub New()
-    End Sub
-    
-    Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus)
+    Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus = Ok)
         SetStatus(status)
         im = nativeImage
     End Sub
@@ -222,12 +217,6 @@ Class Image
     Protected Property Get Native() As GpImage
         Return im
     End Property
-    
-    Protected Sub SetNativeImage(ByVal nativeImage As GpImage)
-        im.Dispose()
-        im.Native = 0
-        im = nativeImage
-    End Sub
 End Class
 
 Alias PROPID As Long

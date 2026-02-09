@@ -10,17 +10,7 @@ Class SolidBrush
     Inherits GdiPlusBase
     Implements IBrush
     Protected br As GpSolidFill
-    
-    Function Clone() As SolidBrush
-        Dim newBrush As GpSolidFill
-        SetStatus(br.Clone(newBrush))
-        If LastResult = Ok Then Return New SolidBrush(newBrush, True)
-    End Function
-    
-    Protected Sub New(ByVal native As GpSolidFill, ByVal tag As Boolean)
-        SetNativeSolid(native.Release())
-    End Sub
-        
+       
     Sub New(ByVal rgb&)
         SetStatus(br.CreateInto(FromCOLORREF(rgb), br))
     End Sub
@@ -28,6 +18,10 @@ Class SolidBrush
     Sub New(ByVal color As Color)
         SetStatus(br.CreateInto(color, br))
     End Sub
+    
+    Function Clone() As SolidBrush
+        Return CloneImpl(Of SolidBrush)(br)
+    End Function
     
     Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
         NativeBrush.Native = br.Native
@@ -63,19 +57,15 @@ Class SolidBrush
     Property Get RGB() As Long
         SetStatus(br.GetRGB(RGB))
     End Property
-    
-    Sub New(ByVal nativeBrush As GpSolidFill, ByVal lastStatus As GpStatus)
-        SetStatus(lastStatus)
-        SetNativeSolid(nativeBrush)
+        
+    Sub New(ByVal nativeBrush As GpSolidFill, ByVal status As GpStatus = Ok)
+        SetStatus(status)
+        br = nativeBrush
     End Sub
     
     Protected Property Get Native() As GpSolidFill
         Native.Native = br.Native
     End Property
-    
-    Protected Sub SetNativeSolid(ByVal nativeSolid As GpSolidFill)
-        br.Native = nativeSolid.Native
-    End Sub
 End Class
 
 Module GdipSolidBrush

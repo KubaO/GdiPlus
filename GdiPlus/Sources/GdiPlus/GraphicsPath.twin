@@ -31,16 +31,14 @@ Class GraphicsPath
         Debug.Assert ArrayLen(points) = ArrayLen(types)
         SetStatus(pa.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
     End Sub
+
+    Function Clone() As GraphicsPath
+        Return CloneImpl(Of GraphicsPath)(pa)
+    End Function
     
     Sub Class_Terminate()
         pa.Delete()
     End Sub
-    
-    Function Clone() As GraphicsPath
-        Dim clonePath As GpPath
-        SetStatus(pa.Clone(clonePath))
-        If LastResult = Ok Then Set Clone = New GraphicsPath(clonePath)
-    End Function
     
     [Description("Reset the path object to empty (and fill mode to FillModeAlternate)")]
     Function Reset() As GpStatus

@@ -31,16 +31,14 @@ Class ImageAttributes
         SetStatus(ia.CreateInto(ia))
     End Sub
     
+    Function Clone() As ImageAttributes
+        Return CloneImpl(Of ImageAttributes)(ia)
+    End Function
+    
     Sub Class_Terminate()
         ia.Dispose
     End Sub
-    
-    Function Clone() As ImageAttributes
-        Dim nativeClone As GpImageAttributes
-        SetStatus(ia.Clone(nativeClone))
-        If LastResult = Ok Then Set Clone = New ImageAttributes(nativeClone)
-    End Function
-    
+        
     Function SetToIdentity(ByVal type As ColorAdjustType = coloradjusttypedefault) As GpStatus
         Return SetStatus(ia.SetToIdentity(type))
     End Function
@@ -156,23 +154,15 @@ Class ImageAttributes
     Function GetAdjustedPalette(colorPalette As ColorPalette, ByVal colorAdjustType As ColorAdjustType) As GpStatus
         Return SetStatus(ia.GetAdjustedPalette(colorPalette, colorAdjustType))
     End Function
+       
+    Sub New(ByVal imageAttr As GpImageAttributes, ByVal status As GpStatus = ok)
+        SetStatus(status)
+        ia = imageAttr
+    End Sub
     
     Protected Property Get Native() As GpImageAttributes
         Return ia
     End Property
-    
-    Protected Sub New(ByVal nativeAttributes As GpImageAttributes)
-        SetNativeAttributes(nativeAttributes)
-    End Sub
-    
-    Protected Sub SetNativeAttributes(ByVal nativeAttributes As GpImageAttributes)
-        ia = nativeAttributes
-    End Sub
-    
-    Protected Sub New(ByVal imageAttr As GpImageAttributes, ByVal status As GpStatus)
-        SetStatus(status)
-        SetNativeAttributes(imageAttr)
-    End Sub
 End Class
 
 Module GdipImageAttributes

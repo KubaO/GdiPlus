@@ -13,15 +13,13 @@ Class CustomLineCap
         SetStatus(lc.CreateInto(GetNative(fillPath), GetNative(strokePath), baseCap, baseInset, lc))
     End Sub
     
+    Function Clone() As CustomLineCap
+        Return CloneImpl(Of CustomLineCap)(lc)
+    End Function
+    
     Overridable Sub Class_Terminate()
         lc.Delete
     End Sub
-    
-    Function Clone() As CustomLineCap
-        Dim newNativeLineCap As GpCustomLineCap
-        SetStatus(lc.Clone(newNativeLineCap))
-        If LastResult = Ok Then Set Clone = New CustomLineCap(newNativeLineCap, LastResult)
-    End Function
     
     ' This changes both the start and end cap.
     Property Let StrokeCap(ByVal strokeCap As GpLineCap)
@@ -83,13 +81,8 @@ Class CustomLineCap
     Property Get WidthScale() As Single
         SetStatus(lc.GetWidthScale(WidthScale))
     End Property
-
-    ' Used by Pen
-    Public Sub New(ByVal nativeLineCap As GpCustomLineCap)
-        lc = nativeLineCap
-    End Sub
     
-    Protected Sub New(ByVal nativeCap As GpCustomLineCap, ByVal status As GpStatus)
+    Sub New(ByVal nativeCap As GpCustomLineCap, ByVal status As GpStatus = Ok)
         SetStatus(status)
         lc = nativeCap
     End Sub

@@ -9,17 +9,7 @@ Class LinearGradientBrush
     Inherits GdiPlusBase
     Implements IBrush, ITransformable
     Protected br As GpLineGradient
-    
-    Function Clone() As LinearGradientBrush
-        Dim newBrush As GpLineGradient
-        SetStatus(br.Clone(newBrush))
-        If LastResult = Ok Then Return New LinearGradientBrush(newBrush, True)
-    End Function
-    
-    Protected Sub New(ByVal native As GpLineGradient, ByVal tag As Boolean)
-        SetNativeLineGradient(native.Release())
-    End Sub
-    
+        
     Sub New(rect As GpRectF, ByVal rgb1&, ByVal rgb2&)
         SetStatus(br.CreateInto(rect.TopLeft, rect.BottomRight, _
                 FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, br))
@@ -78,6 +68,10 @@ Class LinearGradientBrush
     Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color, ByVal angle!, ByVal isAngleScalable As Boolean = False)
         SetStatus(br.CreateFromRectWithAngleIntoI(rect, color1, color2, angle, isAngleScalable, WrapModeTile, br))
     End Sub
+    
+    Function Clone() As LinearGradientBrush
+        Return CloneImpl(Of LinearGradientBrush)(br)
+    End Function
     
     Property Get NativeBrush() As GpBrush Implements IBrush.NativeBrush
         NativeBrush.Native = br.Native
@@ -271,22 +265,15 @@ Class LinearGradientBrush
     Property Get WrapMode() As GpWrapMode
         SetStatus(br.GetWrapMode(WrapMode))
     End Property
-    
-    Protected Sub New()
-    End Sub
-    
-    Public Sub New(ByVal nativeGradient As GpLineGradient, ByVal status As GpStatus = Ok)
+        
+    Sub New(ByVal nativeBrush As GpLineGradient, ByVal status As GpStatus = ok)
         SetStatus(status)
-        SetNativeLineGradient(nativeGradient)
+        br = nativeBrush
     End Sub
     
     Protected Property Get Native() As GpLineGradient
         Native.Native = br.Native
     End Property
-    
-    Protected Sub SetNativeLineGradient(ByVal nativeGradient As GpLineGradient)
-        br.Native = nativeGradient.Native
-    End Sub
 End Class
 
 Module GdipLineGradient
