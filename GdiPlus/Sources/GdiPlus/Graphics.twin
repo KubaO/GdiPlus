@@ -13,8 +13,6 @@ Class Graphics
     Dim resource As Object  ' A reference to a resource we use, such as an image
     Dim hBP As LongPtr, hWND As LongPtr, ps As GDIP_PAINTSTRUCT ' For buffered painting
     
-    Dim flags As GraphicsFlags = LegacyTransparentDrawing
-
     Sub New(ByVal options As GraphicsCreationOptions, ByVal h1 As LongPtr, ByVal h2 As LongPtr = 0)
         Dim bDC As LongPtr
         Select Case options
@@ -1202,12 +1200,6 @@ Module GdipGraphics
         Return New Graphics(options, h1, h2)
     End Function
     
-    [Flags]
-    Enum GraphicsFlags
-        None
-        LegacyTransparentDrawing
-    End Enum
-    
     Type GpGraphics
         Native As LongPtr
         
@@ -1621,8 +1613,6 @@ Module GdipGraphics
         
         [UseGetLastError(False)]
         Declare PtrSafe Function FillRectangle Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function FillRectangleSolid Lib "gdiplus" Alias "GdipFillRectangle" (ByVal Me As GpGraphics, ByVal Brush As GpSolidFill, ByVal X!, ByVal Y!, ByVal Width!, ByVal Height!) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function FillRectangleI Lib "gdiplus" Alias "GdipFillRectangleI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         
