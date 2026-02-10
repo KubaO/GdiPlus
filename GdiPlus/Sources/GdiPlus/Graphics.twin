@@ -112,7 +112,7 @@ Class Graphics
     ' Rendering modes
     '------------------------------------------------------------------------
     
-    Property Let RenderingOrigin(origin As GpPoint)
+    Property Let RenderingOrigin(ByVal origin As GpPoint)
         SetStatus(gr.SetRenderingOriginP(origin))
     End Property
     
@@ -298,7 +298,7 @@ Class Graphics
         Return SetStatus(gr.DrawLine(GetNative(pen), x1, y1, x2, y2))
     End Function
     
-    Function DrawLine(pen As Pen, pt1 As GpPointF, pt2 As GpPointF) As GpStatus
+    Function DrawLine(pen As Pen, ByVal pt1 As GpPointF, ByVal pt2 As GpPointF) As GpStatus
         Return SetStatus(gr.DrawLineP(GetNative(pen), pt1, pt2))
     End Function
     
@@ -314,7 +314,7 @@ Class Graphics
         Return SetStatus(gr.DrawLineI(GetNative(pen), x1, y1, x2, y2))
     End Function
     
-    Function DrawLine(pen As Pen, pt1 As GpPoint, pt2 As GpPoint) As GpStatus
+    Function DrawLine(pen As Pen, ByVal pt1 As GpPoint, ByVal pt2 As GpPoint) As GpStatus
         Return SetStatus(gr.DrawLinePI(GetNative(pen), pt1, pt2))
     End Function
 
@@ -2036,7 +2036,7 @@ Module GdipGraphics
             Return Me.MeasureStringX(str, Len(str), font, layoutRect, GpStringFormat(), boundingBox)
         End Function
     
-        Function MeasureStringP2(ByVal str$, ByVal font As GpFont, origin As GpPointF, boundingBox As GpRectF) As GpStatus
+        Function MeasureStringP2(ByVal str$, ByVal font As GpFont, ByVal origin As GpPointF, boundingBox As GpRectF) As GpStatus
             Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
             Return Me.MeasureStringX(str, Len(str), font, rect, GpStringFormat(), boundingBox)
         End Function
