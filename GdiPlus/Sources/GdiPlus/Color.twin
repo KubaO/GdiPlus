@@ -150,6 +150,8 @@ Module GdipColor
         
         Sub SetFromCOLORREF(ByVal rgb As Long)
             ' Yes, RGB_B..RGB_R are not named correctly for this ARGB format, but they do the job.
+            ' COLORREF: &h00bb_ggrr
+            ' ARGB: &haarr_ggbb <- RGB_ functions work on this format
             Me.argb = MakeARGB(255, RGB_B(rgb), RGB_G(rgb), RGB_R(rgb))
         End Sub
         
