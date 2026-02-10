@@ -5,7 +5,7 @@
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
 	"project.buildType": "Package TWINPACK",
 	"project.conditionalCompilationArguments": "GDIP_HAS_WINDEVLIB=1",
-	"project.description": "A GdiPlus class library for tB",
+	"project.description": "GdiPlus class library for tB",
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\${ProjectName}",
 	"project.exportPathIsV2": true,
@@ -54,7 +54,7 @@
 	"project.versionMajor": 0,
 	"project.versionMinor": 9,
 	"project.versionProductName": "GdiPlus For TwinBasic",
-	"project.versionRevision": 34,
+	"project.versionRevision": 35,
 	"project.warnings": {
 		"errors": [
 			"TB0029"
