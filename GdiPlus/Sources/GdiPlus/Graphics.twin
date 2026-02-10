@@ -15,6 +15,7 @@ Class Graphics
     
     Sub New(ByVal options As GraphicsCreationOptions, ByVal h1 As LongPtr, ByVal h2 As LongPtr = 0)
         Dim bDC As LongPtr
+        Init
         Select Case options
             Case FromHDC
                 SetStatus(gr.CreateFromHDC(h1))
@@ -55,10 +56,12 @@ Class Graphics
     End Sub
     
     Sub New(hDC As LongPtr)
+        Init
         SetStatus(gr.CreateFromHDC(hDC))
     End Sub
     
     Sub New(image As Image)
+        Init
         If image IsNot Nothing Then
             Set resource = image
             SetStatus(gr.GetImageGraphicsContext(GetNative(image), gr))
@@ -687,7 +690,8 @@ Class Graphics
     Dim pos As GpPointF
     Dim flags As GraphicsFlags = LegacyTransparentDrawing
     
-    Private Sub Class_Initialize()
+    Private Sub Init()
+        ClearResult()
         _foreColor= Color(Black)
         _fillColor= Color(White)
         _fillStyle= vbFSTransparent

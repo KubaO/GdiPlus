@@ -12,6 +12,10 @@ Class GdiPlusBase
         Return LastStatus
     End Property
     
+    Function ClearResult() As GpStatus
+        Return GetLastResult()
+    End Function
+    
     Function GetLastResult() As GpStatus
         GetLastResult = LastStatus
         LastStatus = Ok
