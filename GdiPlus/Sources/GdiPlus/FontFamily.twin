@@ -105,7 +105,7 @@ Module GdipFontFamily
         Declare PtrSafe Function Clone Lib "gdiplus" Alias "GdipCloneFontFamily" (ByVal Me As GpFontFamily, clonedFontFamily As GpFontFamily) As GpStatus
         
         Function GetFamilyName(name$, ByVal language% = 0) As GpStatus
-            Dim result$ = Space$(LF_FACESIZE)
+            Dim result$ = Space$(GDIP_LF_FACESIZE)
             Dim status As Any = Me.GetFamilyName2(result, language)
             If status = Ok Then name = RTrim$(result)
             Return status

@@ -165,8 +165,6 @@ Class Font
             UnprotectedAccess(other).metrics = metrics
         End If
     End Sub
-    
-    Private DeclareWide PtrSafe Function GetObjectW Lib "gdi32" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
 End Class
 
 Module GdipFont
@@ -270,4 +268,6 @@ Module GdipFont
     Function GpFont() As GpFont
         GpFont.Native = 0
     End Function
+    
+    Private DeclareWide PtrSafe Function GetObjectW Lib "gdi32" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
 End Module

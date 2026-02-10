@@ -17,6 +17,7 @@ Alias GDIP_WindowStylesEx As WindowStylesEx
     
 Alias GDIP_BITMAPINFO As BITMAPINFO
 Alias GDIP_BOOL As BOOL
+Alias GDIP_BP_BUFFERFORMAT As BP_BUFFERFORMAT
 Alias GDIP_ENHMETAHEADER3 As ENHMETAHEADER3
 Alias GDIP_LOGFONTA As LOGFONTA
 Alias GDIP_LOGFONTW As LOGFONTW
@@ -43,6 +44,8 @@ Module GdipShims
     
     Public Const GDIP_CTRUE = CLng(CTRUE)
     Public Const GDIP_CFALSE = CLng(CFALSE)
+    
+    Public Const GDIP_LF_FACESIZE = LF_FACESIZE
 End Module
 
 #Else
@@ -61,14 +64,11 @@ End Interface
 Interface GDIP_IDirectDrawSurface7
 End Interface
 
-Enum GDIP_BOOL
-    GDIP_CFALSE
-    GDIP_CTRUE
-End Enum
-
 Module GdipShims
-    Public Const GDIP_CTRUE = CTRUE
-    Public Const GDIP_CFALSE = CFALSE
+    Enum GDIP_BOOL
+        GDIP_CFALSE
+        GDIP_CTRUE
+    End Enum
     
     Type GDIP_BITMAPINFO
         dummy&
@@ -275,10 +275,17 @@ Module GdipShims
             .Data2 = w1
             .Data3 = w2
             .Data4(0) = b0: .Data4(1) = b1:.Data4(2) = b2:.Data4(3) = b3
-            .Data4(5) = b5: .Data4(6) = b1:.Data4(6) = b2:.Data4(7) = b7
+            .Data4(4) = b4: .Data4(5) = b5:.Data4(6) = b6:.Data4(7) = b7
         End With
     End Sub
 
+    Public Enum GDIP_BP_BUFFERFORMAT
+        BPBF_COMPATIBLEBITMAP     '// Compatible bitmap
+        BPBF_DIB                  '// Device-independent bitmap
+        BPBF_TOPDOWNDIB           '// Top-down device-independent bitmap
+        BPBF_TOPDOWNMONODIB       '// Top-down monochrome device-independent bitmap
+    End Enum
+    
     [Description("The parameter is incorrect.")] Public Const GDIP_ERROR_INVALID_PARAMETER As Long = 87
     Public Const CW_USEDEFAULT = &H80000000&
     
@@ -304,8 +311,9 @@ Module GdipShims
     Public DeclareWide PtrSafe Function DefWindowProc Lib "user32" Alias "DefWindowProcW" (ByVal hWnd As LongPtr, ByVal Msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
     Public Declare PtrSafe Function BufferedPaintInit Lib "uxtheme" () As Long
     Public Declare PtrSafe Function BufferedPaintUnInit Lib "uxtheme" () As Long
-    Public Declare PtrSafe Function BeginBufferedPaint Lib "uxtheme" (ByVal hdcTarget As LongPtr, prcTarget As GDIP_RECT, ByVal dwFormat As BP_BUFFERFORMAT, pPaintParams As Any, phdc As LongPtr) As LongPtr
+    Public Declare PtrSafe Function BeginBufferedPaint Lib "uxtheme" (ByVal hdcTarget As LongPtr, prcTarget As GDIP_RECT, ByVal dwFormat As GDIP_BP_BUFFERFORMAT, pPaintParams As Any, phdc As LongPtr) As LongPtr
     Public Declare PtrSafe Function EndBufferedPaint Lib "uxtheme" (ByVal hBufferedPaint As LongPtr, ByVal fUpdateTarget As Long) As Long
+    Public Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
 End Module
 
 #End If

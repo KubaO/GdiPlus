@@ -685,7 +685,7 @@ Module GdipStringFormat
             Return Me.GetDigitSubstitutionImpl(language)
         End Function
         
-        Function GetDigitSubstitutionMethod(subst As StringDigitSubstitute) As GpStatus
+        Function GetDigitSubstitutionMethod(subst As GpStringDigitSubstitute) As GpStatus
             Return Me.GetDigitSubstitutionImpl(, subst)
         End Function
         
@@ -740,11 +740,11 @@ Module GdipStringFormat
         
         '---------------------------------------------------------------'
         
-        Private Function GetFlagsImpl(status As GpStatus) As StringFormatFlags
+        Private Function GetFlagsImpl(status As GpStatus) As GpStringFormatFlags
             status = Me.GetFlags(GetFlagsImpl)
         End Function
         
-        Private Function SetFlagsImpl(ByVal value As Boolean, ByVal flag As StringFormatFlags) As GpStatus
+        Private Function SetFlagsImpl(ByVal value As Boolean, ByVal flag As GpStringFormatFlags) As GpStatus
             Dim flags As Any = Me.GetFlagsImpl(SetFlagsImpl)
             If SetFlagsImpl = Ok Then
                 SetFlagsImpl = Me.SetFlags(SetFlag(flags, flag, value))
