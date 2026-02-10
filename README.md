@@ -12,7 +12,7 @@ TO DO:
 
 
 
-![image-20260114001051102](Documentation/trivial-demo.png)
+![Screenshot of the Demo showing "Welcome to GDI+" text on a background consisting of: a diagonal light green line over a diagonal cyan-to-blue gradient (top left to bottom right).](Documentation/Images/trivial-demo.png)
 
 
 
@@ -20,22 +20,22 @@ The window above is produced by the following code:
 
 ``` vb
 Class Form1
-    Dim gdiPlus As GdiPlusUser
+    Dim mGdiPlus As GdiPlusUser
     
     Sub Form_Load()
         ScaleMode = vbPixels
-        Set gdiPlus = GdiPlusUser()
+        Set mGdiPlus = GdiPlusUser()
     End Sub
             
     Sub Paint() Handles Form.Paint, Form.Resize
-        Dim gr As Any = Graphics(hDC)
-        Dim rect As Any = GpRectF(0, 0, ScaleWidth, ScaleHeight)
-        Dim br As Any = LinearGradientBrush(rect, vbCyan, vbBlue)
-        Dim ft As Any = Font("Segoe UI", 20)
-        Dim fbr As Any = SolidBrush(vbBlack)
+        Dim rect As Any = GpRect(0, 0, ScaleWidth, ScaleHeight)
+        Dim gr As Any = BufferedGraphicsFromHDC(hDC, rect)
+        Dim br As Any = LinearGradientBrush(rect, Cyan, Blue)
+        Dim ft As Any = GdiPlus.Font("Segoe UI", 20)
+        Dim fbr As Any = SolidBrush(Black)
                         
         gr.FillRectangle(br, rect)
-        gr.DrawLine(Pen(vbGreen, 3.0), rect)
+        gr.DrawLine(Pen(LightGreen, 3.0), rect)
         gr.DrawString("Welcome to GDI+", ft, GpPointF(50, 50), fbr)
     End Sub
 End Class
