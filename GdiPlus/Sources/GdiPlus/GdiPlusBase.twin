@@ -6,10 +6,10 @@
 
 [COMCreatable(False)]
 Class GdiPlusBase
-    Private LastStatus As GpStatus
+    Private _lastStatus As GpStatus
     
     Property Get LastResult() As GpStatus
-        Return LastStatus
+        Return _lastStatus
     End Property
     
     Function ClearResult() As GpStatus
@@ -17,13 +17,21 @@ Class GdiPlusBase
     End Function
     
     Function GetLastResult() As GpStatus
-        GetLastResult = LastStatus
-        LastStatus = Ok
+        GetLastResult = _lastStatus
+        _lastStatus = Ok
     End Function
     
     Protected Function SetStatus(ByVal status As GpStatus) As GpStatus
         If status <> Ok Then
-            LastStatus = status
+            _lastStatus = status
+            Select Case GdipErrorHandlingStrategy
+                Case RaiseErrors
+                    Err.Raise(GdipErrorCodeBase& + _lastStatus, "GdiPlus:" & TypeName(Me), status)
+                Case HandleErrors
+                    If GdipErrorHandler <> 0 Then GdipErrorHandler(Me)
+                Case IgnoreErrors
+                    '
+            End Select
         End If
         Return status
     End Function
@@ -37,11 +45,11 @@ Class GdiPlusBase
     End Sub
     
     Property Get Status() As String
-        Return AsText$(LastStatus)
+        Return AsText$(_lastStatus)
     End Property
     
     Property Get StatusNL() As String
-        Return AsText$(LastStatus) & vbCrLf
+        Return AsText$(_lastStatus) & vbCrLf
     End Property
     
     Protected Function CloneImpl(Of T, N)(ByVal native As N) As T
@@ -63,6 +71,21 @@ Class GdiPlusBase
 End Class
 
 Module GdipModule
+    Enum GpErrorHandlingStrategy
+        IgnoreErrors
+        RaiseErrors
+        HandleErrors
+    End Enum
+    
+    [Description("The base error code in the RaiseErrors strategy. GpStatus is added to this base code.")]
+    Public GdipErrorCodeBase&= 3300
+    [Description("Whether the errors from GdiPlus objects are ignored, Err.Raise-d, or processed by a handler.")]
+    Public GdipErrorHandlingStrategy As GpErrorHandlingStrategy = IgnoreErrors
+    [Description("The error handler to be invoked upon errors when the strategy is HandleErrors.")]
+    Public GdipErrorHandler As GdipErrorHandler = 0
+    
+    Public Delegate Function GdipErrorHandler (ByVal obj As GdiPlusBase)
+    
     [UseGetLastError(False)]
     Declare PtrSafe Function GdipAlloc Lib "gdiplus.dll" (ByVal Size As LongPtr) As LongPtr
     [UseGetLastError(False)]
