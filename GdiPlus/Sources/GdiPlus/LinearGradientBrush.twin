@@ -18,20 +18,29 @@ Class LinearGradientBrush
     Sub New(rect As GpRectF, ByVal color1 As Color, ByVal color2 As Color)
         SetStatus(br.CreateInto(rect.TopLeft, rect.BottomRight, color1, color2, WrapModeTile, br))
     End Sub
+
+    Sub New(rect As GpRect, ByVal rgb1&, ByVal rgb2&)
+        SetStatus(br.CreateIntoI(rect.TopLeft, rect.BottomRight, _
+                FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, br))
+    End Sub
     
-    Sub New(point1 As GpPointF, point2 As GpPointF, ByVal rgb1&, ByVal rgb2&)
+    Sub New(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color)
+        SetStatus(br.CreateIntoI(rect.TopLeft, rect.BottomRight, color1, color2, WrapModeTile, br))
+    End Sub
+    
+    Sub New(ByVal point1 As GpPointF, ByVal point2 As GpPointF, ByVal rgb1&, ByVal rgb2&)
         SetStatus(br.CreateInto(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, br))
     End Sub
     
-    Sub New(point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color)
+    Sub New(ByVal point1 As GpPointF, ByVal point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color)
         SetStatus(br.CreateInto(point1, point2, color1, color2, WrapModeTile, br))
     End Sub
     
-    Sub New(point1 As GpPoint, point2 As GpPoint, ByVal rgb1&, ByVal rgb2&)
+    Sub New(ByVal point1 As GpPoint, ByVal point2 As GpPoint, ByVal rgb1&, ByVal rgb2&)
         SetStatus(br.CreateIntoI(point1, point2, FromCOLORREF(rgb1), FromCOLORREF(rgb2), WrapModeTile, br))
     End Sub
     
-    Sub New(point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color)
+    Sub New(ByVal point1 As GpPoint, ByVal point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color)
         SetStatus(br.CreateIntoI(point1, point2, color1, color2, WrapModeTile, br))
     End Sub
     
@@ -285,19 +294,27 @@ Module GdipLineGradient
         Return New LinearGradientBrush(rect, color1, color2)
     End Function
 
-    Function LinearGradientBrush(point1 As GpPointF, point2 As GpPointF, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+    Function LinearGradientBrush(rect As GpRect, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, rgb1, rgb2)
+    End Function
+
+    Function LinearGradientBrush(rect As GpRect, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+        Return New LinearGradientBrush(rect, color1, color2)
+    End Function
+    
+    Function LinearGradientBrush(ByVal point1 As GpPointF, ByVal point2 As GpPointF, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
         Return New LinearGradientBrush(point1, point2, rgb1, rgb2)
     End Function
 
-    Function LinearGradientBrush(point1 As GpPointF, point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+    Function LinearGradientBrush(ByVal point1 As GpPointF, ByVal point2 As GpPointF, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
         Return New LinearGradientBrush(point1, point2, color1, color2)
     End Function
 
-    Function LinearGradientBrush(point1 As GpPoint, point2 As GpPoint, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
+    Function LinearGradientBrush(ByVal point1 As GpPoint, ByVal point2 As GpPoint, ByVal rgb1&, ByVal rgb2&) As LinearGradientBrush
         Return New LinearGradientBrush(point1, point2, rgb1, rgb2)
     End Function
 
-    Function LinearGradientBrush(point1 As GpPoint, point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
+    Function LinearGradientBrush(ByVal point1 As GpPoint, ByVal point2 As GpPoint, ByVal color1 As Color, ByVal color2 As Color) As LinearGradientBrush
         Return New LinearGradientBrush(point1, point2, color1, color2)
     End Function
 
