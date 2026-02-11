@@ -45,12 +45,8 @@ Class Matrix
         SetStatus(mx.SetElementsArray(elts))
     End Property
     
-    Function GetElements(m!) As GpStatus
-        Return SetStatus(mx.GetElements2(m))
-    End Function
-    
-    Function SetElements(elts() As Single) As GpStatus
-        Return SetStatus(mx.SetElementsArray(elts))
+    Function GetElements(elts() As Single) As GpStatus
+        Return SetStatus(mx.GetElements2(elts(LBound(elts))))
     End Function
     
     Function GetElements(Optional m11!, Optional m12!, Optional m21!, Optional m22!, Optional dx!, Optional dy!) As GpStatus
@@ -162,14 +158,6 @@ Class Matrix
 
     Function TransformPoints(pts() As GpPoint) As GpStatus
         Return SetStatus(mx.TransformPointsI(pts))
-    End Function
-    
-    Function TransformPoints(pts As GpPointF, ByVal count&) As GpStatus
-        Return SetStatus(mx.TransformPoints2(pts, count))
-    End Function
-    
-    Function TransformPoints(pts As GpPoint, ByVal count&) As GpStatus
-        Return SetStatus(mx.TransformPoints2I(pts, count))
     End Function
     
     Function VectorTransformPoint(pt As GpPointF) As GpStatus

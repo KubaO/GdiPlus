@@ -140,10 +140,6 @@ Module GdipColor
             Return Me.argb = Transparent
         End Property
         
-        Property Get Value() As ARGB
-            Return Me.argb
-        End Property
-        
         Property Let Value(ByVal argb As ARGB)
             Me.argb = argb
         End Property

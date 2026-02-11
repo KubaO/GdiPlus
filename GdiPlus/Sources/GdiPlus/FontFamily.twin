@@ -53,19 +53,19 @@ Class FontFamily
         SetStatus(ff.IsStyleAvailable(style, IsStyleAvailable))
     End Function
     
-    Property Get EmHeight(ByVal style&) As Integer
+    Property Get EmHeight(ByVal style As GpFontStyle) As Integer
         SetStatus(ff.GetEmHeight(style, EmHeight))
     End Property
     
-    Property Get CellAscent(ByVal style&) As Integer
+    Property Get CellAscent(ByVal style As GpFontStyle) As Integer
         SetStatus(ff.GetCellAscent(style, CellAscent))
     End Property
         
-    Property Get CellDescent(ByVal style&) As Integer
+    Property Get CellDescent(ByVal style As GpFontStyle) As Integer
         SetStatus(ff.GetCellDescent(style, CellDescent))
     End Property
 
-    Property Get LineSpacing(ByVal style&) As Integer
+    Property Get LineSpacing(ByVal style As GpFontStyle) As Integer
         SetStatus(ff.GetLineSpacing(style, LineSpacing))
     End Property
     
