@@ -6,6 +6,10 @@
   - Missing ByVal for GpPoint\[F], causing crashes.
   - Missing (GpRect, rgb, rgb) constructor in LinearGradientBrush.
 - Add the global error handling strategy, and a global error handler delegate.
+- Further uniformize Graphics, Matrix, LinearGradientBrush, PathGradientBrush, TextureBrush, Color, and FontFamily.
+- Make PathData inherit GdiPlusBase.
+- Use byte-sized PathPointType instead of the generic Byte type.
+- Add a preliminary manual to the repository.
 - Add the missing changelog entry for 0.9.34.
 
 ## 0.9.34
