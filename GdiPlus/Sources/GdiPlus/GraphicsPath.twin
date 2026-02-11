@@ -22,12 +22,12 @@ Class GraphicsPath
         SetStatus(pa.CreateInto(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, pa))
     End Sub
     
-    Sub New(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
+    Sub New(points() As GpPointF, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
         SetStatus(pa.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
     End Sub
 
-    Sub New(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate)
+    Sub New(points() As GpPoint, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
         SetStatus(pa.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
     End Sub
@@ -327,7 +327,7 @@ Class GraphicsPath
         SetStatus(pa.GetPointCount(PointCount))
     End Property
     
-    Function GetTypes(types() As Byte) As GpStatus
+    Function GetTypes(types() As PathPointType) As GpStatus
         Return SetStatus(pa.GetTypes(types))
     End Function
 
@@ -405,11 +405,11 @@ Module GdipGraphicsPath
         Return New GraphicsPath(fillMode)
     End Function
     
-    Function GraphicsPath(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points() As GpPointF, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, fillMode)
     End Function
     
-    Function GraphicsPath(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
+    Function GraphicsPath(points() As GpPoint, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GraphicsPath
         Return New GraphicsPath(points, types, fillMode)
     End Function
             
@@ -429,21 +429,21 @@ Module GdipGraphicsPath
             Return Me.CreateInto(ByVal pd.PointsPtr, ByVal pd.TypesPtr, pd.Count, fillMode, Me)
         End Function
     
-        Function Create(points() As GpPointF, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
+        Function Create(points() As GpPointF, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Debug.Assert ArrayLen(points) = ArrayLen(types)
             Return Me.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, Me)
         End Function
     
-        Function Create(points As GpPointF, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
+        Function Create(points As GpPointF, types As PathPointType, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Return Me.CreateInto(points, types, count, fillMode, Me)
         End Function
 
-        Function Create(points() As GpPoint, types() As Byte, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
+        Function Create(points() As GpPoint, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Debug.Assert ArrayLen(points) = ArrayLen(types)
             Return Me.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, Me)
         End Function
     
-        Function Create(points As GpPoint, types As Byte, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
+        Function Create(points As GpPoint, types As PathPointType, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Return Me.CreateIntoI(points, types, count, fillMode, Me)
         End Function
         
@@ -497,7 +497,7 @@ Module GdipGraphicsPath
         [UseGetLastError(False)]
         Declare PtrSafe Function GetData Lib "gdiplus" Alias "GdipGetPathData" (ByVal Me As GpPath, pathData As GpPathData) As GpStatus
         
-        Function GetTypes(types() As Byte) As GpStatus
+        Function GetTypes(types() As PathPointType) As GpStatus
             Dim count&
             Dim status As Any = Me.GetPointCount(count)
             If status = Ok Then
