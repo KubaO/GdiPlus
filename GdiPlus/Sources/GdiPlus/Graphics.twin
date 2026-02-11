@@ -1563,7 +1563,11 @@ Module GdipGraphics
         [UseGetLastError(False)]
         Declare PtrSafe Function RotateWorldTransform Lib "gdiplus" Alias "GdipRotateWorldTransform" (ByVal Me As GpGraphics, ByVal angle!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         
-        ' Aliases for RotateAtImpl
+        ' Aliases for RotateAtImpl, ShearImpl
+        [UseGetLastError(False)]
+        Declare PtrSafe Function GetTransform Lib "gdiplus" Alias "GdipGetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function SetTransform Lib "gdiplus" Alias "GdipSetWorldTransform" (ByVal Me As GpGraphics, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function TranslateTransform Lib "gdiplus" Alias "GdipTranslateWorldTransform" (ByVal Me As GpGraphics, ByVal Dx!, ByVal Dy!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         [UseGetLastError(False)]

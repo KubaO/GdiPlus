@@ -230,9 +230,9 @@ Private Module GdipImplementation
     Function ShearImpl(Of T)(ByVal obj As T, ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         Dim status As GpStatus
         Dim transform As GpMatrix
-        status = obj.GetWorldTransform(transform)
+        status = obj.GetTransform(transform)
         If status = Ok Then status = transform.Shear(shearX, shearY, order)
-        If status = Ok Then status = obj.SetWorldTransform(transform)
+        If status = Ok Then status = obj.SetTransform(transform)
         Return status
     End Function
     

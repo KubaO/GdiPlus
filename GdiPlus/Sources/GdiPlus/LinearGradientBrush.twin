@@ -254,17 +254,12 @@ Class LinearGradientBrush
     
     Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.RotateTransformAt
-        RotateAtImpl(br, angle, center, order)
-        Return LastResult
+        Return SetStatus(br.RotateTransformAt(angle, center, order))
     End Function
     
     Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.ShearTransform
-        Dim transform As GpMatrix
-        SetStatus(br.GetTransform(transform))
-        SetStatus(transform.Shear(shearX, shearY, order))
-        SetStatus(br.SetTransform(transform))
-        Return LastResult
+        Return SetStatus(br.ShearTransform(shearX, shearY, order))
     End Function
     
     Property Let WrapMode(ByVal wrapMode As GpWrapMode)
@@ -456,6 +451,14 @@ Module GdipLineGradient
         Declare PtrSafe Function ScaleTransform Lib "gdiplus" Alias "GdipScaleLineTransform" (ByVal Me As GpLineGradient, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotateLineTransform" (ByVal Me As GpLineGradient, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+        
+        Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return RotateAtImpl(Me, angle, center, order)
+        End Function
+        
+        Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return ShearImpl(Me, shearX, shearY, order)
+        End Function
     End Type
     
     Function GpLineGradient() As GpLineGradient

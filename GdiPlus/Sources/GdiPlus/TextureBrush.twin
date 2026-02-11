@@ -125,17 +125,12 @@ Class TextureBrush
     
     Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.RotateTransformAt
-        RotateAtImpl(br, angle, center, order)
-        Return LastResult
+        Return SetStatus(br.RotateTransformAt(angle, center, order))
     End Function
     
     Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.ShearTransform
-        Dim transform As GpMatrix
-        SetStatus(br.GetTransform(transform))
-        SetStatus(transform.Shear(shearX, shearY, order))
-        SetStatus(br.SetTransform(transform))
-        Return LastResult
+        Return SetStatus(br.ShearTransform(shearX, shearY, order))
     End Function
 
     Property Let WrapMode(ByVal wrapMode As GpWrapMode)
@@ -145,12 +140,12 @@ Class TextureBrush
     Property Get WrapMode() As GpWrapMode
         SetStatus(br.GetWrapMode(WrapMode))
     End Property
-        
-    Function GetImage() As Image
+    
+    Property Get Image() As Image
         Dim img As GpImage
         SetStatus(br.GetImage(img))
-        If LastResult = Ok Then Set GetImage = New Image(img, LastResult)
-    End Function
+        If LastResult = Ok Then Set Image = New Image(img, LastResult)
+    End Property
         
     Public Sub New(ByVal nativeBrush As GpTexture, ByVal status As GpStatus = Ok)
         SetStatus(status)
@@ -227,6 +222,15 @@ Module GdipTexture
         Declare PtrSafe Function ScaleTransform Lib "gdiplus" Alias "GdipScaleTextureTransform" (ByVal Me As GpTexture, ByVal sx!, ByVal sy!, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotateTextureTransform" (ByVal Me As GpTexture, ByVal angle!, ByVal order As GpMatrixOrder) As GpStatus
+        
+        Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return RotateAtImpl(Me, angle, center, order)
+        End Function
+        
+        Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return ShearImpl(Me, shearX, shearY, order)
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetWrapMode Lib "gdiplus" Alias "GdipSetTextureWrapMode" (ByVal Me As GpTexture, ByVal wrapMode As GpWrapMode) As GpStatus
         [UseGetLastError(False)]

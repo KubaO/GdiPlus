@@ -11,19 +11,11 @@ Class PathGradientBrush
     Protected br As GpPathGradient
     
     Sub New(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        SetStatus(br.CreateInto(points(LBound(points)), ArrayLen(points), wrapMode, br))
+        SetStatus(br.Create(points, wrapMode))
     End Sub
     
-    Sub New(points As GpPointF, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        SetStatus(br.CreateInto(points, count, wrapMode, br))
-    End Sub
-
     Sub New(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        SetStatus(br.CreateIntoI(points(LBound(points)), ArrayLen(points), wrapMode, br))
-    End Sub
-    
-    Sub New(points As GpPoint, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp)
-        SetStatus(br.CreateIntoI(points, count, wrapMode, br))
+        SetStatus(br.CreateI(points, wrapMode))
     End Sub
     
     Sub New(path As GraphicsPath)
@@ -153,15 +145,6 @@ Class PathGradientBrush
         Return SetStatus(br.SetBlend( _
             blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
     End Function
-
-    Function GetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
-        If count > BlendCount Then Return SetStatus(InvalidParameter)
-        Return SetStatus(br.GetBlend(blendFactors, blendPositions, count))
-    End Function
-    
-    Function SetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
-        Return SetStatus(br.SetBlend(blendFactors, blendPositions, count))
-    End Function
     
     Property Get InterpolationColorCount() As Long
         SetStatus(br.GetPresetBlendCount(InterpolationColorCount))
@@ -181,16 +164,6 @@ Class PathGradientBrush
         ReDim presetColors(1 To count)
         ReDim blendPositions(1 To count)
         Return SetStatus(br.GetPresetBlend(presetColors(1), blendPositions(1), count))
-    End Function
-    
-    Function SetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
-        If count <= 0 Or VarPtr(presetColors) = vbNullPtr Then Return SetStatus(InvalidParameter)
-        Return SetStatus(br.SetPresetBlend(presetColors, blendPositions, count))
-    End Function
-    
-    Function GetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus
-        If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Or count <= 0 Then Return (InvalidParameter)
-        Return SetStatus(br.GetPresetBlend(presetColors, blendPositions, count))
     End Function
     
     Function SetBlendBellShape(ByVal focus!, scale! = 1.0) As GpStatus
@@ -252,17 +225,12 @@ Class PathGradientBrush
     
     Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.RotateTransformAt
-        RotateAtImpl(br, angle, center, order)
-        Return LastResult
+        Return SetStatus(br.RotateTransformAt(angle, center, order))
     End Function
     
     Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.ShearTransform
-        Dim transform As GpMatrix
-        SetStatus(br.GetTransform(transform))
-        SetStatus(transform.Shear(shearX, shearY, order))
-        SetStatus(br.SetTransform(transform))
-        Return LastResult
+        Return SetStatus(br.ShearTransform(shearX, shearY, order))
     End Function
     
     Function GetFocusScales(xScale!, yScale!) As GpStatus
@@ -296,16 +264,8 @@ Module GdipPathGradient
         Return New PathGradientBrush(points, wrapMode)
     End Function
     
-    Function PathGradientBrush(points As GpPointF, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
-        Return New PathGradientBrush(points, count, wrapMode)
-    End Function
-    
     Function PathGradientBrush(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
         Return New PathGradientBrush(points, wrapMode)
-    End Function
-    
-    Function PathGradientBrush(points As GpPoint, ByVal count&, ByVal wrapMode As GpWrapMode = WrapModeClamp) As PathGradientBrush
-        Return New PathGradientBrush(points, count, wrapMode)
     End Function
     
     Function PathGradientBrush(path As GraphicsPath) As PathGradientBrush
@@ -321,12 +281,12 @@ Module GdipPathGradient
             Me.Native = 0
         End Function
         
-        Function Create(points As GpPointF, ByVal count As Long, ByVal wrapMode As GpWrapMode) As GpStatus
-            Me.CreateInto(points, count, wrapMode, Me)
+        Function Create(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp) As GpStatus
+            Me.CreateInto(points(LBound(points)), ArrayLen(points), wrapMode, Me)
         End Function
-        
-        Function CreateI(points As GpPoint, ByVal count As Long, ByVal wrapMode As GpWrapMode) As GpStatus
-            Me.CreateIntoI(points, count, wrapMode, Me)
+
+        Function CreateI(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp) As GpStatus
+            Me.CreateIntoI(points(LBound(points)), ArrayLen(points), wrapMode, Me)
         End Function
         
         Function CreateFromPath(ByVal path As GpPath) As GpStatus
@@ -407,6 +367,15 @@ Module GdipPathGradient
         Declare PtrSafe Function ScaleTransform Lib "gdiplus" Alias "GdipScalePathGradientTransform" (ByVal Me As GpPathGradient, ByVal sx As Single, ByVal sy As Single, ByVal order As GpMatrixOrder) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function RotateTransform Lib "gdiplus" Alias "GdipRotatePathGradientTransform" (ByVal Me As GpPathGradient, ByVal angle As Single, ByVal order As GpMatrixOrder) As GpStatus
+        
+        Function RotateTransformAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return RotateAtImpl(Me, angle, center, order)
+        End Function
+        
+        Function ShearTransform(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return ShearImpl(Me, shearX, shearY, order)
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetFocusScales Lib "gdiplus" Alias "GdipSetPathGradientFocusScales" (ByVal Me As GpPathGradient, ByVal xScale As Single, ByVal yScale As Single) As GpStatus
         [UseGetLastError(False)]

@@ -136,8 +136,7 @@ Class Matrix
     
     Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
         Implements ITransformable.RotateTransformAt
-        RotateAtImpl(mx, angle, center, order)
-        Return LastResult
+        Return SetStatus(mx.RotateAt(angle, center, order))
     End Function
     
     Function Shear(ByVal shearX!, ByVal shearY!, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus _
@@ -372,6 +371,10 @@ Module GdipMatrix
         Public Declare PtrSafe Function Scale Lib "gdiplus" Alias "GdipScaleMatrix" (ByVal Me As GpMatrix, ByVal scaleX As Single, ByVal scaleY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Shear Lib "gdiplus" Alias "GdipShearMatrix" (ByVal Me As GpMatrix, ByVal shearX As Single, ByVal shearY As Single, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+
+        Function RotateAt(ByVal angle!, ByVal center As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
+            Return RotateAtImpl(Me, angle, center, order)
+        End Function
         
         ' Aliases for RotateAtImpl
         [UseGetLastError(False)]
