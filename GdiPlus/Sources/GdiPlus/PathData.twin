@@ -6,6 +6,7 @@
 
 [COMCreatable(False)]
 Class PathData
+    Inherits GdiPlusBase
     Public pd As GpPathData
     
     Sub New()
@@ -23,9 +24,9 @@ Class PathData
         pd = pathData
     End Sub
     
-    Sub Allocate(ByVal Count&)
-        pd.Allocate(Count)
-    End Sub
+    Function Allocate(ByVal Count&) As GpStatus
+        Return SetStatus(pd.Allocate(Count))
+    End Function
     
     Property Get PointsPtr() As LongPtr
         Return pd.Points
