@@ -116,10 +116,6 @@ Class Image
         SetStatus(im.GetPalette(palette(LBound(palette)), ArrayLen(palette)))
     End Property
     
-    Function GetPalette(palette As ColorPalette, ByVal count&) As GpStatus
-        Return SetStatus(im.GetPalette(palette, count))
-    End Function
-    
     '---------------------------------------------------------------'    
 
     Function GetThumbnail(ByVal thumbSize As GpSize, Optional callback As GetThumbnailImageAbort, callbackData As LongPtr = 0) As Image
