@@ -6,6 +6,8 @@ To get the `.twinpack` package file, open the project and build it.
 
 The project is also a public package in TwinBasic's online package library.
 
+There is a [basic manual](Documentation/index.md) available.
+
 TO DO:
 
 - [ ] \+ more glue/convenience code
