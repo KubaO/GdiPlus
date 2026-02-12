@@ -949,10 +949,20 @@ Class Graphics
     Function MeasureString(ByVal str$, font As Font, ByVal origin As GpPointF, boundingBox As GpRectF) As GpStatus
         Return SetStatus(gr.MeasureStringP2(str, GetNative(font), origin, boundingBox))
     End Function
-        
+    
+    Function MeasureCharacterRanges(ByVal str$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat) As Region()
+        MeasureCharacterRanges(str, font, layoutRect, stringFormat, MeasureCharacterRanges)
+    End Function
+    
     Function MeasureCharacterRanges(ByVal str$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, _
             regions() As Region) As GpStatus
-        If ArrayLen(regions) = 0 Then Return InvalidParameter
+        Dim count& = stringFormat.MeasurableCharacterRangeCount
+        If ArrayLen(regions) <> count Then
+            ReDim Preserve regions(1 To count)
+            For i As Long = 1 To count
+                If regions(i) Is Nothing Then Set regions(i) = Region()
+            Next
+        End If
         Dim nativeRegions As Any = ObjArrayToGpArray(Of GpRegion)(regions)
         Return SetStatus(gr.MeasureCharacterRanges(str, GetNative(font), layoutRect, GetNative(stringFormat), nativeRegions))
     End Function

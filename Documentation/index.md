@@ -432,7 +432,9 @@ These flags are ignored by GdiPlus version 1.
   * ... origin As **GpPointF**, format As **StringFormat**, <sup>out</sup>bBox As **GpRectF**)
   * ... layoutRect As **GpRectF**, <sup>out</sup>bBox As **GpRectF**)
   * ... origin As **GpPointF**, <sup>out</sup>bBox As **GpRectF**)
+* **MeasureCharacterRanges** (str$, font As **Font**, layoutRect As **GpRectF**, format As **StringFormat**) As **Region()**
 * **MeasureCharacterRanges** (str$, font As **Font**, layoutRect As **GpRectF**, format As **StringFormat**, <sup>out</sup>regions() As **Region**)
+  The *regions* array is resized to contain the measurement results. For performance's sake, any existing **Region** instances in the array provided are reused. However, at input, *regions* can be an array of any size, including an empty array.
 
 ### Metafile
 
