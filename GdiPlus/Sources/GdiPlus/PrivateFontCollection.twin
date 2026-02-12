@@ -51,7 +51,7 @@ Module GdipPrivateFontCollection
         [UseGetLastError(False)]
         Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipNewPrivateFontCollection" (pf As GpPrivateFontCollection) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePrivateFontCollection" (Me As GpPrivateFontCollection) As GpStatus
+        Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePrivateFontCollection" (ByVal Me As GpPrivateFontCollection) As GpStatus
         [UseGetLastError(False)]
         Public DeclareWide PtrSafe Function AddFontFile Lib "gdiplus" Alias "GdipPrivateAddFontFile" (ByVal Me As GpPrivateFontCollection, ByVal FileName$) As GpStatus
         [UseGetLastError(False)]
