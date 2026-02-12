@@ -289,7 +289,7 @@ Module GdipMatrix
         End Function
         
         Function Reset() As GpStatus
-            Return Me.SetElements2(0, 0, 0, 0, 0, 0)
+            Return Me.SetElements2(1, 0, 0, 1, 0, 0)
         End Function
         
         Function TranslateP(ByVal by As GpPointF, ByVal order As GpMatrixOrder = MatrixOrderPrepend) As GpStatus
