@@ -182,9 +182,10 @@ The following global variables configure the error handling behavior of **GdiPlu
   The base error code for the RaiseErrors strategy. The status is added to this base code.
 - **GdipErrorHandlingStrategy** As **GpErrorHandlingStrategy**
   Whether the errors from GdiPlus objects are ignored, `Err.Raise`-d, or processed by a handler. The available error handling strategies are:
-  - **IgnoreErrors** - the errors are recorded in **LastResult** but otherwise ignored. *This is the default strategy*.
-  - **RaiseErrors** - when an error occurs, it is recorded in **LastResult**, then a BASIC error is raised by `Err.Raise GdipErrorCodeBase + LastResult`.
-  - **HandleErrors** - when an error occurs, it is recorded in **LastResult**. Then, if the **GdipErrorHandler** delegate is set to the address of a handler function, that function is invoked.
+  - **IgnoreErrors** - the error is recorded in **LastResult** but otherwise ignored. *This is the default strategy*.
+  - **RaiseErrors** - the error is recorded in **LastResult**, then a BASIC error is raised by `Err.Raise GdipErrorCodeBase + LastResult`.
+  - **HandleErrors** - the error is recorded in **LastResult**. Then, if the **GdipErrorHandler** delegate is set to the address of a handler function, said handler function is invoked.
+  - **StopOnErrors** - the error is recorded in **LastResult**. The `Stop` statement is subsequently executed. This acts as a debugger breakpoint.
 - **GdipErrorHandler** As **GdipErrorHandler** = 0
   The error handler to be invoked upon errors when the strategy is HandleErrors.
 
