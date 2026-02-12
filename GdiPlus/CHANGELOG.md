@@ -1,3 +1,13 @@
+## 0.9.36
+
+- Fix bugs:
+  - Fix StringFormat.TabStops property.
+  - Fix GpStringFormat.SetTabStops2 signature.
+  - Fix non-functional InstalledFontCollection, PrivateFontCollection, Matrix, PathIterator and Region classes
+  - Fix memory leak in PrivateFontCollection by fixing the signature of GpPrivateFontCollection.Delete.
+  - Fix Graphics.MeasureStringS failing to build due to incorrect use of IsMissing on a UDT.
+  - Fix Matrix.Reset incorrectly zeroing out the matrix. Instead it sets the matrix to identity.
+
 ## 0.9.35
 
 - Fix bugs:
