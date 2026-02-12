@@ -388,9 +388,9 @@ Class StringFormat
         SetStatus(source.Clone(sf))
     End Sub
     
-    Sub New(ByVal sf As GpStringFormat, ByVal status As GpStatus = ok)
+    Sub New(ByVal newSf As GpStringFormat, ByVal status As GpStatus = ok)
         SetStatus(status)
-        sf = sf
+        sf = newSf
     End Sub
     
     Protected Property Get Native() As GpStringFormat
