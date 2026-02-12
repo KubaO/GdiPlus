@@ -1,3 +1,12 @@
+## 0.9.37
+- Fix bugs:
+  - Fix GenericDefaultStringFormat and GenericTypographicStringFormat returning uninitialized objects.
+  - Fix StringFormat.SetTabStops to work correctly with arrays that start at an index other than 1.
+  - Fix StringFormat constructor not setting the native handle.
+- Add StopOnErrors strategy.
+- Ensure that Graphics.MeasureCharacterRanges correctly outputs the result array, even if none was provided.
+- Add a MeasureCharacterRanges overload that returns the region array.
+
 ## 0.9.36
 
 - Fix bugs:
