@@ -1,3 +1,11 @@
+## 0.9.38
+- Add easier to use variations of DrawDriverString and MeasureDriverString.
+- Factor out VBGraphics to its own class.
+- Add GpRect[F] constructors that default size to 0. Clean up coordinate types.
+- Accept null strings for drawing and measuring. They are treated like empty strings.
+- Add ArrayPtr and refactor all locations where a pointer to array data is needed.
+- Fix compilation errors on win64.
+
 ## 0.9.37
 - Fix bugs:
   - Fix GenericDefaultStringFormat and GenericTypographicStringFormat returning uninitialized objects.
