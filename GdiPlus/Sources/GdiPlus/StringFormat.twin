@@ -407,7 +407,7 @@ Module GdipStringFormat
     
     Function GenericDefaultStringFormat() As StringFormat
         Dim nativeSF As GpStringFormat
-        Dim status As GpStatus = nativeSF.GetGenericDefault()
+        Dim status As GpStatus = nativeSF.GetGenericDefault(nativeSF)
         Return New StringFormat(nativeSF, status)
     End Function
     
@@ -673,7 +673,7 @@ Module GdipStringFormat
         End Function
         
         Function SetTabStops(ByVal firstTabOffset!, tabStops() As Single) As GpStatus
-            Return Me.SetTabStops2(firstTabOffset, ArrayLen(tabStops), tabStops(1))
+            Return Me.SetTabStops2(firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops)))
         End Function
         
         [UseGetLastError(False)]
