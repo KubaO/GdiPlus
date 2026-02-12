@@ -2020,7 +2020,7 @@ Module GdipGraphics
         
         Function MeasureStringS(ByVal str$, ByVal font As GpFont, ByVal layoutSize As GpSizeF, _
                 ByVal format As GpStringFormat, size As GpSizeF, Optional codepointsFitted&, Optional linesFilled&) As GpStatus
-            If IsMissing(size) Then Return InvalidParameter
+            If VarPtr(size) = 0 Then Return InvalidParameter
             Dim layoutRect As GpRectF = GpRectF(0, 0, layoutSize.Width, layoutSize.Height)
             Dim boundingBox As GpRectF
             Dim status As Any = Me.MeasureStringX(str, Len(str), font, layoutRect, format, boundingBox, codepointsFitted, linesFilled)
