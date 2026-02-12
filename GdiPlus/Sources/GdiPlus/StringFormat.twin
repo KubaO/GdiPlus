@@ -413,7 +413,7 @@ Module GdipStringFormat
     
     Function GenericTypographicStringFormat() As StringFormat
         Dim nativeSF As GpStringFormat
-        Dim status As GpStatus = nativeSF.GetGenericTypographic()
+        Dim status As GpStatus = nativeSF.GetGenericTypographic(nativeSF)
         Return New StringFormat(nativeSF, status)
     End Function
     
@@ -421,9 +421,9 @@ Module GdipStringFormat
         Native As LongPtr
                
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetGenericDefault Lib "gdiplus" Alias "GdipStringFormatGetGenericDefault" (Me As GpStringFormat) As GpStatus
+        Public Declare PtrSafe Function GetGenericDefault Lib "gdiplus" Alias "GdipStringFormatGetGenericDefault" (sf As GpStringFormat) As GpStatus
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function GetGenericTypographic Lib "gdiplus" Alias "GdipStringFormatGetGenericTypographic" (Me As GpStringFormat) As GpStatus
+        Public Declare PtrSafe Function GetGenericTypographic Lib "gdiplus" Alias "GdipStringFormatGetGenericTypographic" (sf As GpStringFormat) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateStringFormat" (ByVal formatAttributes As Long, ByVal language As Integer, format As GpStringFormat) As GpStatus
         [UseGetLastError(False)]
