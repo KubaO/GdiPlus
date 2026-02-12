@@ -22,7 +22,7 @@ This is a GDI+ (GdiPlus) package for twinBASIC. GdiPlus is a software graphics r
 
 The GdiPlus package is available from the TwinBasic Package Repository via the *Available Packages* panel in  Project Settings:
 
-![image-20260210205332298](O:\wc\GdiPlus\Documentation\Images\add-package.png)
+![image-20260210205332298](Images/add-package.png)
 
 ## GdiPlusUser
 
@@ -41,7 +41,6 @@ Class Form1
 ```
 
 > [!WARNING]
->
 > Do not use `Dim mGdiPlus As New GdiPlusUser`. This initializes the user object too late.
 
 When directly handling window messages in low-level code or when subclassing forms, the instance should be created in response to `WM_CREATE` and destroyed in response to `WM_DESTROY`:
@@ -148,9 +147,8 @@ This is the base class of the GdiPlus classes. It retains the result of the last
 
 * <sup>get</sup>**LastResult** As **GpStatus** - the result of the last operation performed on the derived class.
 
-  > [!TIP]
-  >
-  > This property records the most recent error that occurred, and is does not automatically reset to Ok. To reset, use **ClearResult** or **GetLastResult**
+> [!TIP]
+> This property records the most recent *error* that occurred. Is does *not* automatically reset to Ok. To reset, use **ClearResult** or **GetLastResult**
 
 * <sup>get</sup>**Status** As **String** - a textual description of **LastResult**
 
@@ -171,7 +169,6 @@ This is the base class of the GdiPlus classes. It retains the result of the last
 All constructors and most methods of GdiPlus classes may fail. All the methods that don't return a specific result, return **GpStatus** indicating either success or failure. Before being returned, this status is first passed to the **GdiPlusBase.SetStatus** method.
 
 > [!NOTE]
->
 > For conciseness, if a method is documented as returning no result, it will return **GpStatus**. The exceptions are *Sub* methods specifically documented as such.
 
 When a constructor fails, it creates an unusable object whose **LastResult** indicates the reason for the failure.
@@ -211,7 +208,6 @@ By default, GdiPlus version 2 will be initialized. If this fails, version 1 will
 * **GdiPlusUser** (input As **GdiPlusStartupInput**, <sup>out</sup>output As **GdiPlusStartupOutput**)
 
 > [!NOTE]
->
 > The arguments are only used when the first instance of **GdiPlusUser** is created. Subsequent invocations of the constructors discard the arguments!
 
 The default arguments are suitable for most use cases. If special arguments are needed, they should be provided in a single location where the first instance of **GdiPlusUser** is created. Typically that would be `Sub Main`, or in the `WM_CREATE` message handler of the main application window.
@@ -226,9 +222,8 @@ The default arguments are suitable for most use cases. If special arguments are 
 
   3. same as 2, but enables the HEIF and AVIF image codes. These codecs require COM to be initialized.
 
-     > [!WARNING]
-     >
-     > The GdiPlus package does not initialize COM. The user is expected to do it when using version 3 of GdiPlus.
+> [!IMPORTANT]
+> The GdiPlus package does not initialize COM. The user is expected to do it when using version 3 of GdiPlus.
 
 * **SuppressExternalCodecs** As **BOOL**
 
@@ -242,8 +237,6 @@ These flags are ignored by GdiPlus version 1.
 * **GdiplusStartupNoSetRound** = 1
 * **GdiplusStartupSetPSValue** = 2
 * **GdiplusStartupTransparencyMask** = `&hFF00_0000`
-
-
 
 ---
 
@@ -357,7 +350,6 @@ These flags are ignored by GdiPlus version 1.
 - Text Drawing
 
   > [!NOTE]
-  >
   > These methods don't have integer overloads
 
   - **DrawString** (str$, font As **Font**, ..., brush As **Brush**)
@@ -423,7 +415,6 @@ These flags are ignored by GdiPlus version 1.
 ### Text Measurement
 
 > [!NOTE]
->
 > These methods don't have integer overloads
 
 * **MeasureString** (str$, font As **Font**, ...
@@ -752,12 +743,10 @@ This interface applies to objects that have a transformation matrix that can be 
 
 * **RotateTransform**(angle!, order As **GpMatrixOrder** = MatrixOrderPrepend)
 
-* **RotateTransformAt**(angle!, center As **GpPointF** order As **GpMatrixOrder** = MatrixOrderPrepend)
-
-  In prepend order, performs the following operation:
-  $$M' = X(-center) \cdot R(angle) \cdot X(center) \cdot M$$
-  In append order, performs the following operation:
-
+* **RotateTransformAt**(angle!, center As **GpPointF** order As **GpMatrixOrder** = MatrixOrderPrepend)  
+  In prepend order, performs the following operation:  
+  $$M' = X(-center) \cdot R(angle) \cdot X(center) \cdot M$$  
+  In append order, performs the following operation:  
   $$M' = M \cdot X(-center) \cdot R(angle) \cdot X(center)$$
 
 * **ShearTransform**(shearX!, shearY!, order As **GpMatrixOrder** = MatrixOrderPrepend)
@@ -886,7 +875,7 @@ Implements [**IBrush**](#ibrush).
 #### Constructors
 
 * **LinearGradientBrush** (rect As **GpRect[F]**, ...
-  **LinearGradientBrush** (pt1 As **GpPoint[F]**, pt2 As **GpPoint[F], ...
+  **LinearGradientBrush** (pt1 As **GpPoint[F]**, pt2 As **GpPoint[F]**, ...
   * ... rgb1&, rgb2&)
   * ... color1 As **Color**, color2 As **Color**)
 * **LinearGradientBrush** (rect As **GpRect[F]**, ...
@@ -968,11 +957,10 @@ Implements [**IBrush**](#ibrush).
 
 * **TextureBrushI** (image As **Image**, wrapMode As **GpWrapMode**, dstX&, dstY&, dstWidth&, dstHeight&)
 
-  > [!NOTE]
-  >
-  > The Sub **New** version of this constructor takes an additional dummy integer argument to disambiguate the integer variant:
-  >
-  > **New**(image As **Image**, wrapMode As **GpWrapMode**, dstX&, dstY&, dstWidth&, dstHeight&, *dummy&*)
+> [!NOTE]
+> The Sub **New** version of this constructor takes an additional dummy integer argument to disambiguate the integer variant:
+>
+> **New**(image As **Image**, wrapMode As **GpWrapMode**, dstX&, dstY&, dstWidth&, dstHeight&, *dummy&*)
 
 * **Clone** ()
 
@@ -1146,11 +1134,11 @@ Yellow,  YellowGreen
 * <sup>get</sup>**IsAvailable** As **Boolean**
 * <sup>get</sup>**IsBoldAvailable**, <sup>get</sup>**IsItalicAvailable**, <sup>get</sup>**IsBoldItalicAvailable**, <sup>get</sup>**IsUnderlinedAvailable**, <sup>get</sup>**IsStrikeoutcAvailable** As **Boolean**
 * <sup>get</sup>**EmHeight** (style As **GpFontStyle**) As **Integer**
-* <sup>get</sup>**CellAscent** (style As **GpFontStyle**) As **Integer**
+* <sup>get</sup>**CellAscent** (style As **GpFontStyle**) As **Integer**  
   $$Ascent = FontSize \cdot CellAscent / EmHeight$$
-* <sup>get</sup>**CellDescent** (style As **GpFontStyle**) As **Integer**
+* <sup>get</sup>**CellDescent** (style As **GpFontStyle**) As **Integer**  
   $$Descent = FontSize \cdot CellDescent / EmHeight$$
-* <sup>get</sup>**LineSpacing** (style As **GpFontStyle**) As **Integer**
+* <sup>get</sup>**LineSpacing** (style As **GpFontStyle**) As **Integer**  
   $$LineSpacing = FontSize \cdot LineSpacing / EmHeight$$
 
 ---
@@ -1184,6 +1172,7 @@ A collection of private fonts loaded for application's use.
 ## Matrix
 
 **Matrix** implements [**ITransformable**](#itransformable). It is a 3x3 matrix of the following form:
+
 $$
 M = \begin{bmatrix}
 m_{11} & m_{12} & 1 \\
@@ -1197,6 +1186,7 @@ $$
 * **Matrix** () - constructs an identity matrix
 * **Matrix** (m11!, m12!, m21!, m22!, dx!, dy!) - constructs a matrix with given values of elements 1,1 through 2,3.
 * **Matrix** (rect As **GpRect[F]**, dst As **GpPoint[F]**) - constructs a matrix of the following form:
+
 $$
 M = \begin{bmatrix}
 rect_x & rect_y & 1 \\
@@ -1298,7 +1288,6 @@ The following methods extend the functionality beyond that of [**ITransformable*
 
 * Miscellaneous
   * **SetAbort** (abort As **GdiPlusAbort**)
-
 
 ---
 
