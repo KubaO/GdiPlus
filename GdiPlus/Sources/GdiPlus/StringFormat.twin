@@ -657,7 +657,7 @@ Module GdipStringFormat
         End Function
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetTabStops2 Lib "gdiplus" Alias "GdipGetStringFormatHotkeyPrefix" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+        Public Declare PtrSafe Function SetTabStops2 Lib "gdiplus" Alias "GdipSetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetTabStops2 Lib "gdiplus" Alias "GdipGetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
         [UseGetLastError(False)]
