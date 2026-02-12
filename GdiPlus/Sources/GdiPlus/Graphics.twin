@@ -8,14 +8,13 @@
 Class Graphics
     Inherits GdiPlusBase
     Implements ITransformable, IDeviceContext
-    Dim gr As GpGraphics
+    Protected gr As GpGraphics
     Dim nativeHDC As LongPtr
     Dim resource As Object  ' A reference to a resource we use, such as an image
     Dim hBP As LongPtr, hWND As LongPtr, ps As GDIP_PAINTSTRUCT ' For buffered painting
     
     Sub New(ByVal options As GraphicsCreationOptions, ByVal h1 As LongPtr, ByVal h2 As LongPtr = 0)
         Dim bDC As LongPtr
-        Init
         Select Case options
             Case FromHDC
                 SetStatus(gr.CreateFromHDC(h1))
@@ -55,24 +54,16 @@ Class Graphics
             End If
     End Sub
     
-    Sub New(hDC As LongPtr)
-        Init
-        SetStatus(gr.CreateFromHDC(hDC))
-    End Sub
-    
     Sub New(image As Image)
-        Init
         If image IsNot Nothing Then
             Set resource = image
             SetStatus(gr.GetImageGraphicsContext(GetNative(image), gr))
             If LastResult <> Ok Then Set resource = Nothing
         End If
     End Sub
-
+    
     Sub Class_Terminate()
         gr.Delete
-        pen.Delete
-        brush.Delete
         If nativeHDC <> 0 Then ReleaseHDC()
         If hBP <> 0 Then EndBufferedPaint(hBP, True)
         If ps.hdc <> 0 Then EndPaint(hWND, ps)
@@ -661,249 +652,6 @@ Class Graphics
         Return SetStatus(gr.FillRegion(GetNative(brush), GetNative(region)))
     End Function
     
-    '---------------------------------------------------------------'
-    '                                                               '
-    ' Visual Basic Compatibility Interface                          '
-    '                                                               '
-    '---------------------------------------------------------------'
-    
-    Private Enum VBPaintFlags
-        StepOnFirstCoords = 1
-        ColorSpecified = 2
-        FirstCoordsSpecified = 4
-        StepOnSecondCoords = 8
-        Box = 16
-        BoxFilled = 32
-        StartSpecified = 64
-        EndSpecified = 128
-        AspectSpecified = 256
-    End Enum
-    
-    Public Enum FillStyleConstants
-        vbFSSolid = 0
-        vbFSTransparent = 1
-    End Enum
-    
-    Dim _foreColor As Color, _fillColor As Color, _fillStyle As FillStyleConstants
-    Dim pen As GpPen
-    Dim brush As GpSolidFill
-    Dim pos As GpPointF
-    Dim flags As GraphicsFlags = LegacyTransparentDrawing
-    
-    Private Sub Init()
-        ClearResult()
-        _foreColor= Color(Black)
-        _fillColor= Color(White)
-        _fillStyle= vbFSTransparent
-    End Sub
-    
-    Protected Function InitPenBrush(ByVal flags As VBPaintFlags, ByVal clr&) As Color
-        If pen.Native = 0 Then
-            SetStatus(pen.Create1(_foreColor, 1.0))
-        End If
-        If brush.Native = 0 Then
-            SetStatus(brush.Create(_fillColor))
-        End If
-        If flags And ColorSpecified Then
-            InitPenBrush = Color(clr)
-            If Not UseTransparentAlpha And InitPenBrush.Alpha = 0 Then InitPenBrush.Alpha = &hFF   ' presumably, alpha was missing
-        Else
-            InitPenBrush = _foreColor
-        End If
-    End Function
-    
-    Protected Property Get BaseBrush() As GpBrush
-        BaseBrush.Native = brush.Native
-    End Property
-    
-    [Description("Retrieves the width of the pen used by Line, in world units")]
-    Property Get DrawWidth() As Single
-        SetStatus(pen.GetWidth(DrawWidth))
-    End Property
-    
-    [Description("Sets the width of the pen used by Line, in world units.")]
-    Property Let DrawWidth(ByVal width As Single)
-        SetStatus(pen.SetWidth(width))
-    End Property
-    
-    Property Get ForeColor() As Color
-        Return _foreColor
-    End Property
-    
-    Property Let ForeColor(ByVal color As Color)
-        _foreColor= color
-    End Property
-    
-    Property Get FillColor() As Color
-        Return _fillColor
-    End Property
-
-    Property Let FillColor(ByVal color As Color)
-        _fillColor= color
-    End Property
-    
-    Property Get FillStyle() As FillStyleConstants
-        Return _fillStyle
-    End Property
-    
-    Property Let FillStyle(ByVal style As FillStyleConstants)
-        _fillStyle= style
-    End Property
-    
-    [Description("Gets the current position used for Line and Print, in world units.")]
-    Property Get Current() As GpPointF
-        Return pos
-    End Property
-    
-    [Description("Gets the current X position used for Line and Print, in world units.")]
-    Property Get CurrentX() As Single
-        Return pos.X
-    End Property
-    
-    [Description("Gets the current Y position used for Line and Print, in world units.")]
-    Property Get CurrentY() As Single
-        Return pos.Y
-    End Property
-        
-    [Description("Sets the current position, in world units. It is used for Print," & vbcrlf _
-        & "and for Line when the starting coordinates are not given.")]
-    Property Let Current(ByVal pt As GpPointF)
-        pos = pt
-    End Property
-
-    [Description("Sets the current X position, in world units. It is used for Print," & vbCrLf _
-        & "and for Line when the starting coordinates are not given.")]
-    Property Let CurrentX(ByVal x!)
-        pos.X = x
-    End Property
-    
-    [Description("Sets the current Y position, in world units. It is used for Print," & vbCrLf _
-        & "and for Line when the starting coordinates are not given.")]
-    Property Let CurrentY(ByVal y!)
-        pos.Y = y
-    End Property
-    
-    [Description("Returns whether the transparent alpha color channel is used, otherwise it is assumed to be 255")]
-    Property Get UseTransparentAlpha() As Boolean
-        Return flags And LegacyTransparentDrawing
-    End Property
-    
-    [Description("Sets whether the transparent alphas color channel will be used, otherwise it'll be assumed to be 255")]
-    Property Let UseTransparentAlpha(ByVal choice As Boolean)
-        flags = SetFlag(flags, LegacyTransparentDrawing, choice)
-    End Property
-    
-    [Description("Draws a line, rectangle outline, or a filled rectangle." & vbCrLf _
-        & "[For details, see this page.](https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/aa230480(v=vs.60))")]
-    Sub Line(ByVal Flags As VBPaintFlags, ByVal X1!, ByVal Y1!, ByVal X2!, ByVal Y2!, ByVal Clr&)
-        Dim c As Color = InitPenBrush(Flags, Clr)
-        If (Flags And FirstCoordsSpecified) = 0 Then
-            X1 = pos.X
-            Y1 = pos.Y
-        End If
-        If Flags And StepOnFirstCoords Then
-            X1 += pos.X
-            Y1 += pos.Y
-        End If
-        If Flags And StepOnSecondCoords Then
-            X2 += X1
-            Y2 += Y1
-        End If
-        
-        If Flags And BoxFilled Then
-            ' The box is drawn and filled with the given color, or ForeColor by default
-            SetStatus(pen.SetColor(c))
-            SetStatus(gr.DrawRectangle(pen, X1, Y1, X2 - X1, Y2 - Y1))
-            SetStatus(brush.SetColor(c))
-            SetStatus(gr.FillRectangle(BaseBrush, X1, Y2, X2 - X1, Y2 - Y1))
-        ElseIf Flags And Box Then
-            ' The box is drawn with the given color, or ForeColor by default
-            SetStatus(pen.SetColor(c))
-            SetStatus(gr.DrawRectangle(pen, X1, Y1, X2 - X1, Y2 - Y1))
-            If _fillStyle= vbFSSolid Then
-                ' The box is filled using FillColor and FillStyle
-                SetStatus(brush.SetColor(_fillColor))
-                SetStatus(gr.FillRectangle(BaseBrush, X1, Y1, X2 - X1, Y2 - Y1))
-            End If
-        Else
-            ' The line is drawn with the given color, or ForeColor by default
-            SetStatus(pen.SetColor(c))
-            SetStatus(gr.DrawLine(pen, X1, Y1, X2, Y2))
-        End If
-        pos.X = X2
-        pos.Y = Y2
-    End Sub
-    
-    [Description("Draws a circle or an ellipse." & vbCrLf _
-        & "[For details, see this page](https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/aa230478(v=vs.60)")]
-    Public Sub Circle(ByVal Flags As VBPaintFlags, _
-                        ByVal X!, ByVal Y!, ByVal Radius!, ByVal Clr&, _
-                        ByVal Start!, ByVal _End!, ByVal Aspect!)
-        Dim c As Color = InitPenBrush(Flags, Clr)
-        
-        If Flags And StepOnFirstCoords Then
-            X += pos.X
-            Y += pos.Y
-        End If
-        If (Flags And AspectSpecified) = 0 Then
-            Aspect = 1.0!
-        End If
-        If Flags And (StartSpecified Or EndSpecified) Then
-            SetStatus(NotImplemented)
-            Exit Sub
-        End If
-        
-        Dim rect As GpRectF, xRadius!, yRadius!
-        xRadius = Radius
-        yRadius = Radius
-                
-        If Flags And AspectSpecified Then
-            Dim SwitchAspect As Boolean = Aspect < -1
-            Aspect = CSng(Abs(Aspect))
-            If SwitchAspect Or Aspect < 1 Then
-                yRadius *= Aspect
-            ElseIf Aspect > 1 Then
-                xRadius /= Aspect
-            End If
-        End If
-                
-        rect.X = X - xRadius
-        rect.Y = Y - yRadius
-        rect.Width = 2 * xRadius
-        rect.Height = 2 * yRadius
-        
-        SetStatus(pen.SetColor(c))
-        SetStatus(gr.DrawEllipseR(pen, rect))
-        If _fillStyle= vbFSSolid Then
-            SetStatus(brush.SetColor(_fillColor))
-            SetStatus(gr.FillEllipseR(BaseBrush, rect))
-        End If
-        
-        pos.X = X
-        pos.Y = Y
-    End Sub
-    
-    [Description("Draws a single point." & vbCrLf _
-        & "[For details, see this page](https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/aa230482(v=vs.60))")]
-    Public Sub PSet(ByVal Flags As VBPaintFlags, ByVal X!, ByVal Y!, ByVal Clr&)
-        Dim c As Color = InitPenBrush(Flags, Clr)
-        
-        If Flags And StepOnFirstCoords Then
-            X += pos.X
-            Y += pos.Y
-        End If
-        SetStatus(pen.SetColor(c))
-        SetStatus(gr.DrawLine(pen, X, Y, X, Y + 1))
-        pos.X = X
-        pos.Y = Y
-    End Sub
-    
-    '---------------------------------------------------------------'
-    '                                                               '
-    ' End Compatibility Interface                                   '
-    '                                                               '
-    '---------------------------------------------------------------'
-    
     Function DrawString(ByVal str$, font As Font, layoutRect As GpRectF, stringFormat As StringFormat, brush As Brush) As GpStatus
         Return SetStatus(gr.DrawString(str, GetNative(font), layoutRect, GetNative(stringFormat), GetNative(brush)))
     End Function
@@ -1430,9 +1178,9 @@ Class Graphics
         Return CreateHalftonePalette()
     End Function
        
-    Protected Sub New(ByVal graphics As GpGraphics, ByVal status As GpStatus = ok)
+    Protected Sub New(ByVal nativeGr As GpGraphics, ByVal status As GpStatus = ok)
         SetStatus(status)
-        gr = graphics
+        gr = nativeGr
     End Sub
     
     Protected Property Get Native() As GpGraphics

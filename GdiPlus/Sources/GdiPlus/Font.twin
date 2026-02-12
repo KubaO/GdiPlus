@@ -90,8 +90,8 @@ Class Font
         SetStatus(ft.GetUnit(Unit))
     End Property
        
-    Function GetHeight(graphics As Graphics) As Single
-        SetStatus(ft.GetHeight(GetNative(graphics), GetHeight))
+    Function GetHeight(gr As Graphics) As Single
+        SetStatus(ft.GetHeight(GetNative(gr), GetHeight))
     End Function
     
     Function GetHeight(ByVal dpi!) As Single

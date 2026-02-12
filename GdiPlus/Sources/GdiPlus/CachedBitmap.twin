@@ -9,8 +9,8 @@ Class CachedBitmap
     Inherits GdiPlusBase
     Public cb As GpCachedBitmap
 
-    Sub New(bitmap As Bitmap, graphics As Graphics)
-        SetStatus(cb.CreateInto(GetNative(bitmap), GetNative(graphics), cb))
+    Sub New(bitmap As Bitmap, gr As Graphics)
+        SetStatus(cb.CreateInto(GetNative(bitmap), GetNative(gr), cb))
     End Sub
     
     Sub Class_Terminate()
@@ -23,8 +23,8 @@ Class CachedBitmap
 End Class
 
 Module GdipCachedBitmap
-    Function CachedBitmap(bitmap As Bitmap, graphics As Graphics) As CachedBitmap
-        Return New CachedBitmap(bitmap, graphics)
+    Function CachedBitmap(bitmap As Bitmap, gr As Graphics) As CachedBitmap
+        Return New CachedBitmap(bitmap, gr)
     End Function
     
     Type GpCachedBitmap
