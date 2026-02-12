@@ -133,10 +133,12 @@ Module GdipPathIterator
     Type GpPathIterator
         Native As LongPtr
         
+        Function Create(ByVal path As GpPath) As GpStatus
+            Return Me.CreateInto(Me, path)
+        End Function
+                
         [UseGetLastError(False)]
-        Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipCreatePathIter" (Me As GpPathIterator, ByVal Path As GpPath) As GpStatus
-        [UseGetLastError(False)]
-        Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreatePathIter" (Me As GpPathIterator, ByVal Path As GpPath) As GpStatus
+        Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreatePathIter" (pi As GpPathIterator, ByVal Path As GpPath) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePathIter" (ByVal Me As GpPathIterator) As GpStatus
         

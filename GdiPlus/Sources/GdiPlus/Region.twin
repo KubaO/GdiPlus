@@ -284,8 +284,10 @@ Module GdipRegion
     Type GpRegion
         Native As LongPtr
 
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipCreateRegion" (Me As GpRegion) As GpStatus
+        Function Create() As GpStatus
+            Return Me.CreateInto(Me)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateRegion" (Region As GpRegion) As GpStatus
         [UseGetLastError(False)]

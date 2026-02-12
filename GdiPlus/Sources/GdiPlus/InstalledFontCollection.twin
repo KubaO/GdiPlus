@@ -36,8 +36,12 @@ Module GdipInstalledFontCollection
         ' Inherits GpFontCollection
         Native As LongPtr
 
+        Function Create() As GpStatus
+            Return Me.CreateInto(Me)
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipNewInstalledFontCollection" (Me As GpInstalledFontCollection) As GpStatus
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipNewInstalledFontCollection" (fc As GpInstalledFontCollection) As GpStatus
         
         ' Inherited from GpFontCollection
         

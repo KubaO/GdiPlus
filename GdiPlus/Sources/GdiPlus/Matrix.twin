@@ -14,7 +14,7 @@ Class Matrix
             
     [Description("Become an identity matrix by default.")]
     Sub New()
-        SetStatus(mx.Create())
+        SetStatus(mx.CreateInto(mx))
     End Sub
     
     Sub New(ByVal m11!, ByVal m12!, ByVal m21!, ByVal m22!, ByVal dx!, ByVal dy!)
@@ -218,8 +218,10 @@ Module GdipMatrix
     Type GpMatrix
         Native As LongPtr
 
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipCreateMatrix" (Me As GpMatrix) As GpStatus
+        Function Create() As GpStatus
+            Return Me.CreateInto(Me)
+        End Function
+        
         [UseGetLastError(False)]
         Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipCreateMatrix" (matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
@@ -442,4 +444,7 @@ Module GdipMatrix
     Function GpMatrix() As GpMatrix
         GpMatrix.Native = 0
     End Function
+    
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function GdipCreateMatrix Lib "gdiplus" (matrix As GpMatrix) As GpStatus
 End Module

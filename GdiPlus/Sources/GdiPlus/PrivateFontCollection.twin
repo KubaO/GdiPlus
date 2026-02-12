@@ -44,8 +44,12 @@ Module GdipPrivateFontCollection
         ' Inherits GpFontCollection
         Native As LongPtr
         
+        Function Create() As GpStatus
+            Return Me.CreateInto(Me)
+        End Function
+        
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function Create Lib "gdiplus" Alias "GdipNewPrivateFontCollection" (Me As GpPrivateFontCollection) As GpStatus
+        Public Declare PtrSafe Function CreateInto Lib "gdiplus" Alias "GdipNewPrivateFontCollection" (pf As GpPrivateFontCollection) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function Delete Lib "gdiplus" Alias "GdipDeletePrivateFontCollection" (Me As GpPrivateFontCollection) As GpStatus
         [UseGetLastError(False)]
