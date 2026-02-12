@@ -969,12 +969,38 @@ Class Graphics
     
     '-----------------------------------------------------------------------'
     
-    Function DrawDriverString(ByVal str$, font As Font, brush As Brush, positions As GpPointF, ByVal flags&, matrix As Matrix) As GpStatus
-        Return SetStatus(gr.DrawDriverString(str, GetNative(font), GetNative(brush), positions, flags, GetNative(matrix)))
+    Function DrawDriverString(ByVal str$, font As Font, brush As Brush, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix) As GpStatus
+        Return SetStatus(gr.DrawDriverString(str, GetNative(font), GetNative(brush), position, flags, GetNative(matrix)))
+    End Function
+
+    Function DrawDriverString(ByVal str$, font As Font, brush As Brush, positions() As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix) As GpStatus
+        Return SetStatus(gr.DrawDriverStringPositions(str, GetNative(font), GetNative(brush), positions, flags, GetNative(matrix)))
+    End Function
+
+    Function DrawDriverString(glyphs() As Integer, font As Font, brush As Brush, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix) As GpStatus
+        Return SetStatus(gr.DrawDriverGlyphs(glyphs, GetNative(font), GetNative(brush), position, flags, GetNative(matrix)))
+    End Function
+
+    Function DrawDriverString(glyphs() As Integer, font As Font, brush As Brush, positions() As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix) As GpStatus
+        Return SetStatus(gr.DrawDriverGlyphPositions(glyphs, GetNative(font), GetNative(brush), positions, flags, GetNative(matrix)))
+    End Function
+
+    '-----------------------------------------------------------------------'
+    
+    Function MeasureDriverString(ByVal str$, font As Font, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix, boundingBox As GpRectF) As GpStatus
+        Return SetStatus(gr.MeasureDriverString(str, GetNative(font), position, flags, GetNative(matrix), boundingBox))
+    End Function
+
+    Function MeasureDriverString(ByVal str$, font As Font, positions() As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix, boundingBox As GpRectF) As GpStatus
+        Return SetStatus(gr.MeasureDriverStringPositions(str, GetNative(font), positions, flags, GetNative(matrix), boundingBox))
     End Function
     
-    Function MeasureDriverString(ByVal str$, font As Font, positions As GpPointF, ByVal flags&, matrix As Matrix, boundingBox As GpRectF) As GpStatus
-        Return SetStatus(gr.MeasureDriverString(str, GetNative(font), positions, flags, GetNative(matrix), boundingBox))
+    Function MeasureDriverString(glyphs() As Integer, font As Font, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix, boundingBox As GpRectF) As GpStatus
+        Return SetStatus(gr.MeasureDriverGlyphs(glyphs, GetNative(font), position, flags, GetNative(matrix), boundingBox))
+    End Function
+
+    Function MeasureDriverString(glyphs() As Integer, font As Font, positions() As GpPointF, ByVal flags As GpDriverStringOptions, matrix As Matrix, boundingBox As GpRectF) As GpStatus
+        Return SetStatus(gr.MeasureDriverGlyphPositions(glyphs, GetNative(font), positions, flags, GetNative(matrix), boundingBox))
     End Function
     
     '-----------------------------------------------------------------------'
@@ -2066,19 +2092,62 @@ Module GdipGraphics
         [UseGetLastError(False)]
         DeclareWide PtrSafe Function MeasureCharacterRangesX Lib "gdiplus" Alias "GdipMeasureCharacterRanges" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, layoutRect As GpRectF, ByVal StringFormat As GpStringFormat, ByVal regionCount&, regions As GpRegion) As GpStatus
         
-        Function DrawDriverString(ByVal str$, ByVal font As GpFont, ByVal brush As GpBrush, positions As GpPointF, _
+        Function DrawDriverString(ByVal str$, ByVal font As GpFont, ByVal brush As GpBrush, ByVal position As GpPointF, _
                 ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
-            Return Me.DrawDriverStringX(str, Len(str), font, brush, positions, flags, matrix)
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
+            Return Me.DrawDriverStringX(StrPtr(str), Len(str), font, brush, position, flags, matrix)
         End Function
         
-        Function MeasureDriverString(ByVal str$, ByVal font As GpFont, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
-            Return Me.MeasureDriverStringX(str, Len(str), font, positions, flags, matrix, boundingBox)
+        Function DrawDriverStringPositions(ByVal str$, ByVal font As GpFont, ByVal brush As GpBrush, positions() As GpPointF, _
+                ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
+            Return Me.DrawDriverStringX(StrPtr(str), Len(str), font, brush, positions(LBound(positions)), flags, matrix)
+        End Function
+        
+        Function DrawDriverGlyphs(glyphs() As Integer, ByVal font As GpFont, ByVal brush As GpBrush, ByVal position As GpPointF, _
+                ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
+            Return Me.DrawDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, brush, position, flags, matrix)
+        End Function
+
+        Function DrawDriverGlyphPositions(glyphs() As Integer, ByVal font As GpFont, ByVal brush As GpBrush, positions() As GpPointF, _
+                ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
+            Return Me.DrawDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, brush, positions(LBound(positions)), flags, matrix)
+        End Function
+                
+        Function MeasureDriverString(ByVal str$, ByVal font As GpFont, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
+            Return Me.MeasureDriverStringX(StrPtr(str), Len(str), font, position, flags, matrix, boundingBox)
+        End Function
+        
+        Function MeasureDriverStringPositions(ByVal str$, ByVal font As GpFont, positions() As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
+            Return Me.MeasureDriverStringX(StrPtr(str), Len(str), font, positions(LBound(positions)), flags, matrix, boundingBox)
+        End Function
+        
+        Function MeasureDriverGlyphs(glyphs() As Integer, ByVal font As GpFont, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
+            Return Me.MeasureDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, position, flags, matrix, boundingBox)
+        End Function
+        
+        Function MeasureDriverGlyphPositions(glyphs() As Integer, ByVal font As GpFont, positions() As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
+            flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
+            Return Me.MeasureDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, positions(LBound(positions)), flags, matrix, boundingBox)
         End Function
         
         [UseGetLastError(False)]
-        DeclareWide PtrSafe Function DrawDriverStringX Lib "gdiplus" Alias "GdipDrawDriverString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, ByVal Brush As GpBrush, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+        Declare PtrSafe Function DrawDriverStringX Lib "gdiplus" Alias "GdipDrawDriverString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, ByVal Brush As GpBrush, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
         [UseGetLastError(False)]
-        DeclareWide PtrSafe Function MeasureDriverStringX Lib "gdiplus" Alias "GdipMeasureDriverString" (ByVal Me As GpGraphics, ByVal str$, ByVal length&, ByVal font As GpFont, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+        Declare PtrSafe Function MeasureDriverStringX Lib "gdiplus" Alias "GdipMeasureDriverString" (ByVal Me As GpGraphics, ByVal str As LongPtr, ByVal length&, ByVal font As GpFont, positions As GpPointF, ByVal flags&, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
         
         Function DrawCachedBitmapP(ByVal cb As GpCachedBitmap, ByVal offset As GpPoint) As GpStatus
             Return Me.DrawCachedBitmap(cb, offset.X, offset.Y)
