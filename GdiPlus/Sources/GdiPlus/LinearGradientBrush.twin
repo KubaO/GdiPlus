@@ -147,7 +147,7 @@ Class LinearGradientBrush
         Dim count& = ArrayLen(blendFactors)
         If ArrayLen(blendPositions) <> count Then Return SetStatus(InvalidParameter)
         Return SetStatus(br.SetBlend( _
-            blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
+            ByVal ArrayPtr(blendFactors), ByVal ArrayPtr(blendPositions), count))
     End Function
     
     Function SetBlend(blendFactors!, blendPositions!, ByVal count&) As GpStatus
@@ -173,7 +173,7 @@ Class LinearGradientBrush
         Dim count& = ArrayLen(presetColors)
         If count <> ArrayLen(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
         Return SetStatus(br.SetInterpolationColors( _
-            presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
+            ByVal ArrayPtr(presetColors), ByVal ArrayPtr(blendPositions), count))
     End Function
         
     Function SetInterpolationColors(presetColors As Color, blendPositions!, ByVal count&) As GpStatus

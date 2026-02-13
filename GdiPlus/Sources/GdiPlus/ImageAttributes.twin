@@ -255,7 +255,7 @@ Module GdipImageAttributes
         End Function
                 
         Function SetRemapTable(map() As ColorMap, ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
-            Return Me.SetRemapTableX(type, GDIP_CTRUE, ArrayLen(map), map(LBound(map)))
+            Return Me.SetRemapTableX(type, GDIP_CTRUE, ArrayLen(map), ByVal ArrayPtr(map))
         End Function
         
         Function ClearRemapTable(ByVal type As ColorAdjustType = ColorAdjustTypeDefault) As GpStatus
@@ -263,7 +263,7 @@ Module GdipImageAttributes
         End Function
         
         Function SetBrushRemapTable(map() As ColorMap) As GpStatus
-            Return Me.SetRemapTableX(ColorAdjustTypeBrush, GDIP_CTRUE, ArrayLen(map), map(LBound(map)))
+            Return Me.SetRemapTableX(ColorAdjustTypeBrush, GDIP_CTRUE, ArrayLen(map), ByVal ArrayPtr(map))
         End Function
 
         Function ClearBrushRemapTable() As GpStatus

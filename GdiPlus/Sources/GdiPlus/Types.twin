@@ -765,6 +765,6 @@ Module Types
     Function ColorPalette(ByVal flags As PaletteFlags, entries() As Long) As ColorPalette
         ColorPalette.flags = flags
         ColorPalette.count = GdipMin(256, ArrayLen(entries))
-        vbaCopyBytesRef(ColorPalette.count * LenB(Of Color), ColorPalette.entries, entries(LBound(entries)))
+        vbaCopyBytesRef(ColorPalette.count * LenB(Of Color), ColorPalette.entries, ByVal ArrayPtr(entries))
     End Function
 End Module

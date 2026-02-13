@@ -301,7 +301,7 @@ Module GdipMatrix
         End Function
 
         Function TransformPoints(points() As GpPointF) As GpStatus
-            Return Me.TransformPoints2(points(LBound(points)), ArrayLen(points))
+            Return Me.TransformPoints2(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function TransformPointI(pt As GpPoint) As GpStatus
@@ -309,7 +309,7 @@ Module GdipMatrix
         End Function
 
         Function TransformPointsI(points() As GpPoint) As GpStatus
-            Return Me.TransformPoints2I(points(LBound(points)), ArrayLen(points))
+            Return Me.TransformPoints2I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function VectorTransformPoint(pt As GpPointF) As GpStatus
@@ -317,7 +317,7 @@ Module GdipMatrix
         End Function
 
         Function VectorTransformPoints(points() As GpPointF) As GpStatus
-            Return Me.VectorTransformPoints2(points(LBound(points)), ArrayLen(points))
+            Return Me.VectorTransformPoints2(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function VectorTransformPointI(pt As GpPoint) As GpStatus
@@ -325,7 +325,7 @@ Module GdipMatrix
         End Function
 
         Function VectorTransformPointsI(points() As GpPoint) As GpStatus
-            Return Me.VectorTransformPoints2I(points(LBound(points)), ArrayLen(points))
+            Return Me.VectorTransformPoints2I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function IsInvertible(result As Boolean) As GpStatus

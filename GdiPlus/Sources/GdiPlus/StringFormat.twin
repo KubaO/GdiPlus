@@ -735,7 +735,7 @@ Module GdipStringFormat
         Public Declare PtrSafe Function SetMeasurableCharacterRanges2 Lib "gdiplus" Alias "GdipSetStringFormatMeasurableCharacterRanges" (ByVal Me As GpStringFormat, ByVal rangeCount As Long, ranges As CharacterRange) As GpStatus
         
         Function SetMeasurableCharacterRanges(ranges() As CharacterRange) As GpStatus
-            Return Me.SetMeasurableCharacterRanges2(ArrayLen(ranges), ranges(LBound(ranges)))
+            Return Me.SetMeasurableCharacterRanges2(ArrayLen(ranges), ByVal ArrayPtr(ranges))
         End Function
         
         '---------------------------------------------------------------'

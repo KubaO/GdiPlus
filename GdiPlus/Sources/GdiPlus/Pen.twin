@@ -303,11 +303,11 @@ Module GdipPen
         End Function
         
         Function SetDashPattern(pattern() As Single) As GpStatus
-            Return Me.SetDashArray(pattern(LBound(pattern)), ArrayLen(pattern))
+            Return Me.SetDashArray(ArrayPtr(pattern), ArrayLen(pattern))
         End Function
         
         [UseGetLastError(False)]
-        Declare PtrSafe Function SetDashArray Lib "gdiplus" Alias "GdipSetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+        Declare PtrSafe Function SetDashArray Lib "gdiplus" Alias "GdipSetPenDashArray" (ByVal Me As GpPen, ByVal dash As LongPtr, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetDashArray Lib "gdiplus" Alias "GdipGetPenDashArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
         
@@ -322,13 +322,13 @@ Module GdipPen
         End Function
     
         Function SetCompoundArray(array() As Single) As GpStatus
-            Return Me.SetCompoundArrayX(array(LBound(array)), ArrayLen(array))
+            Return Me.SetCompoundArrayX(ArrayPtr(array), ArrayLen(array))
         End Function
         
         [UseGetLastError(False)]
         Declare PtrSafe Function GetCompoundCount Lib "gdiplus" Alias "GdipGetPenCompoundCount" (ByVal Me As GpPen, count As Long) As GpStatus
         [UseGetLastError(False)]
-         Declare PtrSafe Function SetCompoundArrayX Lib "gdiplus" Alias "GdipSetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
+         Declare PtrSafe Function SetCompoundArrayX Lib "gdiplus" Alias "GdipSetPenCompoundArray" (ByVal Me As GpPen, ByVal dash As LongPtr, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetCompoundArrayX Lib "gdiplus" Alias "GdipGetPenCompoundArray" (ByVal Me As GpPen, dash As Single, ByVal count As Long) As GpStatus
         [UseGetLastError(False)]

@@ -1381,11 +1381,11 @@ Module GdipGraphics
         Declare PtrSafe Function GetDpiY Lib "gdiplus" Alias "GdipGetDpiY" (ByVal Me As GpGraphics, dpi!) As GpStatus
         
         Function TransformPoints(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPointF()) As GpStatus
-            Return Me.TransformPointsX(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), ArrayLen(pts))
+            Return Me.TransformPointsX(destSpace, srcSpace, ByVal ArrayPtr(pts), ArrayLen(pts))
         End Function
 
         Function TransformPointsI(ByVal destSpace As GpCoordinateSpace, ByVal srcSpace As GpCoordinateSpace, pts As GpPoint()) As GpStatus
-            Return Me.TransformPointsXI(destSpace, srcSpace, ByVal VarPtr(pts(LBound(pts))), ArrayLen(pts))
+            Return Me.TransformPointsXI(destSpace, srcSpace, ByVal ArrayPtr(pts), ArrayLen(pts))
         End Function
         
         [UseGetLastError(False)]
@@ -1412,11 +1412,11 @@ Module GdipGraphics
         End Function
                 
         Function DrawLines(ByVal pen As GpPen, points() As GpPointF) As GpStatus
-            Return Me.DrawLinesX(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawLinesX(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function DrawLinesI(ByVal pen As GpPen, points() As GpPoint) As GpStatus
-            Return Me.DrawLinesXI(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawLinesXI(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -1460,11 +1460,11 @@ Module GdipGraphics
         End Function
 
         Function DrawBeziers(ByVal pen As GpPen, points() As GpPointF) As GpStatus
-            Return Me.DrawBeziersX(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawBeziersX(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function DrawBeziersI(ByVal pen As GpPen, points() As GpPoint) As GpStatus
-            Return Me.DrawBeziersXI(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawBeziersXI(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -1498,11 +1498,11 @@ Module GdipGraphics
         Declare PtrSafe Function DrawRectangleI Lib "gdiplus" Alias "GdipDrawRectangleI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         
         Function DrawRectangles(ByVal pen As GpPen, rects() As GpRectF) As GpStatus
-            Return Me.DrawRectanglesX(pen, rects(LBound(rects)), ArrayLen(rects))
+            Return Me.DrawRectanglesX(pen, ByVal ArrayPtr(rects), ArrayLen(rects))
         End Function
 
         Function DrawRectanglesI(ByVal pen As GpPen, rects() As GpRect) As GpStatus
-            Return Me.DrawRectanglesXI(pen, rects(LBound(rects)), ArrayLen(rects))
+            Return Me.DrawRectanglesXI(pen, ByVal ArrayPtr(rects), ArrayLen(rects))
         End Function
         
         [UseGetLastError(False)]
@@ -1553,11 +1553,11 @@ Module GdipGraphics
         Declare PtrSafe Function DrawPieI Lib "gdiplus" Alias "GdipDrawPieI" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         
         Function DrawPolygon(ByVal pen As GpPen, points() As GpPointF) As GpStatus
-            Return Me.DrawPolygonX(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawPolygonX(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function DrawPolygonI(ByVal pen As GpPen, points() As GpPoint) As GpStatus
-            Return Me.DrawPolygonXI(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawPolygonXI(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -1569,27 +1569,27 @@ Module GdipGraphics
         Declare PtrSafe Function DrawPath Lib "gdiplus" Alias "GdipDrawPath" (ByVal Me As GpGraphics, ByVal pen As GpPen, ByVal Path As GpPath) As GpStatus
         
         Function DrawCurve(ByVal pen As GpPen, points() As GpPointF) As GpStatus
-            Return Me.DrawCurveX(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawCurveX(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function DrawCurveI(ByVal pen As GpPen, points() As GpPoint) As GpStatus
-            Return Me.DrawCurveXI(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawCurveXI(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function DrawCurve2(ByVal pen As GpPen, points() As GpPointF, ByVal tension!) As GpStatus
-            Return Me.DrawCurve2X(pen, points(LBound(points)), ArrayLen(points), tension)
+            Return Me.DrawCurve2X(pen, ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
 
         Function DrawCurve2I(ByVal pen As GpPen, points() As GpPoint, ByVal tension!) As GpStatus
-            Return Me.DrawCurve2XI(pen, points(LBound(points)), ArrayLen(points), tension)
+            Return Me.DrawCurve2XI(pen, ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
 
         Function DrawCurve3(ByVal pen As GpPen, points() As GpPointF, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-            Return Me.DrawCurve3X(pen, points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension)
+            Return Me.DrawCurve3X(pen, ByVal ArrayPtr(points), ArrayLen(points), offset, numberOfSegments, tension)
         End Function
 
         Function DrawCurve3I(ByVal pen As GpPen, points() As GpPoint, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-            Return Me.DrawCurve3XI(pen, points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension)
+            Return Me.DrawCurve3XI(pen, ByVal ArrayPtr(points), ArrayLen(points), offset, numberOfSegments, tension)
         End Function
         
         [UseGetLastError(False)]
@@ -1606,19 +1606,19 @@ Module GdipGraphics
         Declare PtrSafe Function DrawCurve3XI Lib "gdiplus" Alias "GdipDrawCurve3I" (ByVal Me As GpGraphics, ByVal pen As GpPen, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
         
         Function DrawClosedCurve(ByVal pen As GpPen, points() As GpPointF) As GpStatus
-            Return Me.DrawClosedCurveX(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawClosedCurveX(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function DrawClosedCurveI(ByVal pen As GpPen, points() As GpPoint) As GpStatus
-            Return Me.DrawClosedCurveXI(pen, points(LBound(points)), ArrayLen(points))
+            Return Me.DrawClosedCurveXI(pen, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function DrawClosedCurve2(ByVal pen As GpPen, points() As GpPointF, ByVal tension!) As GpStatus
-            Return Me.DrawClosedCurve2X(pen, points(LBound(points)), ArrayLen(points), tension)
+            Return Me.DrawClosedCurve2X(pen, ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
 
         Function DrawClosedCurve2I(ByVal pen As GpPen, points() As GpPoint, ByVal tension!) As GpStatus
-            Return Me.DrawClosedCurve2XI(pen, points(LBound(points)), ArrayLen(points), tension)
+            Return Me.DrawClosedCurve2XI(pen, ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
         
         [UseGetLastError(False)]
@@ -1659,11 +1659,11 @@ Module GdipGraphics
         Declare PtrSafe Function FillRectangleI Lib "gdiplus" Alias "GdipFillRectangleI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&) As GpStatus
         
         Function FillRectangles(ByVal brush As GpBrush, rect() As GpRectF) As GpStatus
-            Return Me.FillRectanglesX(brush, rect(LBound(rect)), ArrayLen(rect))
+            Return Me.FillRectanglesX(brush, ByVal ArrayPtr(rect), ArrayLen(rect))
         End Function
 
         Function FillRectanglesI(ByVal brush As GpBrush, rect() As GpRect) As GpStatus
-            Return Me.FillRectanglesXI(brush, rect(LBound(rect)), ArrayLen(rect))
+            Return Me.FillRectanglesXI(brush, ByVal ArrayPtr(rect), ArrayLen(rect))
         End Function
         
         [UseGetLastError(False)]
@@ -1672,19 +1672,19 @@ Module GdipGraphics
         Declare PtrSafe Function FillRectanglesXI Lib "gdiplus" Alias "GdipFillRectanglesI" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, rects As GpRect, ByVal count&) As GpStatus
         
         Function FillPolygon(ByVal brush As GpBrush, points() As GpPointF, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
-            Return Me.FillPolygonX(brush, points(LBound(points)), ArrayLen(points), fillMode)
+            Return Me.FillPolygonX(brush, ByVal ArrayPtr(points), ArrayLen(points), fillMode)
         End Function
 
         Function FillPolygonI(ByVal brush As GpBrush, points() As GpPoint, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
-            Return Me.FillPolygonXI(brush, points(LBound(points)), ArrayLen(points), fillMode)
+            Return Me.FillPolygonXI(brush, ByVal ArrayPtr(points), ArrayLen(points), fillMode)
         End Function
 
         Function FillPolygon2(ByVal brush As GpBrush, points() As GpPointF) As GpStatus
-            Return Me.FillPolygon2X(brush, points(LBound(points)), ArrayLen(points))
+            Return Me.FillPolygon2X(brush, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function FillPolygon2I(ByVal brush As GpBrush, points() As GpPoint) As GpStatus
-            Return Me.FillPolygon2XI(brush, points(LBound(points)), ArrayLen(points))
+            Return Me.FillPolygon2XI(brush, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -1741,19 +1741,19 @@ Module GdipGraphics
         Declare PtrSafe Function FillPath Lib "gdiplus" Alias "GdipFillPath" (ByVal Me As GpGraphics, ByVal Brush As GpBrush, ByVal Path As GpPath) As GpStatus
         
         Function FillClosedCurve(ByVal brush As GpBrush, points() As GpPointF) As GpStatus
-            Return Me.FillClosedCurveX(brush, points(LBound(points)), ArrayLen(points))
+            Return Me.FillClosedCurveX(brush, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function FillClosedCurveI(ByVal brush As GpBrush, points() As GpPoint) As GpStatus
-            Return Me.FillClosedCurveXI(brush, points(LBound(points)), ArrayLen(points))
+            Return Me.FillClosedCurveXI(brush, ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function FillClosedCurve2(ByVal brush As GpBrush, points() As GpPointF, ByVal fillMode As GpFillmode, ByVal tension! = 0.5) As GpStatus
-            Return Me.FillClosedCurve2X(brush, points(LBound(points)), ArrayLen(points), tension, fillMode)
+            Return Me.FillClosedCurve2X(brush, ByVal ArrayPtr(points), ArrayLen(points), tension, fillMode)
         End Function
 
         Function FillClosedCurve2I(ByVal brush As GpBrush, points() As GpPoint, ByVal fillMode As GpFillmode, ByVal tension! = 0.5) As GpStatus
-            Return Me.FillClosedCurve2XI(brush, points(LBound(points)), ArrayLen(points), tension, fillMode)
+            Return Me.FillClosedCurve2XI(brush, ByVal ArrayPtr(points), ArrayLen(points), tension, fillMode)
         End Function
         
         [UseGetLastError(False)]
@@ -1837,7 +1837,7 @@ Module GdipGraphics
         
         Function MeasureCharacterRanges(ByVal str$, ByVal font As GpFont, layoutRect As GpRectF, ByVal stringFormat As GpStringFormat, regions() As GpRegion) As GpStatus
             If str = vbNullString Then str = ""
-            Return Me.MeasureCharacterRangesX(str, Len(str), font, layoutRect, stringFormat, ArrayLen(regions), regions(LBound(regions)))
+            Return Me.MeasureCharacterRangesX(str, Len(str), font, layoutRect, stringFormat, ArrayLen(regions), ByVal ArrayPtr(regions))
         End Function
         
         [UseGetLastError(False)]
@@ -1867,14 +1867,14 @@ Module GdipGraphics
                 ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
-            Return Me.DrawDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, brush, position, flags, matrix)
+            Return Me.DrawDriverStringX(ArrayPtr(glyphs), ArrayLen(glyphs), font, brush, position, flags, matrix)
         End Function
 
         Function DrawDriverGlyphPositions(glyphs() As Integer, ByVal font As GpFont, ByVal brush As GpBrush, positions() As GpPointF, _
                 ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
-            Return Me.DrawDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, brush, positions(LBound(positions)), flags, matrix)
+            Return Me.DrawDriverStringX(ArrayPtr(glyphs), ArrayLen(glyphs), font, brush, positions(LBound(positions)), flags, matrix)
         End Function
                 
         Function MeasureDriverString(ByVal str$, ByVal font As GpFont, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
@@ -1894,13 +1894,13 @@ Module GdipGraphics
         Function MeasureDriverGlyphs(glyphs() As Integer, ByVal font As GpFont, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
-            Return Me.MeasureDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, position, flags, matrix, boundingBox)
+            Return Me.MeasureDriverStringX(ArrayPtr(glyphs), ArrayLen(glyphs), font, position, flags, matrix, boundingBox)
         End Function
         
         Function MeasureDriverGlyphPositions(glyphs() As Integer, ByVal font As GpFont, positions() As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, False)
-            Return Me.MeasureDriverStringX(VarPtr(glyphs(LBound(glyphs))), ArrayLen(glyphs), font, positions(LBound(positions)), flags, matrix, boundingBox)
+            Return Me.MeasureDriverStringX(ArrayPtr(glyphs), ArrayLen(glyphs), font, positions(LBound(positions)), flags, matrix, boundingBox)
         End Function
         
         [UseGetLastError(False)]
@@ -1944,13 +1944,13 @@ Module GdipGraphics
         Function DrawImagePoints(ByVal image As GpImage, destPoints() As GpPointF) As GpStatus
             Dim count As Any = ArrayLen(destPoints)
             If count <> 3 AndAlso count <> 4 Then Return InvalidParameter
-            Return Me.DrawImagePointsX(image, destPoints(LBound(destPoints)), count)
+            Return Me.DrawImagePointsX(image, ByVal ArrayPtr(destPoints), count)
         End Function
 
         Function DrawImagePointsI(ByVal image As GpImage, destPoints() As GpPoint) As GpStatus
             Dim count As Any = ArrayLen(destPoints)
             If count <> 3 AndAlso count <> 4 Then Return InvalidParameter
-            Return Me.DrawImagePointsXI(image, destPoints(LBound(destPoints)), count)
+            Return Me.DrawImagePointsXI(image, ByVal ArrayPtr(destPoints), count)
         End Function
         
         [UseGetLastError(False)]
@@ -2003,7 +2003,7 @@ Module GdipGraphics
                         ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, ByVal srcUnit As GpUnit, _
                         imageAttributes As GpImageAttributes, _
                         Optional ByVal callback As LongPtr, Optional ByVal callbackData As LongPtr) As GpStatus
-            Return Me.DrawImagePointsRectX(image, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.DrawImagePointsRectX(image, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                         srcx, srcy, srcwidth, srcheight, srcUnit, _
                         imageAttributes, callback, callbackData)
         End Function
@@ -2012,7 +2012,7 @@ Module GdipGraphics
                         ByVal srcx&, ByVal srcy&, ByVal srcwidth&, ByVal srcheight&, ByVal srcUnit As GpUnit, _
                         imageAttributes As GpImageAttributes, _
                         Optional ByVal callback As LongPtr, Optional ByVal callbackData As LongPtr) As GpStatus
-            Return Me.DrawImagePointsRectXI(image, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.DrawImagePointsRectXI(image, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                         srcx, srcy, srcwidth, srcheight, srcUnit, _
                         imageAttributes, callback, callbackData)
         End Function
@@ -2041,11 +2041,11 @@ Module GdipGraphics
         Declare PtrSafe Function EnumerateMetafileDestRectI Lib "gdiplus" Alias "GdipEnumerateMetafileDestRectI" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destRect As GpRect, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus
         
         Function EnumerateMetafileDestPoints(ByVal metafile As GpMetafile, destPoints() As GpPointF, ByVal callback As EnumerateMetafileProc, ByVal callbackData As LongPtr, ByVal imageAttributes As GpImageAttributes) As GpStatus
-            Return Me.EnumerateMetafileDestPointsX(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), callback, callbackData, imageAttributes)
+            Return Me.EnumerateMetafileDestPointsX(metafile, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), callback, callbackData, imageAttributes)
         End Function
 
         Function EnumerateMetafileDestPointsI(ByVal metafile As GpMetafile, destPoints() As GpPoint, ByVal callback As EnumerateMetafileProc, ByVal callbackData As LongPtr, ByVal imageAttributes As GpImageAttributes) As GpStatus
-            Return Me.EnumerateMetafileDestPointsXI(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), callback, callbackData, imageAttributes)
+            Return Me.EnumerateMetafileDestPointsXI(metafile, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), callback, callbackData, imageAttributes)
         End Function
         
         [UseGetLastError(False)]
@@ -2067,13 +2067,13 @@ Module GdipGraphics
 
         Function EnumerateMetafileSrcRectDestPoints(ByVal metafile As GpMetafile, destPoints() As GpPointF, srcRect As GpRectF, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, ByVal callbackData As LongPtr, ByVal imageAttributes As GpImageAttributes) As GpStatus
-            Return Me.EnumerateMetafileSrcRectDestPointsX(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.EnumerateMetafileSrcRectDestPointsX(metafile, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                 srcRect, srcUnit, callback, callbackData, imageAttributes)
         End Function
 
         Function EnumerateMetafileSrcRectDestPointsI(ByVal metafile As GpMetafile, destPoints() As GpPoint, srcRect As GpRect, ByVal srcUnit As GpUnit, _
                              ByVal callback As EnumerateMetafileProc, ByVal callbackData As LongPtr, ByVal imageAttributes As GpImageAttributes) As GpStatus
-            Return Me.EnumerateMetafileSrcRectDestPointsXI(metafile, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.EnumerateMetafileSrcRectDestPointsXI(metafile, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                 srcRect, srcUnit, callback, callbackData, imageAttributes)
         End Function
         

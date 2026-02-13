@@ -79,7 +79,7 @@ Class PathGradientBrush
             SetStatus(InvalidParameter)
         End If
         count = ArrayLen(colors)
-        SetStatus(br.SetSurroundColorsWithCount(colors(LBound(colors)), count))
+        SetStatus(br.SetSurroundColorsWithCount(ByVal ArrayPtr(colors), count))
     End Property
     
     Property Get GraphicsPath() As GraphicsPath
@@ -131,9 +131,9 @@ Class PathGradientBrush
     End Property
 
     Function GetBlend(blendFactors() As Single, blendPositions() As Single) As GpStatus
-        If VarPtr(blendFactors) = 0 Or VarPtr(blendPositions) = 0 Then Return SetStatus(InvalidParameter)
         Dim count& = BlendCount
         If LastResult <> Ok Then Return LastResult
+        If count < 1 Then Return SetStatus(WrongState)
         ReDim blendFactors(1 To count)
         ReDim blendPositions(1 To count)
         Return SetStatus(br.GetBlend(blendFactors(1), blendPositions(1), count))
@@ -141,9 +141,9 @@ Class PathGradientBrush
     
     Function SetBlend(blendFactors() As Single, blendPositions() As Single) As GpStatus
         Dim count& = ArrayLen(blendFactors)
-        If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
+        If count <> ArrayLen(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
         Return SetStatus(br.SetBlend( _
-            blendFactors(LBound(blendFactors)), blendPositions(LBound(blendPositions)), count))
+            ByVal ArrayPtr(blendFactors), ByVal ArrayPtr(blendPositions), count))
     End Function
     
     Property Get InterpolationColorCount() As Long
@@ -151,16 +151,15 @@ Class PathGradientBrush
     End Property
    
     Function SetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
-        If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Then Return SetStatus(InvalidParameter)
         Dim count& = ArrayLen(presetColors)
-        If count <> ArrayLen(blendPositions) Then Return SetStatus(InvalidParameter)
+        If count <> ArrayLen(blendPositions) Or count = 0 Then Return SetStatus(InvalidParameter)
         Return SetStatus(br.SetPresetBlend( _
-            presetColors(LBound(presetColors)), blendPositions(LBound(blendPositions)), count))
+            ByVal ArrayPtr(presetColors), ByVal ArrayPtr(blendPositions), count))
     End Function
 
     Function GetInterpolationColors(presetColors() As Color, blendPositions!()) As GpStatus
-        If VarPtr(presetColors) = 0 Or VarPtr(blendPositions) = 0 Then Return (InvalidParameter)
         Dim count& = InterpolationColorCount
+        If count < 1 Then Return SetStatus(WrongState)
         ReDim presetColors(1 To count)
         ReDim blendPositions(1 To count)
         Return SetStatus(br.GetPresetBlend(presetColors(1), blendPositions(1), count))
@@ -282,11 +281,11 @@ Module GdipPathGradient
         End Function
         
         Function Create(points() As GpPointF, ByVal wrapMode As GpWrapMode = WrapModeClamp) As GpStatus
-            Me.CreateInto(points(LBound(points)), ArrayLen(points), wrapMode, Me)
+            Me.CreateInto(ByVal ArrayPtr(points), ArrayLen(points), wrapMode, Me)
         End Function
 
         Function CreateI(points() As GpPoint, ByVal wrapMode As GpWrapMode = WrapModeClamp) As GpStatus
-            Me.CreateIntoI(points(LBound(points)), ArrayLen(points), wrapMode, Me)
+            Me.CreateIntoI(ByVal ArrayPtr(points), ArrayLen(points), wrapMode, Me)
         End Function
         
         Function CreateFromPath(ByVal path As GpPath) As GpStatus

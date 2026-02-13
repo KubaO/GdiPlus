@@ -24,12 +24,12 @@ Class GraphicsPath
     
     Sub New(points() As GpPointF, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
-        SetStatus(pa.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
+        SetStatus(pa.CreateInto(ByVal ArrayPtr(points), ByVal ArrayPtr(types), ArrayLen(points), fillMode, pa))
     End Sub
 
     Sub New(points() As GpPoint, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate)
         Debug.Assert ArrayLen(points) = ArrayLen(types)
-        SetStatus(pa.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, pa))
+        SetStatus(pa.CreateIntoI(ByVal ArrayPtr(points), ByVal ArrayPtr(types), ArrayLen(points), fillMode, pa))
     End Sub
 
     Function Clone() As GraphicsPath
@@ -431,7 +431,7 @@ Module GdipGraphicsPath
     
         Function Create(points() As GpPointF, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Debug.Assert ArrayLen(points) = ArrayLen(types)
-            Return Me.CreateInto(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, Me)
+            Return Me.CreateInto(ByVal ArrayPtr(points), ByVal ArrayPtr(types), ArrayLen(points), fillMode, Me)
         End Function
     
         Function Create(points As GpPointF, types As PathPointType, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
@@ -440,7 +440,7 @@ Module GdipGraphicsPath
 
         Function Create(points() As GpPoint, types() As PathPointType, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
             Debug.Assert ArrayLen(points) = ArrayLen(types)
-            Return Me.CreateIntoI(points(LBound(points)), types(LBound(types)), ArrayLen(points), fillMode, Me)
+            Return Me.CreateIntoI(ByVal ArrayPtr(points), ByVal ArrayPtr(types), ArrayLen(points), fillMode, Me)
         End Function
     
         Function Create(points As GpPoint, types As PathPointType, ByVal count&, ByVal fillMode As GpFillmode = FillModeAlternate) As GpStatus
@@ -474,13 +474,13 @@ Module GdipGraphicsPath
         
         Function WarpR(destPoints() As GpPointF, srcRect As GpRectF, matrix As GpMatrix, _
                 Optional warpMode As GpWarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
-            Return Me.Warp2(matrix, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.Warp2(matrix, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                     srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, warpMode, flatness)
         End Function
         
         Function Warp(destPoints() As GpPointF, ByVal srcx!, ByVal srcy!, ByVal srcwidth!, ByVal srcheight!, matrix As GpMatrix, _
                 Optional warpMode As GpWarpMode = WarpModePerspective, Optional flatness! = FlatnessDefault) As GpStatus
-            Return Me.Warp2(matrix, destPoints(LBound(destPoints)), ArrayLen(destPoints), _
+            Return Me.Warp2(matrix, ByVal ArrayPtr(destPoints), ArrayLen(destPoints), _
                     srcx, srcy, srcwidth, srcheight, warpMode, flatness)
         End Function
         
@@ -556,7 +556,7 @@ Module GdipGraphicsPath
         End Function
         
         Function AddLines(points() As GpPointF) As GpStatus
-            Return Me.AddLines2(points(LBound(points)), ArrayLen(points))
+            Return Me.AddLines2(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function AddLinePI(ByVal pt1 As GpPoint, ByVal pt2 As GpPoint) As GpStatus
@@ -564,7 +564,7 @@ Module GdipGraphicsPath
         End Function
         
         Function AddLinesI(points() As GpPoint) As GpStatus
-            Return Me.AddLines2I(points(LBound(points)), ArrayLen(points))
+            Return Me.AddLines2I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -603,11 +603,11 @@ Module GdipGraphicsPath
         Declare PtrSafe Function AddBezierI Lib "gdiplus" Alias "GdipAddPathBezierI" (ByVal Me As GpPath, ByVal x1&, ByVal y1&, ByVal x2&, ByVal y2&, ByVal x3&, ByVal y3&, ByVal x4&, ByVal y4&) As GpStatus
         
         Function AddBeziers(points() As GpPointF) As GpStatus
-            Return Me.AddBeziers2(points(LBound(points)), ArrayLen(points))
+            Return Me.AddBeziers2(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function AddBeziersI(points() As GpPoint) As GpStatus
-            Return Me.AddBeziers2I(points(LBound(points)), ArrayLen(points))
+            Return Me.AddBeziers2I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]
@@ -616,27 +616,27 @@ Module GdipGraphicsPath
         Declare PtrSafe Function AddBeziers2I Lib "gdiplus" Alias "GdipAddPathBeziersI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
         
         Function AddCurve(points() As GpPointF) As GpStatus
-            Return Me.AddCurveX1(points(LBound(points)), ArrayLen(points))
+            Return Me.AddCurveX1(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function AddCurveI(points() As GpPoint) As GpStatus
-            Return Me.AddCurveX1I(points(LBound(points)), ArrayLen(points))
+            Return Me.AddCurveX1I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         Function AddCurve2(points() As GpPointF, ByVal tension!) As GpStatus
-            Return Me.AddCurveX2(points(LBound(points)), ArrayLen(points), tension)
+            Return Me.AddCurveX2(ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
         
         Function AddCurve2I(points() As GpPoint, ByVal tension!) As GpStatus
-            Return Me.AddCurveX2I(points(LBound(points)), ArrayLen(points), tension)
+            Return Me.AddCurveX2I(ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
         
         Function AddCurve3(points() As GpPointF, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-            Return Me.AddCurveX3(points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension)
+            Return Me.AddCurveX3(ByVal ArrayPtr(points), ArrayLen(points), offset, numberOfSegments, tension)
         End Function
         
         Function AddCurve3I(points() As GpPoint, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
-            Return Me.AddCurveX3I(points(LBound(points)), ArrayLen(points), offset, numberOfSegments, tension)
+            Return Me.AddCurveX3I(ByVal ArrayPtr(points), ArrayLen(points), offset, numberOfSegments, tension)
         End Function
         
         [UseGetLastError(False)]
@@ -653,19 +653,19 @@ Module GdipGraphicsPath
         Declare PtrSafe Function AddCurveX3I Lib "gdiplus" Alias "GdipAddPathCurve3I" (ByVal Me As GpPath, Points As GpPoint, ByVal count&, ByVal offset&, ByVal numberOfSegments&, ByVal tension!) As GpStatus
                 
         Function AddClosedCurve(points() As GpPointF) As GpStatus
-            Return Me.AddClosedCurveX1(points(LBound(points)), ArrayLen(points))
+            Return Me.AddClosedCurveX1(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function AddClosedCurve2(points() As GpPointF, ByVal tension!) As GpStatus
-            Return Me.AddClosedCurveX2(points(LBound(points)), ArrayLen(points), tension)
+            Return Me.AddClosedCurveX2(ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
         
         Function AddClosedCurveI(points() As GpPoint) As GpStatus
-            Return Me.AddClosedCurveX1I(points(LBound(points)), ArrayLen(points))
+            Return Me.AddClosedCurveX1I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function AddClosedCurve2I(points() As GpPoint, ByVal tension!) As GpStatus
-            Return Me.AddClosedCurveX2I(points(LBound(points)), ArrayLen(points), tension)
+            Return Me.AddClosedCurveX2I(ByVal ArrayPtr(points), ArrayLen(points), tension)
         End Function
         
         [UseGetLastError(False)]
@@ -682,7 +682,7 @@ Module GdipGraphicsPath
         End Function
 
         Function AddRectangles(rects() As GpRectF) As GpStatus
-            Return Me.AddRectangles2(rects(LBound(rects)), ArrayLen(rects))
+            Return Me.AddRectangles2(ByVal ArrayPtr(rects), ArrayLen(rects))
         End Function
         
         Function AddRectangleRI(rect As GpRect) As GpStatus
@@ -690,7 +690,7 @@ Module GdipGraphicsPath
         End Function
 
         Function AddRectanglesI(rects() As GpRect) As GpStatus
-            Return Me.AddRectangles2I(rects(LBound(rects)), ArrayLen(rects))
+            Return Me.AddRectangles2I(ByVal ArrayPtr(rects), ArrayLen(rects))
         End Function
         
         [UseGetLastError(False)]
@@ -729,11 +729,11 @@ Module GdipGraphicsPath
         Declare PtrSafe Function AddPieI Lib "gdiplus" Alias "GdipAddPathPieI" (ByVal Me As GpPath, ByVal X&, ByVal Y&, ByVal Width&, ByVal Height&, ByVal startAngle!, ByVal sweepAngle!) As GpStatus
         
         Function AddPolygon(points() As GpPointF) As GpStatus
-            Return Me.AddPolygon2(points(LBound(points)), ArrayLen(points))
+            Return Me.AddPolygon2(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
 
         Function AddPolygonI(points() As GpPoint) As GpStatus
-            Return Me.AddPolygon2I(points(LBound(points)), ArrayLen(points))
+            Return Me.AddPolygon2I(ByVal ArrayPtr(points), ArrayLen(points))
         End Function
         
         [UseGetLastError(False)]

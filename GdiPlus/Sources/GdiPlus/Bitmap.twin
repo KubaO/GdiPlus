@@ -469,7 +469,7 @@ Module GdipBitmap
         Dim auxData As LongPtr
         Dim auxDataSize&
         Dim status As GpStatus = CreateApplyEffect( _
-                nativeInputs(1), ArrayLen(nativeInputs), GetNative(effect), _
+                ByVal ArrayPtr(nativeInputs), ArrayLen(nativeInputs), GetNative(effect), _
                 ROI, _
                 outputRect, _
                 nativeOutput, _

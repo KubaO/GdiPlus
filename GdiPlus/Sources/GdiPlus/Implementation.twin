@@ -8,8 +8,30 @@ Private Module GdipImplementation
     Private Const FADF_STATIC = &H2%
     Private Const FADF_FIXEDSIZE = &H10%
 
+    [Description("Returns the first dimension of the array.")]
     Function ArrayLen(Of T)(array() As T) As Long
-        Return If(IsArrayInitialized(array), 1 + UBound(array) - LBound(array), 0)
+        Dim p As LongPtr
+        GetMemPtr(VarPtr(array), p)
+        If p <> 0 Then
+        #If win64 Then
+            GetMem4(p + 24, ArrayLen)
+        #Else
+            GetMem4(p + 16, ArrayLen)
+        #End If
+        End If
+    End Function
+
+    [Description("Returns pointer to the data block of the array")]
+    Function ArrayPtr(Of T)(array() As T) As LongPtr
+        Dim p As LongPtr
+        GetMemPtr(VarPtr(array), p)
+        If p <> 0 Then
+        #If win64 Then
+            GetMemPtr(p + 16, ArrayPtr)
+        #Else
+            GetMemPtr(p + 12, ArrayPtr)
+        #End If
+        End If
     End Function
     
     [Description("Sets sa to be a 1D static view into data. Existing value of sa, if any, is discarded." & vbCrLf _

@@ -113,7 +113,7 @@ Class Image
     End Property
     
     Property Let Palette(palette() As ColorPalette)
-        SetStatus(im.GetPalette(palette(LBound(palette)), ArrayLen(palette)))
+        SetStatus(im.GetPalette(ByVal ArrayPtr(palette), ArrayLen(palette)))
     End Property
     
     '---------------------------------------------------------------'    
