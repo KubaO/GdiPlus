@@ -1770,42 +1770,45 @@ Module GdipGraphics
         
         Function DrawString(ByVal str$, ByVal font As GpFont, layoutRect As GpRectF, _
                 ByVal stringFormat As GpStringFormat, ByVal brush As GpBrush) As GpStatus
+            If str = vbNullString Then str = ""
             Return Me.DrawStringX(str, Len(str), font, layoutRect, stringFormat, brush)
         End Function
         
         Function DrawStringP(ByVal str$, ByVal font As GpFont, ByVal origin As GpPointF, ByVal brush As GpBrush) As GpStatus
-            Dim rect As GpRectF
-            rect.X = origin.X: rect.Y = origin.Y
+            Dim rect As Any = GpRectF(origin)
+            If str = vbNullString Then str = ""
             Return Me.DrawStringX(str, Len(str), font, rect, GpStringFormat(), brush)
         End Function
 
         Function DrawStringXY(ByVal str$, ByVal font As GpFont, ByVal x!, ByVal y!, ByVal brush As GpBrush) As GpStatus
-            Dim rect As GpRectF
-            rect.X = x:rect.Y = y
+            Dim rect As Any = GpRectF(x, y)
+            If str = vbNullString Then str = ""
             Return Me.DrawStringX(str, Len(str), font, rect, GpStringFormat(), brush)
         End Function
 
         Function DrawStringPF(ByVal str$, ByVal font As GpFont, ByVal origin As GpPointF, ByVal format As GpStringFormat, ByVal brush As GpBrush) As GpStatus
-            Dim rect As GpRectF
-            rect.X = origin.X: rect.Y = origin.Y
+            Dim rect As Any = GpRectF(origin)
+            If str = vbNullString Then str = ""
             Return Me.DrawStringX(str, Len(str), font, rect, format, brush)
         End Function
 
         Function DrawStringXYF(ByVal str$, ByVal font As GpFont, ByVal x!, ByVal y!, ByVal format As GpStringFormat, ByVal brush As GpBrush) As GpStatus
-            Dim rect As GpRectF
-            rect.X = x: rect.Y = y
+            Dim rect As Any = GpRectF(x, y)
+            If str = vbNullString Then str = ""
             Return Me.DrawStringX(str, Len(str), font, rect, format, brush)
         End Function
         
         Function MeasureString(ByVal str$, ByVal font As GpFont, layoutRect As GpRectF, _
                 ByVal format As GpStringFormat, boundingBox As GpRectF, codepointsFitted&, linesFilled&) As GpStatus
+            If str = vbNullString Then str = ""
             Return Me.MeasureStringX(str, Len(str), font, layoutRect, format, boundingBox, codepointsFitted, linesFilled)
         End Function
         
         Function MeasureStringS(ByVal str$, ByVal font As GpFont, ByVal layoutSize As GpSizeF, _
                 ByVal format As GpStringFormat, size As GpSizeF, Optional codepointsFitted&, Optional linesFilled&) As GpStatus
             If VarPtr(size) = 0 Then Return InvalidParameter
-            Dim layoutRect As GpRectF = GpRectF(0, 0, layoutSize.Width, layoutSize.Height)
+            If str = vbNullString Then str = ""
+            Dim layoutRect As GpRectF = GpRectF(GpPointF(), layoutSize)
             Dim boundingBox As GpRectF
             Dim status As Any = Me.MeasureStringX(str, Len(str), font, layoutRect, format, boundingBox, codepointsFitted, linesFilled)
             If status = Ok Then
@@ -1816,20 +1819,24 @@ Module GdipGraphics
         End Function
         
         Function MeasureStringP(ByVal str$, ByVal font As GpFont, ByVal origin As GpPointF, ByVal format As GpStringFormat, boundingBox As GpRectF) As GpStatus
-            Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0!, 0!)
+            If str = vbNullString Then str = ""
+            Dim rect As GpRectF = GpRectF(origin)
             Return Me.MeasureStringX(str, Len(str), font, rect, format, boundingBox)
         End Function
 
         Function MeasureString2(ByVal str$, ByVal font As GpFont, layoutRect As GpRectF, boundingBox As GpRectF) As GpStatus
+            If str = vbNullString Then str = ""
             Return Me.MeasureStringX(str, Len(str), font, layoutRect, GpStringFormat(), boundingBox)
         End Function
     
         Function MeasureStringP2(ByVal str$, ByVal font As GpFont, ByVal origin As GpPointF, boundingBox As GpRectF) As GpStatus
-            Dim rect As GpRectF = GpRectF(origin.X, origin.Y, 0.0!, 0.0!)
+            If str = vbNullString Then str = ""
+            Dim rect As GpRectF = GpRectF(origin.X, origin.Y)
             Return Me.MeasureStringX(str, Len(str), font, rect, GpStringFormat(), boundingBox)
         End Function
         
         Function MeasureCharacterRanges(ByVal str$, ByVal font As GpFont, layoutRect As GpRectF, ByVal stringFormat As GpStringFormat, regions() As GpRegion) As GpStatus
+            If str = vbNullString Then str = ""
             Return Me.MeasureCharacterRangesX(str, Len(str), font, layoutRect, stringFormat, ArrayLen(regions), regions(LBound(regions)))
         End Function
         
@@ -1842,6 +1849,7 @@ Module GdipGraphics
         
         Function DrawDriverString(ByVal str$, ByVal font As GpFont, ByVal brush As GpBrush, ByVal position As GpPointF, _
                 ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+            If str = vbNullString Then str = ""
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
             Return Me.DrawDriverStringX(StrPtr(str), Len(str), font, brush, position, flags, matrix)
@@ -1849,6 +1857,7 @@ Module GdipGraphics
         
         Function DrawDriverStringPositions(ByVal str$, ByVal font As GpFont, ByVal brush As GpBrush, positions() As GpPointF, _
                 ByVal flags&, ByVal matrix As GpMatrix) As GpStatus
+            If str = vbNullString Then str = ""
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
             Return Me.DrawDriverStringX(StrPtr(str), Len(str), font, brush, positions(LBound(positions)), flags, matrix)
@@ -1869,12 +1878,14 @@ Module GdipGraphics
         End Function
                 
         Function MeasureDriverString(ByVal str$, ByVal font As GpFont, ByVal position As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            If str = vbNullString Then str = ""
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, True)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
             Return Me.MeasureDriverStringX(StrPtr(str), Len(str), font, position, flags, matrix, boundingBox)
         End Function
         
         Function MeasureDriverStringPositions(ByVal str$, ByVal font As GpFont, positions() As GpPointF, ByVal flags As GpDriverStringOptions, ByVal matrix As GpMatrix, boundingBox As GpRectF) As GpStatus
+            If str = vbNullString Then str = ""
             flags = SetFlag(flags, DriverStringOptionsRealizedAdvance, False)
             flags = SetFlag(flags, DriverStringOptionsCmapLookup, True)
             Return Me.MeasureDriverStringX(StrPtr(str), Len(str), font, positions(LBound(positions)), flags, matrix, boundingBox)
