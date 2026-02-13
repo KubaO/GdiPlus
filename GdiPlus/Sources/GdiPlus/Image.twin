@@ -390,7 +390,7 @@ Module GdipImage
     Function SaveToFileImpl(ByVal Me As LongPtr, ByVal FileName$, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
         If LBound(encoderParams) <> 0 Then Return InvalidParameter
         Dim stencil As GpEncoderParametersHeader
-        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim offset As LongPtr = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
         Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
         PutMem4(countAddress, UBound(encoderParams))
         Return GdipSaveImageToFile(Me, FileName, clsidEncoder, ByVal countAddress)
@@ -402,7 +402,7 @@ Module GdipImage
     Function SaveToStreamImpl(ByVal Me As LongPtr, ByVal stream As GDIP_IStream, ByVal clsidEncoder As GDIP_UUID, encoderParams() As GpEncoderParameter) As GpStatus
         If LBound(encoderParams) <> 0 Then Return InvalidParameter
         Dim stencil As GpEncoderParametersHeader
-        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim offset As LongPtr = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
         Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
         PutMem4(countAddress, UBound(encoderParams))
         Return GdipSaveImageToStream(Me, stream, clsidEncoder, ByVal countAddress)
@@ -414,7 +414,7 @@ Module GdipImage
     Function SaveAddImpl(ByVal Me As LongPtr, encoderParams() As GpEncoderParameter) As GpStatus
         If LBound(encoderParams) <> 0 Then Return InvalidParameter
         Dim stencil As GpEncoderParametersHeader
-        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim offset As LongPtr = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
         Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
         PutMem4(countAddress, UBound(encoderParams))
         Return GdipSaveAdd(Me, ByVal countAddress)
@@ -426,7 +426,7 @@ Module GdipImage
     Function SaveAddImageImpl(ByVal Me As LongPtr, ByVal newImage As LongPtr, encoderParams() As GpEncoderParameter) As GpStatus
         If LBound(encoderParams) <> 0 Then Return InvalidParameter
         Dim stencil As GpEncoderParametersHeader
-        Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+        Dim offset As LongPtr = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
         Dim countAddress As LongPtr = VarPtr(encoderParams(LBound(encoderParams))) - offset
         PutMem4(countAddress, UBound(encoderParams))
         Return GdipSaveAddImage(Me, newImage, ByVal countAddress)
@@ -507,7 +507,7 @@ Module GdipImage
         Dim status As Any = GdipGetEncoderParameterListSize(Me, clsidencoder, size)
         If status = Ok Then
             Dim stencil As GpEncoderParametersHeader
-            Dim offset& = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
+            Dim offset As LongPtr = VarPtr(stencil.Parameter(1)) - VarPtr(stencil.Count)
             Dim count&
             ReDimOversized(params, 0, 1, size + LenB(Of GpEncoderParameter))
             status = GdipGetEncoderParameterList(Me, clsidencoder, size, VarPtr(params(1)) - offset)

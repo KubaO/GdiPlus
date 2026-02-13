@@ -308,7 +308,7 @@ Class StringFormat
     End Function
 
     Function SetTabStops(ByVal firstTabOffset!, ByVal count&, tabStops!) As GpStatus
-        Return SetStatus(sf.SetTabStops2(firstTabOffset, count, tabStops))
+        Return SetStatus(sf.SetTabStops2(firstTabOffset, count, VarPtr(tabStops)))
     End Function
     
     Function GetTabStops(ByVal count&, firstTabOffset!, tabStops!) As GpStatus
@@ -657,7 +657,7 @@ Module GdipStringFormat
         End Function
         
         [UseGetLastError(False)]
-        Public Declare PtrSafe Function SetTabStops2 Lib "gdiplus" Alias "GdipSetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, tabStops As Single) As GpStatus
+        Public Declare PtrSafe Function SetTabStops2 Lib "gdiplus" Alias "GdipSetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal firstTabOffset As Single, ByVal count As Long, ByVal tabStops As LongPtr) As GpStatus
         [UseGetLastError(False)]
         Public Declare PtrSafe Function GetTabStops2 Lib "gdiplus" Alias "GdipGetStringFormatTabStops" (ByVal Me As GpStringFormat, ByVal count As Long, firstTabOffset As Single, tabStops As Single) As GpStatus
         [UseGetLastError(False)]
@@ -673,7 +673,7 @@ Module GdipStringFormat
         End Function
         
         Function SetTabStops(ByVal firstTabOffset!, tabStops() As Single) As GpStatus
-            Return Me.SetTabStops2(firstTabOffset, ArrayLen(tabStops), tabStops(LBound(tabStops)))
+            Return Me.SetTabStops2(firstTabOffset, ArrayLen(tabStops), ArrayPtr(tabStops))
         End Function
         
         [UseGetLastError(False)]

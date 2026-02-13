@@ -236,24 +236,40 @@ Private Module GdipImplementation
         Return status
     End Function
     
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Private DeclareWide PtrSafe Sub GetMem1 Lib "<hiddenmodule>" Alias "#3" (ByVal Address As LongPtr, ByVal retAddress As LongPtr)
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Private DeclareWide PtrSafe Sub GetMem2 Lib "<hiddenmodule>" Alias "#4" (ByVal Address As LongPtr, ByVal retAddress As LongPtr)
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Private DeclareWide PtrSafe Sub GetMem4 Lib "<hiddenmodule>" Alias "#5" (ByVal Address As LongPtr, ByVal retAddress As LongPtr)
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Private DeclareWide PtrSafe Sub GetMem8 Lib "<hiddenmodule>" Alias "#6" (ByVal Address As LongPtr, ByVal retAddress As LongPtr)
+    [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
+    [Description("")]
+    Private DeclareWide PtrSafe Sub GetMemPtr Lib "<hiddenmodule>" Alias "#7" (ByVal Address As LongPtr, ByVal retAddress As LongPtr)
+    
     Sub TGetMem1(Of T)(ByVal from As LongPtr, ByRef to As T)
         Debug.Assert LenB(Of T) >= 1
-        GetMem1(from, ByVal VarPtr(to))
+        GetMem1(from, VarPtr(to))
     End Sub
     
     Sub TGetMem2(Of T)(ByVal from As LongPtr, ByRef to As T)
         Debug.Assert LenB(Of T) >= 2
-        GetMem2(from, ByVal VarPtr(to))
+        GetMem2(from, VarPtr(to))
     End Sub
 
     Sub TGetMem4(Of T)(ByVal from As LongPtr, ByRef to As T)
         Debug.Assert LenB(Of T) >= 4
-        GetMem4(from, ByVal VarPtr(to))
+        GetMem4(from, VarPtr(to))
     End Sub
     
     Sub TGetMem8(Of T)(ByVal from As LongPtr, ByRef to As T)
         Debug.Assert LenB(Of T) >= 8
-        GetMem8(from, ByVal VarPtr(to))
+        GetMem8(from, VarPtr(to))
     End Sub
     
     Sub TGetMemPtr(Of T)(ByVal from As LongPtr, ByRef to As T)
@@ -264,35 +280,35 @@ Private Module GdipImplementation
     Sub TPutMem1(Of T)(ByVal to As LongPtr, ByVal from As T)
         Debug.Assert LenB(Of T) >= 1
         Dim value As Byte
-        GetMem1(VarPtr(from), value)
+        GetMem1(VarPtr(from), VarPtr(value))
         PutMem1(to, value)
     End Sub
 
     Sub TPutMem2(Of T)(ByVal to As LongPtr, ByVal from As T)
         Debug.Assert LenB(Of T) >= 2
         Dim value%
-        GetMem2(VarPtr(from), value)
+        GetMem2(VarPtr(from), VarPtr(value))
         PutMem2(to, value)
     End Sub
 
     Sub TPutMem4(Of T)(ByVal to As LongPtr, ByVal from As T)
         Debug.Assert LenB(Of T) >= 4
         Dim value&
-        GetMem4(VarPtr(from), value)
+        GetMem4(VarPtr(from), VarPtr(value))
         PutMem4(to, value)
     End Sub
 
     Sub TPutMem8(Of T)(ByVal to As LongPtr, ByVal from As T)
         Debug.Assert LenB(Of T) >= 8
         Dim value As currency
-        GetMem8(VarPtr(from), value)
+        GetMem8(VarPtr(from), VarPtr(value))
         PutMem8(to, value)
     End Sub
 
     Sub TPutMemPtr(Of T)(ByVal to As LongPtr, ByVal from As T)
         Debug.Assert LenB(Of T) >= LenB(Of LongPtr)
         Dim value As LongPtr
-        GetMemPtr(VarPtr(from), value)
+        GetMemPtr(VarPtr(from), VarPtr(value))
         PutMemPtr(to, value)
     End Sub
     
