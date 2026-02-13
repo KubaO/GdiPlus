@@ -48,9 +48,9 @@ Module Types
     ' Callback functions
     '--------------------------------------------------------------------------
     
-    Public Delegate Function ImageAbort (pv As LongPtr) As GDIP_BOOL
-    Public Delegate Function DrawImageAbort (pv As LongPtr) As GDIP_BOOL
-    Public Delegate Function GetThumbnailImageAbort (pv As LongPtr) As GDIP_BOOL
+    Public Delegate Function ImageAbort (ByVal pv As LongPtr) As GDIP_BOOL
+    Public Delegate Function DrawImageAbort (ByVal pv As LongPtr) As GDIP_BOOL
+    Public Delegate Function GetThumbnailImageAbort (ByVal pv As LongPtr) As GDIP_BOOL
     
     ' Callback for EnumerateMetafile methods.  The parameters are:
     '
@@ -135,17 +135,17 @@ Module Types
         Width!
         Height!
         
-        Function Add(sz As GpSizeF) As GpSizeF
+        Function Add(ByVal sz As GpSizeF) As GpSizeF
             Add.Width = Me.Width + sz.Width
             Add.Height = Me.Height + sz.Height
         End Function
         
-        Function Sub(sz As GpSizeF) As GpSizeF
+        Function Sub(ByVal sz As GpSizeF) As GpSizeF
             Sub.Width = Me.Width - sz.Width
             Sub.Height = Me.Height - sz.Height
         End Function
         
-        Function Equals(sz As GpSizeF) As Boolean
+        Function Equals(ByVal sz As GpSizeF) As Boolean
             Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
         End Function
         
@@ -155,11 +155,9 @@ Module Types
     End Type
     
     Function GpSizeF() As GpSizeF
-        GpSizeF.Width = 0
-        GpSizeF.Height = 0
     End Function
     
-    Function GpSizeF(size As GpSizeF) As GpSizeF
+    Function GpSizeF(ByVal size As GpSizeF) As GpSizeF
         GpSizeF = size
     End Function
     
@@ -173,17 +171,17 @@ Module Types
         Width&
         Height&
         
-        Function Add(sz As GpSize) As GpSize
+        Function Add(ByVal sz As GpSize) As GpSize
             Add.Width = Me.Width + sz.Width
             Add.Height = Me.Height + sz.Height
         End Function
         
-        Function Sub(sz As GpSize) As GpSize
+        Function Sub(ByVal sz As GpSize) As GpSize
             Sub.Width = Me.Width - sz.Width
             Sub.Height = Me.Height - sz.Height
         End Function
         
-        Function Equals(sz As GpSize) As Boolean
+        Function Equals(ByVal sz As GpSize) As Boolean
             Return Me.Width = sz.Width AndAlso Me.Height = sz.Height
         End Function
         
@@ -208,11 +206,9 @@ Module Types
     End Type
     
     Function GpSize() As GpSize
-        GpSize.Width = 0
-        GpSize.Height = 0
     End Function
     
-    Function GpSize(size As GpSize) As GpSize
+    Function GpSize(ByVal size As GpSize) As GpSize
         GpSize = size
     End Function
     
@@ -226,31 +222,29 @@ Module Types
         X!
         Y!
         
-        Function Add(pt As GpPointF) As GpPointF
+        Function Add(ByVal pt As GpPointF) As GpPointF
             Add.X = Me.X + pt.X
             Add.Y = Me.Y + pt.Y
         End Function
         
-        Function Sub(pt As GpPointF) As GpPointF
+        Function Sub(ByVal pt As GpPointF) As GpPointF
             Sub.X = Me.X - pt.X
             Sub.Y = Me.Y - pt.Y
         End Function
         
-        Function Equals(pt As GpPointF) As Boolean
+        Function Equals(ByVal pt As GpPointF) As Boolean
             Return Me.X = pt.X AndAlso Me.Y = pt.Y
         End Function
     End Type
     
     Function GpPointF() As GpPointF
-        GpPointF.X = 0
-        GpPointF.Y = 0
     End Function
     
-    Function GpPointF(point As GpPointF) As GpPointF
+    Function GpPointF(ByVal point As GpPointF) As GpPointF
         GpPointF = point
     End Function
     
-    Function GpPointFFrom(size As GpSizeF) As GpPointF
+    Function GpPointFFrom(ByVal size As GpSizeF) As GpPointF
         GpPointF.X = size.Width
         GpPointF.Y = size.Height
     End Function
@@ -265,31 +259,29 @@ Module Types
         X&
         Y&
         
-        Function Add(pt As GpPoint) As GpPoint
+        Function Add(ByVal pt As GpPoint) As GpPoint
             Add.X = Me.X + pt.X
             Add.Y = Me.Y + pt.Y
         End Function
         
-        Function Sub(pt As GpPoint) As GpPoint
+        Function Sub(ByVal pt As GpPoint) As GpPoint
             Sub.X = Me.X - pt.X
             Sub.Y = Me.Y - pt.Y
         End Function
         
-        Function Equals(pt As GpPoint) As Boolean
+        Function Equals(ByVal pt As GpPoint) As Boolean
             Return Me.X = pt.X AndAlso Me.Y = pt.Y
         End Function
     End Type
     
     Function GpPoint() As GpPoint
-        GpPoint.X = 0
-        GpPoint.Y = 0
     End Function
     
-    Function GpPoint(point As GpPoint) As GpPoint
+    Function GpPoint(ByVal point As GpPoint) As GpPoint
         GpPoint = point
     End Function
     
-    Function GpPointFrom(size As GpSize) As GpPoint
+    Function GpPointFrom(ByVal size As GpSize) As GpPoint
         GpPoint.X = size.Width
         GpPoint.Y = size.Height
     End Function
@@ -418,7 +410,7 @@ Module Types
                    y >= Me.Y AndAlso y < Me.Y + Me.Height
         End Function
         
-        Function Contains(pt As GpPointF) As Boolean
+        Function Contains(ByVal pt As GpPointF) As Boolean
             'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
             Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
                    pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
@@ -436,7 +428,7 @@ Module Types
             Me.Height += 2 * dy
         End Sub
         
-        Sub InflatePt(point As GpPointF)
+        Sub InflatePt(ByVal point As GpPointF)
             Me.Inflate(point.X, point.Y)
         End Sub
         
@@ -451,7 +443,7 @@ Module Types
                     Me.Bottom > rect.Top
         End Function
         
-        Sub Offset(point As GpPointF)
+        Sub Offset(ByVal point As GpPointF)
             Me.X += point.X
             Me.Y += point.Y
         End Sub
@@ -463,20 +455,26 @@ Module Types
     End Type
     
     Function GpRectF() As GpRectF
-        GpRectF.X = 0
-        GpRectF.Y = 0
-        GpRectF.Width = 0
-        GpRectF.Height = 0
     End Function
 
+    Function GpRectF(ByVal x!, ByVal y!) As GpRectF
+        GpRectF.X = x
+        GpRectF.Y = y
+    End Function
+    
     Function GpRectF(ByVal x!, ByVal y!, ByVal width!, ByVal height!) As GpRectF
         GpRectF.X = x
         GpRectF.Y = y
         GpRectF.Width = width
         GpRectF.Height = height
     End Function
+
+    Function GpRectF(ByVal location As GpPointF) As GpRectF
+        GpRectF.X = location.X
+        GpRectF.Y = location.Y
+    End Function
     
-    Function GpRectF(location As GpPointF, size As GpSizeF) As GpRectF
+    Function GpRectF(ByVal location As GpPointF, ByVal size As GpSizeF) As GpRectF
         GpRectF.X = location.X
         GpRectF.Y = location.Y
         GpRectF.Width = size.Width
@@ -621,7 +619,7 @@ Module Types
                    y >= Me.Y AndAlso y < Me.Y + Me.Height
         End Function
         
-        Function Contains(pt As GpPoint) As Boolean
+        Function Contains(ByVal pt As GpPoint) As Boolean
             'Return Me.Contains(pt.x, pt.y)  ' FIXME tB BUG
             Return pt.X >= Me.X AndAlso pt.X < Me.X + Me.Width AndAlso _
                    pt.Y >= Me.Y AndAlso pt.Y < Me.Y + Me.Height
@@ -639,7 +637,7 @@ Module Types
             Me.Height += 2 * dy
         End Sub
         
-        Sub Inflate(point As GpPoint)
+        Sub Inflate(ByVal point As GpPoint)
             'Me.Inflate(point.X, point.Y)  ' FIXME tB bug
             Me.X -= point.X
             Me.Y -= point.Y
@@ -658,7 +656,7 @@ Module Types
                     Me.Bottom > rect.Top
         End Function
         
-        Sub Offset(point As GpPoint)
+        Sub Offset(ByVal point As GpPoint)
             Me.X += point.X
             Me.Y += point.Y
         End Sub
@@ -670,20 +668,26 @@ Module Types
     End Type
     
     Function GpRect() As GpRect
-        GpRect.X = 0
-        GpRect.Y = 0
-        GpRect.Width = 0
-        GpRect.Height = 0
     End Function
 
+    Function GpRect(ByVal x&, ByVal y&) As GpRect
+        GpRect.X = x
+        GpRect.Y = y
+    End Function
+    
     Function GpRect(ByVal x&, ByVal y&, ByVal width&, ByVal height&) As GpRect
         GpRect.X = x
         GpRect.Y = y
         GpRect.Width = width
         GpRect.Height = height
     End Function
+
+    Function GpRect(ByVal location As GpPoint) As GpRect
+        GpRect.X = location.X
+        GpRect.Y = location.Y
+    End Function
     
-    Function GpRect(location As GpPoint, size As GpSize) As GpRect
+    Function GpRect(ByVal location As GpPoint, ByVal size As GpSize) As GpRect
         GpRect.X = location.X
         GpRect.Y = location.Y
         GpRect.Width = size.Width
