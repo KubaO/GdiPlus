@@ -568,3 +568,8 @@ Module GdipImage
     [UseGetLastError(False)]
     Declare PtrSafe Function GdipGetImageItemData Lib "gdiplus" (ByVal Me As LongPtr, item As GpImageItemData) As GpStatus
 End Module
+
+[InterfaceId("0000000c-0000-0000-C000-000000000046")]
+[OleAutomation(False)]
+Interface GDIP_IStream
+End Interface

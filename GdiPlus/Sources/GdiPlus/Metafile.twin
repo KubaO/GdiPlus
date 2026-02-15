@@ -447,7 +447,7 @@ Module GdipMetafile
     End Function
 
     Function EmfToWmfBits(ByVal hEmf As LongPtr, ByVal cbData16 As UINT, pData16 As Byte, _
-            ByVal iMapMode As GDIP_MappingModes = GDIP_MM_ANISOTROPIC, _
+            ByVal iMapMode As GDIP_MappingModes = MM_ANISOTROPIC, _
             ByVal eFlags As GpEmfToWmfBitsFlags = EmfToWmfBitsFlagsDefault) As UINT
         Return GdipEmfToWmfBits(hEmf, cbData16, pData16, iMapMode, eFlags)
     End Function
@@ -464,4 +464,18 @@ Module GdipMetafile
     Public Declare PtrSafe Function GdipEmfToWmfBits Lib "gdiplus" (ByVal hemf As LongPtr, ByVal cbData16 As Long, pData16 As Byte, ByVal iMapMode As Long, ByVal eFlags As Long) As Long
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipCreateStreamOnFile Lib "gdiplus" (ByVal filename As LongPtr, ByVal access As Long, stream As GDIP_IStream) As GpStatus
+    
+    Private Enum GDIP_MappingModes
+        MM_TEXT = 1
+        MM_LOMETRIC = 2
+        MM_HIMETRIC = 3
+        MM_LOENGLISH = 4
+        MM_HIENGLISH = 5
+        MM_TWIPS = 6
+        MM_ISOTROPIC = 7
+        MM_ANISOTROPIC = 8
+        MM_MIN = MM_TEXT
+        MM_MAX = MM_ANISOTROPIC
+        MM_MAX_FIXEDSCALE = MM_TWIPS
+    End Enum
 End Module

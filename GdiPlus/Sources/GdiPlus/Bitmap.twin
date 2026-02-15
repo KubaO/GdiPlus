@@ -511,4 +511,37 @@ Module GdipBitmap
     Declare PtrSafe Function CloneBitmapArea2 Lib "gdiplus" Alias "GdipCloneBitmapArea" (ByVal x!, ByVal y!, ByVal width!, ByVal height!, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
     [UseGetLastError(False)]
     Declare PtrSafe Function CloneBitmapArea2I Lib "gdiplus" Alias "GdipCloneBitmapAreaI" (ByVal x&, ByVal y&, ByVal width&, ByVal height&, ByVal format As PixelFormat, ByVal srcBitmap As GpBitmap, dstBitmap As GpBitmap) As GpStatus
+    
+    Public Enum GDIP_GDI_BITMAP_COMPRESSION
+        BI_RGB = 0
+        BI_RLE8 = 1
+        BI_RLE4 = 2
+        BI_BITFIELDS = 3
+        BI_JPEG = 4
+        BI_PNG = 5
+    End Enum
+    
+    Public Type GDIP_BITMAPINFOHEADER
+        biSize          As Long
+        biWidth         As Long
+        biHeight        As Long
+        biPlanes        As Integer
+        biBitCount      As Integer
+        biCompression   As GDIP_GDI_BITMAP_COMPRESSION
+        biSizeImage     As Long
+        biXPelsPerMeter As Long
+        biYPelsPerMeter As Long
+        biClrUsed       As Long
+        biClrImportant  As Long
+    End Type
+
+    Public Type GDIP_BITMAPINFO
+        bmiHeader As GDIP_BITMAPINFOHEADER
+        bmiColors(0 To 0) As Long
+    End Type
 End Module
+
+[InterfaceId("06675A80-3B9B-11D2-B92F-00609797EA5B")]
+[OleAutomation(False)]
+Interface GDIP_IDirectDrawSurface7
+End Interface

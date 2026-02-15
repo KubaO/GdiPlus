@@ -270,4 +270,58 @@ Module GdipFont
     End Function
     
     Private DeclareWide PtrSafe Function GetObjectW Lib "gdi32" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
+    
+    Public Const GDIP_LF_FACESIZE = 32
+    
+    Public Enum GDIP_FontWeight
+        FW_DONTCARE = 0
+        FW_THIN = 100
+        FW_EXTRALIGHT = 200
+        FW_LIGHT = 300
+        FW_NORMAL = 400
+        FW_MEDIUM = 500
+        FW_SEMIBOLD = 600
+        FW_BOLD = 700
+        FW_EXTRABOLD = 800
+        FW_HEAVY = 900
+        FW_ULTRALIGHT = FW_EXTRALIGHT
+        FW_REGULAR = FW_NORMAL
+        FW_DEMIBOLD = FW_SEMIBOLD
+        FW_ULTRABOLD = FW_EXTRABOLD
+        FW_BLACK = FW_HEAVY
+    End Enum
+    
+    Public Type GDIP_LOGFONTA
+        LFHeight As Long
+        LFWidth As Long
+        LFEscapement As Long
+        LFOrientation As Long
+        LFWeight As GDIP_FontWeight
+        LFItalic As Byte
+        LFUnderline As Byte
+        LFStrikeOut As Byte
+        LFCharset As Byte
+        LFOutPrecision As Byte
+        LFClipPrecision As Byte
+        LFQuality As Byte
+        LFPitchAndFamily As Byte
+        LFFaceName (GDIP_LF_FACESIZE - 1) As Byte
+    End Type
+    
+    Public Type GDIP_LOGFONTW
+        LFHeight As Long
+        LFWidth As Long
+        LFEscapement As Long
+        LFOrientation As Long
+        LFWeight As GDIP_FontWeight
+        LFItalic As Byte
+        LFUnderline As Byte
+        LFStrikeOut As Byte
+        LFCharset As Byte
+        LFOutPrecision As Byte
+        LFClipPrecision As Byte
+        LFQuality As Byte
+        LFPitchAndFamily As Byte
+        LFFaceName (GDIP_LF_FACESIZE - 1) As Integer
+    End Type
 End Module

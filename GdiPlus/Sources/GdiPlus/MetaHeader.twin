@@ -20,7 +20,7 @@ Module GdipMetaHeader
     ' Each placeable metafile begins with a 22-byte header,
     '  followed by a standard metafile:
     
-     [PackingAlignment(2)]
+    [PackingAlignment(2)]
     Public Type PWMFRect16
         Left As Integer
         Top As Integer
@@ -30,12 +30,12 @@ Module GdipMetaHeader
     
      [PackingAlignment(2)]
      Public Type WmfPlaceableFileHeader
-         Key As Long                ' GDIP_WMF_PLACEABLEKEY
-         Hmf As Integer             ' Metafile HANDLE number (always 0)
-         BoundingBox As PWMFRect16  ' Coordinates in metafile units
-         Inch As Integer            ' Number of metafile units per inch
-         Reserved As Long           ' Reserved (always 0)
-         Checksum As Integer        ' Checksum value for previous 10 WORDs
+        Key As Long                ' GDIP_WMF_PLACEABLEKEY
+        Hmf As Integer             ' Metafile HANDLE number (always 0)
+        BoundingBox As PWMFRect16  ' Coordinates in metafile units
+        Inch As Integer            ' Number of metafile units per inch
+        Reserved As Long           ' Reserved (always 0)
+        Checksum As Integer        ' Checksum value for previous 10 WORDs
      End Type
 
      ' Key contains a special identification value that indicates the presence
@@ -71,7 +71,40 @@ Module GdipMetaHeader
      
      Public Const GDIP_EMFPLUSFLAGS_DISPLAY = &h00000001
      
-     Type MetafileHeader
+    [PackingAlignment(2)]
+    Public Type GDIP_METAHEADER
+        mtType As Integer
+        mtHeaderSize As Integer
+        mtVersion As Integer
+        mtSize As Long
+        mtNoObjects As Integer
+        mtMaxRecord As Long
+        mtNoParameters As Integer
+    End Type
+     
+    Type GDIP_ENHMETAHEADER3
+        iType As Long           ' Record type EMR_HEADER
+        nSize As Long           ' Record size in bytes.  This may be greater
+                                ' than the sizeof(ENHMETAHEADER).
+        rclBounds As GDIP_RECT  ' Inclusive-inclusive bounds in device units
+        rclFrame As GDIP_RECT   ' Inclusive-inclusive Picture Frame .01mm unit
+        dSignature As Long      ' Signature.  Must be ENHMETA_SIGNATURE.
+        nVersion As Long        ' Version number
+        nBytes As Long          ' Size of the metafile in bytes
+        nRecords As Long        ' Number of records in the metafile
+        nHandles As Integer     ' Number of handles in the handle table
+                                ' Handle index zero is reserved.
+        sReserved As Integer    ' Reserved.  Must be zero.
+        nDescription As Long    ' Number of chars in the unicode desc string
+                                ' This is 0 if there is no description string
+        offDescription As Long  ' Offset to the metafile description record.
+                                ' This is 0 if there is no description string
+        nPalEntries As Long     ' Number of entries in the metafile palette.
+        szlDevice As GpSize     ' Size of the reference device in pels
+        szlMillimeters As GpSize' Size of the reference device in millimeters
+    End Type
+    
+    Type MetafileHeader
         Type As GpMetafileType
         Size As UINT               ' Size of the metafile (in bytes)
         Version As UINT            ' EMF+, EMF, or WMF version
@@ -145,5 +178,5 @@ Module GdipMetaHeader
         Property Get EmfHeader() As GDIP_ENHMETAHEADER3
             If Me.IsEmfOrEmfPlus Then EmfHeader = Me.HeaderSpace
         End Property
-     End Type
+    End Type
 End Module

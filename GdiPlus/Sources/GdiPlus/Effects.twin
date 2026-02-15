@@ -717,69 +717,58 @@ Module GdipEffects
     '-----------------------------------------------------------------------------
     
     Public Function BlurEffectGuid() As GDIP_UUID
-    '{633C80A4-1843-482b-9EF2-BE2834C5FDD4}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H633C80A4, CInt(&H1843), CInt(&H482b), &H9E, &HF2, &HBE, &H28, &H34, &HC5, &HFD, &HD4)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{633C80A4-1843-482B-9EF2-BE2834C5FDD4}")
         BlurEffectGuid = iid
     End Function
     Public Function SharpenEffectGuid() As GDIP_UUID
-    '{63CBF3EE-C526-402c-8F71-62C540BF5142}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H63CBF3EE, CInt(&HC526), CInt(&H402c), &H8F, &H71, &H62, &HC5, &H40, &HBF, &H51, &H42)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{63CBF3EE-C526-402C-8F71-62C540BF5142}")
         SharpenEffectGuid = iid
     End Function
     Public Function ColorMatrixEffectGuid() As GDIP_UUID
-    '{718F2615-7933-40e3-A511-5F68FE14DD74}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H718F2615, CInt(&H7933), CInt(&H40e3), &HA5, &H11, &H5F, &H68, &HFE, &H14, &HDD, &H74)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{718F2615-7933-40E3-A511-5F68FE14DD74}")
         ColorMatrixEffectGuid = iid
     End Function
     Public Function ColorLUTEffectGuid() As GDIP_UUID
-    '{A7CE72A9-0F7F-40d7-B3CC-D0C02D5C3212}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &HA7CE72A9, CInt(&H0F7F), CInt(&H40d7), &HB3, &HCC, &HD0, &HC0, &H2D, &H5C, &H32, &H12)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{A7CE72A9-0F7F-40D7-B3CC-D0C02D5C3212}")
         ColorLUTEffectGuid = iid
     End Function
     Public Function BrightnessContrastEffectGuid() As GDIP_UUID
-    '{D3A1DBE1-8EC4-4c17-9F4C-EA97AD1C343D}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &HD3A1DBE1, CInt(&H8EC4), CInt(&H4c17), &H9F, &H4C, &HEA, &H97, &HAD, &H1C, &H34, &H3D)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{D3A1DBE1-8EC4-4C17-9F4C-EA97AD1C343D}")
         BrightnessContrastEffectGuid = iid
     End Function
     Public Function HueSaturationLightnessEffectGuid() As GDIP_UUID
-    '{8B2DD6C3-EB07-4d87-A5F0-7108E26A9C5F}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H8B2DD6C3, CInt(&HEB07), CInt(&H4d87), &HA5, &HF0, &H71, &H08, &HE2, &H6A, &H9C, &H5F)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{8B2DD6C3-EB07-4D87-A5F0-7108E26A9C5F}")
         HueSaturationLightnessEffectGuid = iid
     End Function
     Public Function LevelsEffectGuid() As GDIP_UUID
-    '{99C354EC-2A31-4f3a-8C34-17A803B33A25}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H99C354EC, CInt(&H2A31), CInt(&H4f3a), &H8C, &H34, &H17, &HA8, &H03, &HB3, &H3A, &H25)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{99C354EC-2A31-4F3A-8C34-17A803B33A25}")
         LevelsEffectGuid = iid
     End Function
     Public Function TintEffectGuid() As GDIP_UUID
-    '{1077AF00-2848-4441-9489-44AD4C2D7A2C}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H1077AF00, CInt(&H2848), CInt(&H4441), &H94, &H89, &H44, &HAD, &H4C, &H2D, &H7A, &H2C)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{1077AF00-2848-4441-9489-44AD4C2D7A2C}")
         TintEffectGuid = iid
     End Function
     Public Function ColorBalanceEffectGuid() As GDIP_UUID
-    '{537E597D-251E-48da-9664-29CA496B70F8}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H537E597D, CInt(&H251E), CInt(&H48da), &H96, &H64, &H29, &HCA, &H49, &H6B, &H70, &HF8)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{537E597D-251E-48DA-9664-29CA496B70F8}")
         ColorBalanceEffectGuid = iid
     End Function
     Public Function RedEyeCorrectionEffectGuid() As GDIP_UUID
-    '{74D29D05-69A4-4266-9549-3CC52836B632}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &H74D29D05, CInt(&H69A4), CInt(&H4266), &H95, &H49, &H3C, &HC5, &H28, &H36, &HB6, &H32)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{74D29D05-69A4-4266-9549-3CC52836B632}")
         RedEyeCorrectionEffectGuid = iid
     End Function
     Public Function ColorCurveEffectGuid() As GDIP_UUID
-    '{DD6A0022-58E4-4a67-9D9B-D48EB881A53D}
     Static iid As GDIP_UUID
-        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, &HDD6A0022, CInt(&H58E4), CInt(&H4a67), &H9D, &H9B, &HD4, &H8E, &HB8, &H81, &HA5, &H3D)
+        If (iid.Data1 = 0) Then GDIPDEF_UUID(iid, "{DD6A0022-58E4-4A67-9D9B-D48EB881A53D}")
         ColorCurveEffectGuid = iid
     End Function
 End Module

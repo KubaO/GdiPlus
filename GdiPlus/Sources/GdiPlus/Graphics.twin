@@ -1186,6 +1186,28 @@ Class Graphics
     Protected Property Get Native() As GpGraphics
         Return gr
     End Property
+    
+    Private Type GDIP_PAINTSTRUCT
+        hdc                  As LongPtr
+        fErase               As Long
+        rcPaint              As GDIP_RECT
+        fRestore             As Long
+        fIncUpdate           As Long
+        rgbReserved(0 To 31) As Byte
+    End Type
+
+    Private Enum GDIP_BP_BUFFERFORMAT
+        BPBF_COMPATIBLEBITMAP     '// Compatible bitmap
+        BPBF_DIB                  '// Device-independent bitmap
+        BPBF_TOPDOWNDIB           '// Top-down device-independent bitmap
+        BPBF_TOPDOWNMONODIB       '// Top-down monochrome device-independent bitmap
+    End Enum
+    
+    Private Declare PtrSafe Function BeginPaint Lib "user32" (ByVal hWnd As LongPtr, lpPaint As GDIP_PAINTSTRUCT) As LongPtr
+    Private Declare PtrSafe Function EndPaint Lib "user32" (ByVal hWnd As LongPtr, lpPaint As GDIP_PAINTSTRUCT) As GDIP_BOOL
+    Private Declare PtrSafe Function BeginBufferedPaint Lib "uxtheme" (ByVal hdcTarget As LongPtr, prcTarget As GDIP_RECT, ByVal dwFormat As GDIP_BP_BUFFERFORMAT, pPaintParams As Any, phdc As LongPtr) As LongPtr
+    Private Declare PtrSafe Function EndBufferedPaint Lib "uxtheme" (ByVal hBufferedPaint As LongPtr, ByVal fUpdateTarget As Long) As Long
+    Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
 End Class
 
 Module GdipGraphics

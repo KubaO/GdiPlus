@@ -402,4 +402,18 @@ Private Module GdipImplementation
     [PreserveSig(False), UseGetLastError(False), DLLStackCheck(False)]
     [Description("")]
     Public DeclareWide PtrSafe Function vbaCopyBytesRef Lib "<hiddenmodule>" Alias "#16" (ByVal length As Long, dest As Any, src As Any) As LongPtr
+    
+    Private Type GDIP_SAFEARRAY1D
+        cDims      As Integer
+        fFeatures  As Integer
+        cbElements As Long
+        cLocks     As Long
+        pvData     As LongPtr
+        Bounds     As GDIP_SAFEARRAYBOUND
+    End Type
+    
+    Private Type GDIP_SAFEARRAYBOUND
+        cElements As Long
+        lLbound   As Long
+    End Type
 End Module

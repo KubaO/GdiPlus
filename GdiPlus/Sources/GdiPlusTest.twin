@@ -7,7 +7,7 @@ Module ModMain
     
     Sub Main()
         Dim user As Any = GdiPlusUser()
-        Dim class As GDIP_WNDCLASS
+        Dim class As WNDCLASS
         
         Set pBrush = SolidBrush(White)
         Set pPen = Pen(0)
@@ -35,7 +35,7 @@ Module ModMain
         ShowWindow(hWnd, SW_SHOWNORMAL)
         UpdateWindow(hWnd)
         
-        Dim msg As GDIP_MSG
+        Dim msg As MSG
         While GetMessage(msg, 0, 0, 0)
             TranslateMessage(msg)
             DispatchMessage(msg)
@@ -53,7 +53,7 @@ Module ModMain
     End Sub
     
     Function Timer() As Single
-        Dim st As GDIP_SYSTEMTIME
+        Dim st As SYSTEMTIME
         GetLocalTime(st)
         Return st.wHour * 3600.0 + st.wMinute * 60.0 + st.wSecond + st.wMilliseconds * 0.001
     End Function
@@ -179,4 +179,205 @@ Module ModMain
                 Return DefWindowProc(hWnd, message, wParam, lParam)
         End Select
     End Function
+    
+    Private Type MSG
+        hWnd        As LongPtr
+        message     As Long
+        wParam      As LongPtr
+        lParam      As LongPtr
+        Time        As Long
+        PT          As GDIP_POINT
+    End Type
+
+    Private Type SYSTEMTIME
+        wYear%
+        wMonth%
+        wDayOfWeek%
+        wDay%
+        wHour%
+        wMinute%
+        wSecond%
+        wMilliseconds%
+    End Type
+    
+    Private Type WNDCLASS
+        style As ClassStyles
+        lpfnWndProc As LongPtr
+        cbClsExtra As Long
+        cbWndExtra As Long
+        hInstance As LongPtr
+        hIcon As LongPtr
+        hCursor As LongPtr
+        hbrBackground As LongPtr
+        lpszMenuName As LongPtr
+        lpszClassName As LongPtr
+    End Type
+    
+    Private Const CW_USEDEFAULT = &H80000000&
+    
+    Private Enum ClassStyles
+        CS_VREDRAW = &H0001
+        CS_HREDRAW = &H0002
+        CS_DBLCLKS = &H0008
+        CS_OWNDC = &H0020
+        CS_CLASSDC = &H0040
+        CS_PARENTDC = &H0080
+        CS_NOCLOSE = &H0200
+        CS_SAVEBITS = &H0800
+        CS_BYTEALIGNCLIENT = &H1000
+        CS_BYTEALIGNWINDOW = &H2000
+        CS_GLOBALCLASS = &H4000
+        CS_IME = &H00010000
+        CS_DROPSHADOW = &H00020000
+    End Enum
+    
+    Private Enum DefCursors
+        IDC_ARROW = 32512&
+        IDC_IBEAM = 32513&
+        IDC_WAIT = 32514&
+        IDC_CROSS = 32515&
+        IDC_UPARROW = 32516&
+        IDC_SIZE = 32640&
+        IDC_ICON = 32641&
+        IDC_SIZENWSE = 32642&
+        IDC_SIZENESW = 32643&
+        IDC_SIZEWE = 32644&
+        IDC_SIZENS = 32645&
+        IDC_SIZEALL = 32646&
+        IDC_NO = 32648&
+        IDC_HAND = 32649&
+        IDC_APPSTARTING = 32650&
+        IDC_HELP = 32651&
+        IDC_WAITCD = 32663&
+        IDC_PIN = 32671&
+        IDC_PERSON = 32672&
+        IDC_PEN = 32631&
+        IDC_SCROLLNS = 32652&
+        IDC_SCROLLWE = 32653&
+        IDC_SCROLLALL = 32654&
+        IDC_SCROLLN = 32655&
+        IDC_SCROLLS = 32656&
+        IDC_SCROLLW = 32657&
+        IDC_SCROLLE = 32658&
+        IDC_SCROLLNW = 32659&
+        IDC_SCROLLNE = 32660&
+        IDC_SCROLLSW = 32661&
+        IDC_SCROLLSE = 32662&
+    End Enum
+    
+    Private Enum eSHOWWINDOW
+        SW_HIDE = 0
+        SW_SHOWNORMAL = 1
+        SW_NORMAL = 1
+        SW_SHOWMINIMIZED = 2
+        SW_SHOWMAXIMIZED = 3
+        SW_MAXIMIZE = 3
+        SW_SHOWNOACTIVATE = 4
+        SW_SHOW = 5
+        SW_MINIMIZE = 6
+        SW_SHOWMINNOACTIVE = 7
+        SW_SHOWNA = 8
+        SW_RESTORE = 9
+        SW_SHOWDEFAULT = 10
+        SW_FORCEMINIMIZE = 11
+        SW_MAX = 11
+    End Enum
+    
+    Private Enum WindowMessages
+        WM_CREATE = &H0001
+        WM_DESTROY = &H0002
+        WM_ERASEBKGND = &H0014
+        WM_PAINT = &H000F
+        WM_SIZE = &H0005
+        WM_TIMER = &H0113
+    End Enum
+    
+    Private Enum WindowStyles
+        WS_OVERLAPPED = &H00000000
+        WS_POPUP = &H80000000
+        WS_CHILD = &H40000000
+        WS_MINIMIZE = &H20000000
+        WS_VISIBLE = &H10000000
+        WS_DISABLED = &H08000000
+        WS_CLIPSIBLINGS = &H04000000
+        WS_CLIPCHILDREN = &H02000000
+        WS_MAXIMIZE = &H01000000
+        WS_BORDER = &H00800000
+        WS_DLGFRAME = &H00400000
+        WS_VSCROLL = &H00200000
+        WS_HSCROLL = &H00100000
+        WS_SYSMENU = &H00080000
+        WS_THICKFRAME = &H00040000
+        WS_GROUP = &H00020000
+        WS_TABSTOP = &H00010000
+        WS_MINIMIZEBOX = &H00020000
+        WS_MAXIMIZEBOX = &H00010000
+        WS_CAPTION = (WS_BORDER Or WS_DLGFRAME)
+        WS_TILED = WS_OVERLAPPED
+        WS_ICONIC = WS_MINIMIZE
+        WS_SIZEBOX = WS_THICKFRAME
+        WS_OVERLAPPEDWINDOW = WS_OVERLAPPED Or WS_CAPTION Or WS_SYSMENU Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX
+        WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW
+        WS_POPUPWINDOW = WS_POPUP Or WS_BORDER Or WS_SYSMENU
+        WS_CHILDWINDOW = WS_CHILD
+        
+        WS_GT = (WS_GROUP Or WS_TABSTOP)
+    End Enum
+    
+    Private Enum WindowStylesEx
+        WS_EX_DLGMODALFRAME = &H00000001
+        WS_EX_NOPARENTNOTIFY = &H00000004
+        WS_EX_TOPMOST = &H00000008
+        WS_EX_ACCEPTFILES = &H00000010
+        WS_EX_TRANSPARENT = &H00000020
+        WS_EX_MDICHILD = &H00000040
+        WS_EX_TOOLWINDOW = &H00000080
+        WS_EX_WINDOWEDGE = &H00000100
+        WS_EX_CLIENTEDGE = &H00000200
+        WS_EX_CONTEXTHELP = &H00000400
+        WS_EX_RIGHT = &H00001000
+        WS_EX_LEFT = &H00000000
+        WS_EX_RTLREADING = &H00002000
+        WS_EX_LTRREADING = &H00000000
+        WS_EX_LEFTSCROLLBAR = &H00004000
+        WS_EX_RIGHTSCROLLBAR = &H00000000
+        WS_EX_CONTROLPARENT = &H00010000
+        WS_EX_STATICEDGE = &H00020000
+        WS_EX_APPWINDOW = &H00040000
+        WS_EX_OVERLAPPEDWINDOW = (WS_EX_WINDOWEDGE Or WS_EX_CLIENTEDGE)
+        WS_EX_PALETTEWINDOW = (WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST)
+        WS_EX_LAYERED = &H00080000
+        WS_EX_NOINHERITLAYOUT = &H00100000 ' Disable inheritence of mirroring by children
+        WS_EX_NOREDIRECTIONBITMAP = &H00200000
+        WS_EX_LAYOUTRTL = &H00400000 ' Right to left mirroring
+        WS_EX_COMPOSITED = &H02000000
+        WS_EX_NOACTIVATE = &H08000000
+    End Enum
+    
+    Private Declare PtrSafe Function BufferedPaintInit Lib "uxtheme" () As Long
+    Private Declare PtrSafe Function BufferedPaintUnInit Lib "uxtheme" () As Long
+    
+    Private DeclareWide PtrSafe Function GetModuleHandle Lib "kernel32" Alias "GetModuleHandleW" (Optional ByVal lpModuleName As String) As LongPtr
+    Private DeclareWide PtrSafe Function LoadCursor Lib "user32" Alias "LoadCursorW" (ByVal hInstance As LongPtr, [TypeHint(DefCursors)] ByVal lpCursorName As Any) As LongPtr
+        
+    Private DeclareWide PtrSafe Function RegisterClass Lib "user32" Alias "RegisterClassW" (lpWndClass As WNDCLASS) As Integer
+    Private DeclareWide PtrSafe Function UnregisterClass Lib "user32" Alias "UnregisterClassW" (ByVal lpClassName As String, Optional ByVal hInstance As LongPtr) As Long
+    
+    Private DeclareWide PtrSafe Function GetMessage Lib "user32" Alias "GetMessageW" (lpMsg As MSG, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long) As Long
+    Private Declare PtrSafe Function TranslateMessage Lib "user32" (ByRef lpmsg As MSG) As GDIP_BOOL
+    Private DeclareWide PtrSafe Function DispatchMessage Lib "user32" Alias "DispatchMessageW" (ByRef lpmsg As MSG) As LongPtr
+    
+    Private DeclareWide PtrSafe Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As WindowStylesEx, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As WindowStyles, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, lpParam As Any) As LongPtr
+    Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hWnd As LongPtr, ByVal nCmdShow As eSHOWWINDOW) As GDIP_BOOL
+    Private Declare PtrSafe Function UpdateWindow Lib "user32" (ByVal hWnd As LongPtr) As GDIP_BOOL
+    Private Declare PtrSafe Function timeBeginPeriod Lib "winmm" (ByVal uPeriod As Long) As Long
+    Private Declare PtrSafe Function timeEndPeriod Lib "winmm" (ByVal uPeriod As Long) As Long
+    Private Declare PtrSafe Sub GetLocalTime Lib "kernel32" (lpSystemTime As SYSTEMTIME)
+
+    Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As GDIP_RECT) As GDIP_BOOL
+    
+    Private Declare PtrSafe Function SetTimer Lib "user32" (ByVal hwnd As LongPtr, ByVal nIDEvent As LongPtr, ByVal uElapse As Long, ByVal lpTimerFunc As LongPtr) As LongPtr
+    Private Declare PtrSafe Function InvalidateRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As GDIP_RECT, ByVal bErase As GDIP_BOOL) As GDIP_BOOL
+    Private Declare PtrSafe Sub PostQuitMessage Lib "user32" (ByVal nExitCode As Long)
+    Private DeclareWide PtrSafe Function DefWindowProc Lib "user32" Alias "DefWindowProcW" (ByVal hWnd As LongPtr, ByVal Msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
 End Module

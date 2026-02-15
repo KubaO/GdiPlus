@@ -1,0 +1,49 @@
+' A part of the GDI+ Package for TwinBasic  https://github.com/kubao/GdiPlus
+' Licensed under the MIT license. (c) 2026 Sunderland Ober Consulting.
+' "Windows" is a trademark of the Microsoft Corporation.
+' Modeled after code and descriptions (c) Microsoft, taken from SDK headers and official documentation.
+' Certain flat API function and type declarations taken from WinDevLib by fafalone, with thanks.
+
+Module GdipPlatform
+    Enum GDIP_BOOL
+        GDIP_CFALSE
+        GDIP_CTRUE
+    End Enum
+    
+    Public Type GDIP_UUID
+        Data1 As Long
+        Data2 As Integer
+        Data3 As Integer
+        Data4 (0 To 7) As Byte
+    End Type
+     
+    Public Type GDIP_POINT
+        x As Long
+        y As Long
+    End Type
+    
+    Public Type GDIP_RECT
+        Left As Long
+        Top As Long
+        Right As Long
+        Bottom As Long
+    End Type
+    
+    Public Type GDIP_RECTF
+        Left   As Single
+        Top    As Single
+        Right  As Single
+        Bottom As Single
+    End Type
+    
+    Public Type GDIP_SIZE
+        cx As Long
+        cy As Long
+    End Type
+
+    Private Declarewide PtrSafe Function CLSIDFromString Lib "ole32" (ByVal in$, ByRef out As GDIP_UUID) As Long
+    
+    Public Sub GDIPDEF_UUID(output As GDIP_UUID, ByVal input$)
+        CLSIDFromString(input, output)
+    End Sub
+End Module
