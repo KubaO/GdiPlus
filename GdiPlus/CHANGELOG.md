@@ -1,3 +1,6 @@
+## 0.9.39
+- Drop dependency on WinDevLib. This makes the package ~35x smaller - only 780kB.
+
 ## 0.9.38
 - Add easier to use variations of DrawDriverString and MeasureDriverString.
 - Factor out VBGraphics to its own class.
