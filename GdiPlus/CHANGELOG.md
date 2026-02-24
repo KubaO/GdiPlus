@@ -1,7 +1,10 @@
-## 0.9.39
+## 0.9.0.40
+- Fix ArrayLen, ArrayPtr, and everything that broke because of them.
+
+## 0.9.0.39
 - Drop dependency on WinDevLib. This makes the package ~35x smaller - only 780kB.
 
-## 0.9.38
+## 0.9.0.38
 - Add easier to use variations of DrawDriverString and MeasureDriverString.
 - Factor out VBGraphics to its own class.
 - Add GpRect[F] constructors that default size to 0. Clean up coordinate types.
@@ -9,7 +12,7 @@
 - Add ArrayPtr and refactor all locations where a pointer to array data is needed.
 - Fix compilation errors on win64.
 
-## 0.9.37
+## 0.9.0.37
 - Fix bugs:
   - Fix GenericDefaultStringFormat and GenericTypographicStringFormat returning uninitialized objects.
   - Fix StringFormat.SetTabStops to work correctly with arrays that start at an index other than 1.
@@ -18,7 +21,7 @@
 - Ensure that Graphics.MeasureCharacterRanges correctly outputs the result array, even if none was provided.
 - Add a MeasureCharacterRanges overload that returns the region array.
 
-## 0.9.36
+## 0.9.0.36
 
 - Fix bugs:
   - Fix StringFormat.TabStops property.
@@ -28,7 +31,7 @@
   - Fix Graphics.MeasureStringS failing to build due to incorrect use of IsMissing on a UDT.
   - Fix Matrix.Reset incorrectly zeroing out the matrix. Instead it sets the matrix to identity.
 
-## 0.9.35
+## 0.9.0.35
 
 - Fix bugs:
   - Initialization of the VB compatibility layer in Graphics.
@@ -42,7 +45,7 @@
 - Add a preliminary manual to the repository.
 - Add the missing changelog entry for 0.9.34.
 
-## 0.9.34
+## 0.9.0.34
 
 - Fix bugs:
   - PathGradientBrush: SurroundColorCount returning a wrong count, RotateTransform having a messed up name
@@ -79,7 +82,7 @@
 - Make LastStatus private in GdiPlusBase. This forces SetStatus to be used, and makes it a single point
   where all errors can be caught.
 
-## 0.9.33
+## 0.9.0.33
 
 - Fix Font.InitMetrics returning a wrong value.
 - Fix GraphicsPath.New incorrectly invoking PathData property rather than GdipPathData.PathData constructor.
