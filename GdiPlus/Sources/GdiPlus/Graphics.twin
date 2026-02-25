@@ -1657,7 +1657,7 @@ Module GdipGraphics
         End Function
         
         [UseGetLastError(False)]
-        Declare PtrSafe Function Clear Lib "gdiplus" Alias "GpGraphicsClear" (ByVal Me As GpGraphics, ByVal color As Color) As GpStatus
+        Declare PtrSafe Function Clear Lib "gdiplus" Alias "GdipGraphicsClear" (ByVal Me As GpGraphics, ByVal color As Color) As GpStatus
         
         Function FillRectangleR(ByVal brush As GpBrush, rect As GpRectF) As GpStatus
             Return Me.FillRectangle(brush, rect.Left, rect.Top, rect.Width, rect.Height)
@@ -2009,13 +2009,13 @@ Module GdipGraphics
         End Function
         
         [UseGetLastError(False)]
-        Declare PtrSafe Function DrawImageRectRectI Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx&, _
+        Declare PtrSafe Function DrawImageRectRectI Lib "gdiplus" Alias "GdipDrawImageRectRectI" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx&, _
                     ByVal dsty&, ByVal dstwidth&, ByVal dstheight&, _
                     ByVal srcx&, ByVal srcy&, ByVal SrcWidth&, ByVal SrcHeight&, _
                     ByVal srcUnit As GpUnit, ByVal imageAttributes As GpImageAttributes, _
                     Optional ByVal CallBack As LongPtr = 0, Optional ByVal callbackData As LongPtr) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function DrawImageRectRect Lib "gdiplus" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx!, _
+        Declare PtrSafe Function DrawImageRectRect Lib "gdiplus" Alias "GdipDrawImageRectRect" (ByVal Me As GpGraphics, ByVal Image As GpImage, ByVal dstx!, _
                     ByVal dsty!, ByVal dstwidth!, ByVal dstheight!, _
                     ByVal srcx!, ByVal srcy!, ByVal SrcWidth!, ByVal SrcHeight!, _
                     ByVal srcUnit As GpUnit, ByVal imageAttributes As GpImageAttributes, _

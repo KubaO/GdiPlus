@@ -547,7 +547,7 @@ Module GdipGraphicsPath
         Declare PtrSafe Function ClearMarkers Lib "gdiplus" Alias "GdipClearPathMarkers" (ByVal Me As GpPath) As GpStatus
         
         [UseGetLastError(False)]
-        Declare PtrSafe Function GetPointCount Lib "gdiplus" Alias "GetPointCount " (ByVal Me As GpPath, count&) As GpStatus
+        Declare PtrSafe Function GetPointCount Lib "gdiplus" Alias "GdipGetPointCount" (ByVal Me As GpPath, count&) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function GetPathLastPoint Lib "gdiplus" Alias "GdipGetPathLastPoint" (ByVal Me As GpPath, lastPoint As GpPointF) As GpStatus
         
