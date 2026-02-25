@@ -1,3 +1,6 @@
+## 0.9.0.41
+- Fix the few invalid Gdip... import names.
+
 ## 0.9.0.40
 - Fix ArrayLen, ArrayPtr, and everything that broke because of them.
 
