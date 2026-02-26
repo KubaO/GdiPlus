@@ -44,7 +44,7 @@ Module GdipColor
     
     [ConstantFoldable]
     Public Function NoColor() As Color
-        Color.argb = 0
+        NoColor.argb = 0
     End Function
     
     ' Construct an opaque Color object with
