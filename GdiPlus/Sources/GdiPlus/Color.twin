@@ -136,6 +136,10 @@ Module GdipColor
             Me.Blue = b
         End Property
         
+        Property Get IsNull() As Boolean
+            Return Me.argb = 0
+        End Property
+        
         Property Get IsTransparent() As Boolean
             Return Me.argb = Transparent
         End Property
