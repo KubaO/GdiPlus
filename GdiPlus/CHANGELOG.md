@@ -1,3 +1,7 @@
+## 0.9.0.42
+- Fix the NoColor constructor.
+- Add Color.IsNull.
+
 ## 0.9.0.41
 - Fix the few invalid Gdip... import names.
 
