@@ -1,0 +1,269 @@
+Private Module TypesTest
+    '
+    ' The tests below are to ensure that overload resolution can deal with our API
+    '
+    
+    [DebugOnly]
+    Sub SizeF()
+        Dim z!, b As Boolean
+        Dim s As GpSizeF, si As GpSize
+        Dim g As GDIP_SIZE
+        
+        s.SetFromSIZE g
+        s.SetFrom GpSize()
+        s.Add GpSizeF()
+        s.Sub GpSizeF()
+        s.Scale 1
+        s.Scale2 1, 2
+        s.InvScale 1
+        s.InvScale2 1, 2
+        s.Width = 1
+        s.Height = 1
+        s.Diagonal = 1
+                
+        s = s.Sum(GpSizeF())
+        s = s.Diff(GpSizeF())
+        s = s.Prod(1)
+        s = s.Prod2(1, 2)
+        s = s.Quot(1)
+        s = s.Quot2(1, 2)
+        b = s.Equals(s)
+                
+        z = s.Width
+        z = s.Height
+        b = s.Empty
+        b = s.Diagonal
+        g = s.AsSIZE()
+        si = s.AsGpSize()
+        Dim _r1 As GDIP_RECT = s.AsRECT()
+        Dim _r2 As GpRect = s.AsGpRect()
+        Dim _r3 As GpRectF = s.AsGpRectF()
+        
+        s = GpSizeF()
+        s = GpSizeF(1, 2)
+        s = GpSizeF(GpSize())
+        s = GpSizeFFrom(g)
+    End Sub
+    
+    [DebugOnly]
+    Sub Size()
+        Dim z&, b As Boolean
+        Dim s As GpSize, sf As GpSizeF
+        Dim g As GDIP_SIZE
+        
+        s.SetFromSIZE g
+        s.SetFrom GpSizeF()
+        s.Add GpSize()
+        s.Sub GpSize()
+        s.Width = 1
+        s.Height = 1
+        
+        z = s.Width
+        z = s.Height
+        s.Sum(GpSize())
+        s.Diff(GpSize())
+        b = s.Equals(s)
+        b = s.Empty
+        g = s.AsSIZE()
+        sf = s.AsGpSizeF()
+        Dim _r1 As GDIP_RECT = s.AsRECT()
+        Dim _r2 As GpRect = s.AsGpRect()
+        Dim _r3 As GpRectF = s.AsGpRectF()
+        
+        s = GpSize()
+        s = GpSize(1, 2)
+        s = GpSize(GpSizeF())
+        s = GpSizeFrom(g)
+    End Sub
+    
+    [DebugOnly]
+    Sub PointF()
+        Dim z!, b As Boolean
+        Dim p As GpPointF, pi As GpPoint
+        Dim g As GDIP_POINT
+        
+        p.SetFromPOINT g
+        p.SetFrom GpPoint()
+        p.Add GpPointF()
+        p.Sub GpPointF()
+        p.Scale 1
+        p.Scale2 1, 2
+        p.InvScale 1
+        p.InvScale2 1, 2
+        p.Transpose
+        p.Normalize
+        p.X = 1
+        p.Y = 1
+        p.Length = 1
+        
+        z = p.X
+        z = p.Y
+        p = p.Sum(GpPointF())
+        p = p.Diff(GpPointF())
+        p = p.Prod(1)
+        p = p.Prod2(1, 2)
+        p = p.Quot(1)
+        p = p.Quot2(1, 2)
+        z = p.DotProd(GpPointF())
+        b = p.Equals(p)
+        p = p.Transposed
+        p = p.Normalized
+        z = p.Zero
+        z = p.Length
+        g = p.AsPOINT()
+        pi = p.AsGpPoint()
+        
+        p = GpPointF()
+        p = GpPointF(1, 2)
+        p = GpPointF(GpPoint())
+        p = GpPointF(GpSizeF())
+    End Sub
+    
+    [DebugOnly]
+    Sub Point()
+        Dim z&, zz^, b As Boolean
+        Dim p As GpPoint, pf As GpPointF
+        Dim g As GDIP_POINT
+        
+        p.SetFromPOINT g
+        p.SetFrom GpPointF()
+        p.Add GpPoint()
+        p.Sub GpPoint()
+        p.Transpose
+        p.X = 1
+        p.Y = 2
+        
+        p = p.Sum(GpPoint())
+        p = p.Diff(GpPoint())
+        zz = p.DotProd(GpPoint())
+        b = p.Equals(p)
+        z = p.X
+        z = p.Y
+        p = p.Transposed
+        b = p.Zero
+        g = p.AsPOINT()
+        pf = p.AsGpPointF()
+        
+        p = GpPoint()
+        p = GpPoint(1, 2)
+        p = GpPoint(GpPointF())
+        p = GpPoint(GpSize())
+    End Sub
+    
+    [DebugOnly]
+    Sub RectF()
+        Dim z!, p As GpPointF, s As GpSizeF, b As Boolean
+        Dim r As GpRectF, ri As GpRect
+        Dim g As GDIP_RECTF
+        Dim i As GDIP_RECT
+        
+        r.SetFromRECTF g
+        r.SetFromRECT i
+        r.SetFrom GpRect()
+        r.Offset 1, 2
+        r.OffsetPt GpPointF()
+        r.Inflate 1, 2
+        r.InflatePt GpPointF()
+        r.Intersect r
+        r.Unite r
+        r.X = 1: r.Y = 2
+        r.Width = 3: r.Height = 4
+        r.Diagonal = 2
+        r.Location = GpPointF()
+        r.Size = GpSizeF()
+
+        z = r.X: z = r.Y
+        z = r.Width: z = r.Height
+        p = r.Location
+        s = r.Size
+        z = r.Left: z = r.Top: z = r.Right: z = r.Bottom
+        p = r.TopLeft: p = r.TopRight: p = r.BottomLeft: p = r.BottomRight
+        b = r.IsEmptyArea
+        z = r.Diagonal
+        b = r.Equals(r)
+        b = r.Contains2(1, 2)
+        b = r.ContainsPt(GpPointF())
+        b = r.Contains(r)
+        b = r.IntersectsWith(r)
+        r = r.OffsetBy(1, 2)
+        r = r.OffsetByPt(GpPointF())
+        r = r.InflatedBy(1, 2)
+        r = r.InflatedByPt(GpPointF())
+        r = r.IntersectedWith(GpRectF())
+        r = r.UnitedWith(GpRectF())
+        i = r.AsRECT()
+        g = r.AsRECTF()
+        ri = r.AsGpRect()
+        r.ToRECTF g
+        
+        r = GpRectF()
+        r = GpRectF(1, 2)
+        r = GpRectF(1, 2, 3, 4)
+        r = GpRectF(GpPointF())
+        r = GpRectF(GpPointF(), GpSizeF())
+        r = GpRectF(g)
+        r = GpRectFFrom(i)
+        r = GpRectF(GpRect())
+        
+        Intersection(r, r, r)
+        Union(r, r, r)
+    End Sub
+    
+    [DebugOnly]
+    Sub Rect()
+        Dim z&, p As GpPoint, s As GpSize, b As Boolean
+        Dim r As GpRect, rf As GpRectF
+        Dim g As GDIP_RECTF
+        Dim i As GDIP_RECT
+        
+        r.SetFromRECT i
+        r.SetFrom GpRectF()
+        r.Offset 1, 2
+        r.OffsetPt GpPoint()
+        r.Inflate 1, 2
+        r.InflatePt GpPoint()
+        r.Intersect r
+        r.Unite r
+        r.X = 1: r.Y = 2
+        r.Width = 3: r.Height = 4
+        r.Location = GpPoint()
+        r.Size = GpSize()
+        
+        z = r.X: z = r.Y
+        z = r.Width: z = r.Height
+        p = r.Location
+        s = r.Size
+        z = r.Left: z = r.Top: z = r.Right: z = r.Bottom
+        p = r.TopLeft: p = r.TopRight: p = r.BottomLeft: p = r.BottomRight
+        b = r.IsEmptyArea
+        b = r.Equals(r)
+        b = r.Contains2(1, 2)
+        b = r.ContainsPt(GpPoint())
+        b = r.Contains(r)
+        b = r.IntersectsWith(r)
+        r = r.OffsetBy(1, 2)
+        r = r.OffsetByPt(GpPoint())
+        r = r.InflatedBy(1, 2)
+        r = r.InflatedByPt(GpPoint())
+        r = r.IntersectedWith(r)
+        r = r.UnitedWith(r)
+        i = r.AsRECT()
+        g = r.AsRECTF()
+        rf = r.AsGpRectF()
+        r.ToRECT i
+        
+        r = GpRect()
+        r = GpRect(1, 2)
+        r = GpRect(1, 2, 3, 4)
+        r = GpRect(GpPoint())
+        r = GpRect(GpPoint(), GpSize())
+        r = GpRect(i)
+        r = GpRectFrom(g)
+        r = GpRect(GpRectF())
+        
+        Intersection(r, r, r)
+        Union(r, r, r)
+    End Sub
+#If 0 Then         
+#End If
+End Module
