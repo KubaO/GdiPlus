@@ -1,3 +1,8 @@
+## 0.9.0.43
+- Expand members and conversions for GpPoint[F], GpSize[F], GpRect[F].
+### Breaking Changes
+- Previously Add and Sub methods were non-modifying. Now they are - use Sum and Diff instead.
+
 ## 0.9.0.42
 - Fix the NoColor constructor.
 - Add Color.IsNull.
