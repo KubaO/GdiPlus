@@ -6,6 +6,7 @@
   - [**GraphicsPath**](#graphicspath), [**PathData**](#pathdata), [**PathIterator**](#pathiterator)
   - [**IDeviceContext**](#idevicecontext)
   - [**ITransformable**](#itransformable)
+  - [**GpPointF**](#gppointf), [**GpPoint**](#gppoint), [**GpSizeF**](#gpsizef), [**GpSize**](#gpsize), [**GpRectF**](#gprectf), [**GpRect**](#gprect)
   - [**Pen**](#pen)
   - [Brushes](#brushes): [**IBrush**](#ibrush-brush), [**SolidBrush**](#SolidBrush), [**HatchBrush**](#hatchbrush), [**LinearGradientBrush**](#LinearGradientBrush), [**PathGradientBrush**](#PathGradientBrush), [**TextureBrush**](#texturebrush)
   - [**Color**](#color)
@@ -137,7 +138,7 @@ If there are overloads that take scalar **Single** coordinates, the correspondin
 
 There are no mixed overloads, an overload either takes all floating point cartesian coordinates, or all integer (Long) coordinates.
 
-There are no integer overloads for non-cartesian coordinates such as angles, and for scale factors.
+There are no integer overloads for non-cartesian coordinates such as angles, nor for scale factors.
 
 ---
 
@@ -740,28 +741,358 @@ This interface applies to objects that can provide a device context for GDI inte
 This interface applies to objects that have a transformation matrix that can be changed.
 
 * **Transform** As **Matrix**
-
 * **GetTransform** (<sup>out</sup>matrix As **Matrix**)
-
 * **MultiplyTransform**(matrix As **Matrix**, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **TranslateTransform**(delta As **GpPointF**, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
-* **TranslateTransform**(dx!, dy!**, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
+* **TranslateTransform**(dx!, dy!, order As **GpMatrixOrder** = MatrixOrderPrepend)
 * **ScaleTransform**(sx!, sy!, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **RotateTransform**(angle!, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **RotateTransformAt**(angle!, center As **GpPointF** order As **GpMatrixOrder** = MatrixOrderPrepend)  
   In prepend order, performs the following operation:  
   $$M' = X(-center) \cdot R(angle) \cdot X(center) \cdot M$$  
   In append order, performs the following operation:  
   $$M' = M \cdot X(-center) \cdot R(angle) \cdot X(center)$$
-
 * **ShearTransform**(shearX!, shearY!, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **ResetTransform** ()
+
+---
+
+## GpPointF
+
+A 2D point/vector UDT with floating point coordinates of type **Single**. The size of this UDT is 8 bytes.
+
+### Constructors
+
+* **GpPointF** () - creates a point with 0, 0 coordinates
+* **GpPointF** (x!, y!) - creates a point with given x, y coordinates
+* **GpPointF** (point As **GpPoint**) - creates a point with the coordinates of the given integer-valued point
+* **GpPointF** (size As **GpSizeF**) - creates a point with the coordinates taken from the width, height members of *size*
+
+### Conversion Methods
+
+* **SetFromPOINT** (point As **POINT**) - sets the coordinates from a given WIN32 point
+* **SetFrom** (pt As **GpPoint**) - sets from an integer-valued point
+* **AsPOINT** () As **POINT** - converts to the WIN32 **POINT** type
+* **AsGpPoint** () As **GpPoint** - converts to the integer-valued point type
+
+### Properties
+
+* **X**!, **Y**! - the coordinates
+* <sup>get</sup> **Zero** As **Boolean** - true when both coordinates are exactly 0
+* **Length**! - the 2-norm of this vector; when setting, the vector is re-normalized to have given length
+  Setting **Length**=0 resets the vector's coordinates to 0,0, i.e. *the former direction of the vector is not preserved*
+  Changing the length of a zero vector has no effect.
+* <sup>get</sup> **Normalized** As **GpPointF** - the vector rescaled to have **Length**=1
+  A zero vector is returned unchanged.
+* <sup>get</sup> **Transposed** As **GpPointF** - a vector with the X and Y coordinates of this vector swapped
+
+### Modifying Methods
+
+* **Add** (pt As **GpPointF**) - adds another vector to this one
+* **Sub** (pt As **GpPointF**) - subtracts another vector from this one
+* **Scale** (s!) - multiplies (scales) this vector by a scalar factor
+* **Scale2** (sx!, sy!) - multiplies (scales) each coordinate with the respective scalar factor
+* **InvScale** (invs!) - scales the vector by reciprocal of *invs*
+* **InvScale2** (isx!, isy!) - scales the vector coordinates by the reciprocals of the respective factors
+* **Transpose** () - swaps the X and Y coordinate values
+* **Normalize** () - sets the **Length** of the vector to 1
+  A zero vector remains unchanged.
+
+### Query Methods
+
+* **Sum** (pt As **GpPointF**) As **GpPointF** - the sum of this vector with another vector
+* **Diff** (pt As **GpPointF**) As **GpPointF** - the difference of this vector from another vector
+* **Prod** (s!) As **GpPointF** - the product of this vector with a scalar factor
+* **Prod2** (sx!, sy!) As **GpPointF** - a vector with coordinates that are the product of this vector's coordinates with respective scalar factors
+* **Quot** (invs!) As **GpPointF** - the product of this vector with the reciprocal of a scalar factor
+* **Quot2** (isx!, isy!) As **GpPointF** - a vector with coordinates that are the product of this vector's coordinates with reciprocals of the respective scalar factors
+* **DotProd** (pt As **GpPointF**) As **Single** - a dot/scalar product of this vector with another vector
+* **Equals** (pt As **GpPointF**) As **Boolean** - true when the coordinates of this point equal the coordinates of the given point
+
+---
+
+## GpPoint
+
+A 2D point/vector UDT with integer coordinates of type **Long**. The size of this UDT is 8 bytes.
+
+### Constructors
+
+* **GpPoint** () - creates a point with 0, 0 coordinates
+* **GpPoint** (x&, y&) - creates a point with given x, y coordinates
+* **GpPoint** (point As **GpPointF**) - creates a point with the coordinates of the given floating-point-valued point
+* **GpPoint** (size As **GpSize**) - creates a point with the coordinates taken from the width, height members of *size*
+
+### Conversion Methods
+
+* **SetFromPOINT** (point As **POINT**) - sets the coordinates from a given WIN32 point
+* **SetFrom** (pt As **GpPointF**) - sets from a floating-point-valued point
+* **AsPOINT** () As **POINT** - converts to the WIN32 **POINT** type
+* **AsGpPointF** () As **GpPointF** - converts to the floating-point-valued point type
+
+### Properties
+
+* **X**&, **Y**& - the coordinates
+* <sup>get</sup> **Zero** As **Boolean** - true when both coordinates are exactly 0
+* <sup>get</sup> **Transposed** As **GpPoint** - a vector with the X and Y coordinates of this vector swapped
+
+### Modifying Methods
+
+* **Add** (pt As **GpPoint**) - adds another vector to this one
+* **Sub** (pt As **GpPoint**) - subtracts another vector from this one
+* **Transpose** () - swaps the X and Y coordinate vaules
+
+### Query Methods
+
+* **Sum** (pt As **GpPoint**) As **GpPoint** - the sum of this vector with another vector
+* **Diff** (pt As **GpPoint**) As **GpPoint** - the difference of this vector from another vector
+* **DotProd** (pt As **GpPoint**) As **LongLong** - a dot/scalar product of this vector with another vector
+* **Equals** (pt As **GpPoinF**) As **Boolean** - true when the coordinates of this point equal the coordinates of the given point
+
+---
+
+## GpSizeF
+
+A 2D size UDT with floating point coordinates of type **Single**. The size of this UDT is 8 bytes.
+
+### Constructors
+
+* **GpSizeF** () - creates an empty size (width=height=0)
+* **GpSizeF** (width!, height!) - creates a size with given width and height
+* **GpSizeF** (size As **GpSize**) - creates a size with dimensions of the given integer-valued size
+* **GpSizeFFrom** (size As **SIZE**) - creates a size wit dimensions of the given WIN32 SIZE type
+
+### Conversion Methods
+
+* **SetFromSIZE** (size As **SIZE**) - sets the dimensions from a given WIN32 **SIZE**
+* **SetFrom** (size As **GpSize**) - sets from an integer-valued size
+* **AsSIZE** () As **SIZE** - converts to the WIN32 **SIZE** type
+* **AsGpSize** () As **GpSize** - converts to the integer-valued size type
+* **AsRECT** () As **RECT**
+  **AsGpRect** () As **GpRect**
+  **AsGpRectF** () As **GpRectF** - converts to a rectangle of the same size, with top left corner at 0,0
+
+### Properties
+
+* **Width**!, **Height**! - the dimensions
+* <sup>get</sup> **Empty** As **Boolean** - true when both dimensions are exactly 0
+* **Diagonal**! - the length of the diagonal of a rectangle with this size
+  Setting the diagonal of an empty size has no effect.
+
+### Modifying Methods
+
+* **Add** (sz As **GpSizeF**) - adds another size to this one
+* **Sub** (sz As **GpSizeF**) - subtracts another size from this one
+* **Scale** (s!) - multiplies (scales) this size by a scalar factor
+* **Scale2** (sx!, sy!) - multiplies (scales) each dimension with the respective scalar factor
+* **InvScale** (invs!) - scales the size by reciprocal of *invs*
+* **InvScale2** (isx!, isy!) - scales the dimensions by the reciprocals of the respective factors
+
+### Query Methods
+
+* **Sum** (sz As **GpSizeF**) As **GpSizeF** - the sum of this size with another size
+* **Diff** (sz As **GpSizeF**) As **GpSizeF** - the difference of this size from another size
+* **Prod** (s!) As **GpSizeF** - the product of this size with a scalar factor
+* **Prod2** (sx!, sy!) As **GpSizeF** - a size with dimensions that are the product of this size's dimensions with respective scalar factors
+* **Quot** (invs!) As **GpSizeF** - the product of this size with the reciprocal of a scalar factor
+* **Quot2** (isx!, isy!) As **GpSizeF** - a vector with dimensions that are the product of this size's  dimensions with reciprocals of the respective scalar factors
+* **Equals** (pt As **GpSizeF**) As **Boolean** - true when the dimensions of thus size equal the dimensions of the given size
+
+---
+
+## GpSize
+
+A 2D size UDT with integer point coordinates of type **Long**. The size of this UDT is 8 bytes.
+
+### Constructors
+
+* **GpSize** () - creates an empty size (width=height=0)
+* **GpSize** (width&, height&) - creates a size with given width and height
+* **GpSize** (size As **GpSizeF**) - creates a size with dimensions of the given floating-point-valued size
+* **GpSizeFrom** (size As **SIZE**) - creates a size with dimensions of the given WIN32 SIZE type
+
+### Conversion Methods
+
+* **SetFromSIZE** (size As **SIZE**) - sets the dimensions from a given WIN32 **SIZE**
+* **SetFrom** (size As **GpSize**) - sets from an integer-valued size
+* **AsSIZE** () As **SIZE** - converts to the WIN32 **SIZE** type
+* **AsGpSizeF** () As **GpSizeF** - converts to the integer-valued size type
+* **AsRECT** () As **RECT**
+  **AsGpRect** () As **GpRect**
+  **AsGpRectF** () As **GpRectF** - converts to a rectangle of the same size, with top left corner at 0,0
+
+### Properties
+
+* **Width**&, **Height**& - the dimensions
+* <sup>get</sup> **Empty** As **Boolean** - true when both dimensions are exactly 0
+
+### Modifying Methods
+
+* **Add** (sz As **GpSizeF**) - adds another size to this one
+* **Sub** (sz As **GpSizeF**) - subtracts another size from this one
+
+### Query Methods
+
+* **Sum** (sz As **GpSizeF**) As **GpSizeF** - the sum of this size with another size
+* **Diff** (sz As **GpSizeF**) As **GpSizeF** - the difference of this size from another size
+* **Equals** (pt As **GpSizeF**) As **Boolean** - true when the dimensions of thus size equal the dimensions of the given size
+
+---
+
+## GpRectF
+
+A 2D rectangle UDT with floating point coordinates of type **Single**. The size of this UDT is 16 bytes.  
+The rectangle's sides are parallel with the coordinate axes.
+
+### Constructors
+
+* **GpRectF** () - creates an empty rectangle with top left at 0,0
+* **GpRectF** (x!, y!) - creates an empty rectangle with top left at x,y
+* **GpRectF** (x!, y!, width!, height!) - creates a rectangle of given dimensions with top left  at x,y
+* **GpRectF** (location As **GpPointF**) - creates an empty rectangle with top left at given location
+* **GpRectF** (location As **GpPointF**, size As **GpSizeF**) - creates a rectangle of given size with top left at given location
+* **GpRectF** (rect As **RECTF**)
+  **GpRectF** (rect As **GpRect**)
+  **GpRectFFrom** (rect As **RECT**) - creates a rectangle with same position and dimensions as that of a given one
+
+### Conversion Methods
+
+* **SetFromRECTF** (rect As **RECTF**) - sets the dimensions from a given WIN32 **RECTF**
+* **SetFromRECT** (rect As **RECT**) - sets the dimensions from a given WIN32 **RECT**
+* **SetFrom** (rect As **GpRect**) - sets from an integer-valued rectangle
+* **AsRECT** () As **RECT** - converts to the WIN32 **RECT**
+* **AsRECTF** () As **RECTF** - converts to the WIN32 **RECTF**
+* **AsGpRect** () As **GpRect** - converts to the floating point-valued rectangle
+* **ToRECTF** (<sup>out</sup> dst As **RECTF**) - sets a **RECT** to the position and size of this rectangle
+
+### Properties
+
+> [!NOTE]
+> The position of the top left corner (**Location**) and the dimensions (**Size**) are independent. Modifying either one will not affect the other.
+
+* **X**!, **Y**! - the coordinates of the top left corner
+* **Width**!, **Height**! - the dimensions
+* <sup>get</sup> **IsEmptyArea** As **Boolean** - true when either dimension is less or equal to **REAL_EPSILON**, i.e. very close to 0
+* **Diagonal**! - the length of the diagonal of this rectangle
+  Setting the diagonal has no effect if the diagonal is already zero.
+* **Location** As **GpPointF** - the position of the top left corner
+* **Size** As **GpSizeF** - the size of this rectangle
+* <sup>get</sup> **Left**!, **Right**! - the X coordinates of the left and right edge, respectively
+* <sup>get</sup> **Top**!, **Bottom**! - the Y coordinates of the top and bottom edge, respectively
+* <sup>get</sup>  **TopLeft**, **TopRight**, **BottomLeft**, **BottomRight** As **GpPointF** - the coordinates of the respective corner of the rectangle
+
+### Modifying Methods
+
+* **Offset** (dx!, dy!) - moves/offsets the rectangle a given amount in x and y direction
+* **OffsetPt** (pt As **GpPointF**) - moves/offsets the rectangle by a given vector
+* **Inflate** (dx!, dy!) - increases width by $2\,dx$, and height by $2\,dy$
+* **InflatePt** (pt As **GpPointF**) - increases width by $2\,pt.\!x$, and height by $2\,pt.\!y$
+* **Intersect** (rect As **GpRectF**) As **Boolean** - sets this rectangle to a rectangle that is the intersection of this rectangle with the given rectangle. Returns True when the intersection is non-empty.
+* **Unite** (rect As **GpRectF**) As **Boolean** - sets this rectangle to a rectangle that is the bounding rectangle of this and the given rectangle. Returns True when the union is non-empty.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**.
+
+### Query Methods
+
+* **Equals** (rect As **GpRectF**) As **Boolean** - whether the position and dimensions equal to that of the given rectangle
+* **Contains2** (x!, y!) As **Boolean**
+  **ContainsPt** (pt As **GpPointF**) As **Boolean** - whether the given point lies within the rectangle
+* **Contains** (rect As **GpRectF**) As **Boolean** - whether the given rectangle is completely contained within this rectangle
+* **IntersectsWith** (rect As **GpRectF**) As **Boolean** - whether this rectangle has a non-empty intersection with the given rectangle
+* **OffsetBy** (dx!, dy!) As **GpRectF** - the rectangle moved/offset by the given distance in x and y directions
+* **OffsetByPt** (pt As **GpPointF**) As **GpRectF** - the rectangle moved/offset by a given vector
+* **InflatedBy** (dx!, dy!) As **GpRectF** - the rectangle with width increased by $2\,dx$, and height by $2\,dy$
+* **InflatedByPt** (pt As **GpPointF**) As **GpRectF** - the rectangle with width increased by $2\,pt.\!x$, and height by $2\,pt.\!y$
+* **IntersectedWith** (rect As **GpRectF**) As **GpRectF**- the intersection of this rectangle with the given rectangle. The intersection may be empty.
+* **UnitedWith** (rect As **GpRectF**) As **GpRectF** - returns a bounding rectangle of this rectangle and another rectangle.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**.
+
+### Free-Standing Functions
+
+* **Intersection** (<sup>out</sup> c As **GpRectF**, a As **GpRectF**, b As **GpRectF**) As **Boolean**
+  Sets *c* to the intersection of rectangles *a* and *b*. Returns true when the intersection is non-empty.
+* **Union** (<sup>out</sup> c As **GpRectF**, a As **GpRectF**, b As **GpRectF**) As **Boolean**
+  Sets *c* to the bounding rectangle of rectangles *a* and *b*. Returns true when the bounding rectangle is non-empty.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**.
+
+---
+
+## GpRect
+
+A 2D rectangle UDT with integer coordinates of type **Long**. The size of this UDT is 16 bytes.  
+The rectangle's sides are parallel with the coordinate axes.
+
+### Constructors
+
+* **GpRect** () - creates an empty rectangle with top left at 0,0
+* **GpRect** (x&, y&) - creates an empty rectangle with top left at x,y
+* **GpRect** (x&, y&, width&, height&) - creates a rectangle of given dimensions with top left  at x,y
+* **GpRect** (location As **GpPoint**) - creates an empty rectangle with top left at given location
+* **GpRect** (location As **GpPoint**, size As **GpSize**) - creates a rectangle of given size with top left at given location
+* **GpRect** (rect As **RECT**)
+  **GpRect** (rect As **GpRectF**)
+  **GpRectFrom** (rect As **RECTF**) - creates a rectangle with same position and dimensions as that of a given one
+
+### Conversion Methods
+
+* **SetFromRECTF** (rect As **RECTF**) - sets the dimensions from a given WIN32 **RECTF**
+* **SetFromRECT** (rect As **RECT**) - sets the dimensions from a given WIN32 **RECT**
+* **SetFrom** (rect As **GpRect**) - sets from an integer-valued rectangle
+* **AsRECT** () As **RECT** - converts to the WIN32 **RECT**
+* **AsRECTF** () As **RECTF** - converts to the WIN32 **RECTF**
+* **AsGpRectF** () As **GpRectF** - converts to the integer-valued rectangle
+* **ToRECT** (<sup>out</sup> dst As **RECT**) - sets a **RECT** to the position and size of this rectangle
+
+### Properties
+
+> [!NOTE]
+> The position of the top left corner (**Location**) and the dimensions (**Size**) are independent. Modifying either one will not affect the other.
+
+* **X**&, **Y**& - the coordinates of the top left corner
+* **Width**&, **Height**& - the dimensions
+* <sup>get</sup> **IsEmptyArea** As **Boolean** - true when either dimension is less or equal to **REAL_EPSILON**, i.e. very close to 0
+* **Location** As **GpPoint** - the position of the top left corner
+* **Size** As **GpSize** - the size of this rectangle
+* <sup>get</sup> **Left**&, **Right**& - the X coordinates of the left and right edge, respectively
+* <sup>get</sup> **Top**&, **Bottom**& - the Y coordinates of the top and bottom edge, respectively
+* <sup>get</sup>  **TopLeft**, **TopRight**, **BottomLeft**, **BottomRight** As **GpPoint** - the coordinates of the respective corner of the rectangle
+
+### Modifying Methods
+
+* **Offset** (dx&, dy&) - moves/offsets the rectangle a given amount in x and y direction
+* **OffsetPt** (pt As **GpPoint**) - moves/offsets the rectangle by a given vector
+* **Inflate** (dx&, dy&) - increases width by $2\,dx$, and height by $2\,dy$
+* **InflatePt** (pt As **GpPointF**) - increases width by $2\,pt.\!x$, and height by $2\,pt.\!y$
+* **Intersect** (rect As **GpRect**) As **Boolean** - sets this rectangle to a rectangle that is the intersection of this rectangle with the given rectangle. Returns True when the intersection is non-empty.
+* **Unite** (rect As **GpRect**) As **Boolean** - sets this rectangle to a rectangle that is the bounding rectangle of this and the given rectangle. Returns True when the union is non-empty.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**.
+
+### Query Methods
+
+* **Equals** (rect As **GpRect**) As **Boolean** - whether the position and dimensions equal to that of the given rectangle
+* **Contains2** (x&, y&) As **Boolean**
+  **ContainsPt** (pt As **GpPoint**) As **Boolean** - whether the given point lies within the rectangle
+* **Contains** (rect As **GpRect**) As **Boolean** - whether the given rectangle is completely contained in this rectangle
+* **IntersectsWith** (rect As **GpRect**) As **Boolean** - whether this rectangle has a non-empty intersection with the given rectangle
+* **OffsetBy** (dx&, dy&) As **GpRect** - the rectangle moved/offset by the given distance in x and y directions
+* **OffsetByPt** (pt As **GpPoint**) As **GpRect** - the rectangle moved/offset by a given vector
+* **InflatedBy** (dx&, dy&) As **GpRect** - the rectangle with width increased by $2\,dx$, and height by $2\,dy$
+* **InflatedByPt** (pt As **GpPoint**) As **GpRect** - the rectangle with width increased by $2\,pt.\!x$, and height by $2\,pt.\!y$
+* **IntersectedWith** (rect As **GpRect**) As **GpRect**- the intersection of this rectangle with the given rectangle. The intersection may be empty.
+* **UnitedWith** (rect As **GpRect**) As **GpRect** - returns a bounding rectangle of this rectangle and another rectangle.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**.
+
+### Free-Standing Functions
+
+* **Intersection** (<sup>out</sup> c As **GpRect**, a As **GpRect**, b As **GpRect**) As **Boolean**
+  Sets *c* to the intersection of rectangles *a* and *b*. Returns true when the intersection is non-empty.
+* **Union** (<sup>out</sup> c As **GpRect**, a As **GpRect**, b As **GpRect**) As **Boolean**
+  Sets *c* to the bounding rectangle of rectangles *a* and *b*. Returns true when the bounding rectangle is non-empty.
+  Here, an empty rectangle is equivalent to a single point at the **Location** of that rectangle.
+  A union of two rectangles is thus only empty of both rectangles have the same **Location**
 
 ---
 
@@ -776,6 +1107,8 @@ This interface applies to objects that have a transformation matrix that can be 
 
 ### Properties
 
+#### General
+
 * **PenType** As **GpPenType**
 * **Width** As **Single**
 * **Color** As **Color**
@@ -784,53 +1117,42 @@ This interface applies to objects that have a transformation matrix that can be 
 * **Set** (rgb&, width!)
 * **Brush** As **Brush**
 
+#### Line Caps
+
 * **StartCap** As **GpLineCap**
 * **EndCap** As **GpLineCap**
 * **DashCap** As **GpDashCap**
 * <sup>let</sup>**Caps** (both As **GpLineCap**)
 * **SetLineCap** (start As **GpLineCap**, end As **GpLineCap**, dash As **GpDashCap**)
-
 * **CustomStartCap** As **CustomLineCap**
-
 * **CustomEndCap** As **CustomLineCap**
 
-  
+#### Dashes
 
 * **DashStyle** As **GpDashStyle**
-
 * **DashOffset** As **Single**
-
 * **DashPattern** As **Single**()
-
 * <sup>get</sup>**DashPatternCount** As **Long**
 
 * **CompoundArray** As **Single**()
-
 * <sup>get</sup>**CompoundArrayCount** As **Long**
 
-  
+#### Line Joining
 
 * **LineJoin** As **GpLineJoin**
-
 * **MiterLimit** As **Single**
 
 * **Alignment** As **GpPenAlignment**
 
-  
+#### Transformations
 
 * <sup>get</sup>**Transform** As **Matrix**
-
 * **ResetTransform** ()
-
 * **MultiplyTransform** (matrix As **Matrix**, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **TranslateTransform** (..., order As **GpMatrixOrder** = MatrixOrderPrepend)
-
   * ... delta As **GpPointF**, ...
   * ... dx!, dy!, ...
-
 * **ScaleTransform** (sx!, sy!, order As **GpMatrixOrder** = MatrixOrderPrepend)
-
 * **RotateTransform** (angle!, order As **GpMatrixOrder** = MatrixOrderPrepend)
 
 ---
@@ -909,7 +1231,7 @@ Implements [**IBrush**](#ibrush).
 * <sup>get</sup>**BlendCount** As **Long**
 * **SetBlend** (blendFactors() As **Single**, blendPositions() As **Single**)
 * **GetBlend** (<sup>out</sup>blendFactors() As **Single**, <sup>out</sup>blendPositions() As **Single**)
-* <sup>out</sup>**InterpolationColorCount** As **Long**
+* <sup>get</sup>**InterpolationColorCount** As **Long**
 * **SetInterpolationColors** (presetColors() As **Color**, blendPositions() As **Single**)
 * **GetInterpolationColors** (<sup>out</sup>presetColors() As **Color**, <sup>out</sup>blendPositions() As **Single**)
 * **SetBlendBellShape** (focus!, scale! = 1.0)
@@ -958,13 +1280,9 @@ Implements [**IBrush**](#ibrush).
 #### Constructors
 
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode** = WrapModeTile)
-
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode**, dst As **GpRect[F]**)
-
 * **TextureBrush** (image As **Image**, dst As **GpRect[F]**, <sup>opt</sup>attributes As **ImageAttributes**
-
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode**, dstX!, dstY!, dstWidth!, dstHeight!)
-
 * **TextureBrushI** (image As **Image**, wrapMode As **GpWrapMode**, dstX&, dstY&, dstWidth&, dstHeight&)
 
 > [!NOTE]
@@ -988,7 +1306,7 @@ Stores 8-bit channels: alpha, red, green and blue.
 ### Constructors
 
 * **Color** () - creates a fully opaque black color
-* **NoColor** () - creates a zero color ($a=r=g=b=0$)
+* **NoColor** () - creates a null color ($a=r=g=b=0$)
 * **Color** (r&, g&, b&) - creates an opaque color with given r, g, b components. Component range is 0-255.
 * **Color** (a&, r&, g&, b&) - creates color with given a, r, g, b components. Component range is 0-255.
 * **Color** (argb&) - creates a color with a given argb 32-bit color. It also accepts the values of the [**CColor** enum](#ccolor-constants).
@@ -1001,6 +1319,7 @@ Stores 8-bit channels: alpha, red, green and blue.
 * **Blue**, **B** As **Integer**
 * **Value** As **Long** - the argb value `&Haarr_ggbb`
 * <sup>get</sup>**IsTransparent** As **Boolean**
+* <sup>get</sup>**IsNull** As **Boolean** - the argb value is 0
 * <sup>get</sup>**RGB** As **Long** - the rgb value `&H00rr_ggbb`
 * **BGR** As **Long** - the bgr value `&H00bb_ggrr`
 * **GetRGBB** (r As **Byte**, g As **Byte**, b As **Byte**)
@@ -1037,57 +1356,32 @@ Stores 8-bit channels: alpha, red, green and blue.
 
 #### Alphabetic Listing
 
-AliceBlue,  AntiqueWhite,  Aqua,  Aquamarine,  Azure
-
-Beige,  Bisque,  Black,  BlanchedAlmond,  Blue,  BlueViolet,  Brown,  BurlyWood
-
-CadetBlue, Chartreuse, Chocolate,  Coral,  CornflowerBlue,  Cornsilk,  Crimson, Cyan
-
-DarkBlue,  DarkCyan,  DarkGoldenrod,  DarkGray,  DarkGreen,  DarkKhaki, DarkMagenta,  DarkOliveGreen,  DarkOrange,  DarkOrchid,  DarkRed,  DarkSalmon,  DarkSeaGreen,  DarkSlateBlue,  DarkSlateGray,  DarkTurquoise,  DarkViolet,  
-
-DeepPink,  DeepSkyBlue,  DimGray,  DodgerBlue
-
-Firebrick,  FloralWhite,  ForestGreen,  Fuchsia
-
-Gainsboro,  GhostWhite,  Gold,  Goldenrod,  Gray,  Green,  GreenYellow
-
-Honeydew,  HotPink
-
-IndianRed,  Indigo,  Ivory
-
-Khaki
-
-Lavender,  LavenderBlush,  LawnGreen,  LemonChiffon
-
-LightBlue,  LightCoral,  LightCyan,  LightGoldenrodYellow,  LightGray,  LightGreen,  LightPink,  LightSalmon,  LightSeaGreen,  LightSkyBlue,  LightSlateGray, LightSteelBlue,  LightYellow
-
-Lime,  LimeGreen,  Linen
-
-Magenta,  Maroon
-
-MediumAquamarine,  MediumBlue,  MediumOrchid,  MediumPurple, MediumSeaGreen,  MediumSlateBlue,  MediumSpringGreen,  MediumTurquoise,  MediumVioletRed
-
-MidnightBlue, MintCream,  MistyRose,  Moccasin
-
-NavajoWhite,  Navy
-
-OldLace,  Olive,  OliveDrab,  Orange,  OrangeRed,  Orchid
-
-PaleGoldenrod,  PaleGreen,  PaleTurquoise,  PaleVioletRed,  PapayaWhip,  PeachPuff, Peru,  Pink,  Plum,  PowderBlue,  Purple
-
-Red, RosyBrown, RoyalBlue
-
-SaddleBrown,  Salmon,  SandyBrown,  SeaGreen,  SeaShell,  Sienna,  Silver,  SkyBlue,  SlateBlue,  SlateGray
-
-Snow,  SpringGreen,  SteelBlue
-
-Tan,  Teal,  Thistle,  Tomato,  Transparent,  Turquoise
-
-Violet
-
-Wheat,  White,  WhiteSmoke
-
-Yellow,  YellowGreen
+- AliceBlue,  AntiqueWhite,  Aqua,  Aquamarine,  Azure
+- Beige,  Bisque,  Black,  BlanchedAlmond,  Blue,  BlueViolet,  Brown,  BurlyWood
+- CadetBlue, Chartreuse, Chocolate,  Coral,  CornflowerBlue,  Cornsilk,  Crimson, Cyan
+- DarkBlue,  DarkCyan,  DarkGoldenrod,  DarkGray,  DarkGreen,  DarkKhaki, DarkMagenta,  DarkOliveGreen,  DarkOrange,  DarkOrchid,  DarkRed,  DarkSalmon,  DarkSeaGreen,  DarkSlateBlue,  DarkSlateGray,  DarkTurquoise,  DarkViolet,  
+- DeepPink,  DeepSkyBlue,  DimGray,  DodgerBlue
+- Firebrick,  FloralWhite,  ForestGreen,  Fuchsia
+- Gainsboro,  GhostWhite,  Gold,  Goldenrod,  Gray,  Green,  GreenYellow
+- Honeydew,  HotPink
+- IndianRed,  Indigo,  Ivory
+- Khaki
+- Lavender,  LavenderBlush,  LawnGreen,  LemonChiffon
+- LightBlue,  LightCoral,  LightCyan,  LightGoldenrodYellow,  LightGray,  LightGreen,  LightPink,  LightSalmon,  LightSeaGreen,  LightSkyBlue,  LightSlateGray, LightSteelBlue,  LightYellow
+- Lime,  LimeGreen,  Linen
+- Magenta,  Maroon
+- MediumAquamarine,  MediumBlue,  MediumOrchid,  MediumPurple, MediumSeaGreen,  MediumSlateBlue,  MediumSpringGreen,  MediumTurquoise,  MediumVioletRed
+- MidnightBlue, MintCream,  MistyRose,  Moccasin
+- NavajoWhite,  Navy
+- OldLace,  Olive,  OliveDrab,  Orange,  OrangeRed,  Orchid
+- PaleGoldenrod,  PaleGreen,  PaleTurquoise,  PaleVioletRed,  PapayaWhip,  PeachPuff, Peru,  Pink,  Plum,  PowderBlue,  Purple
+- Red, RosyBrown, RoyalBlue
+- SaddleBrown,  Salmon,  SandyBrown,  SeaGreen,  SeaShell,  Sienna,  Silver,  SkyBlue,  SlateBlue,  SlateGray
+- Snow,  SpringGreen,  SteelBlue
+- Tan,  Teal,  Thistle,  Tomato,  Transparent,  Turquoise
+- Violet
+- Wheat,  White,  WhiteSmoke
+- Yellow,  YellowGreen
 
 #### Selected Color Variations
 
