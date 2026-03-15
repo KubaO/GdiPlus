@@ -157,6 +157,11 @@ Module GdipGdiPlusUser
     Public Delegate PtrSafe Function NotificationHookProc (ByRef token As ULONG) As GpStatus
     Public Delegate PtrSafe Sub NotificationUnhookProc (ByVal token As ULONG)
     
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function NotificationHook Lib "gdiplus" Alias "GdiplusNotificationHook" (Me As LongPtr) As GpStatus
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Sub NotificationUnhook Lib "gdiplus" Alias "GdiplusNotificationUnhook" (ByVal Me As LongPtr)
+    
     Function TestControlForceBilinear(ByVal force As Boolean) As GpStatus
         Dim param As GDIP_BOOL = force
         Return TestControl(TestControlForceBilinear, param)
