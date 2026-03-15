@@ -1,7 +1,0 @@
-[InterfaceId("3BDF54A4-96AC-4721-88A5-A156FB56BC40")]
-Interface ErrorStackFrame Extends stdole.IUnknown
-    Property Get ProjectName() As String
-    Property Get ModuleName() As String
-    Property Get ProcedureName() As String
-End Interface
- 
