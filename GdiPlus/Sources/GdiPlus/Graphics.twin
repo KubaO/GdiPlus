@@ -874,6 +874,16 @@ Class Graphics
             GetNative(imageAttributes), _
             srcUnit))
     End Function
+    
+    Function DrawImageRECT(image As Image, sourceRect As GDIP_RECTF, xForm As Matrix, effect As Effect, _
+            imageAttributes As ImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
+        Return SetStatus(gr.DrawImageRectFX( _
+            GetNative(image), sourceRect, _
+            GetNative(xForm), _
+            GetNative(effect), _
+            GetNative(imageAttributes), _
+            srcUnit))
+    End Function
 '#endif (GDIPVER >= 0x0110)
     
     '-----------------------------------------------------------------------'
@@ -2052,6 +2062,8 @@ Module GdipGraphics
     
         [UseGetLastError(False)]
         Declare PtrSafe Function DrawImageFX Lib "gdiplus" Alias "GdipDrawImageFX" (ByVal Me As GpGraphics, ByVal image As GpImage, source As GpRectF, ByVal xForm As GpMatrix, ByVal effect As GpEffect, ByVal imageAttributes As GpImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
+        [UseGetLastError(False)]
+        Declare PtrSafe Function DrawImageRectFX Lib "gdiplus" Alias "GdipDrawImageRectFX" (ByVal Me As GpGraphics, ByVal Image As GpImage, source As GDIP_RECTF, ByVal xForm As GpMatrix, ByVal effect As GpEffect, ByVal imageAttributes As GpImageAttributes, ByVal srcUnit As GpUnit) As GpStatus
         
         [UseGetLastError(False)]
         Declare PtrSafe Function EnumerateMetafileDestPoint Lib "gdiplus" Alias "GdipEnumerateMetafileDestPoint" (ByVal Me As GpGraphics, ByVal metafile As GpMetafile, destPoint As GpPointF, ByVal callback As EnumerateMetafileProc, callbackData As Any, ByVal imageAttributes As GpImageAttributes) As GpStatus

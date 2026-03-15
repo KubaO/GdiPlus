@@ -5,6 +5,7 @@
 - Declare GdipFontCollectionEnumerable and GdipFontCollectionEnumerate.
 - Declare NotificationHook and NotificationUnhook.
 - Add ImageAttributes.SetCachedBackground.
+- Add DrawImageRECT.
 
 ## 0.9.0.43
 - Expand members and conversions for GpPoint[F], GpSize[F], GpRect[F].
