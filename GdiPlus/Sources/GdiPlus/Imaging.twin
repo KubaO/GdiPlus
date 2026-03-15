@@ -229,7 +229,47 @@ Module GdipImaging
         If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{025D1823-6C7D-447B-BBDB-A3CBC3DFA2FC}")
         CodecIImageBytes = iid
     End Function
+    
+    '---------------------------------------------------------------------------
+    ' Image codecs
+    '---------------------------------------------------------------------------
 
+    Public Function ImageCodecBMP() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF400-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecBMP = iid
+    End Function
+
+    Public Function ImageCodecJPG() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF401-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecJPG = iid
+    End Function
+    
+    Public Function ImageCodecGIF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF402-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecGIF = iid
+    End Function
+
+    Public Function ImageCodecTIF() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF405-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecTIF = iid
+    End Function
+    
+    Public Function ImageCodecPNG() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF406-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecPNG = iid
+    End Function
+    
+    Public Function ImageCodecICO() As GDIP_UUID
+        Static iid As GDIP_UUID
+        If iid.Data1 = 0 Then GDIPDEF_UUID(iid, "{557CF407-1A04-11D3-9A73-0000F81EF32E}")
+        ImageCodecICO = iid
+    End Function
+    
     '--------------------------------------------------------------------------
     ' GpImageCodecInfo structure
     '--------------------------------------------------------------------------
