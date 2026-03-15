@@ -739,7 +739,7 @@ Module GdipGraphicsPath
         [UseGetLastError(False)]
         Declare PtrSafe Function AddPolygon2 Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPointF, ByVal count&) As GpStatus
         [UseGetLastError(False)]
-        Declare PtrSafe Function AddPolygon2I Lib "gdiplus" Alias "GdipAddPathPolygon" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
+        Declare PtrSafe Function AddPolygon2I Lib "gdiplus" Alias "GdipAddPathPolygonI" (ByVal Me As GpPath, Points As GpPoint, ByVal count&) As GpStatus
         
         [UseGetLastError(False)]
         Declare PtrSafe Function AddPath Lib "gdiplus" Alias "GdipAddPathPath" (ByVal Me As GpPath, ByVal addingPath As GpPath, ByVal bConnect&) As GpStatus
