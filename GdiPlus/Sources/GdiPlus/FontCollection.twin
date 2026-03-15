@@ -70,4 +70,10 @@ Module GdipFontCollection
     Public Declare PtrSafe Function GdipGetFontCollectionFamilyCount Lib "gdiplus" (ByVal Me As LongPtr, numFound&) As GpStatus
     [UseGetLastError(False)]
     Public Declare PtrSafe Function GdipGetFontCollectionFamilyList Lib "gdiplus" (ByVal Me As LongPtr, ByVal numSought&, gpfamilies As GpFontFamily, numFound&) As GpStatus
+    
+    ' The functions below are redundant and don't need to be used.
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function GdipFontCollectionEnumerable Lib "gdiplus" (ByVal fontCollection As LongPtr, ByVal graphics As LongPtr, numFound As Long) As GpStatus
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function GdipFontCollectionEnumerate Lib "gdiplus" (ByVal fontCollection As LongPtr, ByVal numSought As Long, gpfamilies As LongPtr, numFound As Long, ByVal Graphics As LongPtr) As GpStatus
 End Module
