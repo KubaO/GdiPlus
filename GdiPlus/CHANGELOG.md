@@ -4,6 +4,7 @@
 - Add TestControl in GdiPlusUser.
 - Declare GdipFontCollectionEnumerable and GdipFontCollectionEnumerate.
 - Declare NotificationHook and NotificationUnhook.
+- Add ImageAttributes.SetCachedBackground.
 
 ## 0.9.0.43
 - Expand members and conversions for GpPoint[F], GpSize[F], GpRect[F].

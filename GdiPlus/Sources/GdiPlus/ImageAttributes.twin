@@ -143,6 +143,10 @@ Class ImageAttributes
         Return SetStatus(ia.SetWrapMode(wrap, color, clamp))
     End Function
     
+    Function SetCachedBackground(ByVal enabled As Boolean) As GpStatus
+        Return SetStatus(ia.SetCachedBackground(enabled))
+    End Function
+    
     ' The flags of the palette are ignored.
     Function GetAdjustedPalette(colorPalette As ColorPalette, ByVal colorAdjustType As ColorAdjustType) As GpStatus
         Return SetStatus(ia.GetAdjustedPalette(colorPalette, colorAdjustType))
@@ -274,6 +278,10 @@ Module GdipImageAttributes
             Return Me.SetWrapMode(wrap, FromCOLORREF(rgb), CType(Of GDIP_BOOL)(clamp))
         End Function
         
+        Function SetCachedBackground(ByVal enabled As Boolean) As GpStatus
+            Return Me.SetCachedBackgroundX(If(enabled, GDIP_CTRUE, GDIP_CFALSE))
+        End Function
+        
         [UseGetLastError(False)]
         Declare PtrSafe Function SetWrapMode Lib "gdiplus" Alias "GdipSetImageAttributesWrapMode" (ByVal Me As GpImageAttributes, ByVal wrap As GpWrapMode, ByVal color As Color, ByVal clamp As GDIP_BOOL) As GpStatus
         [UseGetLastError(False)]
@@ -295,6 +303,8 @@ Module GdipImageAttributes
         Declare PtrSafe Function SetGammaX Lib "gdiplus" Alias "GdipSetImageAttributesGamma" (ByVal Me As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As GDIP_BOOL, ByVal gamma As Single) As GpStatus
         [UseGetLastError(False)]
         Declare PtrSafe Function SetRemapTableX Lib "gdiplus" Alias "GdipSetImageAttributesRemapTable" (ByVal Me As GpImageAttributes, ByVal type As ColorAdjustType, ByVal enableFlag As GDIP_BOOL, ByVal mapSize As Long, map As ColorMap) As GpStatus
+        [UseGetLastError(False)]
+        Public Declare PtrSafe Function SetCachedBackgroundX Lib "gdiplus" Alias "GdipSetImageAttributesCachedBackground" (ByVal Me As GpImageAttributes, ByVal enableFlag As GDIP_BOOL) As GpStatus
     End Type
     
     Function GpImageAttributes() As GpImageAttributes
