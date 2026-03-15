@@ -1,6 +1,7 @@
 ## 0.9.0.44
 - Fix incorrect alias for AddPolygon2I.
 - Add Image.ForceValidation.
+- Add TestControl in GdiPlusUser.
 
 ## 0.9.0.43
 - Expand members and conversions for GpPoint[F], GpSize[F], GpRect[F].

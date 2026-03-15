@@ -53,6 +53,18 @@ Class GdiPlusUser
             gdiPlusRefCount = 0
         End If
     End Sub
+    
+    Function TestControlForceBilinear(ByVal force As Boolean) As GpStatus
+        Return SetStatus(TestControlForceBilinear(force))
+    End Function
+    
+    Function TestControlNoICM(ByVal noICM As Boolean) As GpStatus
+        Return SetStatus(TestControlNoICM(noICM))
+    End Function
+    
+    Function GetBuildNumber() As Long
+        SetStatus(GdipGdiPlusUser.GetBuildNumber(GetBuildNumber))
+    End Function
 End Class
 
 Module GdipGdiPlusUser
@@ -144,6 +156,29 @@ Module GdipGdiPlusUser
     ' Notification functions which the user must call appropriately if SuppressBackgroundThread is set.
     Public Delegate PtrSafe Function NotificationHookProc (ByRef token As ULONG) As GpStatus
     Public Delegate PtrSafe Sub NotificationUnhookProc (ByVal token As ULONG)
+    
+    Function TestControlForceBilinear(ByVal force As Boolean) As GpStatus
+        Dim param As GDIP_BOOL = force
+        Return TestControl(TestControlForceBilinear, param)
+    End Function
+    
+    Function TestControlNoICM(ByVal noICM As Boolean) As GpStatus
+        Dim param As GDIP_BOOL = noICM
+        Return TestControl(TestControlNoICM, param)
+    End Function
+    
+    Function GetBuildNumber(buildNumber&) As GpStatus
+        Static sBuildNumber As Long = -1
+        If sBuildNumber = -1 Then
+            GetBuildNumber = TestControl(TestControlGetBuildNumber, sBuildNumber)
+        Else
+            GetBuildNumber = Ok
+        End If
+        buildNumber = sBuildNumber
+    End Function
+    
+    [UseGetLastError(False)]
+    Public Declare PtrSafe Function TestControl Lib "gdiplus" Alias "GdipTestControl" (ByVal control As GpTestControlEnum, param As Any) As GpStatus
     
     Type GpToken
         value As LongPtr
