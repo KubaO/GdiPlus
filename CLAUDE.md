@@ -26,6 +26,7 @@ The package is licensed under the MIT License and is maintained at https://githu
 ### Documentation
 - **`Documentation/`** - User documentation
   - **`index.md`** - Main documentation with class reference
+  - **`wdGDIP.twin`** - Reference for the GDI+ Flat API
   - **`Images/`** - Documentation assets
 
 ---
