@@ -1644,7 +1644,6 @@ The following methods extend the functionality beyond that of [**ITransformable*
 ### Miscellaneous
 
 * **SetAbort** (abort As **GdiPlusAbort**)
-* **ForceValidation** () - forces validation of the image data
 
 ---
 

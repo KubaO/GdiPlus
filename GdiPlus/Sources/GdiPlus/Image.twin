@@ -203,12 +203,7 @@ Class Image
     Function SetAbort(pIAbort As GdiPlusAbort) As GpStatus
         Return SetStatus(im.SetAbort(pIAbort))
     End Function
-    '#endif //(GDIPVER >= 0x0110)  
-    
-    Function ForceValidation() As GpStatus
-        Return SetStatus(im.ForceValidation())
-    End Function
-    
+    '#endif //(GDIPVER >= 0x0110)     
     
     Sub New(ByVal nativeImage As GpImage, ByVal status As GpStatus = Ok)
         SetStatus(status)
@@ -379,8 +374,9 @@ Module GdipImage
         [Description("⛔This API is not implemented in GdiPlus 1.0 nor 1.1." & vbCrLf _
             & "⛔NOTE: This API is a placeholder until tB supports no-vtable interfaces")]
         Declare PtrSafe Function SetAbort Lib "gdiplus" Alias "GdipImageSetAbort" (ByVal Me As GpImage, pIAbort As Any /*GdiplusAbort*/) As GpStatus
-        [UseGetLastError(False)]
-        Public Declare PtrSafe Function ForceValidation Lib "gdiplus" Alias "GdipImageForceValidation " (ByVal Me As GpImage) As GpStatus
+        
+        'This API is not exported by name from gdiplus.dll.
+        'Public Declare PtrSafe Function ForceValidation Lib "gdiplus" Alias "GdipImageForceValidation " (ByVal Me As GpImage) As GpStatus
     End Type
     
     Function GpImage() As GpImage

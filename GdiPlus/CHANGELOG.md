@@ -1,5 +1,6 @@
 ## 0.9.0.45
 - Remove the wrapper for DrawImageRectFX as it's not implemented in GDI+.
+- Remove the wrapper for ForceValidation as it's not implemented in GDI+.
 
 ## 0.9.0.44
 - Fix incorrect alias for AddPolygon2I.
