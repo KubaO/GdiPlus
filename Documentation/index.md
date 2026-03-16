@@ -450,7 +450,6 @@ These are used when **SuppressBackgroundThread** is set in the startup input.
   * ... x&, y&)
   * ... x&, y&, width&, height&)
   * ... x&, y&, srcX&, srcY&, srcWith&, srcHeight&, srcUnit As **GpUnit**)
-* **DrawImageRECT** (image As **Image**, sourceRect As **GDIP_RECTF**, xForm As **Matrix**, effect As **Effect**, imageAttributes As **ImageAttributes**, srcUnit As **GpUnit**) - low-level variant of DrawImage that takes a native **GDIP_RECTF** source rectangle
 
 #### Cached Bitmap Drawing
 
