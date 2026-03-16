@@ -42,7 +42,7 @@ The package is licensed under the MIT License and is maintained at https://githu
 - **`GdiPlusBase.twin`** - Base class for all GdiPlus objects; provides `LastResult`/`GetLastResult`, error handling hooks, and GdipAlloc/Free
 - **`GdiPlusUser.twin`** - GDI+ initialization and lifetime management; also defines `GdiplusStartupInput`, `GdiplusStartupOutput`, startup param enums
 - **`Graphics.twin`** (133KB) - Main rendering class; creates Graphics objects from HDC, HWND, or Image; provides all drawing methods
-- **`VBGraphics.twin`** - Visual Basic compatible graphics interface
+- **`VBGraphics.twin`** - VB6-compatible graphics interface (`Line`, `Circle`, `PSet` methods); created via `VBGraphicsFromHWND`, `BufferedVBGraphicsFromHWND`, etc.
 - **`Implementation.twin`** - Private internal module with `ArrayLen`, `ArrayPtr`, `SetStaticSA`, `StaticSA` helpers
 
 ### Geometric Primitives (UDTs with methods in `Types.twin`)
@@ -53,7 +53,7 @@ The package is licensed under the MIT License and is maintained at https://githu
 - **`GraphicsPath.twin`** (43KB) - Path construction and manipulation
 - **`PathData.twin`** - Path data structures
 - **`PathIterator.twin`** - Path iteration and enumeration
-- **`Region.twin`** - Region clipping and hit testing
+- **`Region.twin`** - Region clipping and hit testing; set operations (Intersect, Union, Xor, Exclude, Complement) on rects, paths, and other regions; visibility tests; region scans
 
 ### Brushes & Pens
 - **`Brush.twin`** - `IBrush` interface (with `Alias Brush As IBrush`); `GpBrush` native handle type; `BrushFrom` factory
@@ -74,28 +74,29 @@ The package is licensed under the MIT License and is maintained at https://githu
 - **`FontCollection.twin`** - Font collection management
 - **`InstalledFontCollection.twin`** - System installed fonts
 - **`PrivateFontCollection.twin`** - Custom font collections
-- **`StringFormat.twin`** (33KB) - Text formatting and layout options
+- **`StringFormat.twin`** (33KB) - Text formatting: alignment, trimming, hotkey prefix, tab stops, digit substitution, measurable character ranges; convenience boolean properties and setters for each option
 
 ### Image & Bitmap Operations
 - **`Image.twin`** (30KB) - Base image class and operations
 - **`Bitmap.twin`** (30KB) - Bitmap-specific operations and properties
 - **`Metafile.twin`** (30KB) - Vector graphic metafile support
 - **`CachedBitmap.twin`** - Cached bitmap optimization
-- **`ImageAttributes.twin`** - Image color and effect attributes
-- **`ImageCodec.twin`** - Image codec information
+- **`ImageAttributes.twin`** - Image color adjustments: color matrix, gamma, threshold, color key transparency, output channel, color remapping (`ColorMap`), wrap mode, cached background
+- **`ImageCodec.twin`** - `GetImageDecoders()`, `GetImageEncoders()` functions; `GpImageCodecInfo` UDT with string properties and codec type queries
 - **`Imaging.twin`** (46KB) - Image encoding/decoding and metadata
 - **`PixelFormats.twin`** - Pixel format definitions
 
 ### Effects & Filters
-- **`Effects.twin`** (26KB) - Image effects and filters
-  - Blur, Bright/Contrast, ColorBalance
-  - ColorCurve, GaussianBlur, HueSaturationLightness
-  - Levels, RedEyeRemoval, Sharpen, Tint
+- **`Effects.twin`** (26KB) - Image effects and filters (GDI+ v2, Windows 10+)
+  - `Effect` base class; `Blur`, `Sharpen`, `BrightnessContrast`, `HueSaturationLightness`
+  - `Levels`, `Tint`, `ColorBalance`, `ColorMatrixEffect`, `ColorLUT`, `ColorCurve`, `RedEyeCorrection`
+  - Parameter UDTs: `BlurParams`, `SharpenParams`, `BrightnessContrastParams`, etc.
+  - Enums: `CurveAdjustments`, `CurveChannel`
 
 ### Line & Cap Styles
-- **`LineCap.twin`** - Line cap styling
-- **`ArrowCap.twin`** - Arrow cap definitions
-- **`MetaHeader.twin`** - Metafile header structures
+- **`LineCap.twin`** - `CustomLineCap` class for custom pen line caps
+- **`ArrowCap.twin`** - `ArrowCap` class (inherits `CustomLineCap`); built-in arrow-shaped line cap
+- **`MetaHeader.twin`** - `MetafileHeader` UDT with format query properties; `WmfPlaceableFileHeader`, `GDIP_METAHEADER`, `GDIP_ENHMETAHEADER3` types
 
 ### Enumerations
 - **`Enums.twin`** (56KB) - All GDI+ enumerations (FillMode, SmoothingMode, InterpolationMode, PixelFormat, FontStyle, HatchStyle, DashStyle, WrapMode, CompositingMode, etc.)
@@ -146,9 +147,13 @@ These are `Type` definitions with methods, not COM classes. They are value types
 
 ### Color & Effects
 - **`Color`** - ARGB color UDT with A/R/G/B properties and HSL support; named constants via `CColor` enum
-- **`ColorMatrix`** - 5x5 color transformation matrix UDT
-- **`ImageAttributes`** - Color remapping, gamma, threshold, and transparency adjustments
-- **`Effects`** - Image filters and effects
+- **`ColorMatrix`** - 5x5 color transformation matrix UDT; `ColorChannelLUT`, `ColorMatrixFlags`, `ColorAdjustType`, `HistogramFormat` enums
+- **`ImageAttributes`** - Color remapping, gamma, threshold, color key transparency, output channel, wrap mode adjustments
+- **`Effects`** - Image filters: Blur, Sharpen, BrightnessContrast, HueSaturationLightness, Levels, Tint, ColorBalance, ColorMatrixEffect, ColorLUT, ColorCurve, RedEyeCorrection
+
+### Line Caps
+- **`CustomLineCap`** - Custom line caps for pens with stroke caps, joins, base cap, and width scale
+- **`ArrowCap`** - Built-in arrow-shaped line cap (inherits `CustomLineCap`)
 
 ---
 
@@ -263,6 +268,6 @@ Both are included as sub-packages within the main GdiPlus.twinproj.
 ## Additional Resources
 
 - **GitHub Repository**: https://github.com/kubao/GdiPlus
-- **Documentation**: `Documentation/index.md` - Comprehensive class and method reference
+- **Documentation**: `Documentation/index.md` - Comprehensive class and method reference covering all public API: Graphics, GraphicsPath, PathIterator, geometric types, Pen, all Brush types, Color, Font/FontFamily/FontCollection, Matrix, Image/Bitmap/Metafile, StringFormat, Region, CachedBitmap, ImageAttributes, ImageCodec, ColorMatrix, CustomLineCap/ArrowCap, Effects, VBGraphics, MetafileHeader
 - **License**: MIT License - See repository for full license text
 - **Author/Maintainer**: Sunderland Ober Consulting (c) 2026

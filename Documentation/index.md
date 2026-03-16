@@ -8,12 +8,21 @@
   - [**ITransformable**](#itransformable)
   - [**GpPointF**](#gppointf), [**GpPoint**](#gppoint), [**GpSizeF**](#gpsizef), [**GpSize**](#gpsize), [**GpRectF**](#gprectf), [**GpRect**](#gprect)
   - [**Pen**](#pen)
-  - [Brushes](#brushes): [**IBrush**](#ibrush-brush), [**SolidBrush**](#SolidBrush), [**HatchBrush**](#hatchbrush), [**LinearGradientBrush**](#LinearGradientBrush), [**PathGradientBrush**](#PathGradientBrush), [**TextureBrush**](#texturebrush)
+  - [*Brushes*](#brushes): [**IBrush**](#ibrush-brush), [**SolidBrush**](#SolidBrush), [**HatchBrush**](#hatchbrush), [**LinearGradientBrush**](#LinearGradientBrush), [**PathGradientBrush**](#PathGradientBrush), [**TextureBrush**](#texturebrush)
   - [**Color**](#color)
   - [**CColor** Constants](#ccolor-constants)
   - [**Font**](#font), [**FontFamily**](#fontfamily), [**FontCollection**](#fontcollection)
   - [**Matrix**](#matrix)
-  - [**Image**](#image), [**Bitmap**](#bitmap), [**Metafile**](#metafile-2)
+  - [**Image**](#image), [**Bitmap**](#bitmap), [**Metafile**](#metafile-2), [**CachedBitmap**](#cachedbitmap)
+  - [**ImageAttributes**](#imageattributes)
+  - [**ImageCodec**](#imagecodec): [**GpImageCodecInfo**](#gpimagecodecinfo)
+  - [**ColorMatrix**](#colormatrix)
+  - [**StringFormat**](#stringformat)
+  - [**Region**](#region)
+  - [**CustomLineCap**](#customlinecap), [**ArrowCap**](#arrowcap)
+  - [*Effects*](#effects): [**Blur**](#blur), [**Sharpen**](#sharpen), [**BrightnessContrast**](#brightnesscontrast), [**HueSaturationLightness**](#huesaturationlightness), [**Levels**](#levels), [**Tint**](#tint), [**ColorBalance**](#colorbalance), [**ColorMatrixEffect**](#colormatrixeffect), [**ColorLUT**](#colorlut), [**ColorCurve**](#colorcurve), [**RedEyeCorrection**](#redeyecorrection)
+  - [**VBGraphics**](#vbgraphics)
+  - [**MetafileHeader**](#metafileheader)
 
 ---
 
@@ -146,14 +155,14 @@ There are no integer overloads for non-cartesian coordinates such as angles, nor
 
 This is the base class of the GdiPlus classes. It retains the result of the last operation performed on the derived class, and enables error handling.
 
-* <sup>get</sup>**LastResult** As **GpStatus** - the result of the last operation performed on the derived class.
+* <sup>get</sup> **LastResult** As **GpStatus** - the result of the last operation performed on the derived class.
 
 > [!TIP]
 > This property records the most recent *error* that occurred. Is does *not* automatically reset to Ok. To reset, use **ClearResult** or **GetLastResult**
 
-* <sup>get</sup>**Status** As **String** - a textual description of **LastResult**
+* <sup>get</sup> **Status** As **String** - a textual description of **LastResult**
 
-* <sup>get</sup>**StatusNL** As **String** - a textual description of **LastResult** with **vbCrLf** appended
+* <sup>get</sup> **StatusNL** As **String** - a textual description of **LastResult** with **vbCrLf** appended
 
 * **ClearResult** (), **GetLastResult** () As **GpStatus** - clears the status to Ok, and returns the previous status
 
@@ -206,12 +215,18 @@ By default, GdiPlus version 2 will be initialized. If this fails, version 1 will
 
 * **GdiPlusUser** (startupParams As **GdiplusStartupParams** = GdiplusStartupDefault)
 * **GdiPlusUser** (input As **GdiPlusStartupInput**)
-* **GdiPlusUser** (input As **GdiPlusStartupInput**, <sup>out</sup>output As **GdiPlusStartupOutput**)
+* **GdiPlusUser** (input As **GdiPlusStartupInput**, <sup>out</sup> output As **GdiPlusStartupOutput**)
 
 > [!NOTE]
 > The arguments are only used when the first instance of **GdiPlusUser** is created. Subsequent invocations of the constructors discard the arguments!
 
 The default arguments are suitable for most use cases. If special arguments are needed, they should be provided in a single location where the first instance of **GdiPlusUser** is created. Typically that would be `Sub Main`, or in the `WM_CREATE` message handler of the main application window.
+
+### Methods
+
+* **GetBuildNumber** () As **Long** - returns the GDI+ build number
+* **TestControlForceBilinear** (force As **Boolean**) - forces bilinear scaling (for testing/debugging)
+* **TestControlNoICM** (noICM As **Boolean**) - disables ICM (for testing/debugging)
 
 ### GdiplusStartupInput Type
 
@@ -238,6 +253,22 @@ These flags are ignored by GdiPlus version 1.
 * **GdiplusStartupNoSetRound** = 1
 * **GdiplusStartupSetPSValue** = 2
 * **GdiplusStartupTransparencyMask** = `&hFF00_0000`
+
+### GdiplusStartupOutput Type
+
+Returned by the constructor overload that takes an *output* parameter. Contains notification callbacks that the user must call appropriately if **SuppressBackgroundThread** is set.
+
+* **NotificationHook** As **NotificationHookProc**
+* **NotificationUnhook** As **NotificationUnhookProc**
+
+### Notification Functions
+
+These are used when **SuppressBackgroundThread** is set in the startup input.
+
+* *Delegate* **NotificationHookProc** (<sup>out</sup> token As **ULONG**) As **GpStatus**
+* *Delegate* **NotificationUnhookProc** (token As **ULONG**)
+* **NotificationHook** (token As **LongPtr**) As **GpStatus** - calls `GdiplusNotificationHook`
+* **NotificationUnhook** (token As **LongPtr**) - calls `GdiplusNotificationUnhook`
 
 ---
 
@@ -268,6 +299,10 @@ These flags are ignored by GdiPlus version 1.
 * **GraphicsFromHWND** (hwnd As **LongPtr**)
 * **GraphicsFromHWNDWithICM** (hwnd As **LongPtr**)
 * **GraphicsFromImage** (image As **Image**) - creates a graphics object that draws on the image. The image may be a **Bitmap** or a **Metafile**. In the latter case, the metafile records all the graphics operations for subsequent playback (drawing).
+
+### Flush
+
+* **Flush** (intention As **GpFlushIntention**) - flushes all pending graphics operations. The intention parameter controls whether the method returns immediately (FlushIntentionFlush) or waits for completion (FlushIntentionSync).
 
 ### Bulk Clearing
 
@@ -407,14 +442,23 @@ These flags are ignored by GdiPlus version 1.
   * ... x!, y!, width!, height!)
   * ... destPoints() As **GpPoint[F]**)
   * ... x!, y!, srcX!, srcY!, srcWith!, srcHeight!, srcUnit As **GpUnit**)
-  * ... dest As **GpRect[F]**, src As **GpRect[F]**, srcUnit As **GpUnit**, <sup>optional</sup>attributes As **ImageAttributes**, <sup>optional</sup>callback As **LongPtr**, <sup>optional</sup>callbackData As **LongPtr**)
-  * ... destPoints() As **GpPointF**, srcX!, srcY!, srcWidth!, srcHeight!, srcUnit As **GpUnit**, <sup>optional</sup>attributes As **ImageAttributes**, <sup>optional</sup>callback As **LongPtr**, <sup>optional</sup>callbackData As **LongPtr**)
-  * ... destPoints() As **GpPoint**, srcX&, srcY&, srcWidth&, srcHeight&, srcUnit As **GpUnit**, <sup>optional</sup>attributes As **ImageAttributes**, <sup>optional</sup>callback As **LongPtr**, <sup>optional</sup>callbackData As **LongPtr**)
+  * ... dest As **GpRect[F]**, src As **GpRect[F]**, srcUnit As **GpUnit**, <sup>optional</sup> attributes As **ImageAttributes**, <sup>optional</sup> callback As **LongPtr**, <sup>optional</sup> callbackData As **LongPtr**)
+  * ... destPoints() As **GpPointF**, srcX!, srcY!, srcWidth!, srcHeight!, srcUnit As **GpUnit**, <sup>optional</sup> attributes As **ImageAttributes**, <sup>optional</sup> callback As **LongPtr**, <sup>optional</sup> callbackData As **LongPtr**)
+  * ... destPoints() As **GpPoint**, srcX&, srcY&, srcWidth&, srcHeight&, srcUnit As **GpUnit**, <sup>optional</sup> attributes As **ImageAttributes**, <sup>optional</sup> callback As **LongPtr**, <sup>optional</sup> callbackData As **LongPtr**)
   * ... src As **GpRectF**, xform As **GpMatrix**, effect As **Effect**, attributes As **ImageAttributes**, srcUnit As **GpUnit**)
 * **DrawImageI** (image As **Image**, ...
   * ... x&, y&)
   * ... x&, y&, width&, height&)
   * ... x&, y&, srcX&, srcY&, srcWith&, srcHeight&, srcUnit As **GpUnit**)
+* **DrawImageRECT** (image As **Image**, sourceRect As **GDIP_RECTF**, xForm As **Matrix**, effect As **Effect**, imageAttributes As **ImageAttributes**, srcUnit As **GpUnit**) - low-level variant of DrawImage that takes a native **GDIP_RECTF** source rectangle
+
+#### Cached Bitmap Drawing
+
+* **DrawCachedBitmap** (cb As **CachedBitmap**, offset As **GpPoint**)
+* **DrawCachedBitmapI** (cb As **CachedBitmap**, x&, y&)
+
+> [!NOTE]
+> Drawing a **CachedBitmap** will fail with **WrongState** if the cached bitmap's native format differs from this **Graphics** context (e.g. if the display resolution or color depth changed since the **CachedBitmap** was created).
 
 ### Text Measurement
 
@@ -422,13 +466,13 @@ These flags are ignored by GdiPlus version 1.
 > These methods don't have integer overloads
 
 * **MeasureString** (str$, font As **Font**, ...
-  * ... layoutRect As **GpRectF**, format As **StringFormat**, <sup>out</sup>bBox As **GpRectF**, <sup>optional out</sup>codePointsFitted&, <sup>optional out</sup>linesFilled&)
-  * ... layoutSize As **GpSizeF**, format As **StringFormat**, <sup>out</sup>size As **GpSizeF**, <sup>optional out</sup>codePointsFitted&, <sup>optional out</sup>linesFilled&)
-  * ... origin As **GpPointF**, format As **StringFormat**, <sup>out</sup>bBox As **GpRectF**)
-  * ... layoutRect As **GpRectF**, <sup>out</sup>bBox As **GpRectF**)
-  * ... origin As **GpPointF**, <sup>out</sup>bBox As **GpRectF**)
+  * ... layoutRect As **GpRectF**, format As **StringFormat**, <sup>out</sup> bBox As **GpRectF**, <sup>optional out</sup> codePointsFitted&, <sup>optional out</sup> linesFilled&)
+  * ... layoutSize As **GpSizeF**, format As **StringFormat**, <sup>out</sup> size As **GpSizeF**, <sup>optional out</sup> codePointsFitted&, <sup>optional out</sup> linesFilled&)
+  * ... origin As **GpPointF**, format As **StringFormat**, <sup>out</sup> bBox As **GpRectF**)
+  * ... layoutRect As **GpRectF**, <sup>out</sup> bBox As **GpRectF**)
+  * ... origin As **GpPointF**, <sup>out</sup> bBox As **GpRectF**)
 * **MeasureCharacterRanges** (str$, font As **Font**, layoutRect As **GpRectF**, format As **StringFormat**) As **Region()**
-* **MeasureCharacterRanges** (str$, font As **Font**, layoutRect As **GpRectF**, format As **StringFormat**, <sup>out</sup>regions() As **Region**)
+* **MeasureCharacterRanges** (str$, font As **Font**, layoutRect As **GpRectF**, format As **StringFormat**, <sup>out</sup> regions() As **Region**)
   The *regions* array is resized to contain the measurement results. For performance's sake, any existing **Region** instances in the array provided are reused. However, at input, *regions* can be an array of any size, including an empty array.
 * **MeasureDriverString** (str$, font As **Font**, brush As **Brush**, ..., flags As **GpDriverStringOptions**, matrix As **Matrix**, <sup>out</sup> bbox As **GpRectF**)
   * ... position As **GpPointF**, ...
@@ -441,7 +485,7 @@ These flags are ignored by GdiPlus version 1.
 ### Metafile
 
 * Playback:
-  **EnumerateMetaFile** (metafile As **Metafile**, ..., callback As **EnumerateMetafileProc**, <sup>optional</sup>callbackData As **LongPtr**, <sup>optional</sup>attributes As **ImageAttributes**)
+  **EnumerateMetaFile** (metafile As **Metafile**, ..., callback As **EnumerateMetafileProc**, <sup>optional</sup> callbackData As **LongPtr**, <sup>optional</sup> attributes As **ImageAttributes**)
   * ... dst As **GpPoint[F]**, ...
   * ... dst As **GpRect[F]**, ...
   * ... dstPoints() As **GpPoint[F]**, ...
@@ -450,14 +494,14 @@ These flags are ignored by GdiPlus version 1.
   * ... dstPoints() As **GpPoint[F]**, srcRect As **GpRect[F]**, srcUnit As **GpUnit**, ...
 
 * While recording:
-  **AddMetafileComment** (<sup>ByRef</sup>data As **Byte**, sizeData&)
+  **AddMetafileComment** (<sup>ByRef</sup> data As **Byte**, sizeData&)
 
 ### Clipping
 
-* <sup>get</sup>**Clip** As **Region**
-* <sup>get</sup>**[Visible]ClipBounds** As **GpRectF**
-* <sup>get</sup>**[Visible]ClipBoundsI** As **GpRect**
-* <sup>get</sup>**Is[Visible]ClipEmpty** As **Boolean**
+* <sup>get</sup> **Clip** As **Region**
+* <sup>get</sup> **[Visible]ClipBounds** As **GpRectF**
+* <sup>get</sup> **[Visible]ClipBoundsI** As **GpRect**
+* <sup>get</sup> **Is[Visible]ClipEmpty** As **Boolean**
 * **SetClip** (..., combineMode As **GpCombineMode** = CombineModeReplace)
 
 * * ... g As **Graphics**, ...
@@ -498,7 +542,7 @@ These flags are ignored by GdiPlus version 1.
 
 * **RenderingOrigin** As **GpPoint**
   **SetRenderingOrigin** (x&, y&)
-  **GetRenderingOrigin** (<sup>out</sup>x&, <sup>out</sup>y&)
+  **GetRenderingOrigin** (<sup>out</sup> x&, <sup>out</sup> y&)
 * **CompositingMode** As **GpCompositingMode**
 * **CompositingQuality** As **GpCompositingQuality**
 * **TextRenderingHint** As **GpTextRenderingHint**
@@ -514,7 +558,7 @@ These flags are ignored by GdiPlus version 1.
 * **PageUnit** As **GpUnit**
 * **PageScale** As **Single**
 * **DpiX** As **Single**, **DpiY** As **Single**
-* **TransformPoints** (dst As **GpCoordinateSpace**, src As **GpCoordinateSpace**, <sup>in/out</sup>pts() As **GpPoint[F]**)
+* **TransformPoints** (dst As **GpCoordinateSpace**, src As **GpCoordinateSpace**, <sup>in/out</sup> pts() As **GpPoint[F]**)
 
 ### Color Approximation
 
@@ -523,7 +567,7 @@ These flags are ignored by GdiPlus version 1.
 The two functions below apply only when **Graphics** is backed by an image/bitmap with a palette, i.e. 8bits/pixel or less.
 
 * **GetNearestColorTo** (color As **Color**) As **Color** - returns a palette color closest to *color*
-* **GetNearestColor** (<sup>in/out</sup>color As **Color**) - replaces *color* with the nearest palette color
+* **GetNearestColor** (<sup>in/out</sup> color As **Color**) - replaces *color* with the nearest palette color
 
 ### GDI Interoperability
 
@@ -555,13 +599,13 @@ This UDT stores the position and type of a path point. It provides an alternativ
 
 #### PathPointType
 
-* <sup>get</sup>**PointType** As **GpPathPointType**
+* <sup>get</sup> **PointType** As **GpPathPointType**
   - **PathPointTypeStart** = 0
   - **PathPointTypeLine** = 1
   - **PathPointTypeBezier** = 3
-* <sup>get</sup>**DashMode** As **Boolean**
-* <sup>get</sup>**PathMarker** As **Boolean**
-* <sup>get</sup>**CloseSubpath** As **Boolean**
+* <sup>get</sup> **DashMode** As **Boolean**
+* <sup>get</sup> **PathMarker** As **Boolean**
+* <sup>get</sup> **CloseSubpath** As **Boolean**
 
 #### PathData
 
@@ -582,9 +626,9 @@ This UDT stores the position and type of a path point. It provides an alternativ
 ### Properties
 
 * **FillMode** As **GpFillMode**
-* <sup>get</sup>**PathData** As **PathData**
-* <sup>get</sup>**LastPoint** As **GpPointF**
-* <sup>get</sup>**PointCount** As **Long**
+* <sup>get</sup> **PathData** As **PathData**
+* <sup>get</sup> **LastPoint** As **GpPointF**
+* <sup>get</sup> **PointCount** As **Long**
 
 ### Methods
 
@@ -593,24 +637,24 @@ This UDT stores the position and type of a path point. It provides an alternativ
 * **SetMarker** (), **ClearMarkers** ()
 * **Reverse** ()
 * **Transform** (matrix As **Matrix**)
-* **GetWorldBounds** (<sup>out</sup>bounds As **GpRect[F]**, matrix As **Matrix**, pen As **Pen**)
-* **Flatten** (<sup>opt</sup>matrix As **Matrix**, flatness! = FlatnessDefault)
-* **Widen** (pen As **Pen**, <sup>opt</sup>matrix As **Matrix**, flatness! = FlatnessDefault)
-* **Outline** (<sup>opt</sup>matrix As **Matrix**, flatness! = FlatnessDefault)
-* **Warp** (destPoints() As **GpPointF**, ..., <sup>opt</sup>matrix As **Matrix**, warpMode As **GpWarpMode** = WarpModePerspective, flatness! = FlatnessDefault)
+* **GetWorldBounds** (<sup>out</sup> bounds As **GpRect[F]**, matrix As **Matrix**, pen As **Pen**)
+* **Flatten** (<sup>opt</sup> matrix As **Matrix**, flatness! = FlatnessDefault)
+* **Widen** (pen As **Pen**, <sup>opt</sup> matrix As **Matrix**, flatness! = FlatnessDefault)
+* **Outline** (<sup>opt</sup> matrix As **Matrix**, flatness! = FlatnessDefault)
+* **Warp** (destPoints() As **GpPointF**, ..., <sup>opt</sup> matrix As **Matrix**, warpMode As **GpWarpMode** = WarpModePerspective, flatness! = FlatnessDefault)
   There is no integer overload of this method.
   * ... srcRect As **GpRectF**, ...
   * ... srcX!, srcY!, srcWidth!, srcHeight!, ...
 * **GetTypes** (types() As **Byte**)
 * **GetPoints** (points() As **GpPoint[F]**)
-* **IsVisible** (..., <sup>opt</sup>g As **Graphics**)
+* **IsVisible** (..., <sup>opt</sup> g As **Graphics**)
   * (point As **GpPointF**, ...
   * (x!, y!, ...
-* **IsVisibleI** (x&, y&, <sup>opt</sup>g As **Graphics**)
-* **IsOutlineVisible** (..., pen As **Pen**, <sup>opt</sup>g As **Graphics**)
+* **IsVisibleI** (x&, y&, <sup>opt</sup> g As **Graphics**)
+* **IsOutlineVisible** (..., pen As **Pen**, <sup>opt</sup> g As **Graphics**)
   * (point As **GpPointF**, ...
   * (x!, y!, ...
-* **IsOutlineVisibleI** (x&, y&, pen As **Pen**, <sup>opt</sup>g As **Graphics**)
+* **IsOutlineVisibleI** (x&, y&, pen As **Pen**, <sup>opt</sup> g As **Graphics**)
 
 #### Drawing
 
@@ -668,9 +712,9 @@ This UDT stores the position and type of a path point. It provides an alternativ
 * Constructors
   * **PathIterator** (path As **GraphicsPath**)
 * Properties
-  * <sup>get</sup>**Count** As **Long**
-  * <sup>get</sup>**SubpathCount** As **Long**
-  * <sup>get</sup>**HasCurve** As **Boolean**
+  * <sup>get</sup> **Count** As **Long**
+  * <sup>get</sup> **SubpathCount** As **Long**
+  * <sup>get</sup> **HasCurve** As **Boolean**
 * Methods
   * **Rewind** ()
 
@@ -680,15 +724,15 @@ This UDT stores the position and type of a path point. It provides an alternativ
   * **NextPathType** () As **PathType**
   * **NextMarker** () As **Marker**
   * **NextMarkerPath** () As **MarkerPath**
-  * **Enumerate** (startIndex& = -1, endIndex& =-1) As **TypedPoints**
+  * **Enumerate** (startIndex& = -1, endIndex& =-1) As **TypedPoint()**
   * **CopyData** (startIndex&, endIndex&) -- deprecated, use **Enumerate** instead
 * Direct API -- uses scalar results
-  * **NextSubpath** (<sup>out</sup>startIndex&, <sup>out</sup>endIndex&, <sup>out</sup>isClosed As **Boolean**) As **Long**
-  * **NextSubpathPath** (<sup>out</sup>path As **GraphicsPath**, <sup>out</sup>isClosed As **Boolean**) As **Long**
-  * **NextPathType** (<sup>out</sup>pathType As **PathPointType**, <sup>out</sup>startIndex&, <sup>out</sup>endIndex) As **Long**
-  * **NextMarker** (<sup>out</sup>startIndex&, <sup>out</sup>endIndex&) As **Long**
-  * **NextMarkerPath** (<sup>out</sup>path As **GraphicsPath**) As **Long**
-  * **Enumerate** (points() As **GpPointF**, types() As **PathPointType**, startIndex& = -1, endIndex& = -1) As **Long**
+  * **NextSubpath** (<sup>out</sup> startIndex&, <sup>out</sup> endIndex&, <sup>out</sup> isClosed As **Boolean**) As **Long**
+  * **NextSubpathPath** (<sup>out</sup> path As **GraphicsPath**, <sup>out</sup> isClosed As **Boolean**) As **Long**
+  * **NextPathType** (<sup>out</sup> pathType As **PathPointType**, <sup>out </sup> startIndex&, <sup>out</sup> endIndex&) As **Long**
+  * **NextMarker** (<sup>out</sup> startIndex&, <sup>out </sup> endIndex&) As **Long**
+  * **NextMarkerPath** (<sup>out</sup> path As **GraphicsPath**) As **Long**
+  * **Enumerate** (<sup>out</sup> points() As **GpPointF**, <sup>out</sup> types() As **PathPointType**, startIndex& = -1, endIndex& = -1) As **Long**
   * **CopyData** (points() As **GpPointF**, types() As **PathPointType**, startIndex&, endIndex&) As **Long** -- deprecated, use **Enumerate** instead
 
 ### Related Types
@@ -741,7 +785,7 @@ This interface applies to objects that can provide a device context for GDI inte
 This interface applies to objects that have a transformation matrix that can be changed.
 
 * **Transform** As **Matrix**
-* **GetTransform** (<sup>out</sup>matrix As **Matrix**)
+* **GetTransform** (<sup>out</sup> matrix As **Matrix**)
 * **MultiplyTransform**(matrix As **Matrix**, order As **GpMatrixOrder** = MatrixOrderPrepend)
 * **TranslateTransform**(delta As **GpPointF**, order As **GpMatrixOrder** = MatrixOrderPrepend)
 * **TranslateTransform**(dx!, dy!, order As **GpMatrixOrder** = MatrixOrderPrepend)
@@ -1122,7 +1166,7 @@ The rectangle's sides are parallel with the coordinate axes.
 * **StartCap** As **GpLineCap**
 * **EndCap** As **GpLineCap**
 * **DashCap** As **GpDashCap**
-* <sup>let</sup>**Caps** (both As **GpLineCap**)
+* <sup>let</sup> **Caps** (both As **GpLineCap**)
 * **SetLineCap** (start As **GpLineCap**, end As **GpLineCap**, dash As **GpDashCap**)
 * **CustomStartCap** As **CustomLineCap**
 * **CustomEndCap** As **CustomLineCap**
@@ -1132,10 +1176,10 @@ The rectangle's sides are parallel with the coordinate axes.
 * **DashStyle** As **GpDashStyle**
 * **DashOffset** As **Single**
 * **DashPattern** As **Single**()
-* <sup>get</sup>**DashPatternCount** As **Long**
+* <sup>get</sup> **DashPatternCount** As **Long**
 
 * **CompoundArray** As **Single**()
-* <sup>get</sup>**CompoundArrayCount** As **Long**
+* <sup>get</sup> **CompoundArrayCount** As **Long**
 
 #### Line Joining
 
@@ -1146,7 +1190,7 @@ The rectangle's sides are parallel with the coordinate axes.
 
 #### Transformations
 
-* <sup>get</sup>**Transform** As **Matrix**
+* <sup>get</sup> **Transform** As **Matrix**
 * **ResetTransform** ()
 * **MultiplyTransform** (matrix As **Matrix**, order As **GpMatrixOrder** = MatrixOrderPrepend)
 * **TranslateTransform** (..., order As **GpMatrixOrder** = MatrixOrderPrepend)
@@ -1166,8 +1210,8 @@ All brushes implement this interface.
 * Alias **Brush** As **IBrush**
 
 * **CloneBrush** () As **IBrush**
-* <sup>get</sup>**NativeBrush** As **GpBrush**
-* <sup>get</sup>**Type** As **GpBrushType**
+* <sup>get</sup> **NativeBrush** As **GpBrush**
+* <sup>get</sup> **Type** As **GpBrushType**
 
 ### SolidBrush
 
@@ -1196,9 +1240,9 @@ Implements [**IBrush**](#ibrush).
 
 #### Properties
 
-* <sup>get</sup>**HatchStyle** As **GpHatchStyle**
-* <sup>get</sup>**ForegroundColor** As **Color**
-* <sup>get</sup>**BackgroundColor** As **Color**
+* <sup>get</sup> **HatchStyle** As **GpHatchStyle**
+* <sup>get</sup> **ForegroundColor** As **Color**
+* <sup>get</sup> **BackgroundColor** As **Color**
 
 ### LinearGradientBrush
 
@@ -1223,17 +1267,17 @@ Implements [**IBrush**](#ibrush).
 * **SetLinearColors** (...)
   * ... rgb1&, rgb2&, ...
   * ... color1 As **Color**, color2 As **Color**, ...
-* <sup>get</sup>**LinearRGBs** As **Long()**
-* <sup>get</sup>**LinearColors** As **Color()**
-* <sup>get</sup>**Rectangle** As **GpRectF**
-* <sup>get</sup>**RectangleI** As **GpRect**
+* <sup>get</sup> **LinearRGBs** As **Long()**
+* <sup>get</sup> **LinearColors** As **Color()**
+* <sup>get</sup> **Rectangle** As **GpRectF**
+* <sup>get</sup> **RectangleI** As **GpRect**
 * **GammaCorrection** As **Boolean**
-* <sup>get</sup>**BlendCount** As **Long**
+* <sup>get</sup> **BlendCount** As **Long**
 * **SetBlend** (blendFactors() As **Single**, blendPositions() As **Single**)
-* **GetBlend** (<sup>out</sup>blendFactors() As **Single**, <sup>out</sup>blendPositions() As **Single**)
-* <sup>get</sup>**InterpolationColorCount** As **Long**
+* **GetBlend** (<sup>out</sup> blendFactors() As **Single**, <sup>out</sup> blendPositions() As **Single**)
+* <sup>get</sup> **InterpolationColorCount** As **Long**
 * **SetInterpolationColors** (presetColors() As **Color**, blendPositions() As **Single**)
-* **GetInterpolationColors** (<sup>out</sup>presetColors() As **Color**, <sup>out</sup>blendPositions() As **Single**)
+* **GetInterpolationColors** (<sup>out</sup> presetColors() As **Color**, <sup>out</sup> blendPositions() As **Single**)
 * **SetBlendBellShape** (focus!, scale! = 1.0)
 * **SetBlendTriangularShape** (focus!, scale! = 1.0)
 * **WrapMode** As **GpWrapMode**
@@ -1252,8 +1296,8 @@ Implements [**IBrush**](#ibrush).
 
 * **CenterColor** As **Color**
 * **CenterRGB** As **Long**
-* <sup>get</sup>**PointCount** As **Long**
-* <sup>get</sup>**SurroundColorCount** As **Long**
+* <sup>get</sup> **PointCount** As **Long**
+* <sup>get</sup> **SurroundColorCount** As **Long**
 * **SurroundColors** As **Color()**
 * **GraphicsPath** As **GraphicsPath**
 * **CenterPoint** As **GpPointF**
@@ -1261,10 +1305,10 @@ Implements [**IBrush**](#ibrush).
 * **Rectangle** As **GpRectF**
 * **RectangleI** As **GpRect**
 * **GammaCorrection** As **Boolean**
-* <sup>get</sup>**BlendCount** As **Long**
+* <sup>get</sup> **BlendCount** As **Long**
 * **GetBlend** (factors() As **Single**, positions() As **Single**)
 * **SetBlend** (factors() As **Single**, positions() As **Single**)
-* <sup>get</sup>**InterpolationColorCount** As **Long**
+* <sup>get</sup> **InterpolationColorCount** As **Long**
 * **SetInterpolationColors** (colors() As **Color**, positions() As **Single**)
 * **GetInterpolationColors** (colors() As **Color**, positions() As **Single**)
 * **SetBlendBellShape** (focus!, scale! = 1.0)
@@ -1281,7 +1325,7 @@ Implements [**IBrush**](#ibrush).
 
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode** = WrapModeTile)
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode**, dst As **GpRect[F]**)
-* **TextureBrush** (image As **Image**, dst As **GpRect[F]**, <sup>opt</sup>attributes As **ImageAttributes**
+* **TextureBrush** (image As **Image**, dst As **GpRect[F]**, <sup>opt</sup> attributes As **ImageAttributes**
 * **TextureBrush** (image As **Image**, wrapMode As **GpWrapMode**, dstX!, dstY!, dstWidth!, dstHeight!)
 * **TextureBrushI** (image As **Image**, wrapMode As **GpWrapMode**, dstX&, dstY&, dstWidth&, dstHeight&)
 
@@ -1295,7 +1339,7 @@ Implements [**IBrush**](#ibrush).
 #### Properties
 
 * **WrapMode** As **GpWrapMode**
-* <sup>get</sup>**Image** As **Image**
+* <sup>get</sup> **Image** As **Image**
 
 ---
 
@@ -1318,9 +1362,9 @@ Stores 8-bit channels: alpha, red, green and blue.
 * **Green**, **G** As **Integer**
 * **Blue**, **B** As **Integer**
 * **Value** As **Long** - the argb value `&Haarr_ggbb`
-* <sup>get</sup>**IsTransparent** As **Boolean**
-* <sup>get</sup>**IsNull** As **Boolean** - the argb value is 0
-* <sup>get</sup>**RGB** As **Long** - the rgb value `&H00rr_ggbb`
+* <sup>get</sup> **IsTransparent** As **Boolean**
+* <sup>get</sup> **IsNull** As **Boolean** - the argb value is 0
+* <sup>get</sup> **RGB** As **Long** - the rgb value `&H00rr_ggbb`
 * **BGR** As **Long** - the bgr value `&H00bb_ggrr`
 * **GetRGBB** (r As **Byte**, g As **Byte**, b As **Byte**)
 * **GetRGBI** (r%, g%, b%)
@@ -1403,25 +1447,25 @@ Stores 8-bit channels: alpha, red, green and blue.
 * **Font** (hdc As **LongPtr**) - gets the font currently selected into the given device context
 * **Font** (hdc As **LongPtr**, hfont As **LongPtr**) - gets the font matching the given hfont in the context of the given device context
 * **Font** (hdc As **LongPtr**, logfont As **LOGFONT(A|W)**) - get a font matching the given logical front in the context of the given device context
-* **Font** (family As **FontFamily**, emSize!, style As **GpFontStyle** = FontStyleRegular, unit As **GpUnit** = UnitPoint, <sup>opt</sup>collection As **FontCollection**) - gets a font of a given size, family and style, selected from a given font collection if provided, or from the application font collection otherwise
+* **Font** (family As **FontFamily**, emSize!, style As **GpFontStyle** = FontStyleRegular, unit As **GpUnit** = UnitPoint, <sup>opt</sup> collection As **FontCollection**) - gets a font of a given size, family and style, selected from a given font collection if provided, or from the application font collection otherwise
 * **Clone** ()
 
 ### Properties
 
-* <sup>get</sup>**IsAvailable** As **Boolean**
-* <sup>get</sup>**Style** As **GpFontStyle**
-* <sup>get</sup>**Size** As **Single**
-* <sup>get</sup>**Unit** As **GpUnit**
-* <sup>get</sup>**Family** As **FontFamily**
+* <sup>get</sup> **IsAvailable** As **Boolean**
+* <sup>get</sup> **Style** As **GpFontStyle**
+* <sup>get</sup> **Size** As **Single**
+* <sup>get</sup> **Unit** As **GpUnit**
+* <sup>get</sup> **Family** As **FontFamily**
 * **GetHeight** (graphics As **Graphics**) As **Single** - returns height based on the resolution of the given graphics context
 * **GetHeight** (dpi!) As **Single** - returns height based on the provided resolution in pixels per inch
-* <sup>get</sup>**Ascent** As **Single**
-* <sup>get</sup>**Descent** As **Single**
-* <sup>get</sup>**LineSpacing** As **Single**
+* <sup>get</sup> **Ascent** As **Single**
+* <sup>get</sup> **Descent** As **Single**
+* <sup>get</sup> **LineSpacing** As **Single**
 * **GetLogFontA** (g As **Graphics**) As **LogFontA**
 * **GetLogFontW** (g As **Graphics**) As **LogFontW**
-* **GetLogFontA** (g As **Graphics**, <sup>out</sup>log As **LogFontA**)
-* **GetLogFontW** (g As **Graphics**, <sup>out</sup>log As **LogFontW**)
+* **GetLogFontA** (g As **Graphics**, <sup>out</sup> log As **LogFontA**)
+* **GetLogFontW** (g As **Graphics**, <sup>out</sup> log As **LogFontW**)
 
 ---
 
@@ -1434,15 +1478,15 @@ Stores 8-bit channels: alpha, red, green and blue.
 
 ### Properties
 
-* <sup>get</sup>**FamilyName** (language As **LANGID** = 0) As **String**
-* <sup>get</sup>**IsAvailable** As **Boolean**
-* <sup>get</sup>**IsBoldAvailable**, <sup>get</sup>**IsItalicAvailable**, <sup>get</sup>**IsBoldItalicAvailable**, <sup>get</sup>**IsUnderlinedAvailable**, <sup>get</sup>**IsStrikeoutcAvailable** As **Boolean**
-* <sup>get</sup>**EmHeight** (style As **GpFontStyle**) As **Integer**
-* <sup>get</sup>**CellAscent** (style As **GpFontStyle**) As **Integer**  
+* <sup>get</sup> **FamilyName** (language As **LANGID** = 0) As **String**
+* <sup>get</sup> **IsAvailable** As **Boolean**
+* <sup>get</sup> **IsBoldAvailable**, <sup>get</sup> **IsItalicAvailable**, <sup>get</sup> **IsBoldItalicAvailable**, <sup>get</sup> **IsUnderlinedAvailable**, <sup>get</sup> **IsStrikeoutcAvailable** As **Boolean**
+* <sup>get</sup> **EmHeight** (style As **GpFontStyle**) As **Integer**
+* <sup>get</sup> **CellAscent** (style As **GpFontStyle**) As **Integer**  
   $$Ascent = FontSize \cdot CellAscent / EmHeight$$
-* <sup>get</sup>**CellDescent** (style As **GpFontStyle**) As **Integer**  
+* <sup>get</sup> **CellDescent** (style As **GpFontStyle**) As **Integer**  
   $$Descent = FontSize \cdot CellDescent / EmHeight$$
-* <sup>get</sup>**LineSpacing** (style As **GpFontStyle**) As **Integer**  
+* <sup>get</sup> **LineSpacing** (style As **GpFontStyle**) As **Integer**  
   $$LineSpacing = FontSize \cdot LineSpacing / EmHeight$$
 
 ---
@@ -1457,8 +1501,8 @@ The collection of font families installed system-wide.
 
 * Constructor: **InstalledFontCollection** ()
 
-* <sup>get</sup>**Families** As **FontFamily()**
-* <sup>get</sup>**FamilyCount** As **Long**
+* <sup>get</sup> **Families** As **FontFamily()**
+* <sup>get</sup> **FamilyCount** As **Long**
 
 ### PrivateFontCollection
 
@@ -1466,8 +1510,8 @@ A collection of private fonts loaded for application's use.
 
 * Constructor: **PrivateFontCollection** ()
 
-* <sup>get</sup>**Families** As **FontFamily()**
-* <sup>get</sup>**FamilyCount** As **Long**
+* <sup>get</sup> **Families** As **FontFamily()**
+* <sup>get</sup> **FamilyCount** As **Long**
 * **AddFontFile** (filename$)
 * **AddMemoryFont** (address As **LongPtr**, length&)
 
@@ -1503,7 +1547,7 @@ $$
 
 * **Elements** As **Single()** - the 6 variable elements, in an array  $( m_{11}, m_{12}, m_{21}, m_{22}, d_x, d_y )$
 
-* **GetElements** (<sup>out</sup>elts() As **Single**) - writes the 6 variable elements to a pre-allocated 6-element array
+* **GetElements** (<sup>out</sup> elts() As **Single**) - writes the 6 variable elements to a pre-allocated 6-element array
 * **SetElements** (elts() As **Single**) - writes the elements into a pre-allocated 6-element array
 * **GetTo** (output As **Matrix**) - set the *output* matrix to be equal to this matrix
 * **SetFrom** (input As **Matrix**) - set this matrix to be equal to the *input* matrix
@@ -1529,69 +1573,79 @@ These methods are shortened names equivalent to the methods of [**ITransformable
 The following methods extend the functionality beyond that of [**ITransformable**](#itransformable):
 
 * **Invert** () - inverts the matrix, fails if the matrix is not invertible
-* **TransformPoint** (<sup>in,out</sup>p As **GpPoint[F]**) - multiplies the point (as a row matrix) by the matrix
-* **TransformPoints** (<sup>in,out</sup>pts() As **GpPoint[F]**) - transforms all points in the array
-* **VectorTransformPoint** (<sup>in,out</sup>p As **GpPoint[F]**) - multiplies the point (as a row matrix) by the matrix, with the translation elements $d_x$ and $d_y$ set to zero.
-* **VectorTransformPoints** (<sup>in,out</sup>pts() As **GpPoint[F]**) - transforms all points in the array, with the translation elements $d_x$ and $d_y$ set to zero.
+* **TransformPoint** (<sup>in,out</sup> p As **GpPoint[F]**) - multiplies the point (as a row matrix) by the matrix
+* **TransformPoints** (<sup>in,out</sup> pts() As **GpPoint[F]**) - transforms all points in the array
+* **VectorTransformPoint** (<sup>in,out</sup> p As **GpPoint[F]**) - multiplies the point (as a row matrix) by the matrix, with the translation elements $d_x$ and $d_y$ set to zero.
+* **VectorTransformPoints** (<sup>in,out</sup> pts() As **GpPoint[F]**) - transforms all points in the array, with the translation elements $d_x$ and $d_y$ set to zero.
 
 ---
 
 ## Image
 
-* Constructors
-  * **Image** (..., useEmbeddedColorManagement As **Boolean** = False)
-    * (filename$, ...
-    * (stream As **IStream**, ...
-  * **Clone** ()
-* I/O
-  * **Save** (..., clsIdEncoder As **UUID**, encoderParams() As **GpEncoderParameter**)
-    * (filename$, ...
-    * (stream As **IStream**, ...
+### Constructors
 
-  * **SaveAdd** (encoderParams() As **GpEncoderParameter**)
-  * **SaveAddImage** (newImage As **Image**, encoderParams() As **GpEncoderParameter**)
+* **Image** (..., useEmbeddedColorManagement As **Boolean** = False)
+  * (filename$, ...
+  * (stream As **IStream**, ...
+* **Clone** ()
 
-* Basic Properties
-  * <sup>get</sup> **Type** As **GpImageType**
-  * <sup>get</sup> **Dimension**  As **GpSizeF**
-  * <sup>get</sup> **Bounds** (srcUnit As **GpUnit**) As **GpRectF**
-  * <sup>get</sup> **Height**, **Width** As **UINT**
-  * <sup>get</sup> **Size** As **GpSize**
-  * <sup>get</sup> **HorizontalResolution**, **VerticalResolution** As **Single**
-  * <sup>get</sup> **Flags** As **UINT**
-  * <sup>get</sup> **RawFormat** As **UUID**
-  * <sup>get</sup> **PixelFormat** As **PixelFormat**
-  * <sup>get</sup> **PaletteSize**&
-  * **Palette** As **ColorPalette**
+### I/O
 
-* Thumbnails
-  * **GetThumbnail** (..., <sup>opt</sup> callback As **GetThumbnailImageAbort**, callbackData As **LongPtr** = 0) As **Image**
-    * (thumbSize As **GpSize**, ...
-    * (thumbWidth&, thumbHeight&, ...
+* **Save** (..., clsIdEncoder As **UUID**, encoderParams() As **GpEncoderParameter**)
+  * (filename$, ...
+  * (stream As **IStream**, ...
 
-* Frame Switching
-  * <sup>get</sup> **FrameDimensionCount**&
-  * <sup>get</sup> **FrameCount** (dimensionID As **UUID**) As **UINT**
-  * **GetFrameDimensionsList**() As **UUID**()
-  * **SelectActiveFrame** (dimensionID As **UUID**, frameIndex As **UINT**)
-  * **RotateFlip** (rotateFlipType As **RotateFlipType**)
+* **SaveAdd** (encoderParams() As **GpEncoderParameter**)
+* **SaveAddImage** (newImage As **Image**, encoderParams() As **GpEncoderParameter**)
 
-* Image Property Collection
-  * <sup>get</sup> **PropertyCount** As **UINT**
-  * <sup>get</sup> **PropertyIDList** As **PROPID**()
-  * <sup>get</sup> **PropertyItem** (propId As **PROPID**) As **GpPropertyItem()**
-  * <sup>let</sup> **PropertyItem** As **GpPropertyItem**
-  * **RemovePropertyItem** (propId As **PROPID**)
-  * **GetAllPropertyItems** () As **GpPropertyItem()**
-  * **GetEncoderParameterList** (clsidEncoder As **UUID**) As **GpEncoderParameter()**
+### Basic Properties
 
-* Image Item Data
-  * **FindFirstItem** () As **GpImageItemData()**
-  * **FindNextItem** () As **GpImageItemData()**
-  * **GetItemData** (item() As **GpImageItemData**)
+* <sup>get</sup> **Type** As **GpImageType**
+* <sup>get</sup> **Dimension**  As **GpSizeF**
+* <sup>get</sup> **Bounds** (srcUnit As **GpUnit**) As **GpRectF**
+* <sup>get</sup> **Height**, **Width** As **UINT**
+* <sup>get</sup> **Size** As **GpSize**
+* <sup>get</sup> **HorizontalResolution**, **VerticalResolution** As **Single**
+* <sup>get</sup> **Flags** As **UINT**
+* <sup>get</sup> **RawFormat** As **UUID**
+* <sup>get</sup> **PixelFormat** As **PixelFormat**
+* <sup>get</sup> **PaletteSize**&
+* **Palette** As **ColorPalette**
 
-* Miscellaneous
-  * **SetAbort** (abort As **GdiPlusAbort**)
+### Thumbnails
+
+* **GetThumbnail** (..., <sup>opt</sup> callback As **GetThumbnailImageAbort**, callbackData As **LongPtr** = 0) As **Image**
+  * (thumbSize As **GpSize**, ...
+  * (thumbWidth&, thumbHeight&, ...
+
+### Frame Switching
+
+* <sup>get</sup> **FrameDimensionCount**&
+* <sup>get</sup> **FrameCount** (dimensionID As **UUID**) As **UINT**
+* **GetFrameDimensionsList**() As **UUID**()
+* **SelectActiveFrame** (dimensionID As **UUID**, frameIndex As **UINT**)
+* **RotateFlip** (rotateFlipType As **RotateFlipType**)
+
+### Image Property Collection
+
+* <sup>get</sup> **PropertyCount** As **UINT**
+* <sup>get</sup> **PropertyIDList** As **PROPID**()
+* <sup>get</sup> **PropertyItem** (propId As **PROPID**) As **GpPropertyItem()**
+* <sup>let</sup> **PropertyItem** As **GpPropertyItem**
+* **RemovePropertyItem** (propId As **PROPID**)
+* **GetAllPropertyItems** () As **GpPropertyItem()**
+* **GetEncoderParameterList** (clsidEncoder As **UUID**) As **GpEncoderParameter()**
+
+### Image Item Data
+
+* **FindFirstItem** () As **GpImageItemData()**
+* **FindNextItem** () As **GpImageItemData()**
+* **GetItemData** (item() As **GpImageItemData**)
+
+### Miscellaneous
+
+* **SetAbort** (abort As **GdiPlusAbort**)
+* **ForceValidation** () - forces validation of the image data
 
 ---
 
@@ -1599,38 +1653,45 @@ The following methods extend the functionality beyond that of [**ITransformable*
 
 Inherits [**Image**](#image).
 
-* Constructors
-  * **Bitmap** (..., useEmbeddedColorManagement As **Boolean** = False)
-    * (filename$, ...
-    * (stream As **IStream**, ...
-  * **Bitmap** (..., stride&, format As **PixelFormat**, <sup>Ref</sup> scan0 As **Byte**)
-    **Bitmap** (..., format As **PixelFormat** = PixelFormat32bppARGB)
-    **Bitmap** (..., target As **Graphics**)
-    * (size As **GpSizeF**, ...
-    * (width!, height!, ....
-  * **Bitmap** (surface As **IDirectDrawSurface7**)
-  * **Bitmap** (bi As **BITMAPINFO**, <sup>Ref</sup> data As **Byte**)
-  * **Bitmap** (hbm As **HBITMAP**, hpal As **HPALETTE**)
-  * **Bitmap** (hicon As **HICON**)
-  * **Bitmap** (hInstance As **HINSTANCE**, bitmapName$) - loads the bitmap from a named resource
-  * **Clone** (..., format As **PixelFormat**)
-    * (rect As **GpRect[F]**, ...
-    * (x!, y!, width!, height!, ...
-  * **CloneI** (x&, y&, width&, height&, format As **PixelFormat**)
-* Data Access
-  * **LockBits** (rect As **GpRect**, flags As **UINT**, format As **PixelFormat**, <sup>out</sup> data as **BitmapData**)
-  * **UnlockBits** (lockedData As **BItmapData**)
-  * *Property* **Pixel** (x&, y&) As **Color**
-* Other
-  * **ConvertFormat** (format as **PixelFormat**, dither As **DitherType**, palette As **PaletteType**, palette As **ColorPalette**, alphaThresholdPercent!)
-  * **ApplyEffect** (effect As **Effect**, roi As **GpRect**)
-  * **GetHistogram** (format as **HistogramFormat**) As **UINT()**
-  * **GetHistogram** (format As **HistogramFormat**, histogram() As **UINT**)
-  * <sup>get</sup> **HistogramSize** (format as **HistogramFormat**) As **UINT**
-  * **SetResolution** (xDpi&, yDpi&)
-* GDI interoperability
-  * **GetHBitmap**(background As **Color**, <sup>out</sup> hbm As **HBITMAP**)
-  * **GetHIcon** (<sup>out</sup> hIcon As **HICON**)
+### Constructors
+
+* **Bitmap** (..., useEmbeddedColorManagement As **Boolean** = False)
+  * (filename$, ...
+  * (stream As **IStream**, ...
+* **Bitmap** (..., stride&, format As **PixelFormat**, <sup>Ref</sup> scan0 As **Byte**)
+  **Bitmap** (..., format As **PixelFormat** = PixelFormat32bppARGB)
+  **Bitmap** (..., target As **Graphics**)
+  * (size As **GpSizeF**, ...
+  * (width!, height!, ....
+* **Bitmap** (surface As **IDirectDrawSurface7**)
+* **Bitmap** (bi As **BITMAPINFO**, <sup>Ref</sup> data As **Byte**)
+* **Bitmap** (hbm As **HBITMAP**, hpal As **HPALETTE**)
+* **Bitmap** (hicon As **HICON**)
+* **Bitmap** (hInstance As **HINSTANCE**, bitmapName$) - loads the bitmap from a named resource
+* **Clone** (..., format As **PixelFormat**)
+  * (rect As **GpRect[F]**, ...
+  * (x!, y!, width!, height!, ...
+* **CloneI** (x&, y&, width&, height&, format As **PixelFormat**)
+
+### Data Access
+
+* **LockBits** (rect As **GpRect**, flags As **UINT**, format As **PixelFormat**, <sup>out</sup> data as **BitmapData**)
+* **UnlockBits** (lockedData As **BItmapData**)
+* *Property* **Pixel** (x&, y&) As **Color**
+
+### Other
+
+* **ConvertFormat** (format as **PixelFormat**, dither As **DitherType**, palette As **PaletteType**, palette As **ColorPalette**, alphaThresholdPercent!)
+* **ApplyEffect** (effect As **Effect**, roi As **GpRect**)
+* **GetHistogram** (format as **HistogramFormat**) As **UINT()**
+* **GetHistogram** (format As **HistogramFormat**, histogram() As **UINT**)
+* <sup>get</sup> **HistogramSize** (format as **HistogramFormat**) As **UINT**
+* **SetResolution** (xDpi&, yDpi&)
+
+### GDI interoperability
+
+* **GetHBitmap**(background As **Color**, <sup>out</sup> hbm As **HBITMAP**)
+* **GetHIcon** (<sup>out</sup> hIcon As **HICON**)
 
 ---
 
@@ -1638,33 +1699,670 @@ Inherits [**Image**](#image).
 
 Inherits [**Image**](#image).
 
-* Constructors
-  * **Metafile** (hWmf As **HMETAFILE**, header As **WmfPlaceableFileHeader**, deleteWmf As **Boolean**)
-  * **Metafile** (hEmf As **HENHMETAFILE**, deleteWmf As **Boolean**)
-  * **Metafile** (filename$, ...)
-    * ...)
-    * ... header As **WmfPlaceableHeader**)
-  * **Metafile** (stream As **IStream**)
-  * **MetaFile** (refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description$)
-    * ...
-    * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
-  * **MetaFile** (filename\$, refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description\$)
-    * ...
-    * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
-  * **MetaFile** (stream As **IStream, refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description\$)
-    * ...
-    * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
-  * **Clone** ()
-* Properties
-  * <sup>get</sup> **MetafileHeader** As **MetafileHeader**
-  * **DownLevelRasterizationLimit** As **UINT** (DPI)
-* Methods
-  * **GetHENHMETAFILE** () As **HENHMETAFILE**
-  * **PlayRecord** (recordType As **GpEmfPlusRecordType**, flags As **UINT**, dataSize As **UINT**, <sup>out</sup> data As **Byte**)
-  * **ConvertToEmfPlus** (ref As **Graphics**, ..., <sup>opt</sup> failureFlag&, emfType As **GpEmfType** = EmfTypePlusOnly, <sup>opt</sup> description\$)
-    * ...
-    * ... filename\$, ...
-    * ... stream As **IStream**, ...
+### Constructors
+
+* **Metafile** (hWmf As **HMETAFILE**, header As **WmfPlaceableFileHeader**, deleteWmf As **Boolean**)
+* **Metafile** (hEmf As **HENHMETAFILE**, deleteWmf As **Boolean**)
+* **Metafile** (filename$, ...)
+  * ...)
+  * ... header As **WmfPlaceableHeader**)
+* **Metafile** (stream As **IStream**)
+* **MetaFile** (refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description$)
+  * ...
+  * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
+* **MetaFile** (filename\$, refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description\$)
+  * ...
+  * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
+* **MetaFile** (stream As **IStream, refHdc As **HDC**, ..., type As **GpEmfType** = EmfTypePlusDual, <sup>opt</sup> description\$)
+  * ...
+  * ... frameRect As **GpRect[F]**, frameUnit As **GpMetafileFrameUnit** = MetaFileFrameUnitGdi, ...
+* **Clone** ()
+
+### Properties
+
+* <sup>get</sup> **MetafileHeader** As **MetafileHeader**
+* **DownLevelRasterizationLimit** As **UINT** (DPI)
+
+### Methods
+
+* **GetHENHMETAFILE** () As **HENHMETAFILE**
+* **PlayRecord** (recordType As **GpEmfPlusRecordType**, flags As **UINT**, dataSize As **UINT**, <sup>out</sup> data As **Byte**)
+* **ConvertToEmfPlus** (ref As **Graphics**, ..., <sup>opt</sup> failureFlag&, emfType As **GpEmfType** = EmfTypePlusOnly, <sup>opt</sup> description\$)
+  * ...
+  * ... filename\$, ...
+  * ... stream As **IStream**, ...
+
+---
+
+## StringFormat
+
+### Constructors
+
+* **StringFormat** (flags As **GpStringFormatFlags** = 0, language As **LANGID** = LANG_NEUTRAL)
+* **GenericDefaultStringFormat** () As **StringFormat** - returns a generic default string format
+* **GenericTypographicStringFormat** () As **StringFormat** - returns a generic typographic string format
+* **Clone** ()
+
+### Format Flags
+
+* **Flags** As **GpStringFormatFlags**
+* **DirectionRightToLeft** As **Boolean**
+* **DirectionVertical** As **Boolean**
+* **NoFitBlackBox** As **Boolean**
+* **DisplayFormatControl** As **Boolean**
+* **NoFontFallback** As **Boolean**
+* **MeasureTrailingSpaces** As **Boolean**
+* **NoWrap** As **Boolean**
+* **LineLimit** As **Boolean**
+* **NoClip** As **Boolean**
+* **BypassGDI** As **Boolean**
+
+### Horizontal Alignment
+
+* **Alignment** As **GpStringAlignment**
+* <sup>get</sup> **IsAlignmentNear**, <sup>get</sup> **IsAlignmentCenter**, <sup>get</sup> **IsAlignmentFar** As **Boolean**
+* **SetAlignmentNear** (), **SetAlignmentCenter** (), **SetAlignmentFar** ()
+
+### Vertical (Line) Alignment
+
+* **LineAlignment** As **GpStringAlignment**
+* <sup>get</sup> **IsLineAlignmentNear**, <sup>get</sup> **IsLineAlignmentCenter**, <sup>get</sup> **IsLineAlignmentFar** As **Boolean**
+* **SetLineAlignmentNear** (), **SetLineAlignmentCenter** (), **SetLineAlignmentFar** ()
+
+### Hotkey Prefix
+
+* **HotkeyPrefix** As **GpHotkeyPrefix**
+* <sup>get</sup> **IsHotkeyPrefixNone**, <sup>get</sup> **IsHotkeyPrefixHide**, <sup>get</sup> **IsHotkeyPrefixShow** As **Boolean**
+* **SetHotkeyPrefixNone** (), **SetHotkeyPrefixShow** (), **SetHotkeyPrefixHide** ()
+
+
+### Trimming
+
+* **Trimming** As **GpStringTrimming**
+* <sup>get</sup> **IsTrimmingNone**, <sup>get</sup> **IsTrimmingCharacter**, <sup>get</sup> **IsTrimmingWord** As **Boolean**,
+  <sup>get</sup> **IsTrimmingEllipsisCharacter**, <sup>get</sup> **IsTrimmingEllipsisWord**, <sup>get</sup> **IsTrimmingEllipsisPath** As **Boolean**
+* **SetTrimmingNone** (), **SetTrimmingCharacter** (), **SetTrimmingWord** (),
+  **SetTrimmingEllipsisCharacter** (), **SetTrimmingEllipsisWord** (), **SetTrimmingEllipsisPath** ()
+
+### Tab Stops
+
+* <sup>get</sup> **TabStopCount** As **Long**
+* **SetTabStops** (firstTabOffset!, tabStops!())
+* **GetTabStops** (firstTabOffset!) As **Single()**
+* *SetTabStops** (firstTabOffset!, count&, tabStops!)
+* **GetTabStops** (count&, firstTabOffset!, tabStops!)
+
+### Digit Substitution
+
+* **DigitSubstitutionLanguage** As **LANGID**
+* <sup>get</sup> **DigitSubstitutionMethod** As **GpStringDigitSubstitute**
+* **SetDigitSubstitution** (language As **LANGID**, substitute As **GpStringDigitSubstitute**)
+* **SetDigitSubstitutionUser** (), **SetDigitSubstitutionNone** (),
+  **SetDigitSubstitutionNational** (), **SetDigitSubstitutionTraditional** ()
+* <sup>get</sup> **IsDigitSubstitutionUser**, <sup>get</sup> **IsDigitSubstitutionNone** As **Boolean**, 
+  <sup>get</sup> **IsDigitSubstitutionNational**, <sup>get</sup> **IsDigitSubstitutionTraditional** As **Boolean**
+
+### Measurable Character Ranges
+
+* <sup>get</sup> **MeasurableCharacterRangeCount**&
+* <sup>let</sup> **MeasurableCharacterRanges** (ranges() As **CharacterRange**)
+* **SetMeasurableCharacterRanges** (rangeCount&, ranges As **CharacterRange**)
+
+---
+
+## Region
+
+### Constructors
+
+* **Region** () - creates an infinite region
+* **Region** (rect As **GpRect[F]**) - creates a rectangular region
+* **Region** (path As **GraphicsPath**) - creates a region from a path
+* **Region** (regionData As **Byte**, size&) - creates a region from serialized region data
+* **FromHRGN** (hRgn As **LongPtr**) - creates a region from a GDI region handle
+* **Clone** ()
+
+### Properties
+
+* <sup>get</sup> **Bounds** (g As **Graphics**) As **GpRectF**
+* <sup>get</sup> **BoundsI** (g As **Graphics**) As **GpRect**
+
+### Set Operations
+
+Each of the following methods takes any of: **GpRect**, **GpRectF**, **GraphicsPath**, or **Region**:
+
+* **Intersect** (...) - sets this region to its intersection with the given shape
+* **Union** (...) - sets this region to its union with the given shape
+* **Xor** (...) - sets this region to the symmetric difference with the given shape
+* **Exclude** (...) - sets this region to the portion of this region that does not intersect the given shape
+* **Complement** (...) - sets this region to the portion of the given shape that does not intersect this region
+
+### State
+
+* **MakeInfinite** ()
+* **MakeEmpty** ()
+* <sup>get</sup> **GetDataSize** As **UINT**
+* **GetData** (<sup>out</sup> buffer As **Byte**, bufferSize As **UINT**, <sup>opt out</sup> sizeFilled&)
+
+### Translation and Transformation
+
+* **Translate** (...)
+  * ... pt As **GpPointF**
+  * ... dx!, dy!
+  * ... pt As **GpPoint**
+* **TranslateI** (dx&, dy&)
+* **Transform** (matrix As **Matrix**)
+
+### Query Methods
+
+* **IsEmpty** (g As **Graphics**) As **Boolean**
+* **IsInfinite** (g As **Graphics**) As **Boolean**
+* **IsEqualTo** (other As **Region**, g As **Graphics**) As **Boolean**
+* **GetHRGN** (g As **Graphics**) As **LongPtr** - converts to a GDI region handle
+
+### Visibility Tests
+
+* **IsVisible** (..., g As **Graphics**)
+  * ... x!, y!, ...
+  * ... point As **GpPoint[F]**, ...
+  * ... x!, y!, width!, height!, ...
+  * ... rect As **GpRect[F]**, ...
+* **IsVisibleI** (x&, y&, g As **Graphics**)
+* **IsVisibleI** (x&, y&, width&, height&, g As **Graphics**)
+
+### Region Scans
+
+* **GetRegionScans** (matrix As **Matrix**) As **GpRectF()**
+* **GetRegionScansI** (matrix As **Matrix**) As **GpRect()**
+* **GetRegionScansCount** (matrix As **Matrix**) As **UINT**
+* **GetRegionScans** (matrix As **Matrix**, <sup>out</sup> rects As **GpRectF**, <sup>out</sup> count&) - direct API: writes scan rectangles to a pre-allocated buffer
+* **GetRegionScans** (matrix As **Matrix**, <sup>out</sup> rects As **GpRect**, <sup>out</sup> count&) - direct API: integer variant
+
+---
+
+## CachedBitmap
+
+A **CachedBitmap** is a pre-rendered bitmap optimized for a specific **Graphics** context. It can be drawn faster than a regular bitmap on that context.
+
+### Constructors
+
+* **CachedBitmap** (bitmap As **Bitmap**, gr As **Graphics**)
+
+> [!NOTE]
+> The cached bitmap is only valid for the **Graphics** context it was created for. If the display resolution or color depth changes, the cached bitmap must be recreated.
+
+---
+
+## ImageAttributes
+
+**ImageAttributes** controls how image colors are adjusted during rendering. It provides color matrix transformations, gamma correction, color keying (transparency), and color remapping.
+
+### Constructors
+
+* **ImageAttributes** ()
+* **Clone** ()
+
+### Color Matrix
+
+* **SetColorMatrix** (colorMatrix As **ColorMatrix**, mode As **ColorMatrixFlags** = ColorMatrixFlagsDefault, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearColorMatrix** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetColorMatrices** (colorMatrix As **ColorMatrix**, grayMatrix As **ColorMatrix**, mode As **ColorMatrixFlags** = ColorMatrixFlagsDefault, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearColorMatrices** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+
+### Color Adjustments
+
+* **SetToIdentity** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **Reset** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetThreshold** (threshold!, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearThreshold** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetGamma** (gamma!, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearGamma** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetNoOp** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearNoOp** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+
+### Color Key (Transparency)
+
+* **SetColorKey** (rgbLow&, rgbHigh&, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetColorKey** (colorLow As **Color**, colorHigh As **Color**, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearColorKey** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+
+### Output Channel
+
+* **SetOutputChannel** (channelFlags As **ColorChannelFlags**, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearOutputChannel** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetOutputChannelColorProfile** (colorProfileFilename$, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearOutputChannelColorProfile** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+
+### Color Remapping
+
+* **SetRemapTable** (map() As **ColorMap**, type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **ClearRemapTable** (type As **ColorAdjustType** = ColorAdjustTypeDefault)
+* **SetBrushRemapTable** (map() As **ColorMap**)
+* **ClearBrushRemapTable** ()
+
+### Wrap Mode
+
+* **SetWrapMode** (wrap As **GpWrapMode**, rgb&, clamp As **Boolean** = False)
+* **SetWrapMode** (wrap As **GpWrapMode**, color As **Color**, clamp As **Boolean** = False)
+
+### Other
+
+* **SetCachedBackground** (enabled As **Boolean**)
+* **GetAdjustedPalette** (colorPalette As **ColorPalette**, colorAdjustType As **ColorAdjustType**)
+
+### Related Types
+
+#### ColorMap
+
+* **oldColor** As **Color**
+* **newColor** As **Color**
+* Constructor: **ColorMap** (oldColor As **Color**, newColor As **Color**)
+
+---
+
+## ImageCodec
+
+The **GdipImageCodec** module provides functions to enumerate available image encoders and decoders.
+
+* **GetImageDecoders** () As **GpImageCodecInfo()** - retrieves an array of available image decoders
+* **GetImageEncoders** () As **GpImageCodecInfo()** - retrieves an array of available image encoders
+
+### GpImageCodecInfo
+
+A UDT describing an image codec.
+
+* **Clsid** As **UUID** - the codec's COM class ID
+* **FormatID** As **UUID** - the image format ID
+* **Flags** As **GpImageCodecFlags**
+* **Version** As **Long**
+
+#### String Properties
+
+* <sup>get</sup> **CodecName**$
+* <sup>get</sup> **DllName**$
+* <sup>get</sup> **FormatDescription**$
+* <sup>get</sup> **FilenameExtension**$
+* <sup>get</sup> **MimeType**$
+
+#### Query Properties
+
+* <sup>get</sup> **IsEncoder** As **Boolean**
+* <sup>get</sup> **IsDecoder** As **Boolean**
+* <sup>get</sup> **IsSupportBitmap** As **Boolean**
+* <sup>get</sup> **IsSupportVector** As **Boolean**
+
+### Image Format GUIDs
+
+These functions return the well-known **UUID** values identifying image file formats. They are used with **Image.RawFormat** and related APIs.
+
+* **ImageFormatUndefined** () As **UUID**
+* **ImageFormatMemoryBMP** () As **UUID**
+* **ImageFormatBMP** () As **UUID**
+* **ImageFormatEMF** () As **UUID**
+* **ImageFormatWMF** () As **UUID**
+* **ImageFormatJPEG** () As **UUID**
+* **ImageFormatPNG** () As **UUID**
+* **ImageFormatGIF** () As **UUID**
+* **ImageFormatTIFF** () As **UUID**
+* **ImageFormatEXIF** () As **UUID**
+* **ImageFormatIcon** () As **UUID**
+* **ImageFormatHEIF** () As **UUID** - GDI+ v2+
+* **ImageFormatWEBP** () As **UUID** - GDI+ v2+
+
+### Frame Dimension GUIDs
+
+These functions return the well-known **UUID** values identifying frame dimensions in multi-frame images. They are used with **Image.FrameCount** and **Image.SelectActiveFrame**.
+
+* **FrameDimensionTime** () As **UUID**
+* **FrameDimensionResolution** () As **UUID**
+* **FrameDimensionPage** () As **UUID**
+
+### Property Set GUIDs
+
+* **FormatIDImageInformation** () As **UUID**
+* **FormatIDJpegAppHeaders** () As **UUID**
+
+### Encoder Parameter GUIDs
+
+These functions return the well-known **UUID** values identifying encoder parameters. They are used when constructing **GpEncoderParameter** arrays for **Image.Save**.
+
+* **EncoderCompression** () As **UUID**
+* **EncoderColorDepth** () As **UUID**
+* **EncoderScanMethod** () As **UUID**
+* **EncoderVersion** () As **UUID**
+* **EncoderRenderMethod** () As **UUID**
+* **EncoderQuality** () As **UUID**
+* **EncoderTransformation** () As **UUID**
+* **EncoderLuminanceTable** () As **UUID**
+* **EncoderChrominanceTable** () As **UUID**
+* **EncoderSaveFlag** () As **UUID**
+* **EncoderColorSpace** () As **UUID** - GDI+ v2+
+* **EncoderImageItems** () As **UUID** - GDI+ v2+
+* **EncoderSaveAsCMYK** () As **UUID** - GDI+ v2+
+
+### Image Codec GUIDs
+
+These functions return the well-known encoder **UUID** values for the built-in image codecs. They can be passed directly as the *clsIdEncoder* argument to **Image.Save**.
+
+* **ImageCodecBMP** () As **UUID**
+* **ImageCodecJPG** () As **UUID**
+* **ImageCodecGIF** () As **UUID**
+* **ImageCodecTIF** () As **UUID**
+* **ImageCodecPNG** () As **UUID**
+* **ImageCodecICO** () As **UUID**
+
+### Other GUIDs
+
+* **CodecIImageBytes** () As **UUID** - the IID of the **IImageBytes** interface
+
+---
+
+## ColorMatrix
+
+A 5&times;5 matrix of **Single** values used for color transformations in **ImageAttributes**. It is a UDT.
+
+$$
+M = \begin{bmatrix}
+m_{0,0} & m_{0,1} & m_{0,2} & m_{0,3} & m_{0,4} \\
+m_{1,0} & m_{1,1} & m_{1,2} & m_{1,3} & m_{1,4} \\
+m_{2,0} & m_{2,1} & m_{2,2} & m_{2,3} & m_{2,4} \\
+m_{3,0} & m_{3,1} & m_{3,2} & m_{3,3} & m_{3,4} \\
+m_{4,0} & m_{4,1} & m_{4,2} & m_{4,3} & m_{4,4}
+\end{bmatrix}
+$$
+
+* **m**(0 To 4, 0 To 4) As **Single**
+
+The rows correspond to: red, green, blue, alpha, and translation. The identity color matrix leaves colors unchanged.
+
+### Related Types
+
+#### ColorChannelLUT
+
+A lookup table for a single color channel.
+
+* **b**(0 To 255) As **Byte**
+
+### Related Enumerations
+
+#### ColorMatrixFlags
+
+* **ColorMatrixFlagsDefault** = 0
+* **ColorMatrixFlagsSkipGrays** = 1
+* **ColorMatrixFlagsAltGray** = 2
+
+#### ColorAdjustType
+
+* **ColorAdjustTypeDefault**, **ColorAdjustTypeBitmap**, **ColorAdjustTypeBrush**, **ColorAdjustTypePen**, **ColorAdjustTypeText**, **ColorAdjustTypeCount**, **ColorAdjustTypeAny**
+
+#### HistogramFormat
+
+* **HistogramFormatARGB**, **HistogramFormatPARGB**, **HistogramFormatRGB**, **HistogramFormatGray**, **HistogramFormatB**, **HistogramFormatG**, **HistogramFormatR**, **HistogramFormatA**
+
+---
+
+## CustomLineCap
+
+A custom line cap for use with [**Pen**](#pen).
+
+### Constructors
+
+* **CustomLineCap** (fillPath As **GraphicsPath**, strokePath As **GraphicsPath**, baseCap As **GpLineCap** = LineCapFlat, baseInset& = 0)
+* **Clone** ()
+
+### Properties
+
+* **BaseCap** As **GpLineCap**
+* **BaseInset**!
+* **WidthScale**!
+* **StrokeJoin** As **GpLineJoin**
+* **StartStrokeCap** As **GpLineCap**
+* **EndStrokeCap** As **GpLineCap**
+* <sup>let</sup> **StrokeCap** (strokeCap As **GpLineCap**) - sets both start and end stroke caps
+* **SetStrokeCaps** (startCap As **GpLineCap** = -1, endCap As **GpLineCap** = -1)
+* **GetStrokeCaps** (<sup>opt out</sup> startCap As **GpLineCap**, <sup>opt out</sup> endCap As **GpLineCap**)
+
+---
+
+## ArrowCap
+
+Inherits [**CustomLineCap**](#customlinecap). A built-in arrow-shaped line cap.
+
+### Constructors
+
+* **ArrowCap** (height!, width!, isFilled As **Boolean** = True)
+* **ArrowCap** (size As **GpSizeF**, isFilled As **Boolean** = True)
+* **Clone** ()
+
+### Properties
+
+* **Height**!
+* **Width**!
+* **Size**!
+* **MiddleInset**!
+* **FillState** As **Boolean** - whether the arrow cap is filled
+
+---
+
+## Effects
+
+Effects are image filters available in GDI+ version 2 (Windows 10+). They are applied to bitmaps via **Bitmap.ApplyEffect**.
+
+All effect classes inherit from **Effect** and expose a **Parameters** property that accepts and returns the corresponding parameter type.
+
+### Effect (Base Class)
+
+* <sup>get</sup> **AuxDataSize**&
+* <sup>get</sup> **AuxData** As **LongPtr**
+* **UseAuxData** As **Boolean**
+* **SetAuxData** (auxData As **LongPtr**, auxDataSize&)
+
+### Blur
+
+* **Blur** ()
+* **Blur** (params As **BlurParams**)
+* **Blur** (radius!, expandEdge As **Boolean**)
+* **Parameters** As **BlurParams**
+
+#### BlurParams
+
+* **radius**! - blur radius in pixels
+* **expandEdge** As **BOOL** - whether to expand the edge of the image
+
+### Sharpen
+
+* **Sharpen** ()
+* **Sharpen** (params As **SharpenParams**)
+* **Sharpen** (radius!, amount!)
+* **Parameters** As **SharpenParams**
+
+#### SharpenParams
+
+* **radius**! - sharpen radius
+* **amount**! - sharpen amount
+
+### BrightnessContrast
+
+* **BrightnessContrast** ()
+* **BrightnessContrast** (params As **BrightnessContrastParams**)
+* **BrightnessContrast** (brightness&, contrast&)
+* **Parameters** As **BrightnessContrastParams**
+
+#### BrightnessContrastParams
+
+* **brightness**& - range: -255 to 255
+* **contrast**& - range: -100 to 100
+
+### HueSaturationLightness
+
+* **HueSaturationLightness** ()
+* **HueSaturationLightness** (params As **HueSaturationLightnessParams**)
+* **HueSaturationLightness** (hue&, saturation&, lightness&)
+* **Parameters** As **HueSaturationLightnessParams**
+
+#### HueSaturationLightnessParams
+
+* **hue**& - range: -180 to 180
+* **saturation**& - range: -100 to 100
+* **lightness**& - range: -100 to 100
+
+### Levels
+
+* **Levels** ()
+* **Levels** (params As **LevelsParams**)
+* **Levels** (highlight&, midtone&, shadow&)
+* **Parameters** As **LevelsParams**
+
+#### LevelsParams
+
+* **highlight**& - range: 0 to 100
+* **midtone**& - range: -100 to 100
+* **shadow**& - range: 0 to 100
+
+### Tint
+
+* **Tint** ()
+* **Tint** (params As **TintParams**)
+* **Tint** (hue&, amount&)
+* **Parameters** As **TintParams**
+
+#### TintParams
+
+* **hue**& - range: -180 to 180
+* **amount**& - range: -100 to 100
+
+### ColorBalance
+
+* **ColorBalance** ()
+* **ColorBalance** (params As **ColorBalanceParams**)
+* **ColorBalance** (cyanRed&, magentaGreen&, yellowBlue&)
+* **Parameters** As **ColorBalanceParams**
+
+#### ColorBalanceParams
+
+* **cyanRed**& - range: -100 to 100
+* **magentaGreen**& - range: -100 to 100
+* **yellowBlue**& - range: -100 to 100
+
+### ColorMatrixEffect
+
+* **ColorMatrixEffect** ()
+* **ColorMatrixEffect** (params As **ColorMatrix**)
+* **Parameters** As **ColorMatrix**
+
+### ColorLUT
+
+* **ColorLUT** ()
+* **ColorLUT** (params As **ColorLUTParams**)
+* **ColorLUT** (lutB() As **Byte**, lutG() As **Byte**, lutR() As **Byte**, lutA() As **Byte**)
+* **Parameters** As **ColorLUTParams**
+
+#### ColorLUTParams
+
+* **lutB** As **ColorChannelLUT**
+* **lutG** As **ColorChannelLUT**
+* **lutR** As **ColorChannelLUT**
+* **lutA** As **ColorChannelLUT**
+
+### ColorCurve
+
+* **ColorCurve** ()
+* **ColorCurve** (params As **ColorCurveParams**)
+* **ColorCurve** (adjustment As **CurveAdjustments**, channel As **CurveChannel**, value&)
+* **Parameters** As **ColorCurveParams**
+
+#### ColorCurveParams
+
+* **adjustment** As **CurveAdjustments**
+* **channel** As **CurveChannel**
+* **value**&
+
+#### CurveAdjustments
+
+* **AdjustExposure**, **AdjustDensity**, **AdjustContrast**, **AdjustHighlight**, **AdjustShadow**, **AdjustMidtone**, **AdjustWhiteSaturation**, **AdjustBlackSaturation**
+
+#### CurveChannel
+
+* **CurveChannelAll**, **CurveChannelRed**, **CurveChannelGreen**, **CurveChannelBlue**
+
+### RedEyeCorrection
+
+* **RedEyeCorrection** ()
+* **RedEyeCorrection** (params As **RedEyeCorrectionParams**)
+* **Parameters** As **RedEyeCorrectionParams**
+
+#### RedEyeCorrectionParams
+
+* **numberOfAreas** As **UINT**
+* **areas** As **LongPtr** - pointer to an array of **RECT**
+
+---
+
+## VBGraphics
+
+A Visual Basic compatible graphics interface that provides `Line`, `Circle`, and `PSet` methods similar to VB6 Form graphics methods.
+
+> [!WARNING]
+>
+> This class is under development. The API isn't final, and not all features work yet.
+
+### Constructors
+
+* **VBGraphicsFromHDC** (hdc As **LongPtr**, hdevice As **LongPtr** = 0)
+* **BufferedVBGraphicsFromHDC** (hdc As **LongPtr**, drawArea As **GpRect**)
+* **VBGraphicsFromHWND** (hwnd As **LongPtr**)
+* **VBGraphicsFromHWNDWithICM** (hwnd As **LongPtr**)
+* **BufferedVBGraphicsFromHWND** (hwnd As **LongPtr**)
+* **VBGraphicsFromImage** (image As **Image**)
+
+### Drawing Methods
+
+* **Line** [**Step**] **(** x1!**,** y1! **)** [**Step**] **-** **(** x2!**,** y2! **)** [ **,** color& ] [**,** \[ **B** ][ **F** ] ] - usage
+  **Line** (flags As **VBPaintFlags**, x1!, y1!, x2!, y2!, clr&) - implementation
+* **Circle** [**Step**] **(** x!**,** y! **),** radius [**,** color&**,** start!**,** end!**,** aspect! ] - usage
+  **Circle** (flags As **VBPaintFlags**, x!, y!, radius!, clr&, start!, end!, aspect!)  - implementation
+* **PSet** [**Step**] **(** x!**,** y! **),** [*color*] - usage
+  **PSet** (flags As **VBPaintFlags**, x!, y!, clr&) - implementation
+
+### Properties
+
+* **CurrentX**!, **CurrentY**!
+  **Current** As **GpPointF** - the current drawing position
+* **DrawWidth**!
+* **ForeColor** As **Color**
+* **FillColor** As **Color**
+* **FillStyle** As **FillStyleConstants**
+* **UseTransparentAlpha** As **Boolean**
+
+---
+
+## MetafileHeader
+
+A UDT that describes the header of a [**Metafile**](#metafile-2).
+
+### Fields
+
+* **Type** As **GpMetafileType**
+* **Size** As **UINT**
+* **Version** As **UINT**
+* **EmfPlusFlags** As **UINT**
+* **DpiX**!, **DpiY**!
+* **X**&, **Y**&, **Width**&, **Height**&
+* **EmfPlusHeaderSize**&
+* **LogicalDpiX**&, **LogicalDpiY**&
+
+### Properties
+
+* <sup>get</sup> **Bounds** As **GpRect**
+* <sup>get</sup> **IsWmf** As **Boolean**
+* <sup>get</sup> **IsWmfPlaceable** As **Boolean**
+* <sup>get</sup> **IsEmf** As **Boolean**
+* <sup>get</sup> **IsEmfOrEmfPlus** As **Boolean**
+* <sup>get</sup> **IsEmfPlus** As **Boolean**
+* <sup>get</sup> **IsEmfPlusDual** As **Boolean**
+* <sup>get</sup> **IsEmfPlusOnly** As **Boolean**
+* <sup>get</sup> **IsDisplay** As **Boolean**
+* <sup>get</sup> **WmfHeader** As **METAHEADER**
+* <sup>get</sup> **EmfHeader** As **ENHMETAHEADER3**
 
 ---
 
